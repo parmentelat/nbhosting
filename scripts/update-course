@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# pull from upstream git repo
+# and updates the various parts accordingly
+
+COMMAND=$(basename $0)
+USAGE="Usage: $COMMAND nbhosting-root course" 
+
+[ "$#" -eq 2 ] || { echo $USAGE; exit 1; }
+
+root=$1; shift
+course=$1; shift
+
+#
+course_git=$root/courses-git/$course
+
+course_notebooks=$root/courses/$course
+course_modules=$root/modules/$course
+course_static=$root/static/$course
+
+course_logs=$root/logs/$course
+log=$course_logs/update-course.log
+
+[ -d $course_git ] || {
+    echo "$COMMAND: $course has not git repo in $course_git - aborting"
+    exit
+}
+
+
+rsync="rsync --recursive --safe-links --perms --times --force --delete"
+
+# start with the florian-benjamin's code
+# xxx needs fine tuning of rsync options for archive mode and similar
+function update_course() {
+
+    echo ==========  $(date): update_course
+
+    git pull
+    git submodule init
+    git submodule update
+    
+    # create course dirs if needed
+    for dir in $course_notebooks $course_modules $course_static; do
+	[ -d $dir ] || {
+	    echo Creating $dir
+	    mkdir -p $dir
+	}
+    done
+    
+    notebook_subdirs=$(ls -d w* W* 2> /dev/null)
+    [ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $course_notebooks/
+    [ -d modules ] && $rsync modules/ $course_modules
+    [ -d static ] && $rsync static/ $course_static
+    # for compat with previous git repo layout
+    for subdir in media data; do
+	[ -d $subdir ] && $rsync $subdir $course_static
+    done
+}
+
+[ -d $course_logs ] || mkdir -p $course_logs
+cd $course_git
+update_course >> $log 2>&1

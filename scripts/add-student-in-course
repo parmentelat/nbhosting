@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# create login name <student> if missing
+# create group name <course> if missing
+# create group docker if missing
+# add <student> to group <course> if needed
+# add <student> to group docker if needed
+#
+# of course this requires sufficient privileges - typically root
+#
+# groups:
+# it is unsure yet whether groups will be useful or not; so right now:
+# (*) course-groups are created as a convenience
+# (*) but in addition to the user's native group
+#
+# docker:
+# we need users to be able to invoke docker to start their notebook server(s)
+# from my experience on fedora25, this requires
+# (*) that we have a docker group
+# (*) that the user is in the docker group
+# (*) and the change only takes effect after a docker restart
+#
+
+COMMAND=$(basename $0)
+USAGE="Usage: $COMMAND nbhosting-root student course" 
+
+[ "$#" -eq 3 ] || { echo $USAGE; exit 1; }
+
+# from config - typically /nbhosting
+root=$1; shift
+# the unix login name
+student=$1; shift
+# the unix group name
+course=$1; shift
+
+# create students root if not yet present
+[ -d $root/students ] || mkdir -p $root/students
+
+student_home=$root/students/$student
+
+# check login existence
+getent passwd $student >& /dev/null || {
+    echo Creating disabled login $student
+    useradd --user-group --create-home --home-dir $student_home $student
+    # disable login
+    usermod -L $student
+}
+
+# add user to both groups 
+for group in docker $course; do 
+    # check group existence
+    getent group $group >& /dev/null || {
+	echo Creating group $group
+	groupadd $group
+    }
+    echo "Ensuring $student is in group $group"
+    groupmems -a $student -g $group &> /dev/null || :
+done
+
+systemctl restart docker
+
+# tweaks student's homedir permissions
+# xxx not really sure yet if that's useful..
+# chgrp -R apache $student_home
+# chmod 750 $student_home
+

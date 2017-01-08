@@ -1,0 +1,34 @@
+#/bin/bash -x
+
+root=/nbhosting-test
+course=flotbioinfo
+giturl=https://github.com/parmentelat/flotbioinfo.git
+
+log=$root/logs/$course/update-course.log
+
+function init() {
+    echo ++++++++++++++++++++ cleaning up $root
+    rm -rf $root	
+    echo ++++++++++++++++++++ creating git repo
+    mkdir -p $root/courses-git
+    cd $root/courses-git
+    git clone $giturl
+    cd -
+}
+
+function run() {
+    echo ++++++++++++++++++++ running update-course
+    rm -f $log
+    ./update-course $root $course
+    cat $log
+    
+    echo ++++++++++++++++++++ CONTENTS: dirs found in $root except git repo itself
+    find $root -type d | grep -v courses-git/$course
+    
+    echo ++++++++++++++++++++ CONTENTS: nbautoeval in git repo
+    ls -l $root/courses-git/$course/nbautoeval
+}
+
+# force clean/init phase with the --init arg
+[ "$1" == "init" ] && init
+run

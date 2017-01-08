@@ -1,0 +1,181 @@
+#!/bin/bash
+
+# primarily does 3 things
+#
+# (*) check for existence of notebook in the student's space
+# (*) make sure there is a notebook server ready and running for that couple student x course
+# (*) return written on stdout as
+#     docker-name docker-port jupyter-token
+#
+# if forcecopy is set to force, then the master notebook is always copied
+# into the student's space, even if pre existing
+
+COMMAND=$(basename $0)
+USAGE="Usage: $COMMAND nbhosting-root student course notebook [force]"
+
+[[ "$#" =~ [45] ]] || { echo $USAGE; exit 1; }
+
+# from config - typically /nbhosting
+root=$1; shift
+# student name - should exist as /nbhosting/students/$student
+student=$1; shift
+# course name - should exist as /nbhosting/courses/$course
+course=$1; shift
+# notebook path - should exit as /nbhosting/courses/$course/$notebook
+notebook=$1; shift
+# if forcecopy is 'force', then the student's copy is overwritten
+# from the course copy
+forcecopy=$1; shift
+
+# all the verbosity goes to stderr as stdout is meant for the caller
+function echo-stderr() {
+    >&2 echo "$@"
+}
+
+function die() {
+    echo-stderr "$@"
+    exit 1
+}
+
+# globals
+current_uid=$(id -un)
+
+student_home=$root/students/$student
+student_course=$student_home/$course
+student_notebook=$student_course/$notebook
+student_modules=$student_course/modules
+student_static=$student_course/static
+
+course_nbroot=$root/courses/$course
+course_notebook=$course_nbroot/$notebook
+course_modules=$root/modules/$course
+course_static=$root/static/$course
+
+docker_name=${course}-x-${student}
+
+log=$root/logs/$course/run-$student.log
+
+# rain check
+[ -d $student_home ] || die student dir not found $student_home
+[ -d $course_nbroot ] || die course notebooks dir not found $course_nbroot
+[ -f $course_notebook ] || die master notebook not found in course $course_notebook
+# not enforced yet
+#[ $current_uid == $student ] || echo-stderr WARNING should be run as uid $student
+[ -d $course_modules ] || echo-stderr WARNING $course_modules dir not found
+[ -d $course_static ] || echo-stderr WARNING $course_static dir not found
+
+# tmp
+for var in student_home course_nbroot course_notebook student_notebook; do
+    echo-stderr $var = ${!var}
+done
+
+function mkdir-for-file () {
+    filename=$1; shift
+    dir=$(dirname $filename)
+    [ -d $dir ] || {
+	echo-stderr Creating directory $dir for $filename
+	mkdir -p $dir
+    }
+}
+
+# make sure the student has a copy of the nodebook
+function check-student-notebook() {
+    # copy if student notebook is missing, or if force is requested
+    if [ ! -f $student_notebook ] || [ "$forcecopy" == "force" ]; then
+	mkdir-for-file $student_notebook
+	echo-stderr Creating $student_notebook from $course_notebook 
+	cp $course_notebook $student_notebook
+    else
+	echo-stderr Student copy $student_notebook is fine
+    fi
+    #
+    # the notebook server will run in $student_course
+    # so this is where the static/ and modules/ symlinks are needed
+    #
+    [ -h $student_modules ] || {
+	echo-stderr Creating modules symlink $student_modules
+	mkdir-for-file $student_modules
+	ln -fs $course_modules $student_modules
+    }
+    [ -h $student_static ] || {
+	echo-stderr Creating static symlink $student_static
+	mkdir-for-file $student_static
+	ln -fs $course_static $student_static
+    }
+}
+
+# grep token /nbhosting-test/students/john/flotbioinfo/runtime/share/jupyter/runtime/nbserver-7.json
+# "token": "205c97892d61ef1c8434ab6dddb1731182a8ae2fce8d2956",
+function parse-token() {
+    student_runtime=$1; shift
+    json_file=$student_runtime/share/jupyter/runtime/nbserver-7.json
+    # allow for a grace timeout before deciding it's hopeless
+    local seconds=3
+    local loops=$(($seconds * 10))
+    for i in $(seq $loops); do
+	if [ -f $json_file ]; then
+	    break
+	else
+	    echo-stderr "$i-th attempt at token file $json_file .."
+	    sleep .1
+	fi
+    done
+    # still not there after 1s, bail out...
+    [ -f $json_file ] || { echo 0; return 1; }
+    
+    grep token $json_file | sed -e 's,", ,g' -e 's,:, ,g' | awk '{print $2;}'
+}
+
+# we name the docker instance as <course>-x-<student>
+# we have the ability to assign a port - that will be mapped into container's fixed 8888
+# v0 : hard-wired port
+function run-docker-instance() {
+    # xxx hard-wired for now - one that is actually open
+    local docker_port=8000
+    # xxx ditto
+    docker_image=jupyter/scipy-notebook
+
+    #  exit with retcode != 0 if anything goes south
+    set -e
+    
+    local student_runtime=$student_course/runtime
+    [ -d $student_runtime ] || {
+	echo-stderr Creating runtime $student_runtime
+	mkdir -p $student_runtime
+	chown -R $student:$student $student_runtime
+    }
+    
+    # check if container docker_name is already defined
+    docker inspect $docker_name >& /dev/null || {
+	echo-stderr Creating docker container $docker_name
+	# map host port to fixed 8888 in container
+	# bind  mounts so that the user's data is out of the container
+	# prevent clobbering of stdout
+	 >&2 sudo -u $student docker create --name $docker_name \
+	     -p $docker_port:8888 \
+	     -v $student_course:/home/jovyan/work \
+	     -v $student_runtime:/home/jovyan/.local \
+	     $docker_image start-notebook.sh --NotebookApp.token=''
+    }
+	
+    # start container docker_name
+    # prevent clobbering of stdout
+    >&2 sudo -u $student docker start $docker_name 
+
+    local jupyter_token=$(parse-token $student_runtime)
+    [ $jupyter_token == 0 ] && exit 1
+    # this is the only thing that goes on stdout
+    echo $docker_name $docker_port $jupyter_token
+}
+
+function main() {
+    check-student-notebook
+    run-docker-instance
+}
+
+echo-stderr "========== $(date)"
+# we always leave stdout alone as it's the outcome of this script
+# but as far as stderr, we want to log it and to return it in stderr
+main 2> >(tee $log >&2)
+
+exit 0
