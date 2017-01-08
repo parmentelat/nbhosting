@@ -27,7 +27,7 @@ log=$course_logs/update-course.log
 }
 
 
-rsync="rsync --recursive --safe-links --perms --times --force --delete"
+rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 
 # start with the florian-benjamin's code
 # xxx needs fine tuning of rsync options for archive mode and similar

@@ -161,6 +161,8 @@ function run-docker-instance() {
 	     -p $docker_port:8888 \
 	     -v $student_course:/home/jovyan/work \
 	     -v $student_runtime:/home/jovyan/.local \
+	     -v $course_modules:/home/jovyan/modules \
+	     -e PYTHONPATH="/home/jovyan/modules" \
 	     $docker_image
     }
 	
