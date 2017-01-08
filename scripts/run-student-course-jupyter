@@ -27,6 +27,14 @@ notebook=$1; shift
 # from the course copy
 forcecopy=$1; shift
 
+########## constants
+# the name of a file where details on the running jupyter are exposed
+# including the value for the auth token
+# this change would be welcome but somehow it does not propagate
+# down to the jupyter service that still creates nbserver-7.json
+#connection_details="connection-details.json"
+connection_details="nbserver-7.json"
+
 # set to any non-empty string to enable
 debug=
 
@@ -47,12 +55,16 @@ student_home=$root/students/$student
 student_course=$student_home/$course
 student_notebook=$student_course/$notebook
 student_modules=$student_course/modules
-student_static=$student_course/static
+
+#student_media=$student_course/media
+#student_data=$student_course/data
 
 course_nbroot=$root/courses/$course
 course_notebook=$course_nbroot/$notebook
 course_modules=$root/modules/$course
-course_static=$root/static/$course
+
+course_media=$root/static/$course/media
+course_data=$root/static/$course/data
 
 docker_name=${course}-x-${student}
 
@@ -65,7 +77,8 @@ log=$root/logs/$course/run-$student.log
 # not enforced yet
 #[ $current_uid == $student ] || echo-stderr WARNING should be run as uid $student
 [ -d $course_modules ] || echo-stderr WARNING $course_modules dir not found
-[ -d $course_static ] || echo-stderr WARNING $course_static dir not found
+[ -d $course_media ] || echo-stderr WARNING $course_media dir not found
+[ -d $course_data ] || echo-stderr WARNING $course_data dir not found
 
 # tmp
 for var in student_home course_nbroot course_notebook student_notebook; do
@@ -92,27 +105,39 @@ function check-student-notebook() {
     else
 	[ -n "$debug" ] && echo-stderr Student copy $student_notebook is fine
     fi
-    #
-    # the notebook server will run in $student_course
-    # so this is where the static/ and modules/ symlinks are needed
-    #
-    [ -h $student_modules ] || {
-	echo-stderr Creating modules symlink $student_modules
-	mkdir-for-file $student_modules
-	ln -fs $course_modules $student_modules
-    }
-    [ -h $student_static ] || {
-	echo-stderr Creating static symlink $student_static
-	mkdir-for-file $student_static
-	ln -fs $course_static $student_static
-    }
+    # 
+    # nothing else is required in the student's work area
+    # the rest (modules, media, data) will be bind-mounted
+    # in the docker container
+    # 
+###    # as far as modules
+###    #
+###    # the notebook server will run in $student_course
+###    # so this is where the static/ and modules/ symlinks are needed
+###    #
+###    [ -h $student_modules ] || {
+###	echo-stderr Creating modules symlink $student_modules
+###	mkdir-for-file $student_modules
+###	ln -fs $course_modules $student_modules
+###    }
+###    [ -h $student_media ] || {
+###	echo-stderr Creating media symlink $student_media
+###	mkdir-for-file $student_media
+###	ln -fs $course_media $student_media
+###    }
+###    [ -h $student_data ] || {
+###	echo-stderr Creating data symlink $student_data
+###	mkdir-for-file $student_data
+###	ln -fs $course_data $student_data
+###    }
 }
 
 # grep token /nbhosting-test/students/john/flotbioinfo/runtime/share/jupyter/runtime/nbserver-7.json
 # "token": "205c97892d61ef1c8434ab6dddb1731182a8ae2fce8d2956",
 function parse-token() {
     student_runtime=$1; shift
-    json_file=$student_runtime/share/jupyter/runtime/nbserver-7.json
+    # we reconfigure jupyter to use a specific filename for that details file
+    json_file=$student_runtime/share/jupyter/runtime/${connection_details}
     # allow for a grace timeout before deciding it's hopeless
     local seconds=3
     local loops=$(($seconds * 10))
@@ -134,6 +159,7 @@ function parse-token() {
 # we have the ability to assign a port - that will be mapped into container's fixed 8888
 # v0 : hard-wired port
 function run-docker-instance() {
+    set -x
     # xxx hard-wired for now - one that is actually open
     local docker_port=8000
     # xxx ditto
@@ -162,8 +188,14 @@ function run-docker-instance() {
 	     -v $student_course:/home/jovyan/work \
 	     -v $student_runtime:/home/jovyan/.local \
 	     -v $course_modules:/home/jovyan/modules \
+	     -v $course_media:/home/jovyan/work/media \
+	     -v $course_data:/home/jovyan/work/data \
 	     -e PYTHONPATH="/home/jovyan/modules" \
-	     $docker_image
+	     $docker_image start-notebook.sh \
+	     --NotebookApp.trust_xheaders=True \
+	     --ConnectionFileMixin.connection_file=${connection_details} \
+	     --JupyterApp.answer_yes=True \
+
     }
 	
     # start container docker_name
@@ -174,6 +206,8 @@ function run-docker-instance() {
     [ $jupyter_token == 0 ] && exit 1
     # this is the only thing that goes on stdout
     echo $docker_name $docker_port $jupyter_token
+
+    set +x
 }
 
 function main() {

@@ -17,6 +17,8 @@ course_git=$root/courses-git/$course
 course_notebooks=$root/courses/$course
 course_modules=$root/modules/$course
 course_static=$root/static/$course
+course_data=$root/static/$course/data
+course_media=$root/static/$course/media
 
 course_logs=$root/logs/$course
 log=$course_logs/update-course.log
@@ -40,7 +42,7 @@ function update_course() {
     git submodule update
     
     # create course dirs if needed
-    for dir in $course_notebooks $course_modules $course_static; do
+    for dir in $course_notebooks $course_modules $course_data $course_media; do
 	[ -d $dir ] || {
 	    echo Creating $dir
 	    mkdir -p $dir
