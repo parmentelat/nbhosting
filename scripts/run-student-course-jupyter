@@ -27,6 +27,9 @@ notebook=$1; shift
 # from the course copy
 forcecopy=$1; shift
 
+# set to any non-empty string to enable
+debug=
+
 # all the verbosity goes to stderr as stdout is meant for the caller
 function echo-stderr() {
     >&2 echo "$@"
@@ -66,15 +69,16 @@ log=$root/logs/$course/run-$student.log
 
 # tmp
 for var in student_home course_nbroot course_notebook student_notebook; do
-    echo-stderr $var = ${!var}
+    [ -n "$debug" ] && echo-stderr $var = ${!var}
 done
 
+# create directory/ies leading to file <file>
 function mkdir-for-file () {
     filename=$1; shift
     dir=$(dirname $filename)
     [ -d $dir ] || {
 	echo-stderr Creating directory $dir for $filename
-	mkdir -p $dir
+	sudo -u $student mkdir -p $dir
     }
 }
 
@@ -84,9 +88,9 @@ function check-student-notebook() {
     if [ ! -f $student_notebook ] || [ "$forcecopy" == "force" ]; then
 	mkdir-for-file $student_notebook
 	echo-stderr Creating $student_notebook from $course_notebook 
-	cp $course_notebook $student_notebook
+	sudo -u $student cp $course_notebook $student_notebook
     else
-	echo-stderr Student copy $student_notebook is fine
+	[ -n "$debug" ] && echo-stderr Student copy $student_notebook is fine
     fi
     #
     # the notebook server will run in $student_course
