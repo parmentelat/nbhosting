@@ -150,12 +150,14 @@ function run-docker-instance() {
 	echo-stderr Creating docker container $docker_name
 	# map host port to fixed 8888 in container
 	# bind  mounts so that the user's data is out of the container
+	# for turning off token auth, we would need to specify the command to run:
+	# start-notebook.sh --NotebookApp.token=''
 	# prevent clobbering of stdout
 	 >&2 sudo -u $student docker create --name $docker_name \
 	     -p $docker_port:8888 \
 	     -v $student_course:/home/jovyan/work \
 	     -v $student_runtime:/home/jovyan/.local \
-	     $docker_image start-notebook.sh --NotebookApp.token=''
+	     $docker_image
     }
 	
     # start container docker_name
