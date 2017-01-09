@@ -36,7 +36,7 @@ forcecopy=$1; shift
 connection_details="nbserver-7.json"
 
 # set to any non-empty string to enable
-debug=
+debug=true
 
 # all the verbosity goes to stderr as stdout is meant for the caller
 function echo-stderr() {
@@ -87,12 +87,27 @@ done
 
 # create directory/ies leading to file <file>
 function mkdir-for-file () {
-    filename=$1; shift
-    dir=$(dirname $filename)
+    local filename=$1; shift
+    local dir=$(dirname $filename)
     [ -d $dir ] || {
 	echo-stderr Creating directory $dir for $filename
 	sudo -u $student mkdir -p $dir
     }
+}
+
+# create symlink right where the notebook is, not only at the top
+function create-symlink-at-file () {
+    local filename=$1; shift
+    local destination=$1; shift
+    
+    local dir=$(dirname $filename)
+    local destname=$(basename $destination)
+    # the symlink should
+    # be in dir/ (like filename)
+    # be named destname
+    # and point at destination
+    local source=$dir/$destname
+    ln -sf $destination $dir/$destname
 }
 
 # make sure the student has a copy of the nodebook
@@ -102,6 +117,8 @@ function check-student-notebook() {
 	mkdir-for-file $student_notebook
 	echo-stderr Creating $student_notebook from $course_notebook 
 	sudo -u $student cp $course_notebook $student_notebook
+	create-symlink-at-file $student_notebook /home/jovyan/work/media
+	create-symlink-at-file $student_notebook /home/jovyan/work/data
     else
 	[ -n "$debug" ] && echo-stderr Student copy $student_notebook is fine
     fi
@@ -110,26 +127,6 @@ function check-student-notebook() {
     # the rest (modules, media, data) will be bind-mounted
     # in the docker container
     # 
-###    # as far as modules
-###    #
-###    # the notebook server will run in $student_course
-###    # so this is where the static/ and modules/ symlinks are needed
-###    #
-###    [ -h $student_modules ] || {
-###	echo-stderr Creating modules symlink $student_modules
-###	mkdir-for-file $student_modules
-###	ln -fs $course_modules $student_modules
-###    }
-###    [ -h $student_media ] || {
-###	echo-stderr Creating media symlink $student_media
-###	mkdir-for-file $student_media
-###	ln -fs $course_media $student_media
-###    }
-###    [ -h $student_data ] || {
-###	echo-stderr Creating data symlink $student_data
-###	mkdir-for-file $student_data
-###	ln -fs $course_data $student_data
-###    }
 }
 
 # grep token /nbhosting-test/students/john/flotbioinfo/runtime/share/jupyter/runtime/nbserver-7.json
@@ -141,6 +138,7 @@ function parse-token() {
     # allow for a grace timeout before deciding it's hopeless
     local seconds=3
     local loops=$(($seconds * 10))
+    local i
     for i in $(seq $loops); do
 	if [ -f $json_file ]; then
 	    break
@@ -159,7 +157,7 @@ function parse-token() {
 # we have the ability to assign a port - that will be mapped into container's fixed 8888
 # v0 : hard-wired port
 function run-docker-instance() {
-    set -x
+    [ -n "$debug" ] && set -x
     # xxx hard-wired for now - one that is actually open
     local docker_port=8000
     # xxx ditto
@@ -207,7 +205,7 @@ function run-docker-instance() {
     # this is the only thing that goes on stdout
     echo $docker_name $docker_port $jupyter_token
 
-    set +x
+    [ -n "$debug" ] && set +x
 }
 
 function main() {
