@@ -10,10 +10,13 @@ function init() {
     echo ++++++++++++++++++++ cleaning up $root
     rm -rf $root	
     echo ++++++++++++++++++++ creating git repo
-    mkdir -p $root/courses-git
-    cd $root/courses-git
-    git clone $giturl
-    cd -
+    ./init-course $root $course $giturl
+    echo "after init-course"
+    ls $root/courses-git/$course
+    userdel john
+    userdel mary
+    # xxx tmp
+    ln -s /root/nbhosting-sync/scripts $root
 }
 
 function run() {
@@ -29,6 +32,6 @@ function run() {
     ls -l $root/courses-git/$course/nbautoeval
 }
 
-# force clean/init phase with the --init arg
+# force clean/init phase with the 'init' single arg
 [ "$1" == "init" ] && init
 run

@@ -5,7 +5,7 @@ import subprocess
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 
-from nbhosting.settings import nbhosting_settings as settings
+from nbhosting.settings import logger, nbhosting_settings as settings
 
 # Create your views here.
 
@@ -26,36 +26,33 @@ def error_page(course, student, notebook, message=None):
 def verbatim(text):
     return "<pre><code>{}</code></pre>".format(text)
 
-# the main frontend entry point
-# the ipynb extension is removed from the notebook name in urls.py
+# the main edxfront entry point
 def notebook_request(request, course, student, notebook):
 
     root = settings['root']
+    # the ipynb extension is removed from the notebook name in urls.py
+    notebook_full = notebook + ".ipynb"
+    
     # xxx probably requires a sudo of some kind here
     # for when run from apache or nginx or whatever
 
     script = os.path.join(root, 'scripts/add-student-in-course')
     command = [ script, root, student, course ]
-    print("pwd={}".format(os.getcwd()))
-    print("Running command", " ".join(command))
-    completed_process = subprocess.run(command,
-                                       universal_newlines=True,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
-    print(completed_process)
+    logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
+    completed_process = subprocess.run(
+        command, universal_newlines=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    logger.info("<- {}".format(completed_process))
 
     script = os.path.join(root, 'scripts/run-student-course-jupyter')
-
-    notebook_full = notebook + ".ipynb"
     command = [ script, root, student, course, notebook_full ]
-    print("Running command", " ".join(command))
-    completed_process = subprocess.run(command,
-                                       universal_newlines=True,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+    logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
+    completed_process = subprocess.run(
+        command, universal_newlines=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    logger.info("<- {}".format(completed_process))
 
     if completed_process.returncode != 0:
-        print(completed_process)
         return error_page(
             course, student, notebook,
             "command {} returned {}<br/>stderr:{}"
@@ -64,10 +61,12 @@ def notebook_request(request, course, student, notebook):
     try:
         docker_name, docker_port, jupyter_token = completed_process.stdout.split()
         host = request.get_host()
+        # remove initial port if present
+        if ':' in host:
+            host, _ = host.split(':', 1)
         url = "http://{}:{}/notebooks/{}?token={}"\
               .format(host, docker_port, notebook_full, jupyter_token)
-        print("host={} new port = {}".format(host, docker_port))
-        print("redirecting to {}".format(url))
+        logger.info("edxfront: redirecting to {}".format(url))
         return HttpResponseRedirect(url)
 
     except Exception as e:

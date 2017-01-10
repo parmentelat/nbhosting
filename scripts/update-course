@@ -21,22 +21,22 @@ course_data=$root/static/$course/data
 course_media=$root/static/$course/media
 
 course_logs=$root/logs/$course
-log=$course_logs/update-course.log
-
-[ -d $course_git ] || {
-    echo "$COMMAND: $course has not git repo in $course_git - aborting"
-    exit
-}
-
+log=$course_logs/$COMMAND.log
 
 rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 
 # start with the florian-benjamin's code
 # xxx needs fine tuning of rsync options for archive mode and similar
-function update_course() {
+function update-course() {
 
-    echo ==========  $(date): update_course
+    [ -d $course_git ] || {
+	echo "$COMMAND: $course has not git repo in $course_git - aborting"
+	exit
+    }
 
+    echo ==========  $(date): update-course
+
+    cd $course_git
     git pull
     git submodule init
     git submodule update
@@ -60,5 +60,4 @@ function update_course() {
 }
 
 [ -d $course_logs ] || mkdir -p $course_logs
-cd $course_git
-update_course >> $log 2>&1
+update-course >> $log 2>&1

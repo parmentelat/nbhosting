@@ -16,11 +16,11 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-import frontend.views
+import edxfront.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^ipythonExercice/(?P<course>[\w_.]+)/(?P<notebook>[-\w_\+/]+)(.ipynb)?/(?P<student>\w+)$',
-        frontend.views.notebook_request
+        edxfront.views.notebook_request
     ),
 ]

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# pull from upstream git repo
+# and updates the various parts accordingly
+
+COMMAND=$(basename $0)
+USAGE="Usage: $COMMAND nbhosting-root course giturl" 
+
+[ "$#" -eq 3 ] || { echo $USAGE; exit 1; }
+
+root=$1; shift
+course=$1; shift
+giturl=$1; shift
+
+#
+course_git=$root/courses-git/$course
+
+course_logs=$root/logs/$course
+log=$course_logs/$COMMAND.log
+
+function init-course() {
+    [ -d $course_git ] && {
+	echo Course already present in $course_git
+	exit 1
+    }
+    
+    echo ==========  $(date): init-course from $giturl
+    mkdir -p $root/courses-git
+    cd $root/courses-git
+    echo Creating $course in $(pwd)
+    cd $course_git
+    echo Running git clone $giturl $course
+    git clone $giturl $clone
+}
+
+[ -d $course_logs ] || mkdir -p $course_logs
+init-course >> $log 2>&1

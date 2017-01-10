@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import os.path
+
+from .logger import init_logger
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -25,7 +27,11 @@ SECRET_KEY = 'xb1ys4a$_cp5te*wk=+&5ud5)5pj9v+iykoff)juur@ift47(v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ 'nbhosting.pl.sophia.inria.fr' ]
+ALLOWED_HOSTS = [
+    'nbhosting.inria.fr',
+    'nbhosting.pl.sophia.inria.fr',
+    'localhost',
+]
 
 
 # Application definition
@@ -119,8 +125,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+####################
 nbhosting_settings = {
     'root' : '/nbhosting-test',
     # not yet available
     'proxy_url' : None,
 }
+
+# this will create <root>/logs - and thus <root> - if needed
+LOG_FILE = os.path.join(nbhosting_settings['root'], 'logs', 'nbhosting.log')
+logger = init_logger(LOG_FILE)

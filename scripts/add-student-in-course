@@ -33,6 +33,9 @@ student=$1; shift
 # the unix group name
 course=$1; shift
 
+echo $COMMAND "$@"
+echo running in $(pwd) as $(id)
+
 # create students root if not yet present
 [ -d $root/students ] || mkdir -p $root/students
 
@@ -54,10 +57,16 @@ for group in docker $course; do
 	groupadd $group
     }
     echo "Ensuring $student is in group $group"
-    groupmems -a $student -g $group &> /dev/null || :
+    groupmems -a $student -g $group &> /dev/null
+    # xxx we need to restart docker here
+    # if user was not in docker group already
+    # but this is too intrusive !
+    # would be worth trying with reload instead
+    if [ $? != 0 -a "$group" == "docker" ]; then
+	echo "restarting docker service after adding $student into docker"
+	systemctl restart docker
+    fi
 done
-
-systemctl restart docker
 
 # tweaks student's homedir permissions
 # xxx not really sure yet if that's useful..
