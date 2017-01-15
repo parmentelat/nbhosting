@@ -207,7 +207,8 @@ function run-docker-instance() {
 	     --NotebookApp.token=$jupyter_token \
 	     --NotebookApp.trust_xheaders=True \
 	     --JupyterApp.answer_yes=True \
-
+	     --log-level=DEBUG \
+	     
     }
 	
     # start container docker_name
