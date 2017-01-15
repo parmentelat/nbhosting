@@ -55,10 +55,11 @@ function l4() { logs-nbhosting; }
 function l5() { jour-nbhosting; }
 function l6() { jour-docker; }
 
-function defl() {
+# define l
+#echo "Configure with e.g. dl 4 - Run with just l"
+function dl() {
     n=$1; shift;
     function l() { echo "Running $(type l$n)"; l$n; }
 }
 
-echo "Configure with e.g. defl 4 - Run with just l"
 

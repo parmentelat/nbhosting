@@ -3,6 +3,8 @@
 from asynciojobs import Scheduler
 from apssh import SshNode, SshJob, Run, Push, ColonFormatter
 
+verbose=False
+
 nbhosting = SshNode(
     hostname="nbhosting.inria.fr",
     username="root",
@@ -16,16 +18,18 @@ def sync():
 
     SshJob(node=nbhosting,
            scheduler=s,
+           verbose=verbose,
            keep_connection=True,
            commands=[
                Push(localpaths=paths_str.split(), remotepath="nbhosting-sync/",
-                    recurse=True),
+                    recurse=True, preserve=True),
                Push(localpaths="public_html", remotepath="/var/lib/nginx/",
                     recurse=True),
            ])
                
     SshJob(node=nbhosting,
            scheduler=s,
+           verbose=verbose,
            keep_connection=True,
            commands=[
                Push(localpaths="nginx/nbhosting.conf", remotepath="/etc/nginx/conf.d"),
@@ -34,6 +38,7 @@ def sync():
                
     SshJob(node=nbhosting,
            scheduler=s,
+           verbose=verbose,
            keep_connection=True,
            commands=[
                Push(localpaths="uwsgi/nbhosting.ini", remotepath="/etc/uwsgi.d/"),
