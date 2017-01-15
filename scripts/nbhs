@@ -1,0 +1,48 @@
+#!/bin/bash
+# -*- shell-script -*-
+#
+# nbhs = nbhosting status
+# a developer tool for getting an overview of what's going on
+#
+
+root=/nbhosting-test
+
+function status-users() {
+    echo "--- USERS in passwd"
+    grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/passwd | grep -v '^nfsnobody'
+    echo "--- USERS in group"
+    grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/group | egrep -v '^(nfsnobody|docker)'
+}
+
+function list-tree() {
+    find $root -type d | fgrep -v '/.git/'
+}
+
+function status-tree() {
+    echo "--- courses in $root/courses-git"
+    ls $root/courses-git
+    echo "--- courses in $root/courses"
+    ls $root/courses
+    echo "--- students in $root"
+    ls $root/students
+}
+
+function status-docker() {
+    echo "--- all docker containers"
+    docker ps -a
+    echo "--- running docker containers"
+    docker ps
+}
+
+function status() {
+#    list-tree
+    status-tree
+    status-users
+    status-docker
+}
+
+# if args are provided, take this as a call to a local function
+# e.g. meta status-tree => status-tree
+# or call just status by default
+[[ -z "$@" ]] && status || "$@"
+

@@ -1,0 +1,64 @@
+# -*- shell-script -*-
+
+#
+# aliases : developer helper functions to inspect various logs 
+#
+
+here=$(dirname $(readlink -f $BASH_SOURCE))
+
+# add $here to PATH
+export PATH=.:$here:$PATH
+
+function refresh() {
+    source $here/logaliases
+}
+
+##########
+function -jour() {
+    unit=$1; shift
+    journalctl --unit=unit -f "$@"
+}
+
+function jour-nginx()		{ -jour nginx; }
+function jour-nbhosting()	{ -jour nbhosting; }
+function jour-docker()		{ -jour docker; }
+
+
+##########
+function logs-nginx() {
+    -logs $(find /var/log -type f | grep nginx | grep -v '\.gz$')
+}
+
+function logs-nbhosting() {
+    -logs logs=$(find /nbhosting*/logs -type f)
+}
+
+function -logs() {
+    logs="$@"
+    echo ++++++++++
+    ls -l $logs
+    echo ++++++++++
+    echo -n "OK ? "; read _
+    tail -f $logs
+}
+
+
+function logs-jupyter() {
+    docker logs -f flotbioinfo-x-mary
+}
+
+##########
+function l1() { logs-jupyter; }
+function l2() { logs-nginx; }
+function l3() { jour-nginx; }
+function l4() { logs-nbhosting; }
+function l5() { jour-nbhosting; }
+function l6() { jour-docker; }
+
+function defl() {
+    n=$1; shift;
+    function l() { echo "Running $(type l$n)"; l$n; }
+}
+
+echo "Configure with e.g. defl 4 - Run with just l"
+
