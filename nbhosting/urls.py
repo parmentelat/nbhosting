@@ -22,7 +22,7 @@ import edxfront.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^ipythonExercice/(?P<course>[\w_.]+)/(?P<notebook>[-\w_\+/]+)(.ipynb)?/(?P<student>\w+)$',
+    url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/]+)(.ipynb)?/(?P<student>\w+)$',
         edxfront.views.edx_request
     ),
 ]
