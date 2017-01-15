@@ -29,7 +29,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'nbhosting.inria.fr',
-    'nbhosting.pl.sophia.inria.fr',
     'localhost',
 ]
 
@@ -128,8 +127,6 @@ STATIC_URL = '/static/'
 ####################
 nbhosting_settings = {
     'root' : '/nbhosting-test',
-    # not yet available
-    'proxy_url' : None,
 }
 
 # this will create <root>/logs - and thus <root> - if needed

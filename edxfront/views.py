@@ -27,7 +27,7 @@ def verbatim(text):
     return "<pre><code>{}</code></pre>".format(text)
 
 # the main edxfront entry point
-def notebook_request(request, course, student, notebook):
+def edx_request(request, course, student, notebook):
 
     root = settings['root']
     # the ipynb extension is removed from the notebook name in urls.py
@@ -60,14 +60,26 @@ def notebook_request(request, course, student, notebook):
                     verbatim(completed_process.stderr)))
     try:
         docker_name, docker_port, jupyter_token = completed_process.stdout.split()
+        # get the host part of the incoming URL
         host = request.get_host()
+        scheme = request.scheme
         # remove initial port if present
         if ':' in host:
             host, _ = host.split(':', 1)
-        url = "http://{}:{}/notebooks/{}?token={}"\
-              .format(host, docker_port, notebook_full, jupyter_token)
+        # did the config request using nginx ?
+        ########## direct mode : redirect to same URL as here but on the right port
+        # never ran that code...
+        #url = "{scheme}://{host}:{port}/notebooks/{path}?token={token}"\
+        #      .format(scheme=scheme, host=host, port=docker_port,
+        #              path=notebook_full, token=jupyter_token)
+        ########## forge a URL that nginx will intercept
+        # do not specify a port, it will depend on the scheme
+        # and probably be https/443
+        url = "{scheme}://{host}/{port}/{path}?token={token}"\
+              .format(scheme=scheme, host=host, port=docker_port,
+                      path=notebook_full, token=jupyter_token)
         logger.info("edxfront: redirecting to {}".format(url))
-        return HttpResponseRedirect(url)
+        return HttpResponseRedirect(url)           
 
     except Exception as e:
         return error_page(

@@ -28,12 +28,16 @@ notebook=$1; shift
 forcecopy=$1; shift
 
 ########## constants
+# xxx 
+# we use the docker container name as the auth token
+# this avoids the necessity to wait for the connection file to be readable
+# which can take some time
 # the name of a file where details on the running jupyter are exposed
 # including the value for the auth token
 # this change would be welcome but somehow it does not propagate
 # down to the jupyter service that still creates nbserver-7.json
 #connection_details="connection-details.json"
-connection_details="nbserver-7.json"
+#connection_details="nbserver-7.json"
 
 # set to any non-empty string to enable
 debug=true
@@ -131,6 +135,7 @@ function check-student-notebook() {
 
 # grep token /nbhosting-test/students/john/flotbioinfo/runtime/share/jupyter/runtime/nbserver-7.json
 # "token": "205c97892d61ef1c8434ab6dddb1731182a8ae2fce8d2956",
+# xxx unused for now
 function parse-token() {
     student_runtime=$1; shift
     # we reconfigure jupyter to use a specific filename for that details file
@@ -173,6 +178,15 @@ function run-docker-instance() {
 	chown -R $student:$student $student_runtime
     }
     
+# other options worth investigating
+#	     --no-browser \
+#	     --keyfile=xxx \
+#	     --certfile=xxx \
+#	     --pylab=xxx \
+#	     --NotebookApp.token=<Unicode> \	     
+
+
+    local jupyter_token=$docker_name
     # check if container docker_name is already defined
     docker inspect $docker_name >& /dev/null || {
 	echo-stderr Creating docker container $docker_name
@@ -190,8 +204,8 @@ function run-docker-instance() {
 	     -v $course_data:/home/jovyan/work/data \
 	     -e PYTHONPATH="/home/jovyan/modules" \
 	     $docker_image start-notebook.sh \
+	     --NotebookApp.token=$jupyter_token \
 	     --NotebookApp.trust_xheaders=True \
-	     --ConnectionFileMixin.connection_file=${connection_details} \
 	     --JupyterApp.answer_yes=True \
 
     }
@@ -200,8 +214,8 @@ function run-docker-instance() {
     # prevent clobbering of stdout
     >&2 sudo -u $student docker start $docker_name 
 
-    local jupyter_token=$(parse-token $student_runtime)
-    [ $jupyter_token == 0 ] && exit 1
+    ### xxx local jupyter_token=$(parse-token $student_runtime)
+    ###[ $jupyter_token == 0 ] && exit 1
     # this is the only thing that goes on stdout
     echo $docker_name $docker_port $jupyter_token
 

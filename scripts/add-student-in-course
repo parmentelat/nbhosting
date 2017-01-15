@@ -64,7 +64,8 @@ for group in docker $course; do
     # would be worth trying with reload instead
     if [ $? != 0 -a "$group" == "docker" ]; then
 	echo "restarting docker service after adding $student into docker"
-	systemctl restart docker
+#	systemctl restart docker
+	systemctl reload docker
     fi
 done
 
