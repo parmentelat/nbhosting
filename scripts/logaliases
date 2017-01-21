@@ -13,16 +13,23 @@ function refresh() {
     source $here/logaliases
 }
 
-##########
-function -jour() {
+########## stolen from comp-miscell.ish
+alias sy=systemctl
+alias sa='systemctl start'
+alias so='systemctl stop'
+alias sr='systemctl restart'
+alias st='systemctl status'
+
+function jour {
     unit=$1; shift
-    journalctl --unit=unit -f "$@"
+    journalctl --unit=$unit "$@"
 }
 
-function jour-nginx()		{ -jour nginx; }
-function jour-nbhosting()	{ -jour nbhosting; }
-function jour-docker()		{ -jour docker; }
-
+##########
+function jour-nginx()		{ jour -f nginx; }
+function jour-nbhosting()	{ jour -f nbhosting; }
+function jour-docker()		{ jour -f docker; }
+function jour-httpd()		{ jour -f httpd; }
 
 ##########
 function logs-nginx() {
@@ -42,7 +49,6 @@ function -logs() {
     tail -f $logs
 }
 
-
 function logs-jupyter() {
     docker logs -f flotbioinfo-x-mary
 }
@@ -56,10 +62,9 @@ function l5() { jour-nbhosting; }
 function l6() { jour-docker; }
 
 # define l
-#echo "Configure with e.g. dl 4 - Run with just l"
+#echo "Configure with e.g. dl 4 - then run with just l"
 function dl() {
     n=$1; shift;
     function l() { echo "Running $(type l$n)"; l$n; }
 }
-
 
