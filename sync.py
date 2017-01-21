@@ -3,7 +3,9 @@
 from asynciojobs import Scheduler
 from apssh import SshNode, SshJob, Run, Push, ColonFormatter
 
-verbose=False
+paths_str = "edxfront manage.py nbhosting scripts ports"
+
+verbose = False
 
 nbhosting = SshNode(
     hostname="nbhosting.inria.fr",
@@ -13,8 +15,6 @@ nbhosting = SshNode(
 
 def sync():
     s = Scheduler()
-
-    paths_str = "edxfront manage.py nbhosting scripts"
 
     SshJob(node=nbhosting,
            scheduler=s,
