@@ -205,7 +205,6 @@ function run-docker-instance() {
 	     -e PYTHONPATH="/home/jovyan/modules" \
 	     $docker_image start-notebook.sh \
 	     --NotebookApp.token=$jupyter_token \
-	     --NotebookApp.base_url=https://nbhosting.inria.fr/$docker_port/ \
 	     --NotebookApp.trust_xheaders=True \
 	     --JupyterApp.answer_yes=True \
 	     --log-level=DEBUG \
