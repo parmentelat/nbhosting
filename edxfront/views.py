@@ -75,7 +75,7 @@ def edx_request(request, course, student, notebook):
         ########## forge a URL that nginx will intercept
         # do not specify a port, it will depend on the scheme
         # and probably be https/443
-        url = "{scheme}://{host}/{port}/{path}?token={token}"\
+        url = "{scheme}://{host}/{port}/notebooks/{path}?token={token}"\
               .format(scheme=scheme, host=host, port=docker_port,
                       path=notebook_full, token=jupyter_token)
         logger.info("edxfront: redirecting to {}".format(url))
