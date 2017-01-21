@@ -205,10 +205,14 @@ function run-docker-instance() {
 	     -e PYTHONPATH="/home/jovyan/modules" \
 	     $docker_image start-notebook.sh \
 	     --NotebookApp.token=$jupyter_token \
+	     --NotebookApp.base_url=https://nbhosting.inria.fr/$docker_port/ \
 	     --NotebookApp.trust_xheaders=True \
 	     --JupyterApp.answer_yes=True \
 	     --log-level=DEBUG \
-	     
+	     ;
+	 # xxx this probably is the place where to wait a while until
+	 # the server is responsive; I expect this is the reason for the
+	 # the initial error 502 Bad Gateway that we see every now and again   
     }
 	
     # start container docker_name
