@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 
 from nbhosting.settings import logger, nbhosting_settings as settings
+from ports.ports import free_port
 
 # Create your views here.
 
@@ -45,7 +46,12 @@ def edx_request(request, course, student, notebook):
     logger.info("<- {}".format(completed_process))
 
     script = os.path.join(root, 'scripts/run-student-course-jupyter')
-    command = [ script, root, student, course, notebook_full ]
+    # hard-wired image for now
+    image = "jupyter/scipy-notebook"
+    # compute a free port - not always useful but who cares
+    # I mean, if there's already a running docker the port will just be ignored
+    port = str(free_port())
+    command = [ script, root, student, course, notebook_full, image, port ]
     logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,

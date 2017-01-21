@@ -11,9 +11,9 @@
 # into the student's space, even if pre existing
 
 COMMAND=$(basename $0)
-USAGE="Usage: $COMMAND nbhosting-root student course notebook [force]"
+USAGE="Usage: $COMMAND nbhosting-root student course notebook docker-image docker-port [force]"
 
-[[ "$#" =~ [45] ]] || { echo $USAGE; exit 1; }
+[[ "$#" =~ [67] ]] || { echo $USAGE; exit 1; }
 
 # from config - typically /nbhosting
 root=$1; shift
@@ -23,6 +23,13 @@ student=$1; shift
 course=$1; shift
 # notebook path - should exit as /nbhosting/courses/$course/$notebook
 notebook=$1; shift
+# docker image - should of course have jupyter inside
+# there are some assumptions made about that image, first version of
+# nbhosting was developped for jupyter/scipy-notebook, hopefully
+# it could run with others some day
+docker_image=$1; shift
+# port number as provided by django
+free_port=$1; shift
 # if forcecopy is 'force', then the student's copy is overwritten
 # from the course copy
 forcecopy=$1; shift
@@ -136,37 +143,40 @@ function check-student-notebook() {
 # grep token /nbhosting-test/students/john/flotbioinfo/runtime/share/jupyter/runtime/nbserver-7.json
 # "token": "205c97892d61ef1c8434ab6dddb1731182a8ae2fce8d2956",
 # xxx unused for now
-function parse-token() {
-    student_runtime=$1; shift
-    # we reconfigure jupyter to use a specific filename for that details file
-    json_file=$student_runtime/share/jupyter/runtime/${connection_details}
-    # allow for a grace timeout before deciding it's hopeless
-    local seconds=3
-    local loops=$(($seconds * 10))
-    local i
-    for i in $(seq $loops); do
-	if [ -f $json_file ]; then
-	    break
-	else
-	    echo-stderr "$i-th attempt at token file $json_file .."
-	    sleep .1
-	fi
-    done
-    # still not there after 1s, bail out...
-    [ -f $json_file ] || { echo 0; return 1; }
-    
-    grep token $json_file | sed -e 's,", ,g' -e 's,:, ,g' | awk '{print $2;}'
+# function parse-token() {
+#     student_runtime=$1; shift
+#     # we reconfigure jupyter to use a specific filename for that details file
+#     json_file=$student_runtime/share/jupyter/runtime/${connection_details}
+#     # allow for a grace timeout before deciding it's hopeless
+#     local seconds=3
+#     local loops=$(($seconds * 10))
+#     local i
+#     for i in $(seq $loops); do
+# 	if [ -f $json_file ]; then
+# 	    break
+# 	else
+# 	    echo-stderr "$i-th attempt at token file $json_file .."
+# 	    sleep .1
+# 	fi
+#     done
+#     # still not there after 1s, bail out...
+#     [ -f $json_file ] || { echo 0; return 1; }
+#     
+#     grep token $json_file | sed -e 's,", ,g' -e 's,:, ,g' | awk '{print $2;}'
+# }
+
+# retrieve port from output like this
+# map[8888/tcp:[{ 57971}]]
+function get-port-from-portbindings() {
+    file=$1; shift
+    cat $file | sed -e 's,[^0-9][^0-9]*, ,g' | cut -d' ' -f 3
 }
+		    
 
 # we name the docker instance as <course>-x-<student>
 # we have the ability to assign a port - that will be mapped into container's fixed 8888
-# v0 : hard-wired port
 function run-docker-instance() {
     [ -n "$debug" ] && set -x
-    # xxx hard-wired for now - one that is actually open
-    local docker_port=8000
-    # xxx ditto
-    docker_image=jupyter/scipy-notebook
 
     #  exit with retcode != 0 if anything goes south
     set -e
@@ -187,31 +197,42 @@ function run-docker-instance() {
 
 
     local jupyter_token=$docker_name
+    local inspect_file=/tmp/$docker_name.port-bindings
     # check if container docker_name is already defined
-    docker inspect $docker_name >& /dev/null || {
-	echo-stderr Creating docker container $docker_name
-	# map host port to fixed 8888 in container
-	# bind  mounts so that the user's data is out of the container
-	# for turning off token auth, we would need to specify the command to run:
-	# start-notebook.sh --NotebookApp.token=''
-	# prevent clobbering of stdout
-	 >&2 sudo -u $student docker create --name $docker_name \
-	     -p $docker_port:8888 \
-	     -v $student_course:/home/jovyan/work \
-	     -v $student_runtime:/home/jovyan/.local \
-	     -v $course_modules:/home/jovyan/modules \
-	     -v $course_media:/home/jovyan/work/media \
-	     -v $course_data:/home/jovyan/work/data \
-	     -e PYTHONPATH="/home/jovyan/modules" \
-	     $docker_image start-notebook.sh \
-	     --NotebookApp.token=$jupyter_token \
-	     --NotebookApp.trust_xheaders=True \
-	     --JupyterApp.answer_yes=True \
-	     --log-level=DEBUG \
-	     ;
-	 # xxx this probably is the place where to wait a while until
-	 # the server is responsive; I expect this is the reason for the
-	 # the initial error 502 Bad Gateway that we see every now and again   
+    # beware we are in a set -e section
+    docker inspect -f "{{.HostConfig.PortBindings}}" $docker_name > $inspect_file 2> /dev/null \
+	&& { \
+	     # this is the case where docker inspect was successful
+	     # retrieve (actual) port number from inspect_file
+	     docker_port=$(get-port-from-portbindings $inspect_file)
+    } || { \
+	   # this now is when docker inspect fails
+	   echo-stderr Creating docker container $docker_name
+	   # map host port to fixed 8888 in container
+	   # bind  mounts so that the user's data is out of the container
+	   # for turning off token auth, we would need to specify the command to run:
+	   # start-notebook.sh --NotebookApp.token=''
+	   # prevent clobbering of stdout
+	   >&2 sudo -u $student docker create --name $docker_name \
+	       -p $free_port:8888 \
+	       -v $student_course:/home/jovyan/work \
+	       -v $student_runtime:/home/jovyan/.local \
+	       -v $course_modules:/home/jovyan/modules \
+	       -v $course_media:/home/jovyan/work/media \
+	       -v $course_data:/home/jovyan/work/data \
+	       -e PYTHONPATH="/home/jovyan/modules" \
+	       $docker_image \
+	       start-notebook.sh \
+	       --NotebookApp.token=$jupyter_token \
+	       --NotebookApp.open_browser=False \
+	       --JupyterApp.answer_yes=True \
+	       --log-level=DEBUG \
+	       ;
+	       # to expose to the outside
+	       docker_port=$free_port
+	       # xxx this probably is the place where to wait a while until
+	       # the server is responsive; I expect this is the reason for the
+	       # the initial error 502 Bad Gateway that we see every now and again
     }
 	
     # start container docker_name
