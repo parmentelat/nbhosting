@@ -211,12 +211,20 @@ function run-docker-instance() {
 	   # * map host free port to fixed 8888 in container
 	   # * bind  mounts so that the user's data is on
 	   #   the host filesystem
+	   # * map jovyan uid to the student's
+	   #   from https://github.com/jupyter/docker-stacks/tree/master/scipy-notebook
+	   #   this requires --user root and -e NB_UID=<id>
+	   ## older notes
 	   # * for turning off token auth, we would need to specify the command to run:
 	   #    --NotebookApp.token=''
 	   # * an attempt to access the runtime file for parsing auth token
-	   # -v $student_runtime:/home/jovyan/.local 
-	   command="sudo -u $student docker create --name $docker_name
+	   # -v $student_runtime:/home/jovyan/.local
+	   ##
+	   # compute student uid
+	   student_uid=$(id -u $student)
+	   command="docker create --name $docker_name
 	       -p $free_port:8888 
+	       --user root -e NB_UID=$student_uid
 	       -v $student_course:/home/jovyan/work 
                -v $course_modules:/home/jovyan/modules 
 	       -v $course_media:/home/jovyan/work/media 
