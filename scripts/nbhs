@@ -41,6 +41,40 @@ function status() {
     status-docker
 }
 
+function clear-docker() {
+    containers=$(docker ps --format '{{.Names}}')
+    for c in $containers; do
+	echo "Killing $c"
+	docker kill $c
+    done
+    containers=$(docker ps -a  --format '{{.Names}}')
+    for c in $containers; do
+	echo "Removing $c"
+	docker rm $c
+    done
+}
+
+function clear-users() {
+    for userdir in $(ls -d /nbhosting-test/students/* 2>/dev/null); do
+	user=$(basename $userdir)
+	echo deleting user $user
+	del-student /nbhosting-test $user
+    done
+}
+
+function clear-logs() {
+    for file in /var/log/nginx/daemon /nbhosting-test/logs/nbhosting.log $(ls -d /nbhosting-test/logs/flotbioinfo/run\*.log 2> /dev/null); do
+	echo clearing log file $file
+	echo ==================== > $file
+    done
+}
+
+function clear() {
+    clear-docker
+    clear-users
+    clear-logs
+}
+
 # if args are provided, take this as a call to a local function
 # e.g. meta status-tree => status-tree
 # or call just status by default
