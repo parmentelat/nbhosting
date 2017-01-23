@@ -26,18 +26,18 @@ function jour {
 }
 
 ##########
-function jour-nginx()		{ jour -f nginx; }
-function jour-nbhosting()	{ jour -f nbhosting; }
-function jour-docker()		{ jour -f docker; }
-function jour-httpd()		{ jour -f httpd; }
+function jour-nginx()		{ jour nginx -f; }
+function jour-nbhosting()	{ jour nbhosting -f; }
+function jour-docker()		{ jour docker -f; }
+function jour-httpd()		{ jour httpd -f; }
 
 ##########
 function logs-nginx() {
-    -logs $(find /var/log -type f | grep nginx | grep -v '\.gz$')
+    -logs $(find /var/log -type f | grep nginx | egrep -v '\.(gz|[0-9]+)$')
 }
 
 function logs-nbhosting() {
-    -logs logs=$(find /nbhosting*/logs -type f)
+    -logs $(find /nbhosting*/logs -type f)
 }
 
 function -logs() {
@@ -49,17 +49,15 @@ function -logs() {
     tail -f $logs
 }
 
-function logs-jupyter() {
-    docker logs -f flotbioinfo-x-mary
-}
+function logs-jup() { student=$1; shift; docker logs -f flotbioinfo-x-$student; }
 
 ##########
-function l1() { logs-jupyter; }
-function l2() { logs-nginx; }
-function l3() { jour-nginx; }
-function l4() { logs-nbhosting; }
-function l5() { jour-nbhosting; }
-function l6() { jour-docker; }
+function l1() { logs-nginx; }
+function l2() { jour-nginx; }
+function l3() { logs-nbhosting; }
+function l4() { jour-nbhosting; }
+function l5() { jour-docker; }
+function l6() { logs-jup mary; }
 
 # define l
 #echo "Configure with e.g. dl 4 - then run with just l"
