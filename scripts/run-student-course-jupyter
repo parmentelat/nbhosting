@@ -51,7 +51,7 @@ debug=true
 
 # all the verbosity goes to stderr as stdout is meant for the caller
 function echo-stderr() {
-    >&2 echo "$@"
+    >&2 echo $(date "+%H:%M:%S") "$@"
 }
 
 function die() {
@@ -208,33 +208,34 @@ function run-docker-instance() {
     } || { \
 	   # this now is when docker inspect fails
 	   echo-stderr Creating docker container $docker_name
-	   # map host port to fixed 8888 in container
-	   # bind  mounts so that the user's data is out of the container
-	   # for turning off token auth, we would need to specify the command to run:
-	   # start-notebook.sh --NotebookApp.token=''
-	   # prevent clobbering of stdout
-	   >&2 sudo -u $student docker create --name $docker_name \
-	       -p $free_port:8888 \
-	       -v $student_course:/home/jovyan/work \
-	       -v $student_runtime:/home/jovyan/.local \
-	       -v $course_modules:/home/jovyan/modules \
-	       -v $course_media:/home/jovyan/work/media \
-	       -v $course_data:/home/jovyan/work/data \
-	       -e PYTHONPATH="/home/jovyan/modules" \
-	       $docker_image \
-	       start-notebook.sh \
-	       --NotebookApp.token=$jupyter_token \
-	       --NotebookApp.open_browser=False \
-	       --JupyterApp.answer_yes=True \
-	       --log-level=DEBUG \
-	       ;
+	   # * map host free port to fixed 8888 in container
+	   # * bind  mounts so that the user's data is on
+	   #   the host filesystem
+	   # * for turning off token auth, we would need to specify the command to run:
+	   #    --NotebookApp.token=''
+	   # * an attempt to access the runtime file for parsing auth token
+	   # -v $student_runtime:/home/jovyan/.local 
+	   command="sudo -u $student docker create --name $docker_name
+	       -p $free_port:8888 
+	       -v $student_course:/home/jovyan/work 
+               -v $course_modules:/home/jovyan/modules 
+	       -v $course_media:/home/jovyan/work/media 
+	       -v $course_data:/home/jovyan/work/data 
+	       -e PYTHONPATH="/home/jovyan/modules" 
+	       $docker_image 
+	       start-notebook.sh 
+	       --NotebookApp.token=$jupyter_token 
+	       --NotebookApp.open_browser=False 
+	       --JupyterApp.answer_yes=True 
+	       --log-level=DEBUG"
+	   # show command for manual debugging
+	   echo-stderr XXXXXXXXXX $command
+	   # we need a clean stdout : redirect stdout to stderr 
+	   >&2 $command
 	       # to expose to the outside
 	       docker_port=$free_port
-	       # xxx this probably is the place where to wait a while until
-	       # the server is responsive; I expect this is the reason for the
-	       # the initial error 502 Bad Gateway that we see every now and again
     }
-	
+
     # start container docker_name
     # prevent clobbering of stdout
     >&2 sudo -u $student docker start $docker_name 
