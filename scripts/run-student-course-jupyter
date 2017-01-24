@@ -244,9 +244,17 @@ function run-docker-instance() {
 	       docker_port=$free_port
     }
 
-    # start container docker_name
-    # prevent clobbering of stdout
-    >&2 sudo -u $student docker start $docker_name 
+    ### at that point the docker is expected to be created
+    # so: start the container only if it needs to, and in that
+    # case wait until it's up and reachable
+    running=$(docker inspect -f "{{.State.Running}}" $docker_name)
+    if [ "$running" != "true" ]; then
+	echo-stderr Starting container $docker_name
+	# prevent clobbering of stdout
+	>&2 sudo -u $student docker start $docker_name
+	# xxx find out a way to wait the right amount of time
+	sleep 10
+    fi
 
     ### xxx local jupyter_token=$(parse-token $student_runtime)
     ###[ $jupyter_token == 0 ] && exit 1

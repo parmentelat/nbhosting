@@ -85,6 +85,7 @@ def edx_request(request, course, student, notebook):
               .format(scheme=scheme, host=host, port=docker_port,
                       path=notebook_full, token=jupyter_token)
         logger.info("edxfront: redirecting to {}".format(url))
+#        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
         return HttpResponseRedirect(url)           
 
     except Exception as e:
@@ -92,4 +93,3 @@ def edx_request(request, course, student, notebook):
             course, student, notebook,
             "exception when parsing output of {}<br/>{}"
             .format(script, verbatim(e)))
-    
