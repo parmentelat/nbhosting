@@ -35,8 +35,7 @@ free_port=$1; shift
 forcecopy=$1; shift
 
 ########## constants
-# xxx 
-# we use the docker container name as the auth token
+# xxx: we use the docker container name as the auth token
 # this avoids the necessity to wait for the connection file to be readable
 # which can take some time
 # the name of a file where details on the running jupyter are exposed
@@ -171,7 +170,21 @@ function get-port-from-portbindings() {
     file=$1; shift
     cat $file | sed -e 's,[^0-9][^0-9]*, ,g' | cut -d' ' -f 3
 }
-		    
+
+# xxx probably a lot of space for improvement
+# in particular the actual timeout is unclear
+function wait-for-port() {
+    port=$1; shift
+    timeout=$1; shift
+    counter=1
+    while [ $counter -le $timeout ]; do
+	echo-stderr Waiting for port $port - iter $counter
+	timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null && return 0
+	sleep 1
+	counter=$(( $counter + 1))
+    done		    
+    return 1
+}
 
 # we name the docker instance as <course>-x-<student>
 # we have the ability to assign a port - that will be mapped into container's fixed 8888
@@ -252,8 +265,10 @@ function run-docker-instance() {
 	echo-stderr Starting container $docker_name
 	# prevent clobbering of stdout
 	>&2 sudo -u $student docker start $docker_name
-	# xxx find out a way to wait the right amount of time
-	sleep 10
+	# wait until the service answers TCP connections - max of 10s
+	wait-for-port $docker_port 10
+	# sleep an additional 2s so things settle
+	sleep 2
     fi
 
     ### xxx local jupyter_token=$(parse-token $student_runtime)
