@@ -187,7 +187,12 @@ function run-docker-instance() {
 	   # * map jovyan uid to the student's
 	   #   from https://github.com/jupyter/docker-stacks/tree/master/scipy-notebook
 	   #   this requires --user root and -e NB_UID=<id>
-	   ## older notes
+	   # * turn off this http header that otherwise would prevent embedding in a FUN iframe
+	   #   Content-Security-Policy: frame-ancestors 'self'; report-uri /api/security/csp-report
+	   #   so set the web server's settings to clear the Content-Security-Policy header
+	   #   it is too tedious on the command line with quoting and all, so
+	   #   let's use the config file instead
+	   ### older notes
 	   # * for turning off token auth, we would need to specify the command to run:
 	   #    --NotebookApp.token=''
 	   ##
