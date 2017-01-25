@@ -14,11 +14,11 @@ function refresh() {
 }
 
 ########## stolen from comp-miscell.ish
-function jour-nginx()		{ jou -f nginx; }
-function jour-nbhosting()	{ jou -f nbhosting; }
-function jour-docker()		{ jou -f docker; }
-function jour-httpd()		{ jou -f httpd; }
-function jour-all()		{ jou -f nginx nbhosting docker httpd; }
+function jou-nginx()		{ jou -f nginx; }
+function jou-nbhosting()	{ jou -f nbhosting; }
+function jou-docker()		{ jou -f docker; }
+function jou-httpd()		{ jou -f httpd; }
+function jou-all()		{ jou -f nginx nbhosting docker httpd; }
 
 ##########
 function logs-nginx() {
@@ -41,7 +41,7 @@ function -logs() {
 function logs-jup() { student=$1; shift; docker logs -f flotbioinfo-x-$student; }
 
 ##########
-function l1() { jour-all; }
+function l1() { jou-all; }
 function l2() { logs-nginx; }
 function l3() { logs-nbhosting; }
 
