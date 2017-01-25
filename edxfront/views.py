@@ -72,12 +72,6 @@ def edx_request(request, course, student, notebook):
         # remove initial port if present
         if ':' in host:
             host, _ = host.split(':', 1)
-        # did the config request using nginx ?
-        ########## direct mode : redirect to same URL as here but on the right port
-        # never ran that code...
-        #url = "{scheme}://{host}:{port}/notebooks/{path}?token={token}"\
-        #      .format(scheme=scheme, host=host, port=docker_port,
-        #              path=notebook_full, token=jupyter_token)
         ########## forge a URL that nginx will intercept
         # do not specify a port, it will depend on the scheme
         # and probably be https/443
