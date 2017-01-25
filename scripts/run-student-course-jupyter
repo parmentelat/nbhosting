@@ -139,31 +139,6 @@ function check-student-notebook() {
     # 
 }
 
-# grep token /nbhosting-test/students/john/flotbioinfo/runtime/share/jupyter/runtime/nbserver-7.json
-# "token": "205c97892d61ef1c8434ab6dddb1731182a8ae2fce8d2956",
-# xxx unused for now
-# function parse-token() {
-#     student_runtime=$1; shift
-#     # we reconfigure jupyter to use a specific filename for that details file
-#     json_file=$student_runtime/share/jupyter/runtime/${connection_details}
-#     # allow for a grace timeout before deciding it's hopeless
-#     local seconds=3
-#     local loops=$(($seconds * 10))
-#     local i
-#     for i in $(seq $loops); do
-# 	if [ -f $json_file ]; then
-# 	    break
-# 	else
-# 	    echo-stderr "$i-th attempt at token file $json_file .."
-# 	    sleep .1
-# 	fi
-#     done
-#     # still not there after 1s, bail out...
-#     [ -f $json_file ] || { echo 0; return 1; }
-#     
-#     grep token $json_file | sed -e 's,", ,g' -e 's,:, ,g' | awk '{print $2;}'
-# }
-
 # retrieve port from output like this
 # map[8888/tcp:[{ 57971}]]
 function get-port-from-portbindings() {
@@ -194,21 +169,6 @@ function run-docker-instance() {
     #  exit with retcode != 0 if anything goes south
     set -e
     
-    local student_runtime=$student_course/runtime
-    [ -d $student_runtime ] || {
-	echo-stderr Creating runtime $student_runtime
-	mkdir -p $student_runtime
-	chown -R $student:$student $student_runtime
-    }
-    
-# other options worth investigating
-#	     --no-browser \
-#	     --keyfile=xxx \
-#	     --certfile=xxx \
-#	     --pylab=xxx \
-#	     --NotebookApp.token=<Unicode> \	     
-
-
     local jupyter_token=$docker_name
     local inspect_file=/tmp/$docker_name.port-bindings
     # check if container docker_name is already defined
@@ -230,21 +190,20 @@ function run-docker-instance() {
 	   ## older notes
 	   # * for turning off token auth, we would need to specify the command to run:
 	   #    --NotebookApp.token=''
-	   # * an attempt to access the runtime file for parsing auth token
-	   # -v $student_runtime:/home/jovyan/.local
 	   ##
 	   # compute student uid
 	   student_uid=$(id -u $student)
 	   command="docker create --name $docker_name
-	       -p $free_port:8888 
+	       -p $free_port:8888
 	       --user root -e NB_UID=$student_uid
-	       -v $student_course:/home/jovyan/work 
-               -v $course_modules:/home/jovyan/modules 
-	       -v $course_media:/home/jovyan/work/media 
-	       -v $course_data:/home/jovyan/work/data 
-	       -e PYTHONPATH="/home/jovyan/modules" 
+	       -v $student_course:/home/jovyan/work
+               -v $course_modules:/home/jovyan/modules
+	       -v $course_media:/home/jovyan/work/media
+	       -v $course_data:/home/jovyan/work/data
+	       -e PYTHONPATH=/home/jovyan/modules
 	       $docker_image 
 	       start-notebook.sh 
+	       --no-browser 
 	       --NotebookApp.token=$jupyter_token 
 	       --NotebookApp.open_browser=False 
 	       --JupyterApp.answer_yes=True 
@@ -268,12 +227,11 @@ function run-docker-instance() {
 	# wait until the service answers TCP connections - max of 10s
 	wait-for-port $docker_port 10
 	# sleep an additional 2s so things settle
-	sleep 2
+	sleep 3
     fi
 
-    ### xxx local jupyter_token=$(parse-token $student_runtime)
-    ###[ $jupyter_token == 0 ] && exit 1
     # this is the only thing that goes on stdout
+    #
     echo $docker_name $docker_port $jupyter_token
 
     [ -n "$debug" ] && set +x
