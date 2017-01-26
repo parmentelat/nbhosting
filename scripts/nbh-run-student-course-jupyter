@@ -148,13 +148,23 @@ function get-port-from-portbindings() {
 
 # xxx probably a lot of space for improvement
 # in particular the actual timeout is unclear
-function wait-for-port() {
+function wait-for-port-token() {
     port=$1; shift
+    token=$1; shift
     timeout=$1; shift
     counter=1
     while [ $counter -le $timeout ]; do
-	echo-stderr Waiting for port $port - iter $counter
-	timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null && return 0
+	echo-stderr Waiting for TCP on port $port - iter $counter
+	# first check if tcp port is up
+	if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null; then
+	    # if so, check that http is ready
+	    echo-stderr "Checking for HTTP"
+	    curl http://localhost:$port/tree?token=$token >& /dev/null && {
+		# sleep an extra .5 s to be safe
+		sleep 0.5
+		return 0
+	    }
+	fi
 	sleep 1
 	counter=$(( $counter + 1))
     done		    
@@ -229,10 +239,8 @@ function run-docker-instance() {
 	echo-stderr Starting container $docker_name
 	# prevent clobbering of stdout
 	>&2 docker start $docker_name
-	# wait until the service answers TCP connections - max of 10s
-	wait-for-port $docker_port 10
-	# sleep an additional 2s so things settle
-	sleep 3
+	# wait until the service answers TCP connections - in the order of 10s
+	wait-for-port-token $docker_port $jupyter_token 10
     fi
 
     # this is the only thing that goes on stdout
