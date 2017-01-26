@@ -19,6 +19,7 @@ course_modules=$root/modules/$course
 course_static=$root/static/$course
 course_data=$root/static/$course/data
 course_media=$root/static/$course/media
+course_jupyter=$root/jupyter/$course
 
 course_logs=$root/logs/$course
 log=$course_logs/$COMMAND.log
@@ -51,11 +52,16 @@ function update-course() {
     
     notebook_subdirs=$(ls -d w* W* 2> /dev/null)
     [ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $course_notebooks/
-    [ -d modules ] && $rsync modules/ $course_modules
-    [ -d static ] && $rsync static/ $course_static
+    [ -d modules ] && { $rsync modules/ $course_modules; chmod -R g-w,o-w $course_modules; }
+    [ -d static ] && { $rsync static/ $course_static; chmod -R g-w,o-w $course_static; }
     # for compat with previous git repo layout
     for subdir in media data; do
 	[ -d $subdir ] && $rsync $subdir $course_static
+	chmod -R g-w,o-w $course_static
+    done
+    [ -d $course_jupyter ] || mkdir -p $course_jupyter
+    for file in jupyter_notebook_config.py custom.js custom.css; do
+	[ -f $course_jupyter/$file ] || touch $course_jupyter/$file
     done
 }
 
