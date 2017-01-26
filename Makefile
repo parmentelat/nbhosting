@@ -9,4 +9,7 @@ sync:
 	rsync -av uwsgi/nbhosting.ini $(TESTBOX):/etc/uwsgi.d/
 	rsync -av uwsgi/nbhosting.service $(TESTBOX):/etc/systemd/system/
 	ssh $(TESTBOX) systemctl restart nbhosting
+	# tmp
+	rsync -tpv jupyter/jupyter_notebook_config.py $(TESTBOX):/nbhosting-test/jupyter/flotbioinfo/jupyter_notebook_config.py
+
 
