@@ -43,7 +43,7 @@ def edx_request(request, course, student, notebook):
     # xxx probably requires a sudo of some kind here
     # for when run from apache or nginx or whatever
 
-    script = os.path.join(root, 'scripts/add-student-in-course')
+    script = 'nbh-add-student-in-course'
     command = [ script, root, student, course ]
     logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
     completed_process = subprocess.run(
@@ -51,7 +51,7 @@ def edx_request(request, course, student, notebook):
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     log_completed_process(completed_process)
 
-    script = os.path.join(root, 'scripts/run-student-course-jupyter')
+    script = 'nbh-run-student-course-jupyter'
     # hard-wired image for now
     image = "jupyter/scipy-notebook"
     # compute a free port - not always useful but who cares

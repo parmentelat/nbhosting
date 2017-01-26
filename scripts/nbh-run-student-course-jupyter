@@ -228,7 +228,7 @@ function run-docker-instance() {
     if [ "$running" != "true" ]; then
 	echo-stderr Starting container $docker_name
 	# prevent clobbering of stdout
-	>&2 sudo -u $student docker start $docker_name
+	>&2 docker start $docker_name
 	# wait until the service answers TCP connections - max of 10s
 	wait-for-port $docker_port 10
 	# sleep an additional 2s so things settle

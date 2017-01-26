@@ -5,8 +5,8 @@ function init() {
     docker stop flotbioinfo-x-john
     docker rm flotbioinfo-x-john
 
-    del-student /nbhosting-test john
-    add-student-in-course /nbhosting-test john flotbioinfo
+    nbh-del-student /nbhosting-test john
+    nbh-add-student-in-course /nbhosting-test john flotbioinfo
 }
 
 function run() {

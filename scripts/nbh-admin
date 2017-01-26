@@ -47,7 +47,7 @@ function clear-docker() {
 	echo "Killing $c"
 	docker kill $c
     done
-    containers=$(docker ps -a  --format '{{.Names}}')
+    containers=$(docker ps -a --format '{{.Names}}')
     for c in $containers; do
 	echo "Removing $c"
 	docker rm $c
@@ -58,7 +58,7 @@ function clear-users() {
     for userdir in $(ls -d /nbhosting-test/students/* 2>/dev/null); do
 	user=$(basename $userdir)
 	echo deleting user $user
-	del-student /nbhosting-test $user
+	nbh-del-student /nbhosting-test $user
     done
 }
 
