@@ -1,6 +1,7 @@
 import os
 import os.path
 import subprocess
+import pprint
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
@@ -27,6 +28,11 @@ def error_page(course, student, notebook, message=None):
 def verbatim(text):
     return "<pre><code>{}</code></pre>".format(text)
 
+def log_completed_process(cp):
+    for field in ('returncode', 'stdout', 'stderr'):
+        logger.info("proc returned <- {}={}"
+                    .format(field, pprint.pformat(getattr(cp, field, 'undef'))))
+
 # the main edxfront entry point
 def edx_request(request, course, student, notebook):
 
@@ -43,7 +49,7 @@ def edx_request(request, course, student, notebook):
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    logger.info("<- {}".format(completed_process))
+    log_completed_process(completed_process)
 
     script = os.path.join(root, 'scripts/run-student-course-jupyter')
     # hard-wired image for now
@@ -56,7 +62,7 @@ def edx_request(request, course, student, notebook):
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    logger.info("<- {}".format(completed_process))
+    log_completed_process(completed_process)
 
     if completed_process.returncode != 0:
         return error_page(
