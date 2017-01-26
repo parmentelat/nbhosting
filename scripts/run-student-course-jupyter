@@ -250,6 +250,6 @@ function main() {
 echo-stderr "========== $(date)"
 # we always leave stdout alone as it's the outcome of this script
 # but as far as stderr, we want to log it and to return it in stderr
-main 2> >(tee $log >&2)
+main 2> >(tee -a $log >&2)
 
 exit 0
