@@ -70,12 +70,11 @@ student_course=$student_home/$course
 student_notebook=$student_course/$notebook
 student_modules=$student_course/modules
 
-#student_media=$student_course/media
-#student_data=$student_course/data
-
+####################
 course_nbroot=$root/courses/$course
 course_notebook=$course_nbroot/$notebook
 course_modules=$root/modules/$course
+course_jupyter=$root/jupyter/$course
 
 course_media=$root/static/$course/media
 course_data=$root/static/$course/data
@@ -129,7 +128,7 @@ function check-student-notebook() {
     # copy if student notebook is missing, or if force is requested
     if [ ! -f $student_notebook ] || [ "$forcecopy" == "force" ]; then
 	mkdir-for-file $student_notebook
-	echo-stderr Creating $student_notebook from $course_notebook 
+	echo-stderr Cloning $student_notebook from $course_notebook 
 	sudo -u $student cp $course_notebook $student_notebook
 	create-symlink-at-file $student_notebook /home/jovyan/work/media
 	create-symlink-at-file $student_notebook /home/jovyan/work/data
@@ -219,14 +218,14 @@ function run-docker-instance() {
                -v $course_modules:/home/jovyan/modules
 	       -v $course_media:/home/jovyan/work/media
 	       -v $course_data:/home/jovyan/work/data
+	       -v $course_jupyter:/home/jovyan/jupyter
 	       -e PYTHONPATH=/home/jovyan/modules
 	       $docker_image 
-	       start-notebook.sh 
+	       start-notebook.sh
 	       --no-browser 
 	       --NotebookApp.token=$jupyter_token 
-	       --NotebookApp.open_browser=False 
-	       --JupyterApp.answer_yes=True 
-	       --log-level=DEBUG"
+	       --log-level=DEBUG
+	       --JupyterApp.config_file=/home/jovyan/jupyter/jupyter_notebook_config.py"
 	   # show command for manual debugging
 	   echo-stderr XXXXXXXXXX $command
 	   # we need a clean stdout : redirect stdout to stderr 
