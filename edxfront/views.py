@@ -68,7 +68,7 @@ def edx_request(request, course, student, notebook):
         return error_page(
             course, student, notebook,
             "command {} returned {}<br/>stderr:{}"
-            .format(command, completed_process.returncode,
+            .format(" ".join(command), completed_process.returncode,
                     verbatim(completed_process.stderr)))
     try:
         docker_name, docker_port, jupyter_token = completed_process.stdout.split()
