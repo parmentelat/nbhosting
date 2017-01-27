@@ -1,6 +1,6 @@
 TESTBOX=root@nbhosting.pl.sophia.inria.fr
 
-SYNC_PATHS = edxfront manage.py nbhosting scripts
+SYNC_PATHS = edxfront manage.py nbhosting scripts ports images
 
 
 sync:

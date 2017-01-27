@@ -52,8 +52,8 @@ def edx_request(request, course, student, notebook):
     log_completed_process(completed_process)
 
     script = 'nbh-run-student-course-jupyter'
-    # hard-wired image for now
-    image = "jupyter/scipy-notebook"
+    # use image named after the course for now
+    image = course
     # compute a free port - not always useful but who cares
     # I mean, if there's already a running docker the port will just be ignored
     port = str(free_port())
