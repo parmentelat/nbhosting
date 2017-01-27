@@ -1,0 +1,27 @@
+# -*- shell-script -*-
+
+echo BEGIN - $(date)
+
+if [[ -z "$@" ]]; then
+    students="mary lisa bill john kurt mick rosy jack pete jose"
+else
+    students="$@"
+fi
+
+start=10001
+
+root=/nbhosting-test
+course=flotbioinfo
+notebook=w1/fr-w1-s07-c1-walking.ipynb
+image=jupyter/scipy-notebook
+
+# create one every 2s
+port=$start
+for student in $students; do
+    echo ========== "$user -> $port"
+    nbh-add-student-in-course $root $student $course
+    nbh-run-student-course-jupyter $root $student $course $notebook $image $port & sleep 2
+    port=$(($port + 1))
+done
+
+echo END - $(date)
