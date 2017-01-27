@@ -45,6 +45,10 @@ forcecopy=$1; shift
 #connection_details="connection-details.json"
 #connection_details="nbserver-7.json"
 
+# how long should we wait for the container to answer http
+# trying to create 6 containers at the exact same time : 10 is not long enough 
+timeout_wait_for_http=20
+
 # set to any non-empty string to enable
 debug=true
 
@@ -148,7 +152,7 @@ function get-port-from-portbindings() {
 
 # xxx probably a lot of space for improvement
 # in particular the actual timeout is unclear
-function wait-for-port-token() {
+function wait-for-http-on-port-token() {
     port=$1; shift
     token=$1; shift
     timeout=$1; shift
@@ -240,7 +244,7 @@ function run-docker-instance() {
 	# prevent clobbering of stdout
 	>&2 docker start $docker_name
 	# wait until the service answers TCP connections - in the order of 10s
-	wait-for-port-token $docker_port $jupyter_token 10
+	wait-for-http-on-port-token $docker_port $jupyter_token $timeout_wait_for_http
     fi
 
     # this is the only thing that goes on stdout
