@@ -218,14 +218,14 @@ function run-docker-instance() {
                -v $course_modules:/home/jovyan/modules
 	       -v $course_media:/home/jovyan/work/media
 	       -v $course_data:/home/jovyan/work/data
-	       -v $course_jupyter:/home/jovyan/jupyter
+	       -v $course_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
+	       -v $course_jupyter/custom:/home/jovyan/.jupyter/custom
 	       -e PYTHONPATH=/home/jovyan/modules
 	       $docker_image 
 	       start-notebook.sh
 	       --no-browser 
 	       --NotebookApp.token=$jupyter_token 
-	       --log-level=DEBUG
-	       --JupyterApp.config_file=/home/jovyan/jupyter/jupyter_notebook_config.py"
+	       --log-level=DEBUG"
 	   # show command for manual debugging
 	   echo-stderr XXXXXXXXXX $command
 	   # we need a clean stdout : redirect stdout to stderr 
