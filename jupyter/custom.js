@@ -16,13 +16,39 @@ define([
 	//// second horizontal area (menubar)
 	// hide menu entries
 
-	// 'Edit'
+	// hide all dividers
+	$("#menubar .divider").hide();
+
+	// 'File'
+	$("#new_notebook").hide();
+	$("#open_notebook").hide();
+	$("#copy_notebook").hide();
+	$("#rename_notebook").hide();
+	//keep this one: $("#restore_checkpoint").hide();
+	$("#trust_notebook").hide();
+	$("#kill_and_exit").hide();
+	//// missing
+	// Share static version
+	// Reset from Origin
+	
+	// 'Edit' -> hide whole submenu
 	$("div#menubar>div>div>div>ul.nav>li:nth-child(2)").hide();
-	// View
+
+	// View -> hide whole submenu
 	$("div#menubar>div>div>div>ul.nav>li:nth-child(3)").hide();
-	// Widgets
+
+	// Insert : is fine
+
+	// Cell
+	$("#change_cell_type").hide();
+	
+	// Widgets -> hide whole submenu
+	// note that for this to actually work I had to do this:
+	// jupyter nbextension disable jupyter-js-widgets/extension
+	// otherwise this submenu entry is reactivated
 	$("div#menubar>div>div>div>ul.nav>li:nth-child(7)").hide();
-	// Help
+
+	// Help -> hide whole submenu
 	$("div#menubar>div>div>div>ul.nav>li:nth-child(8)").hide();
 	
 	//// third horizontal area (toolbar)
@@ -35,7 +61,9 @@ define([
 	$("#maintoolbar>div>div>div:nth-child(8)").hide();
 
 	// top right (python2/python3..)
-	//$("p#kernel_indicator").hide();
+	$("p#kernel_indicator").hide();
+	// move stuff from first (originally upper, then left) area
+	// to second (lower, then right) area
 	var last_button_group = $("div#maintoolbar-container>div:last-child");
 	var ids_to_move = ['kernel_indicator', 'readonly-indicator',
 			   'modal_indicator', 'notification_area'];
@@ -61,10 +89,9 @@ define([
 	    notebookmeta = notebook.metadata.notebookname;
 	if(notebook.metadata.version)
 	    notebookmeta+=" v"+notebook.metadata.version;
-	var notebookmetadiv = '<div class="navbar-nobg"><div class="container">'
-	    + '<div id="ipython_notebook" class="nav brand pull-left">'
-	    + notebookmeta + '</div></div></div>' ;
-	$('div#header').html(notebookmetadiv);
+	var notebookmetadiv = '<span class="metadata-bar">'
+	    + notebookmeta + '</span>' ;
+	$(notebookmetadiv).insertBefore($("#menubar"))
     }
 
     var inactivate_non_code_cells = function(Jupyter) {
@@ -72,7 +99,7 @@ define([
 	var cells = Jupyter.notebook.get_cells();
 	for(var i in cells){
 	    var cell = cells[i];
-	    if (!(cell instanceof IPython.CodeCell)) {
+	    if (!(cell instanceof Jupyter.CodeCell)) {
 		cell.code_mirror.setOption('readOnly', 'nocursor'); 
 	    }
 	}
@@ -90,6 +117,7 @@ define([
     events.on('notebook_loaded.Notebook', function(){
 	console.log("custom.js for mooc embedding: entering notebook_loaded");
 	$('body.notebook_app').show();
+	update_metadata();
 	inactivate_non_code_cells(Jupyter);
 //	redefine_enter_in_command_mode(Jupyter);
 	

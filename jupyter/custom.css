@@ -7,6 +7,25 @@
 div#maintoolbar-container {
     width: auto !important;
 }
+#menubar-container div {
+    box-sizing: content-box;
+}
+
+/* our addition for the notebook name + version label */
+.metadata-bar {
+    padding: 6px;
+    margin-bottom: 15px; /* no effect ? */
+    margin-right: 20px;
+    font-size: large;
+    background-color: #f0f0f0;
+}
+
+/* cosmetic */
+#menubar {
+    padding-top: 10px;
+    margin-right: 20px;
+}
+
 
 /*
 the segments in a markdown
