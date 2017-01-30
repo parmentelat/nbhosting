@@ -14,6 +14,6 @@ c.NotebookApp.open_browser = False
 
 c.NotebookApp.tornado_settings = {
     'headers': {
-        'Content-Security-Policy': "frame-ancestors 'https://*.fun-mooc.fr' ;",
+        'Content-Security-Policy': "frame-ancestors https://*.fun-mooc.fr ;",
     }
 }
