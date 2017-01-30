@@ -61,7 +61,9 @@ define([
 	    notebookmeta = notebook.metadata.notebookname;
 	if(notebook.metadata.version)
 	    notebookmeta+=" v"+notebook.metadata.version;
-	var notebookmetadiv = '<div class="navbar-nobg"><div class="container"><div id="ipython_notebook" class="nav brand pull-left">'+notebookmeta+'</div></div></div>' ;
+	var notebookmetadiv = '<div class="navbar-nobg"><div class="container">'
+	    + '<div id="ipython_notebook" class="nav brand pull-left">'
+	    + notebookmeta + '</div></div></div>' ;
 	$('div#header').html(notebookmetadiv);
     }
 
