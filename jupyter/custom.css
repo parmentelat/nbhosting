@@ -1,18 +1,11 @@
 /* CSS for embedding inside an open-edx hosted MOOC page */
 
 /* have the menubar and toolbar on the same line */
-#menubar {
-    float: left;
+#menubar, #maintoolbar {
+    display: inline-block;
 }
-
-/* not quite sure about this one, turns off many areas in one shot,
-   need to be more accurate 
-.navbar-text{
-  display:none; 
-} */
-
-#pager_splitter{
-  display:none; 
+div#maintoolbar-container {
+    width: auto !important;
 }
 
 /*
@@ -21,21 +14,17 @@ that are 4 spaces away from the margin
 we want them to stick out with some background
 */
 div.rendered_html>pre>code {
-background-color: #f7f7f7;
-border: 1px solid;
-border-color: #dde;
-border-radius: 4px;
-padding: .4em;
+    background-color: #f7f7f7;
+    border: 1px solid;
+    border-color: #dde;
+    border-radius: 4px;
+    padding: .4em;
 }
 /*
 this would be for `backquoted inline code`
 */
 .rendered_html code {
-background-color: #f0f0ff;
-padding: 3px;
-border-radius: 4px;
-}
-
-div.lower-header-bar {
-    border: 10px;
+    background-color: #f0f0ff;
+    padding: 3px;
+    border-radius: 4px;
 }
