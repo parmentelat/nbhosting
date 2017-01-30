@@ -142,6 +142,14 @@ function check-student-notebook() {
     # 
 }
 
+# mwell, the copy into a course-dependant location
+# looks extraneous but it might come in handy some day
+function check-course-jupyter() {
+    [ -d $course_jupyter/custom ] || mkdir -p $course_jupyter/custom
+    rsync -tp $root/jupyter/jupyter_notebook_config.py $course_jupyter/
+    rsync -tp $root/jupyter/{custom.js,custom.css} $course_jupyter/custom/
+}   
+
 # retrieve port from output like this
 # map[8888/tcp:[{ 57971}]]
 function get-port-from-portbindings() {
@@ -178,6 +186,9 @@ function wait-for-http-on-port-token() {
 # we have the ability to assign a port - that will be mapped into container's fixed 8888
 function run-docker-instance() {
     [ -n "$debug" ] && set -x
+
+    # update jupyter_notebook_config.py and the 2 custom files
+    check-course-jupyter
 
     #  exit with retcode != 0 if anything goes south
     set -e

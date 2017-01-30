@@ -1,7 +1,6 @@
 TESTBOX=root@nbhosting.pl.sophia.inria.fr
 
-SYNC_PATHS = edxfront manage.py nbhosting scripts ports images
-
+SYNC_PATHS = edxfront manage.py nbhosting scripts ports images jupyter
 
 sync:
 	rsync -rltpv $(SYNC_PATHS) $(TESTBOX):nbhosting-sync
@@ -11,8 +10,7 @@ sync:
 	rsync -rltpv uwsgi/nbhosting.ini $(TESTBOX):/etc/uwsgi.d/
 	rsync -rltpv uwsgi/nbhosting.service $(TESTBOX):/etc/systemd/system/
 	ssh $(TESTBOX) systemctl restart nbhosting
-	# tmp
-	rsync -tpv jupyter/jupyter_notebook_config.py $(TESTBOX):/nbhosting-test/jupyter/flotbioinfo/
-	rsync -rltpv --exclude pics jupyter/custom.* $(TESTBOX):/nbhosting-test/jupyter/flotbioinfo/custom/
+	rsync -tpv jupyter/jupyter_notebook_config.py $(TESTBOX):/nbhosting-test/jupyter/
+	rsync -rltpv --exclude pics jupyter/custom.* $(TESTBOX):/nbhosting-test/jupyter/
 
 
