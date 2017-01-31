@@ -142,12 +142,24 @@ function check-student-notebook() {
     # 
 }
 
-# mwell, the copy into a course-dependant location
-# looks extraneous but it might come in handy some day
+# a lot to say here:
+# * it's unclear if we need to do the rsync here or not
+#   some course might wish to provide their own custom*
+# * the copy into a course-dependant location
+#   looks extraneous but it might come in handy some day
+# * finally this layout is painfully confusing..
+# 
 function check-course-jupyter() {
-    [ -d $course_jupyter/custom ] || mkdir -p $course_jupyter/custom
-    rsync -tp $root/jupyter/jupyter_notebook_config.py $course_jupyter/
-    rsync -tp $root/jupyter/{custom.js,custom.css} $course_jupyter/custom/
+    [ -d $course_jupyter ] || mkdir -p $course_jupyter
+    # temporary : if we find a file named 'DETACHED' in /nbhosting/jupyter/course/
+    # then we leave that alone; otherwise, keep that in sync with our sources
+    if [ -f $course_jupyter/DETACHED ]; then
+	echo-stderr "Leaving jupyter material for $course intact (DETACHED found)"
+    else
+	for file in jupyter_notebook_config.py custom.js custom.css; do
+	    rsync -tp $root/jupyter/$file $course_jupyter/
+	done
+    fi
 }   
 
 # retrieve port from output like this
@@ -202,6 +214,7 @@ function run-docker-instance() {
 	     # this is the case where docker inspect was successful
 	     # retrieve (actual) port number from inspect_file
 	     docker_port=$(get-port-from-portbindings $inspect_file)
+	     rm -f $inspect_file
     } || { \
 	   # this now is when docker inspect fails
 	   echo-stderr Creating docker container $docker_name
@@ -230,7 +243,8 @@ function run-docker-instance() {
 	       -v $course_media:/home/jovyan/work/media
 	       -v $course_data:/home/jovyan/work/data
 	       -v $course_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
-	       -v $course_jupyter/custom:/home/jovyan/.jupyter/custom
+	       -v $course_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
+	       -v $course_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css
 	       -e PYTHONPATH=/home/jovyan/modules
 	       $docker_image 
 	       start-notebook.sh

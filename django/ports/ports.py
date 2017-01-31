@@ -9,11 +9,13 @@ def free_port():
         # s.listen(1)
         return s.getsockname()[1]
 
+# used by the test-dockers load test script
 if __name__ == '__main__':
     import sys
     how_many = int(sys.argv[1])
-    print("The ports returned by free_port when run {} times"
-          .format(how_many))
+    if how_many > 1:
+        print("The ports returned by free_port when run {} times".format(how_many),
+              file=sys.stderr)
     for i in range(how_many):
         print(free_port())
     

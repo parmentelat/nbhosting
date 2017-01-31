@@ -12,6 +12,8 @@ root=$1; shift
 course=$1; shift
 giturl=$1; shift
 
+# make sure root is absolute
+root=$(cd $root; pwd -P)
 #
 course_git=$root/courses-git/$course
 
@@ -30,7 +32,7 @@ function init-course() {
     echo Creating $course in $(pwd)
     cd $course_git
     echo Running git clone $giturl $course
-    git clone $giturl $clone
+    git clone $giturl $course
 }
 
 [ -d $course_logs ] || mkdir -p $course_logs

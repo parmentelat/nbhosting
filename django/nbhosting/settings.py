@@ -128,9 +128,16 @@ STATIC_URL = '/static/'
 
 ####################
 nbhosting_settings = {
-    'root' : '/nbhosting-test',
+    'root' : '/nbhosting',
 }
 
+########## for both production and devel
+if os.getuid() == 0:
+    LOG_FILE = os.path.join(nbhosting_settings['root'], 'logs', 'nbhosting.log')
+else:
+    # some provisions for devel mode
+    LOG_FILE = "nbhosting.log"
+    nbhosting_settings['root'] = os.path.join(os.getcwd(), 'fake-root')
+
 # this will create <root>/logs - and thus <root> - if needed
-LOG_FILE = os.path.join(nbhosting_settings['root'], 'logs', 'nbhosting.log')
 logger = init_logger(LOG_FILE)

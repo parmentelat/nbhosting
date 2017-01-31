@@ -1,27 +1,35 @@
 # -*- shell-script -*-
 
+period=3
+
 echo BEGIN - $(date)
 
 if [[ -z "$@" ]]; then
     students="mary lisa bill john kurt mick rosy jack pete jose"
+elif [[ "$#" == 2 ]]; then
+    from=$1; shift
+    to=$1
+    students=""
+    for nb in $(seq $from $to); do
+	students="$students $(printf stud-%04d $nb)"
+    done
 else
     students="$@"
 fi
 
-start=10001
-
-root=/nbhosting-test
+root=/nbhosting
 course=flotbioinfo
 notebook=w1/fr-w1-s07-c1-walking.ipynb
 image=jupyter/scipy-notebook
 
-# create one every 2s
+# create one every <period> s
 port=$start
 for student in $students; do
-    echo ========== "$user -> $port"
+    port=$(python3 ../../django/ports/ports.py 1)
+    echo ========== "$user -> $port (period=$period)"
     nbh-add-student-in-course $root $student $course
-    nbh-run-student-course-jupyter $root $student $course $notebook $image $port & sleep 2
-    port=$(($port + 1))
+    nbh-run-student-course-jupyter $root $student $course $notebook $image $port >& $student.log &
+    sleep $period
 done
 
 echo END - $(date)

@@ -1,6 +1,6 @@
 #/bin/bash -x
 
-root=/nbhosting-test
+root=/nbhosting
 course=flotbioinfo
 giturl=https://github.com/parmentelat/flotbioinfo.git
 
@@ -10,19 +10,17 @@ function init() {
     echo ++++++++++++++++++++ cleaning up $root
     rm -rf $root	
     echo ++++++++++++++++++++ creating git repo
-    ./nbh-init-course $root $course $giturl
+    nbh-init-course $root $course $giturl
     echo "after init-course"
     ls $root/courses-git/$course
     userdel john
     userdel mary
-    # xxx tmp
-    ln -s /root/nbhosting-sync/scripts $root
 }
 
 function run() {
     echo ++++++++++++++++++++ running update-course
     rm -f $log
-    ./nbh-update-course $root $course
+    nbh-update-course $root $course
     cat $log
     
     echo ++++++++++++++++++++ CONTENTS: dirs found in $root except git repo itself

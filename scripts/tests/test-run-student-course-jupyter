@@ -5,12 +5,12 @@ function init() {
     docker stop flotbioinfo-x-john
     docker rm flotbioinfo-x-john
 
-    nbh-del-student /nbhosting-test john
-    nbh-add-student-in-course /nbhosting-test john flotbioinfo
+    nbh-del-student /nbhosting john
+    nbh-add-student-in-course /nbhosting john flotbioinfo
 }
 
 function run() {
-    run_line=$(run-student-course-jupyter /nbhosting-test john flotbioinfo w1/en-w1-e1-compute-gc-at.ipynb)
+    run_line=$(run-student-course-jupyter /nbhosting john flotbioinfo w1/en-w1-e1-compute-gc-at.ipynb)
 
     echo line returned by run-student-course-jupyter : $run_line
     

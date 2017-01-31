@@ -1,6 +1,6 @@
 [uwsgi]
 projectname = nbhosting
-chdir = /root/nbhosting-sync/
+chdir = @DJANGO-ROOT@
 #
 module = nbhosting.wsgi:application
 plugins = python3
@@ -15,13 +15,9 @@ listen.owner = root
 listen.group = root
 #
 
-### for devel mode
-workers = 8
-max-requests = 100
+workers = 16
+max-requests = 4000
 
-### hints for production mode
-#workers = 32
-#max-requests = 10000
 # looks like master mode makes
 # systemctl restart nbhosting
 # very slow 

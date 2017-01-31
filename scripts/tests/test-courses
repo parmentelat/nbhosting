@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# -*- shell-script -*-
+
+root=/nbhosting
+
+set -x
+
+nbh-init-course $root flotpython https://github.com/parmentelat/flotpython.git
+nbh-init-course $root flotbioinfo https://github.com/parmentelat/flotbioinfo.git
+nbh-init-course $root datasciencehandbook https://github.com/jakevdp/PythonDataScienceHandbook
+
+for course in flotpython flotbioinfo datasciencehandbook; do
+    nbh-update-course $root $course
+done	      

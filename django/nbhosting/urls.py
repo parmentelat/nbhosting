@@ -19,10 +19,17 @@ from django.conf.urls import url
 from django.contrib import admin
 
 import edxfront.views
+import nbhosting.views
+import courses.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/]+)(.ipynb)?/(?P<student>\w+)$',
+    # tweaking greedy and non greedy so that the .ipynb suffix go away if there's one or even two
+    url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>\w+)$',
         edxfront.views.edx_request
     ),
+    url(r'^nbh/courses/update/(?P<course>[\w_.-]+)',  courses.views.update_course),
+    url(r'^nbh/courses',                              courses.views.list_courses),
+    url(r'^nbh/course/(?P<course>[\w_.-]+)',          courses.views.list_course),
+    url(r'^nbh',                                      nbhosting.views.welcome),
 ]

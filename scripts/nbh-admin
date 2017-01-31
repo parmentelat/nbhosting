@@ -5,7 +5,7 @@
 # a developer tool for getting an overview of what's going on
 #
 
-root=/nbhosting-test
+root=/nbhosting
 
 function status-users() {
     echo "--- USERS in passwd"
@@ -55,15 +55,15 @@ function clear-docker() {
 }
 
 function clear-users() {
-    for userdir in $(ls -d /nbhosting-test/students/* 2>/dev/null); do
+    for userdir in $(ls -d /nbhosting/students/* 2>/dev/null); do
 	user=$(basename $userdir)
 	echo deleting user $user
-	nbh-del-student /nbhosting-test $user
+	nbh-del-student /nbhosting $user
     done
 }
 
 function clear-logs() {
-    for file in /var/log/nginx/daemon /nbhosting-test/logs/nbhosting.log $(ls -d /nbhosting-test/logs/flotbioinfo/run\*.log 2> /dev/null); do
+    for file in /var/log/nginx/daemon /nbhosting/logs/nbhosting.log $(ls -d /nbhosting/logs/flotbioinfo/run\*.log 2> /dev/null); do
 	echo clearing log file $file
 	echo ==================== > $file
     done
