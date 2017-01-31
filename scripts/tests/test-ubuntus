@@ -1,0 +1,18 @@
+# -*- shell-script -*-
+
+# Usage:
+# $0 100 3
+# would create 100 containers, one every 3 seconds
+
+echo BEGIN - $(date)
+
+how_many=$1; shift
+period=$1; shift
+
+# create one every <period> s
+for i in $(seq $how_many); do
+    docker run -dit ubuntu bash
+    sleep $period
+done
+
+echo END - $(date)

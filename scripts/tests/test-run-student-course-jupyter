@@ -5,12 +5,13 @@ function init() {
     docker stop flotbioinfo-x-john
     docker rm flotbioinfo-x-john
 
-    nbh-del-student /nbhosting john
-    nbh-add-student-in-course /nbhosting john flotbioinfo
+    ../nbh-del-student /nbhosting john
+    ../nbh-enroll-student-in-course /nbhosting john flotbioinfo
 }
 
 function run() {
-    run_line=$(run-student-course-jupyter /nbhosting john flotbioinfo w1/en-w1-e1-compute-gc-at.ipynb)
+    port=$(python3 ../../django/ports/ports.py 1)
+    run_line=$(../nbh-run-student-course-jupyter /nbhosting john flotbioinfo w1/en-w1-e1-compute-gc-at.ipynb flotbioinfo $port)
 
     echo line returned by run-student-course-jupyter : $run_line
     
@@ -23,8 +24,8 @@ function run() {
     echo ++++++++++++++++++++ docker ps -a
     docker ps -a
     
-    echo ++++++++++++++++++++ https
-    curl -k https://localhost:$port/?token=$token
+    echo ++++++++++++++++++++ http
+    curl -k http://localhost:$port/?token=$token
 }
 
 # force clean/init phase with the --init arg

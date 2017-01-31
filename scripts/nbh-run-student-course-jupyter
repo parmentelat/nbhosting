@@ -5,7 +5,11 @@
 # (*) check for existence of notebook in the student's space
 # (*) make sure there is a notebook server ready and running for that couple student x course
 # (*) return written on stdout as
-#     docker-name docker-port jupyter-token
+#     action docker-name docker-port jupyter-token
+#     with action in {created, restarted, running};
+#       'created' is for when a container needed to be created
+#       'restarted' is for when a suspended container was found and just restarted
+#       'running' means the container was up and running already
 #
 # if forcecopy is set to force, then the master notebook is always copied
 # into the student's space, even if pre existing
@@ -50,7 +54,7 @@ forcecopy=$1; shift
 timeout_wait_for_http=20
 
 # set to any non-empty string to enable
-debug=true
+debug=
 
 # all the verbosity goes to stderr as stdout is meant for the caller
 function echo-stderr() {
@@ -92,11 +96,6 @@ log=$root/logs/$course/run-$student.log
 [ -d $course_modules ] || echo-stderr WARNING $course_modules dir not found
 [ -d $course_media ] || echo-stderr WARNING $course_media dir not found
 [ -d $course_data ] || echo-stderr WARNING $course_data dir not found
-
-# tmp
-for var in student_home course_nbroot course_notebook student_notebook; do
-    [ -n "$debug" ] && echo-stderr $var = ${!var}
-done
 
 # create directory/ies leading to file <file>
 function mkdir-for-file () {
@@ -182,7 +181,7 @@ function wait-for-http-on-port-token() {
 	if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null; then
 	    # if so, check that http is ready
 	    echo-stderr "Checking for HTTP"
-	    curl http://localhost:$port/tree?token=$token >& /dev/null && {
+	    curl "http://localhost:$port/tree?token=$token" >& /dev/null && {
 		# sleep an extra .5 s to be safe
 		sleep 0.5
 		return 0
@@ -190,7 +189,8 @@ function wait-for-http-on-port-token() {
 	fi
 	sleep 1
 	counter=$(( $counter + 1))
-    done		    
+    done
+    echo-stderr "timeout expired after $counter iterations"
     return 1
 }
 
@@ -209,13 +209,15 @@ function run-docker-instance() {
     local inspect_file=/tmp/$docker_name.port-bindings
     # check if container docker_name is already defined
     # beware we are in a set -e section
-    docker inspect -f "{{.HostConfig.PortBindings}}" $docker_name > $inspect_file 2> /dev/null \
+    docker inspect --format "{{.HostConfig.PortBindings}}" $docker_name > $inspect_file 2> /dev/null \
 	&& { \
+	     action="running-or-restarted"
 	     # this is the case where docker inspect was successful
 	     # retrieve (actual) port number from inspect_file
 	     docker_port=$(get-port-from-portbindings $inspect_file)
 	     rm -f $inspect_file
     } || { \
+	   action="created"
 	   # this now is when docker inspect fails
 	   echo-stderr Creating docker container $docker_name
 	   # * map host free port to fixed 8888 in container
@@ -263,6 +265,12 @@ function run-docker-instance() {
     # so: start the container only if it needs to, and in that
     # case wait until it's up and reachable
     running=$(docker inspect -f "{{.State.Running}}" $docker_name)
+    # refine action if this container was not just created
+    if [ $action == "running-or-restarted" ]; then
+	action=$([ "$running" == true ] && echo running || echo restarted)
+	echo-stderr action=$action
+    fi
+    # actually restart if needed
     if [ "$running" != "true" ]; then
 	echo-stderr Starting container $docker_name
 	# prevent clobbering of stdout
@@ -273,19 +281,19 @@ function run-docker-instance() {
 
     # this is the only thing that goes on stdout
     #
-    echo $docker_name $docker_port $jupyter_token
+    echo $action $docker_name $docker_port $jupyter_token
 
     [ -n "$debug" ] && set +x
 }
 
 function main() {
+    echo-stderr "========== $(date) run-student-course-jupyter $course $student"
     check-student-notebook
     run-docker-instance
 }
 
-echo-stderr "========== $(date)"
 # we always leave stdout alone as it's the outcome of this script
-# but as far as stderr, we want to log it and to return it in stderr
-main 2> >(tee -a $log >&2)
+# but as far as stderr, we want to log it *and* to return it in stderr
+main 2> >(tee -a $log >&2) || :
 
 exit 0

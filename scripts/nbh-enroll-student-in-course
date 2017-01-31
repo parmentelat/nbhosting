@@ -58,13 +58,9 @@ for group in docker $course; do
     }
     echo "Ensuring $student is in group $group"
     groupmems -a $student -g $group &> /dev/null
-    # xxx we need to restart docker here
-    # if user was not in docker group already
-    # but this is too intrusive !
-    # would be worth trying with reload instead
+    # docker start would be way too intrusive !
     if [ $? != 0 -a "$group" == "docker" ]; then
-	echo "restarting docker service after adding $student into docker"
-#	systemctl restart docker
+	echo "reloading docker service after adding $student into docker"
 	systemctl reload docker
     fi
 done

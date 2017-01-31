@@ -13,6 +13,7 @@ def welcome(request):
 <li> <a href="/nbh/courses">Courses</a></li>
 <li> <a href="/nbh/students">Students (NYI)</a></li>
 <li> <a href="/nbh/stats">Statistics (NYI)</a></li>
+<li> <a href="/nbh/ports">Ports</a></li>
 """
     return HttpResponse(html)
     

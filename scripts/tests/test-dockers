@@ -26,8 +26,8 @@ image=jupyter/scipy-notebook
 port=$start
 for student in $students; do
     port=$(python3 ../../django/ports/ports.py 1)
-    echo ========== "$user -> $port (period=$period)"
-    nbh-add-student-in-course $root $student $course
+    echo ========== "$student -> $port (period=$period)"
+    nbh-enroll-student-in-course $root $student $course
     nbh-run-student-course-jupyter $root $student $course $notebook $image $port >& $student.log &
     sleep $period
 done

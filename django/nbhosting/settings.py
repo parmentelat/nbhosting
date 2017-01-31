@@ -131,6 +131,12 @@ nbhosting_settings = {
     'root' : '/nbhosting',
 }
 
+####################
+from ports.ports import PortPool
+# pretend to need a free port so that the PortPool singleton gets created
+# and populated at startup time
+PortPool().free_port()
+
 ########## for both production and devel
 if os.getuid() == 0:
     LOG_FILE = os.path.join(nbhosting_settings['root'], 'logs', 'nbhosting.log')

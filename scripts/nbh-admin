@@ -41,12 +41,15 @@ function status() {
     status-docker
 }
 
-function clear-docker() {
+function clear-docker-light() {
     containers=$(docker ps --format '{{.Names}}')
     for c in $containers; do
 	echo "Killing $c"
 	docker kill $c
     done
+}
+
+function clear-docker-deep() {
     containers=$(docker ps -a --format '{{.Names}}')
     for c in $containers; do
 	echo "Removing $c"
@@ -63,16 +66,21 @@ function clear-users() {
 }
 
 function clear-logs() {
-    for file in /var/log/nginx/daemon /nbhosting/logs/nbhosting.log $(ls -d /nbhosting/logs/flotbioinfo/run\*.log 2> /dev/null); do
+    for file in /var/log/nginx/daemon $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo clearing log file $file
 	echo ==================== > $file
     done
 }
 
 function clear() {
-    clear-docker
+    clear-docker-light
+    clear-docker-deep
     clear-users
     clear-logs
+}
+
+function clear-light() {
+    clear-docker-light
 }
 
 # if args are provided, take this as a call to a local function

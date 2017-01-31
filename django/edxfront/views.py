@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 
 from nbhosting.settings import logger, nbhosting_settings as settings
-from ports.ports import free_port
+from ports.ports import PortPool
 
 # Create your views here.
 
@@ -43,7 +43,7 @@ def edx_request(request, course, student, notebook):
     # xxx probably requires a sudo of some kind here
     # for when run from apache or nginx or whatever
 
-    script = 'nbh-add-student-in-course'
+    script = 'nbh-enroll-student-in-course'
     command = [ script, root, student, course ]
     logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
     completed_process = subprocess.run(
@@ -56,8 +56,8 @@ def edx_request(request, course, student, notebook):
     image = course
     # compute a free port - not always useful but who cares
     # I mean, if there's already a running docker the port will just be ignored
-    port = str(free_port())
-    command = [ script, root, student, course, notebook_full, image, port ]
+    free_port = str(PortPool().free_port())
+    command = [ script, root, student, course, notebook_full, image, free_port ]
     logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,
@@ -71,10 +71,12 @@ def edx_request(request, course, student, notebook):
             .format(" ".join(command), completed_process.returncode,
                     verbatim(completed_process.stderr)))
     try:
-        docker_name, docker_port, jupyter_token = completed_process.stdout.split()
+        action, docker_name, actual_port, jupyter_token = completed_process.stdout.split()
+        PortPool().record_as_used(actual_port)
+        # redirect with same proto (http or https) as incoming 
+        scheme = request.scheme
         # get the host part of the incoming URL
         host = request.get_host()
-        scheme = request.scheme
         # remove initial port if present
         if ':' in host:
             host, _ = host.split(':', 1)
@@ -82,7 +84,7 @@ def edx_request(request, course, student, notebook):
         # do not specify a port, it will depend on the scheme
         # and probably be https/443
         url = "{scheme}://{host}/{port}/notebooks/{path}?token={token}"\
-              .format(scheme=scheme, host=host, port=docker_port,
+              .format(scheme=scheme, host=host, port=actual_port,
                       path=notebook_full, token=jupyter_token)
         logger.info("edxfront: redirecting to {}".format(url))
 #        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
