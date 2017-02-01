@@ -31,13 +31,10 @@ function log-symlink() {
 function update-uwsgi() {
     sed -e "s,@DJANGO-ROOT@,$srcroot/django," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
     rsync $rsopts  uwsgi/nbhosting.ini /etc/uwsgi.d/
-    rsync $rsopts uwsgi/nbhosting.service /etc/systemd/system/
-    systemctl restart nbhosting
 }
 
 function update-nginx() {
     rsync $rsopts nginx/nbhosting.conf /etc/nginx/conf.d/nbhosting.conf
-    systemctl restart nginx
 }
     
 function update-bins() {
@@ -49,12 +46,22 @@ function update-jupyter() {
     rsync $rsopts jupyter/ $root/jupyter/
 }
 
+function restart-services() {
+    rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
+    rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
+    systemctl daemon-reload
+    systemctl restart nginx
+    systemctl restart nbh-uwsgi
+    systemctl restart nbh-monitor
+}
+
 function main() {
     check-subdirs
     update-bins
     update-jupyter
     update-uwsgi
     update-nginx
+    restart-services
     # this is just convenience
     log-symlink
 }

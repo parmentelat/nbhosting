@@ -43,9 +43,13 @@ def list_courses(request):
     html += "<ul>"
     for course in completed.stdout.decode().split("\n"):
         if course:
-            html += "<li class='course-link'><a href='/nbh/course/{course}'>{course}</a></li>"\
-                                .format(course=course)
-        
+            chunk  = ""
+            chunk += "<li class='course-link'><a href='/nbh/course/{course}'>"
+            chunk += "{course}</a>"
+            chunk += "<a class='course-stat-link' href='/nbh/stats/{course}'>"
+            chunk += "(stats)</a>"
+            chunk += "</li>"
+            html += chunk.format(course=course)
     html += "</ul>"
     return HttpResponse(html)
 

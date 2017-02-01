@@ -202,6 +202,11 @@ function run-docker-instance() {
     # update jupyter_notebook_config.py and the 2 custom files
     check-course-jupyter
 
+    # touch a file in the student's course dir
+    # so the monitoring tool can spare it
+    # <=> jupyter's root
+    touch $student_course/.monitor
+
     #  exit with retcode != 0 if anything goes south
     set -e
     

@@ -1,19 +1,6 @@
 # Plan
 
-## ~~Issue P1 - X-frame-options~~
-
-* X-frame-options is set to SAMEORIGIN; need to figure whether nginx or django is the culprit
-
-## ~~Issue P1 - Content-Security-Policy~~
-
-* actual URLs from FUN don't seem to make it up the stack to django
-* defined proper header in jupyter config (for the tornado subapp)
-
-## ~~milestone (pending)~~
-
-* the inria/demo course #2 has 2 notebooks on 2 separate courses (flotpython / flotbioinfo)
-
-## ~~issue P1 - customize (1) - `jupyter_notebook_config.py`~~
+#### ~~issue P1 - customize (1) - `jupyter_notebook_config.py`~~
 
 * ***WARNING*** that the config file is already present in the docker image !!
 * it does things like running on all IP addresses (`.ip = '*'`) **AND* it generates a self-signed certificate which is probably what takes so long !?!
@@ -28,81 +15,61 @@ c.NotebookApp.open_browser = False
     c.NotebookApp.certfile = pem_file
 ```
 
-## ~~issue P1 - some sort of packaging~~ 
-
-* workflow is git push -> git pull -> install.sh
+* autosave
+  * want to set to 20s for the cases where jupyters get killed on timeout
+  * an attempt is made in custom.js
+  * does not seem to work too well though, or needs more tests ...
 
 ## ***issue P1 - customize (2) (`js` + `css`)***
 
+* needs more thorough checks (apparently we can change cell type !)
 * partly addressed (although clearly cosmetically suboptimal)
-* ***Still missing***
-  * additional menus (revert to original, share read-only view)
-  * unclear if something special is required to get the notebook to reconnect to its kernel if/when the docker instance get killed
+* ***Still missing*** (but second order)
+  * additional menus (***Revert*** to original, ***Share*** read-only view)
   * do we need to mess with keyboard bindings as well ? 
     - proto for an Enter-based thing but it's a little awkward
 
-## issue P1 - have some logs
+## issue P1 - need some authentication to manage courses
 
-* create a DB with events like 
+#### ~~issue P1 - have some stats~~
+
+* create events like 
   * `open(course, student, notebook, time)`
-  * `close(course, student)` 
+  * `close(course, student)`
+* also tag the user's work dir for the latest activity
+
+#### ~~issue P1 - checking for idle jupyters~~
+
+#### can we find something better ?
+
+* run every 10'
+* and kill containers that have not changed notebook since more than 2hours
 
 ## ~~issue P1 - course management UI~~
 
 * let teachers update their course
-* let admins manage courses (several styles of courses probably)
+* ***Still missing*** (but 2nd order)
+  * let admins manage courses (several styles of courses probably)
 
-## ~~issue P2 - not all notebooks start in [wW]*~~
+## issue P2 - define a static/ area
 
-esp. datascience handbook at https://github.com/jakevdp/PythonDataScienceHandbook
+* we need to serve our own static contents
+* ~~e.g. js for stats (https required)~~ -> found some place else it's OK now
+* but also local css, favicon, ...
 
-this convention clearly is in the way.
+## issue P3 - stop serving on port 80 altogether
 
-## issue P2 - need some authentication to manage courses
-
-## issue P2 - how often does stuff get saved ?
-
-* this post [https://groups.google.com/forum/#!topic/jupyter/DGCKE5fS4kQ]()
-* suggests to use
-
-```
-events.on("notebook_loaded.Notebook", function () {
-    IPython.notebook.minimum_autosave_interval = 10; // - 0 to disable autosave
-```
-* observed on my MAC with a flotpython exo - suggests it's in milliseconds
-
-```
-Jupyter.notebook.minimum_autosave_interval
-120000
-```
-## issue P1 - checking for idle jupyters
-
-#### FLO+BEN approach
-
-* crontab a job that kills docker instances
-* in this case we'd need to tweak the port allocation mechanism so as to avoid ports already allocated to suspended dockers
-  
-#### can we find something better ?
-
-* like tweaking the frequency for auto-save (which might be a good idea anyways)
-* and then just monitor the work/ directories (maybe .ipynb-checkpoints or whatever the actual name is)
-
-## ~~issue P3 - cookies~~ (dropped)
-
-* investigate if cookies really are required, or if just defining baseurl could work
-* a first attempt showed the behaviour of the base_url setting is not clear
-* forget about that for now
-
-## issue P2: custom images
+#### ~~issue P2: custom images~~
 
 * create custom docker image with a few additions in pip3:
   * e.g. mpld3 for flotbioinfo
 * come up with some sort of workflow for when this need arises
 
-## issue P2 - docker rm fragile
+#### ~~issue P3 - cookies~~ (dropped)
 
-* `docker rm` fails with Device busy from time to time 
-* Hopefully this sohuld be OK now with ``btrfs`` 
+* investigate if cookies really are required, or if just defining baseurl could work
+* a first attempt showed the behaviour of the base_url setting is not clear
+* forget about that for now
 
 # Plan - midterm
 

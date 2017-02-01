@@ -25,7 +25,7 @@ course_jupyter=$root/jupyter/$course
 course_stats=$root/stats/$course
 
 course_logs=$root/logs/$course
-log=$root/logs/$course.log
+log=$root/logs/$course/000.log
 
 rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 

@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 
 from nbhosting.settings import logger, nbhosting_settings as settings
 from ports.ports import PortPool
-from stats.stats import stat_open_notebook
+from stats.stats import Stats
 
 # Create your views here.
 
@@ -73,7 +73,9 @@ def edx_request(request, course, student, notebook):
                     verbatim(completed_process.stderr)))
     try:
         action, docker_name, actual_port, jupyter_token = completed_process.stdout.split()
-        stat_open_notebook(course, student, notebook, action, actual_port)
+        # remember that in events file for statistics
+        Stats(course).record_open_notebook(student, notebook, action, actual_port)
+        # also record that as a busy port
         PortPool().record_as_used(actual_port)
         # redirect with same proto (http or https) as incoming 
         scheme = request.scheme

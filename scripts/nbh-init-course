@@ -18,7 +18,7 @@ root=$(cd $root; pwd -P)
 course_git=$root/courses-git/$course
 
 course_logs=$root/logs/$course
-log=$course_logs/$COMMAND.log
+log=$course_logs/000.log
 
 function init-course() {
     [ -d $course_git ] && {

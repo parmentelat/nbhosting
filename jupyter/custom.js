@@ -81,7 +81,7 @@ define([
     // set this aside - from benjamin's code
     // it's kind of working but too intrusive
     // this html needs to be injected, not to replace 
-    var update_metadata = function() {
+    var update_metadata = function(Jupyter) {
 	console.log("showing notebook metadata");
 	var notebook = Jupyter.notebook;
 	var notebookmeta = "";
@@ -106,6 +106,13 @@ define([
 	$('.text_cell').unbind('dblclick');
     }
 
+    // 2 minutes is a long time if you know that the server
+    // can be killed at any time; observed as being 120000 on my mac
+    // so it sounds like milliseconds
+    var speed_up_autosave = function(Jupyter) {
+	IPython.notebook.minimum_autosave_interval = 20000;
+    }
+
     // this might sound like a good idea but needs more checking
     var redefine_enter_in_command_mode = function(Jupyter) {
 	console.log("redefining the Enter key in command mode");
@@ -117,8 +124,9 @@ define([
     events.on('notebook_loaded.Notebook', function(){
 	console.log("custom.js for mooc embedding: entering notebook_loaded");
 	$('body.notebook_app').show();
-	update_metadata();
+	update_metadata(Jupyter);
 	inactivate_non_code_cells(Jupyter);
+	speed_up_autosave(Jupyter);
 //	redefine_enter_in_command_mode(Jupyter);
 	
 	//////////

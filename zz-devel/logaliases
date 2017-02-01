@@ -15,10 +15,10 @@ function refresh() {
 
 ########## stolen from comp-miscell.ish
 function jou-nginx()		{ jou -f nginx; }
-function jou-nbhosting()	{ jou -f nbhosting; }
+function jou-uwsgi()	        { jou -f nbh-uwsgi; }
 function jou-docker()		{ jou -f docker; }
 function jou-httpd()		{ jou -f httpd; }
-function jou-all()		{ jou -f nginx nbhosting docker httpd; }
+function jou-all()		{ jou -f nginx nbh-uwsgi docker httpd; }
 
 ##########
 function logs-nginx() {
