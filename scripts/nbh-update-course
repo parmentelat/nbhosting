@@ -22,9 +22,10 @@ course_static=$root/static/$course
 course_data=$root/static/$course/data
 course_media=$root/static/$course/media
 course_jupyter=$root/jupyter/$course
+course_stats=$root/stats/$course
 
 course_logs=$root/logs/$course
-log=$course_logs/$COMMAND.log
+log=$root/logs/$course.log
 
 rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 
@@ -45,7 +46,7 @@ function update-course() {
     git submodule update
     
     # create course dirs if needed
-    for dir in $course_notebooks $course_modules $course_data $course_media; do
+    for dir in $course_notebooks $course_modules $course_data $course_media $course_stats; do
 	[ -d $dir ] || {
 	    echo Creating $dir
 	    mkdir -p $dir
