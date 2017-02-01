@@ -132,10 +132,14 @@ nbhosting_settings = {
 }
 
 ####################
-from ports.ports import PortPool
-# pretend to need a free port so that the PortPool singleton gets created
-# and populated at startup time
-PortPool().free_port()
+try:
+    from ports.ports import PortPool
+    # pretend to need a free port so that the PortPool singleton gets created
+    # and populated at startup time
+    PortPool().free_port()
+except:
+    # devel boxes won't be able to fo that
+    pass
 
 ########## for both production and devel
 if os.getuid() == 0:

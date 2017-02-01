@@ -65,10 +65,17 @@ function clear-users() {
     done
 }
 
+function clear-logs-light() {
+    for file in /var/log/nginx/daemon $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
+	echo resetting log file $file
+	echo ==================== > $file
+    done
+}
+
 function clear-logs() {
     for file in /var/log/nginx/daemon $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo clearing log file $file
-	echo ==================== > $file
+	rm $file
     done
 }
 

@@ -7,6 +7,8 @@ all:
 TESTBOX=root@nbhosting.inria.fr
 
 sync:
+	@echo 'export PATH=/tmp/nbhosting-sync/scripts/:$$PATH'
+	@echo 'export PYTHONPATH=/tmp/nbhosting-sync/django'
 	rsync -rltpv --relative $$(git ls-files) $(TESTBOX):/tmp/nbhosting-sync/
 
 

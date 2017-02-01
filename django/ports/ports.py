@@ -86,10 +86,12 @@ class PortPool(metaclass=Singleton):
 if __name__ == '__main__':
     import sys
     how_many = int(sys.argv[1])
+    pool = PortPool()
+    pool.refresh_used_ports()
     if how_many > 1:
+        print("pool -> ", pool.used_ports)
         print("The ports returned by free_port when run {} times".format(how_many),
               file=sys.stderr)
-    pool = PortPool()
     for i in range(how_many):
         print(pool.stateless_free_port())
     
