@@ -1,19 +1,6 @@
 # Plan
 
-#### ~~issue P1 - customize (1) - `jupyter_notebook_config.py`~~
-
-* ***WARNING*** that the config file is already present in the docker image !!
-* it does things like running on all IP addresses (`.ip = '*'`) **AND* it generates a self-signed certificate which is probably what takes so long !?!
-
-```
-# docker exec flotbioinfo-x-mary ls -l /home/jovyan/.jupyter/jupyter_notebook_config.py
--rw-rw-r-- 1 jovyan users 1205 Jan  2 19:55 /home/jovyan/.jupyter/jupyter_notebook_config.py
-# docker exec flotbioinfo-x-mary grep -i notebookapp /home/jovyan/.jupyter/jupyter_notebook_config.py
-c.NotebookApp.ip = '*'
-c.NotebookApp.port = 8888
-c.NotebookApp.open_browser = False
-    c.NotebookApp.certfile = pem_file
-```
+## issue P1 - customize (1) - `jupyter_notebook_config.py`
 
 * autosave
   * want to set to 20s for the cases where jupyters get killed on timeout
@@ -29,43 +16,21 @@ c.NotebookApp.open_browser = False
   * do we need to mess with keyboard bindings as well ? 
     - proto for an Enter-based thing but it's a little awkward
 
-## issue P1 - need some authentication to manage courses
-
-#### ~~issue P1 - have some stats~~
-
-* create events like 
-  * `open(course, student, notebook, time)`
-  * `close(course, student)`
-* also tag the user's work dir for the latest activity
-
-#### ~~issue P1 - checking for idle jupyters~~
-
-#### can we find something better ?
-
-* run every 10'
-* and kill containers that have not changed notebook since more than 2hours
-
 ## ~~issue P1 - course management UI~~
 
-* let teachers update their course
+* teachers can update their course (all use the same superuser account and see all courses for now)
 * ***Still missing*** (but 2nd order)
   * let admins manage courses (several styles of courses probably)
 
 ## issue P2 - define a static/ area
 
-* we need to serve our own static contents
-* e.g. js for stats: `timeseries`, `mg_line_brushing.js` 
-* but also local css, favicon, ...
+* we need that to serve our own static contents
+  * e.g. js for stats: `timeseries`, `mg_line_brushing.js` that don't show up in cloudjs
+  * but also a local css, favicon, ...
 
 ## issue P3 - stop serving on port 80 altogether
 
 * and redirect / onto /nbh/
-
-#### ~~issue P2: custom images~~
-
-* create custom docker image with a few additions in pip3:
-  * e.g. mpld3 for flotbioinfo
-* come up with some sort of workflow for when this need arises
 
 #### ~~issue P3 - cookies~~ (dropped)
 
@@ -78,9 +43,6 @@ c.NotebookApp.open_browser = False
 ## step P4: run nbhosting as a docker container inside thermals
 * probably a big disruptive step
 * however we should anticipate on this one and for one thing, reinstall thermals from scratch asap so we can have a view that is not clobbered by our previous lxc setup that might come in the way.
-
-## step P3:
-* gather data for stats
 
 *****
 
