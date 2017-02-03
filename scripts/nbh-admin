@@ -75,7 +75,7 @@ function clear-logs-light() {
 function clear-logs() {
     for file in /var/log/nginx/daemon $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo clearing log file $file
-	rm $file
+	rm -f $file
     done
 }
 

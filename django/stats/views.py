@@ -66,7 +66,7 @@ d3.request(url_metrics, function (error, response) {
 var url_counts="/nbh/stats/counts/{course}";
 d3.request(url_counts, function (error, response) {
     var incoming = JSON.parse(response.response);
-    console.log(incoming[0]);
+    //console.log(incoming[0]);
     // incoming has 1 array
     var jupyters        = MG.convert.date(incoming[0], 'date', '%Y-%m-%d %H:%M:%S');
     MG.data_graphic({

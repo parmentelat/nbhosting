@@ -15,9 +15,9 @@
 # into the student's space, even if pre existing
 
 COMMAND=$(basename $0)
-USAGE="Usage: $COMMAND nbhosting-root student course notebook docker-image docker-port [force]"
+USAGE="Usage: $COMMAND nbhosting-root student course notebook docker-image [force]"
 
-[[ "$#" =~ [67] ]] || { echo $USAGE; exit 1; }
+[[ "$#" =~ [56] ]] || { echo $USAGE; exit 1; }
 
 # from config - typically /nbhosting
 root=$1; shift
@@ -32,8 +32,6 @@ notebook=$1; shift
 # nbhosting was developped for jupyter/scipy-notebook, hopefully
 # it could run with others some day
 docker_image=$1; shift
-# port number as provided by django
-free_port=$1; shift
 # if forcecopy is 'force', then the student's copy is overwritten
 # from the course copy
 forcecopy=$1; shift
@@ -49,9 +47,14 @@ forcecopy=$1; shift
 #connection_details="connection-details.json"
 #connection_details="nbserver-7.json"
 
+### various timeouts
+# how long to wait for the port number to show up after a start
+# this is 10 times .1s so 1s - proceed immediately
+timeout_wait_for_port="10 .1 0"
 # how long should we wait for the container to answer http
-# trying to create 6 containers at the exact same time : 10 is not long enough 
-timeout_wait_for_http=20
+# trying to create 6 containers at the exact same time : 10 is not long enough
+# then we wait an extra one second
+timeout_wait_for_http="20 1 1"
 
 # set to any non-empty string to enable
 debug=
@@ -161,41 +164,70 @@ function check-course-jupyter() {
     fi
 }   
 
+####################
+# xxx probably a lot of space for improvement here
 # retrieve port from output like this
-# map[8888/tcp:[{ 57971}]]
-function get-port-from-portbindings() {
-    file=$1; shift
-    cat $file | sed -e 's,[^0-9][^0-9]*, ,g' | cut -d' ' -f 3
+# map[8888/tcp:[{0.0.0.0 32774}]]
+function get-port-from-docker() {
+    docker inspect --format '{{.NetworkSettings.Ports}}' $docker_name | cut -d' ' -f 2 | sed -e 's,[^0-9],,g'
 }
 
-# xxx probably a lot of space for improvement
+# if the container was just started it may take a little time
+# before we can know on what port it runs
+# PS: it's not even clear it's useful to do this loop...
+function find-port-number() {
+    ticks=$1; shift
+    period=$1; shift
+    extra=$1; shift
+    counter=1
+    while [ $counter -le $ticks ]; do
+	echo-stderr "Probing for port ($counter)"
+	docker_port=$(get-port-from-docker)
+	[ -n "$docker_port" ] && {
+	    sleep $extra
+	    echo $docker_port;
+	    return 0;
+	}
+	counter=$(( $counter + 1))
+	sleep $period
+    done
+    echo-stderr "find-port-number failed after $counter iterations"
+    return 1
+}
+
 # in particular the actual timeout is unclear
 function wait-for-http-on-port-token() {
     port=$1; shift
     token=$1; shift
-    timeout=$1; shift
+    ticks=$1; shift
+    period=$1; shift
+    extra=$1; shift
     counter=1
-    while [ $counter -le $timeout ]; do
-	echo-stderr Waiting for TCP on port $port - iter $counter
+    while [ $counter -le $ticks ]; do
+	echo-stderr "Waiting for TCP ($counter) on port $port"
 	# first check if tcp port is up
 	if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null; then
 	    # if so, check that http is ready
-	    echo-stderr "Checking for HTTP"
+	    echo-stderr "Checking for HTTP ($counter) on port $port"
 	    curl "http://localhost:$port/tree?token=$token" >& /dev/null && {
 		# sleep an extra .5 s to be safe
-		sleep 0.5
+		sleep $extra
+		echo-stderr HTTP OK
 		return 0
 	    }
 	fi
-	sleep 1
 	counter=$(( $counter + 1))
+	sleep $period
     done
     echo-stderr "timeout expired after $counter iterations"
     return 1
 }
 
+####################
 # we name the docker instance as <course>-x-<student>
-# we have the ability to assign a port - that will be mapped into container's fixed 8888
+# we create the container with docker create -p 8888
+# this way the container can be stopped and then restarted
+# with a fresh (unused) port each time
 function run-docker-instance() {
     [ -n "$debug" ] && set -x
 
@@ -211,16 +243,12 @@ function run-docker-instance() {
     set -e
     
     local jupyter_token=$docker_name
-    local inspect_file=/tmp/$docker_name.port-bindings
     # check if container docker_name is already defined
     # beware we are in a set -e section
-    docker inspect --format "{{.HostConfig.PortBindings}}" $docker_name > $inspect_file 2> /dev/null \
+    docker inspect --format "{{.Name}}" $docker_name >& /dev/null \
 	&& { \
 	     action="running-or-restarted"
 	     # this is the case where docker inspect was successful
-	     # retrieve (actual) port number from inspect_file
-	     docker_port=$(get-port-from-portbindings $inspect_file)
-	     rm -f $inspect_file
     } || { \
 	   action="created"
 	   # this now is when docker inspect fails
@@ -243,7 +271,7 @@ function run-docker-instance() {
 	   # compute student uid
 	   student_uid=$(id -u $student)
 	   command="docker create --name $docker_name
-	       -p $free_port:8888
+	       -p 8888
 	       --user root -e NB_UID=$student_uid
 	       -v $student_course:/home/jovyan/work
                -v $course_modules:/home/jovyan/modules
@@ -262,8 +290,6 @@ function run-docker-instance() {
 	   echo-stderr XXXXXXXXXX $command
 	   # we need a clean stdout : redirect stdout to stderr 
 	   >&2 $command
-	       # to expose to the outside
-	       docker_port=$free_port
     }
 
     ### at that point the docker is expected to be created
@@ -273,14 +299,21 @@ function run-docker-instance() {
     # refine action if this container was not just created
     if [ $action == "running-or-restarted" ]; then
 	action=$([ "$running" == true ] && echo running || echo restarted)
-	echo-stderr action=$action
     fi
+    
     # actually restart if needed
     if [ "$running" != "true" ]; then
 	echo-stderr Starting container $docker_name
 	# prevent clobbering of stdout
 	>&2 docker start $docker_name
-	# wait until the service answers TCP connections - in the order of 10s
+    fi
+
+    # figure out on what port it runs; wait for a second (10 times .1)
+    docker_port=$(find-port-number $timeout_wait_for_port)
+
+    # wait until the service actually serves HTTP requests
+    # we need to do this only if we have just started it
+    if [ "$running" != "true" ]; then
 	wait-for-http-on-port-token $docker_port $jupyter_token $timeout_wait_for_http
     fi
 

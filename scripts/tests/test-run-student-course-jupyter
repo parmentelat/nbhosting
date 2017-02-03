@@ -10,13 +10,14 @@ function init() {
 }
 
 function run() {
-    port=$(python3 ../../django/ports/ports.py 1)
-    run_line=$(../nbh-run-student-course-jupyter /nbhosting john flotbioinfo w1/en-w1-e1-compute-gc-at.ipynb flotbioinfo $port)
+    run_line=$(../nbh-run-student-course-jupyter /nbhosting john flotbioinfo w1/en-w1-e1-compute-gc-at.ipynb flotbioinfo)
 
     echo line returned by run-student-course-jupyter : $run_line
     
-    port=$(cut -d' ' -f2 <<< $run_line)
-    token=$(cut -d' ' -f3 <<< $run_line)
+    action=$(cut -d' ' -f1 <<< $run_line)
+    name=$(cut -d' ' -f2 <<< $run_line)
+    port=$(cut -d' ' -f3 <<< $run_line)
+    token=$(cut -d' ' -f4 <<< $run_line)
     
     echo ++++++++++++++++++++ returned port $port
     echo ++++++++++++++++++++ returned token $token

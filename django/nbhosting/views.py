@@ -11,8 +11,7 @@ def welcome(request):
 <h1>Welcome to nbhosting</h1>
 <ul>
 <li> <a href="/nbh/courses">Courses</a></li>
-<li> <a href="/nbh/students">Students (NYI)</a></li>
-<li> <a href="/nbh/ports">Ports</a></li>
+<li> <a href="/nbh/students">Students (Not Yet Implemented)</a></li>
 """
     return HttpResponse(html)
     

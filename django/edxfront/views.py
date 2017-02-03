@@ -7,7 +7,6 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 
 from nbhosting.settings import logger, nbhosting_settings as settings
-from ports.ports import PortPool
 from stats.stats import Stats
 
 # Create your views here.
@@ -55,10 +54,7 @@ def edx_request(request, course, student, notebook):
     script = 'nbh-run-student-course-jupyter'
     # use image named after the course for now
     image = course
-    # compute a free port - not always useful but who cares
-    # I mean, if there's already a running docker the port will just be ignored
-    free_port = str(PortPool().free_port())
-    command = [ script, root, student, course, notebook_full, image, free_port ]
+    command = [ script, root, student, course, notebook_full, image ]
     logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,
@@ -75,13 +71,11 @@ def edx_request(request, course, student, notebook):
         action, docker_name, actual_port, jupyter_token = completed_process.stdout.split()
         # remember that in events file for statistics
         Stats(course).record_open_notebook(student, notebook, action, actual_port)
-        # also record that as a busy port
-        PortPool().record_as_used(actual_port)
         # redirect with same proto (http or https) as incoming 
         scheme = request.scheme
         # get the host part of the incoming URL
         host = request.get_host()
-        # remove initial port if present
+        # remove initial port if present in URL
         if ':' in host:
             host, _ = host.split(':', 1)
         ########## forge a URL that nginx will intercept
@@ -97,5 +91,5 @@ def edx_request(request, course, student, notebook):
     except Exception as e:
         return error_page(
             course, student, notebook,
-            "exception when parsing output of {}<br/>{}"
-            .format(script, verbatim(e)))
+            "exception when parsing output of {}<br/>{}<br/>{}"
+            .format(script, verbatim(completed_process.stdout), verbatim(e)))

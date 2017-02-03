@@ -54,10 +54,12 @@ c.NotebookApp.open_browser = False
 ## issue P2 - define a static/ area
 
 * we need to serve our own static contents
-* ~~e.g. js for stats (https required)~~ -> found some place else it's OK now
+* e.g. js for stats: `timeseries`, `mg_line_brushing.js` 
 * but also local css, favicon, ...
 
 ## issue P3 - stop serving on port 80 altogether
+
+* and redirect / onto /nbh/
 
 #### ~~issue P2: custom images~~
 

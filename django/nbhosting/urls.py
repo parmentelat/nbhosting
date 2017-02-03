@@ -21,7 +21,6 @@ from django.contrib import admin
 import edxfront.views
 import nbhosting.views
 import courses.views
-import ports.views
 import stats.views
 
 urlpatterns = [
@@ -33,8 +32,6 @@ urlpatterns = [
     url(r'^nbh/courses/update/(?P<course>[\w_.-]+)',  courses.views.update_course),
     url(r'^nbh/courses',                              courses.views.list_courses),
     url(r'^nbh/course/(?P<course>[\w_.-]+)',          courses.views.list_course),
-    url(r'^nbh/ports/reset',                          ports.views.reset_ports),
-    url(r'^nbh/ports',                                ports.views.list_ports),
     url(r'^nbh/stats/metrics/(?P<course>[\w_.-]+)',   stats.views.send_metrics),
     url(r'^nbh/stats/counts/(?P<course>[\w_.-]+)',    stats.views.send_counts),
     url(r'^nbh/stats/(?P<course>[\w_.-]+)',           stats.views.show_stats),
