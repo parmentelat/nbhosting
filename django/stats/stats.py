@@ -63,19 +63,16 @@ class Stats:
         return self._write_events_line(student, '-', 'killing', '-')
 
     ####################
-    def _write_counts_line(self, type, count, timestamp=None):
+    def record_jupyters_count(self, running, frozen, timestamp=None):
         timestamp = timestamp or time.strftime(self.time_format, time.gmtime())
         filename = self.counts_filename()
         try:
             with open(filename, 'a') as f:
-                f.write("{timestamp} {type} {count}\n"
+                f.write("{timestamp} {running} {frozen}\n"
                         .format(**locals()))
         except Exception as e:
             logger.error("Cannot store counts line into {} {}".format(filename, e))
         
-    def record_jupyters_count(self, how_many):
-        self._write_counts_line('jupyters', how_many)
-
     ####################
     def metrics_per_day(self):
         """
@@ -92,57 +89,61 @@ class Stats:
         filename = self.events_filename()
         # a dictionary day -> figures
         day_figures = OrderedDict()
-        with open(filename) as f:
-            for lineno, line in enumerate(f, 1):
-                try:
-                    timestamp, course, student, action, notebook, port = line.split()
-                    day = timestamp.split('T')[0]
-                    day_figures.setdefault(day, DayFigures())
-                    figures = day_figures[day]
-                    figures.students.add(student)
-                    if action not in ('killing'):
-                        figures.notebooks.add(notebook)
-                except:
-                    logger.error("{}:{}: skipped misformed line".format(filename, lineno))
-                    continue
-
-        # we have the day's students, let's cumulate
-        days = list(day_figures.keys())
-        # first cell needs to be dealt with separately
-        if days:
-            day1 = days[0]
-            figures1 = day_figures[day1]
-            figures1.cumulative_students = figures1.students
-            figures1.cumulative_notebooks = figures1.notebooks
-        # add yesterday's cumulative to today's studs to get today's cumulative
-        for yesterday, today in zip(days, days[1:]):
-            day_figures[today].cumulative_students \
-                = day_figures[yesterday].cumulative_students \
-                | day_figures[today].students
-            day_figures[today].cumulative_notebooks \
-                = day_figures[yesterday].cumulative_notebooks \
-                | day_figures[today].notebooks
+        try:
+            with open(filename) as f:
+                for lineno, line in enumerate(f, 1):
+                    try:
+                        timestamp, course, student, action, notebook, port = line.split()
+                        day = timestamp.split('T')[0]
+                        day_figures.setdefault(day, DayFigures())
+                        figures = day_figures[day]
+                        figures.students.add(student)
+                        if action not in ('killing'):
+                            figures.notebooks.add(notebook)
+                    except:
+                        logger.error("{}:{}: skipped misformed line".format(filename, lineno))
+                        continue
+    
+            # we have the day's students, let's cumulate
+            days = list(day_figures.keys())
+            # first cell needs to be dealt with separately
+            if days:
+                day1 = days[0]
+                figures1 = day_figures[day1]
+                figures1.cumulative_students = figures1.students
+                figures1.cumulative_notebooks = figures1.notebooks
+            # add yesterday's cumulative to today's studs to get today's cumulative
+            for yesterday, today in zip(days, days[1:]):
+                day_figures[today].cumulative_students \
+                    = day_figures[yesterday].cumulative_students \
+                    | day_figures[today].students
+                day_figures[today].cumulative_notebooks \
+                    = day_figures[yesterday].cumulative_notebooks \
+                    | day_figures[today].notebooks
             
-        students_per_day = [
-            { "date" : day,
-              "value" : len(figures.students)}
-            for day, figures in day_figures.items()]
-        cumulative_students_per_day = [
-            { "date" : day,
-              "value" : len(figures.cumulative_students)}
-            for day, figures in day_figures.items()]
-        notebooks_per_day = [
-            { "date" : day,
-              "value" : len(figures.notebooks)}
-            for day, figures in day_figures.items()]
-        cumulative_notebooks_per_day = [
-            { "date" : day,
-              "value" : len(figures.cumulative_notebooks)}
-            for day, figures in day_figures.items()]
-        
-        return \
-            students_per_day, cumulative_students_per_day,\
-            notebooks_per_day, cumulative_notebooks_per_day,
+        except:
+            pass
+        finally:
+            students_per_day = [
+                { "date" : day,
+                  "value" : len(figures.students)}
+                for day, figures in day_figures.items()]
+            cumulative_students_per_day = [
+                { "date" : day,
+                  "value" : len(figures.cumulative_students)}
+                for day, figures in day_figures.items()]
+            notebooks_per_day = [
+                { "date" : day,
+                  "value" : len(figures.notebooks)}
+                for day, figures in day_figures.items()]
+            cumulative_notebooks_per_day = [
+                { "date" : day,
+                  "value" : len(figures.cumulative_notebooks)}
+                for day, figures in day_figures.items()]
+            
+            return \
+                students_per_day, cumulative_students_per_day,\
+                notebooks_per_day, cumulative_notebooks_per_day,
 
 
     def counts_points(self):
@@ -151,21 +152,28 @@ class Stats:
         data arrays suitable for metricsgrahicsjs
 
         returns
-        # first is number of open jupyters; precision is the second
+        # first is number of running jupyters; precision is the second
+        [ { "date" : "2016-12-30 12:30:45", "value" : 20 }, ... ]
+        # second : ditto with frozen containers
         [ { "date" : "2016-12-30 12:30:45", "value" : 20 }, ... ]
         """
         filename = self.counts_filename()
-        values = []
-        with open(filename) as f:
-            for lineno, line in enumerate(f, 1):
-                try:
-                    timestamp, type, count = line.split()
-                    jstime= timestamp.replace('T', ' ').replace('Z', '')
-                    values.append({'date' : jstime, 'value' : count})
-                except:
-                    logger.error("{}:{}: skipped misformed line".format(filename, lineno))
-
-        return [ values ]
+        runnings, totals = [], []
+        try:
+            with open(filename) as f:
+                for lineno, line in enumerate(f, 1):
+                    try:
+                        timestamp, running, frozen = line.split()
+                        running, frozen = int(running), int(frozen)
+                        jstime= timestamp.replace('T', ' ').replace('Z', '')
+                        runnings.append({'date' : jstime, 'value' : running})
+                        totals.append({'date' : jstime, 'value' : running+frozen})
+                    except:
+                        logger.error("{}:{}: skipped misformed line".format(filename, lineno))
+        except:
+            pass
+        finally:
+            return runnings, totals
 
 if __name__ == '__main__':
     import sys

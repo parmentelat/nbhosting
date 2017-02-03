@@ -16,7 +16,7 @@ Stats for course {{course}}
 <div  id="stats-notebooks"></div>
 <span id="legend-notebooks"></span>
 <!-- notebooks -->
-<h1>Jupyters</h1>
+<h1>Jupyter containers</h1>
 <div  id="stats-jupyters"></div>
 <span id="legend-jupyters"></span>
 <!-- end -->
@@ -24,7 +24,8 @@ Stats for course {{course}}
 var url_metrics="/nbh/stats/metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     var incoming = JSON.parse(response.response);
-    //console.log(incoming);
+    console.log("from metrics");
+    console.log(incoming);
     // incoming has 4 arrays
     var students        = MG.convert.date(incoming[0], 'date');
     var students_cumul  = MG.convert.date(incoming[1], 'date');
@@ -40,6 +41,7 @@ d3.request(url_metrics, function (error, response) {
         width: 900,
         height: 400,
         right: 50,
+	linked: true,
     });
     MG.data_graphic({
         data: [ notebooks, notebooks_cumul ],
@@ -51,24 +53,27 @@ d3.request(url_metrics, function (error, response) {
         width: 900,
         height: 400,
         right: 50,
+	linked: true,
     });
 });
 var url_counts="/nbh/stats/counts/{{course}}";
 d3.request(url_counts, function (error, response) {
     var incoming = JSON.parse(response.response);
-    //console.log(incoming[0]);
-    // incoming has 1 array
-    var jupyters        = MG.convert.date(incoming[0], 'date', '%Y-%m-%d %H:%M:%S');
+    console.log("from counts");
+    console.log(incoming);
+    // incoming has 2 arrays
+    var running  = MG.convert.date(incoming[0], 'date', '%Y-%m-%d %H:%M:%S');
+    var total   = MG.convert.date(incoming[1], 'date', '%Y-%m-%d %H:%M:%S');
     MG.data_graphic({
-        data: [ jupyters ],
+        data: [ running, total ], 
         target:        document.getElementById('stats-jupyters'),
         legend_target: document.getElementById('legend-jupyters'),
-        legend: ["opened"],
-        title: "Running jupyters",
-        description: "instantaneous",
+        legend: ["running", "total"], 
+        title: "Jupyters containers",
+        description: "Number of jupyter instances",
         width: 900,
         height: 400,
-        right: 50,
+        right: 50, 
     });
 });
 </script> 

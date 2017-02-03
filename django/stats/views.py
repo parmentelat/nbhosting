@@ -19,7 +19,6 @@ def show_stats(request, course):
         'course': course,
     })
 
-
 @csrf_protect
 def send_metrics(request, course):
     stats = Stats(course)

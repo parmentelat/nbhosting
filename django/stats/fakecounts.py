@@ -9,7 +9,7 @@ of course it is not meant to run in production
 
 from stats import Stats
 
-def fake_counts(course, period=10, nb_students=4000, delta=50 , days=28, beg=None):
+def fake_counts(course, period=10, nb_students=4000, delta=8 , days=28, beg=None):
 
     """
     period is in minutes
@@ -45,13 +45,18 @@ def fake_counts(course, period=10, nb_students=4000, delta=50 , days=28, beg=Non
         time.strftime(Stats.time_format, time.gmtime(beg))))
 
     pointer = beg
-    count = random.randint(0, nb_students + 1)
+    total, running = 0, 0
     
     while pointer <= end:
-        count = random.randint(max(0, count - delta),
-                               min(count + delta, nb_students + 1))
+        frozen = total - running
         timestamp = time.strftime(Stats.time_format, time.gmtime(pointer))
-        stats._write_counts_line('jupyters', count, timestamp)
+        stats.record_jupyters_count(running, frozen, timestamp)
+
+        news = random.randint(0, delta)
+        total = min(nb_students, total+news)
+        running = running + random.randint(-delta, delta)
+        running = max(running, 0)
+        running = min(total, running)
         pointer += period*60
 
 
