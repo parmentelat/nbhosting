@@ -34,7 +34,8 @@ function update-uwsgi() {
 }
 
 function update-nginx() {
-    rsync $rsopts nginx/nbhosting.conf /etc/nginx/conf.d/nbhosting.conf
+    rsync $rsopts nginx/nginx.conf /etc/nginx/
+    rsync $rsopts nginx/nbhosting.conf /etc/nginx/conf.d/
 }
     
 function update-bins() {
