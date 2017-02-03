@@ -53,7 +53,8 @@ def monitor(grace: int):
                             .format(name, (now-mtime)//60))
                 continue
             logger.info("Killing container {}".format(name))
-            # container.kill()
+            # not sure what signal would be best ?
+            container.kill()
             Stats(course).record_kill_jupyter(student)
 
         except FileNotFoundError as e:
