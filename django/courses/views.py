@@ -4,6 +4,7 @@ import subprocess
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.decorators import login_required
 
 from nbhosting.settings import nbhosting_settings
 
@@ -23,12 +24,13 @@ def stderr_html(message, stderr):
         html += "<pre>\n{stderr}</pre>".format(stderr=stderr)
     return html
 
-def stderr_page(message, stderr):
-    return HttpResponse(stderr_page(message, stderr))
+#def stderr_page(message, stderr):
+#    return HttpResponse(stderr_page(message, stderr))
 
 def top_link(html):
     return "<a class='top-link' href='/nbh/'>{html}</a>".format(html=html)
 
+@login_required
 @csrf_protect
 def list_courses(request):
     root = nbhosting_settings['root']
@@ -36,71 +38,52 @@ def list_courses(request):
     command = [ "ls", courses_git_dir ]
     completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if completed.returncode != 0:
-        print(completed)
-        return stderr_page("when listing courses", completed.stderr)
-    html = ""
-    html += top_link("<h1>Known courses</h1></a>")
-    html += "<ul>"
-    for course in completed.stdout.decode().split("\n"):
-        if course:
-            chunk  = ""
-            chunk += "<li class='course-link'><a href='/nbh/course/{course}'>"
-            chunk += "{course}</a>"
-            chunk += "<a class='course-stat-link' href='/nbh/stats/{course}'>"
-            chunk += "(stats)</a>"
-            chunk += "</li>"
-            html += chunk.format(course=course)
-    html += "</ul>"
-    return HttpResponse(html)
+        return render(request, "error.html", {
+            'message' : "when listing courses",
+            'stderr'  :  completed.stderr})
+    return render(request, "courses.html",
+                  {'courses' : [ c for c in completed.stdout.decode().split("\n") if c ]})
 
+
+@login_required
 @csrf_protect
 def list_course(request, course):
     root = nbhosting_settings['root']
     course_root = os.path.join(root, "courses", course)
     command = [ "find", course_root, "-name", "*.ipynb"]
     completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    html = ""
-    html += top_link("<h1>Course {course}</h1>".format(course=course))
     if completed.returncode != 0:
-        print(completed)
-        html += stderr_html("when listing notebooks in {course}"
-                            .format(course=course),
-                            completed.stderr)
-    def student_link(notebook):
-        if notebook.startswith('/'):
-            notebook = notebook[1:]
-        if notebook.endswith(".ipynb"):
-            notebook = notebook[:-6]
-        return "<a href='/ipythonExercice/{course}/{notebook}/anonymous'>{notebook}</a>"\
-            .format(notebook=notebook, course=course)
+        return render(request, "error.html", {
+            'message' : "when listing notebooks in {course}".format(course=course),
+            'stderr'  :  completed.stderr})
+    def normalize(path):
+        path = path.replace(course_root, "")
+        if path.startswith('/'):
+            path = path[1:]
+        if path.endswith(".ipynb"):
+            path = path[:-6]
+        return path
+    notebooks = [
+        normalize(path) for path in completed.stdout.decode().split("\n")
+        if path and 'ipynb_checkpoints' not in path]
 
-    html += "<ul>"
-    for path in completed.stdout.decode().split("\n"):
-        if path and 'ipynb_checkpoints' not in path:
-            notebook = path.replace(course_root, "")
-            html += "<li>{link}</li>".format(link=student_link(notebook))
-    html += "</ul>"
-    ##########
-    html += "<div class='update-course'><a href='/nbh/courses/update/{course}'>"\
-            "Update {course}</a></div>".format(course=course)
-    return HttpResponse(html)
+    return render(request, "course.html", {
+        'course' : course,
+        'notebooks': notebooks })
 
+@login_required
 @csrf_protect
 def update_course(request, course):
     root = nbhosting_settings['root']
     command = [ "nbh-update-course", root, course]
     completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    html = ""
+    if completed.returncode != 0:
+        return render(request, "error.html", {
+            'message' : "when updating {course}".format(course=course),
+            'stderr'  :  completed.stderr})
 
-    html += top_link("<h1>Updated course {}</h1>".format(course))
-
-    html += stdout_html("when updating {course}".format(course=course),
-                       completed.stdout)
-    html += stderr_html("when updating {course}".format(course=course),
-                       completed.stderr)
-    html += "<p>Return code {}</p>"\
-            .format("OK" if completed.returncode == 0 else returncode)
-    redirect = "/nbh/course/{course}".format(course=course)
-    html += "<a href='{redirect}'>Back to course {course}</a>"\
-                      .format(redirect=redirect, course=course)
-    return HttpResponse(html)
+    return render(request, "course-updated.html",
+                  { 'course' : course,
+                    'stdout' : completed.stdout,
+                    'stderr' : completed.stderr,
+                    'returncode' : completed.returncode})

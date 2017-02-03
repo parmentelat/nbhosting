@@ -15,8 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 
 import edxfront.views
 import nbhosting.views
@@ -29,6 +30,11 @@ urlpatterns = [
     url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>\w+)$',
         edxfront.views.edx_request
     ),
+    url(r'^nbh/login/$',                              auth_views.login, name='login'),
+    url(r'^nbh/logout/$',                             auth_views.logout, name='logout'),
+    url(r'^nbh/admin/',                               admin.site.urls),
+    url('^nbh/accounts/',                             include('django.contrib.auth.urls')),
+    # our stuff
     url(r'^nbh/courses/update/(?P<course>[\w_.-]+)',  courses.views.update_course),
     url(r'^nbh/courses',                              courses.views.list_courses),
     url(r'^nbh/course/(?P<course>[\w_.-]+)',          courses.views.list_course),

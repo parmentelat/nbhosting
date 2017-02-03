@@ -96,8 +96,39 @@ systemctl enable iptables.service
 of course **reboot as needed** (esp. regarding selinux)
 
 ****
+# App install
 
-## comfort
+## Initial install
+
+```
+cd /root
+git clone https://github.com/parmentelat/nbhosting.git
+cd nbhosting
+./install.sh
+```
+
+## admin (create super user)
+
+Initialize the admin superuser :
+
+```
+cd /root/nbhosting/django
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+
+## Updates
+
+```
+cd /root/nbhosting
+git pull
+./install.sh
+```
+
+****
+
+# comfort
 
 ```
 cd

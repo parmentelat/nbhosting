@@ -61,7 +61,7 @@ ROOT_URLCONF = 'nbhosting.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [ './templates' ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -125,6 +125,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#################### additions for our /nbh/ protection against nginx
+LOGIN_REDIRECT_URL = '/nbh/accounts/profile/'
+LOGIN_URL =          '/nbh/accounts/login/'
+
 
 ####################
 nbhosting_settings = {

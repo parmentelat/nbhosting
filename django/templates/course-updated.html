@@ -1,0 +1,42 @@
+{% extends "nbhosting.html" %}
+
+{% block title %}
+Course {{course}} updated
+{% endblock %}
+
+
+{% block content %}
+
+<h1 class='page-header'>Status</h1>
+Command nbh-update-course returned
+{% if returcode == 0 %}
+OK
+{% else %}
+{{ returncode }}
+{% endif %}
+
+
+{% if stdout %}
+<h1 class='page-header'>stdout</h1>
+<code>
+<pre>
+{{stdout}}
+</pre>
+</code>
+{% endif %}
+
+{% if stderr %}
+<h1 class='page-header'>stderr</h1>
+<code>
+<pre>
+{{stderr}}
+</pre>
+</code>
+{% endif %}
+
+<div class='jumbotron update-course'>
+<a href='/nbh/course/{{course}}' class='btn btn-primary btn-lg'>
+Back to {{course}}</a></div>
+
+{% endblock %}
+

@@ -1,0 +1,18 @@
+{% extends "nbhosting.html" %}
+
+{% block title %}
+Notebooks in course {{course}}
+{% endblock %}
+
+
+{% block content %}
+<ul>
+{% for notebook in notebooks %}
+<li><a href='/ipythonExercice/{{course}}/{{notebook}}/anonymous'>{{notebook}}</a></li>
+{% endfor %}
+</ul>
+
+<div class='jumbotron update-course'>
+<a href='/nbh/courses/update/{{course}}' class='btn btn-primary btn-lg'>
+Update {{course}}</a></div>
+{% endblock %}

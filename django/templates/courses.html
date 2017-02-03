@@ -1,0 +1,17 @@
+{% extends "nbhosting.html" %}
+
+{% block title %}
+Known courses
+{% endblock %}
+
+
+{% block content %}
+<ul>
+{% for course in courses %}
+ <li class='course-link'>
+ <a href='/nbh/course/{{course}}'>{{course}}</a>
+ <a class='course-stat-link' href='/nbh/stats/{{course}}'>(stats)</a>
+ </li>
+{% endfor %}
+</ul>
+{% endblock %}

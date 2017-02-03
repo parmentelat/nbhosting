@@ -1,0 +1,19 @@
+{% extends "nbhosting.html" %}
+
+{% block title %}
+! nbhosting Error !
+{% endblock %}
+
+
+{% block content %}
+<p class='stderr'>
+ERROR {{message}}
+</p>
+
+<code>
+<pre>
+{{stderr}}
+</pre>
+</code
+
+{% endblock %}

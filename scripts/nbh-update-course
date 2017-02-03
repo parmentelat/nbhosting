@@ -8,6 +8,15 @@ USAGE="Usage: $COMMAND nbhosting-root course"
 
 [ "$#" -eq 2 ] || { echo $USAGE; exit 1; }
 
+function echo-stderr() {
+    >&2 echo $(date "+%H:%M:%S") "$@"
+}
+
+function die() {
+    echo-stderr "$@"
+    exit 1
+}
+
 root=$1; shift
 course=$1; shift
 
@@ -26,6 +35,9 @@ course_stats=$root/stats/$course
 
 course_logs=$root/logs/$course
 log=$root/logs/$course/000.log
+
+[ -d $course_git ] || die "Cannot find git repo $course_git"
+[ -d $course_notebooks ] || die "Cannot find git notebooks dir $course_notebooks"
 
 rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 
