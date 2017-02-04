@@ -29,7 +29,7 @@ class CourseFigures:
     def __init__(self):
         self.frozen = 0
         self.running = 0
-    def count_container(running: bool):
+    def count_container(self, running: bool):
         if running:
             self.running +=1
         else:
@@ -62,9 +62,8 @@ def monitor(grace: int):
             stamp = os.path.join(root, "students", student, course, ".monitor")
             mtime = os.stat(stamp).st_mtime
             if mtime > grace_past:
-                figures_per_course[course] += 1
-                logger.info("sparing {} that had activity {}' ago"
-                            .format(name, (now-mtime)//60))
+                logger.debug("sparing {} that had activity {}' ago"
+                             .format(name, (now-mtime)//60))
                 figures_per_course[course].count_container(True)
                 continue
             logger.info("Killing container {}".format(name))
