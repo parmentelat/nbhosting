@@ -28,7 +28,7 @@
   * e.g. js for stats: `timeseries`, `mg_line_brushing.js` that don't show up in cloudjs
   * but also a local css, favicon, ...
 
-## issue P3 - stop serving on port 80 altogether
+## ~~issue P3 - stop serving on port 80 altogether~~
 
 * and redirect / onto /nbh/
 
