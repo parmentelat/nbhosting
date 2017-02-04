@@ -33,12 +33,10 @@ fi
 
 
 # create one every <period> s
-port=$start
 for student in $students; do
-    port=$(python3 ../../django/ports/ports.py 1)
-    echo ========== "$student -> $port (period=$period)"
+    echo ========== "$student -> (period=$period)"
     nbh-enroll-student-in-course $root $student $course
-    nbh-run-student-course-jupyter $root $student $course $notebook $image $port >& $student.log &
+    nbh-run-student-course-jupyter $root $student $course $notebook $image >& $student.log &
     sleep $period
 done
 
