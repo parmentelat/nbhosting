@@ -51,6 +51,7 @@ def monitor(grace: int):
     figures_per_course = {}
     
     for container in containers:
+        logger.info("monitoring containers")
         try:
             name = container.name
             course, student = name.split('-x-')
