@@ -37,7 +37,7 @@ fi
 # create one every <period> s
 for student in $students; do
     echo ========== "$student -> (period=$period)"
-    curl https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student >& $student.$notebook &
+    curl https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student >& $student.html &
     sleep $period
 done
 
