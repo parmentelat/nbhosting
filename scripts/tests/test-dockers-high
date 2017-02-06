@@ -27,7 +27,7 @@ elif [[ "$#" == 2 ]]; then
     to=$1
     students=""
     for nb in $(seq $from $to); do
-	students="$students $(printf stud-%04d $nb)"
+	students="$students $(printf stud%04d $nb)"
     done
 else
     students="$@"
