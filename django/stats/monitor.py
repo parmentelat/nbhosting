@@ -45,8 +45,12 @@ def monitor(grace: int):
     grace_past = now - grace_seconds
 
     root = nbhosting_settings['root']
-    proxy = docker.from_env()
-    containers = proxy.containers.list(all=True)
+    try:
+        proxy = docker.from_env()
+        containers = proxy.containers.list(all=True)
+    except Exception as e:
+        logger.exception("Cannot gather containers list at the docker daemon - skipping")
+        return
 
     figures_per_course = {}
     

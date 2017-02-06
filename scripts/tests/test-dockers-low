@@ -1,0 +1,45 @@
+# -*- shell-script -*-
+
+#
+# low level : calling our own shell scripts directly
+#
+# typical usage
+# test-dockers 1 1000
+# will create
+#
+
+#################### globals
+root=/nbhosting
+course=flotbioinfo
+notebook=w1/fr-w1-s07-c1-walking.ipynb
+image=$course
+period=10
+
+####################
+
+echo $0 BEGIN - $(date)
+
+# parse args
+if [[ -z "$@" ]]; then
+    students="mary lisa bill john kurt mick rosy jack pete jose"
+elif [[ "$#" == 2 ]]; then
+    from=$1; shift
+    to=$1
+    students=""
+    for nb in $(seq $from $to); do
+	students="$students $(printf stud-%04d $nb)"
+    done
+else
+    students="$@"
+fi
+
+
+# create one every <period> s
+for student in $students; do
+    echo ========== "$student -> (period=$period)"
+    nbh-enroll-student-in-course $root $student $course
+    nbh-run-student-course-jupyter $root $student $course $notebook $image >& $student.log &
+    sleep $period
+done
+
+echo $0 END - $(date)

@@ -1,6 +1,8 @@
 # -*- shell-script -*-
 
 #
+# high level : sending a curl request
+#
 # typical usage
 # test-dockers 1 1000
 # will create
@@ -9,13 +11,13 @@
 #################### globals
 root=/nbhosting
 course=flotbioinfo
-notebook=w1/fr-w1-s07-c1-walking.ipynb
+notebook=w1/fr-w1-s07-c1-walking
 image=$course
 period=10
 
 ####################
 
-echo BEGIN - $(date)
+echo $0 BEGIN - $(date)
 
 # parse args
 if [[ -z "$@" ]]; then
@@ -35,9 +37,8 @@ fi
 # create one every <period> s
 for student in $students; do
     echo ========== "$student -> (period=$period)"
-    nbh-enroll-student-in-course $root $student $course
-    nbh-run-student-course-jupyter $root $student $course $notebook $image >& $student.log &
+    curl https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student >& $student.$notebook &
     sleep $period
 done
 
-echo END - $(date)
+echo $0 END - $(date)
