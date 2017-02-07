@@ -27,7 +27,7 @@ import stats.views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # tweaking greedy and non greedy so that the .ipynb suffix go away if there's one or even two
-    url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>\w+)$',
+    url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
         edxfront.views.edx_request
     ),
     url(r'^nbh/login/$',                              auth_views.login, name='login'),
