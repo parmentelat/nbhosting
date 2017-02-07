@@ -1,10 +1,10 @@
-all: flotbioinfo flotpython datasciencehandbook
+IMAGES = flotbioinfo flotpython datasciencehandbook 
 
-flotbioinfo:
-	docker build -f flotbioinfo.Dockerfile -t flotbioinfo .
+all: $(IMAGES)
 
-flotpython:
-	docker build -f flotpython.Dockerfile -t flotpython .
+define image_target
+$1:
+	docker build -f $1.Dockerfile -t $1 .
+endef
 
-datasciencehandbook:
-	docker build -f datasciencehandbook.Dockerfile -t datasciencehandbook .
+$(foreach image, $(IMAGES), $(eval $(call image_target, $(image))))
