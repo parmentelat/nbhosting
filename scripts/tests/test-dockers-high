@@ -1,12 +1,30 @@
 # -*- shell-script -*-
 
+# 2 flavours for this script:
 #
-# high level : sending a curl request
+# high-level : use curl to reach 'nbhosting.inria.fr' as if from FUN
 #
-# typical usage
-# test-dockers 1 1000
-# will create
+# low-level : directly use scripts locally:
+# nbh-enroll-student-in-course
+# and nbh-run-student-course-jupyter
 #
+# with the low-level version some statistics get lost
+#
+
+#
+# Usage: test-dockers-{high,low} [-p period] number-from number-until
+#
+# will open a hard-wired notebook on behalf of students
+# stud-<from> .. stud-<until>
+# one every <period> seconds
+#
+
+COMMAND=$(basename $0)
+case $COMMAND in
+    *-high)  MODE=high;;
+    *-low)   MODE=low;;
+    *)       echo unexecpted command $COMMAND - exiting; exit 1 ;;
+esac
 
 #################### globals
 root=/nbhosting
@@ -17,27 +35,47 @@ period=10
 
 ####################
 
-echo $0 BEGIN - $(date)
+function usage() {
+    echo "Usage: $0 [-p period] from until"
+    echo "create a container for all students in the range stud-<from> .. stud-<until>"
+    exit 1
+}
 
 # parse args
-if [[ -z "$@" ]]; then
-    students="mary lisa bill john kurt mick rosy jack pete jose"
-elif [[ "$#" == 2 ]]; then
-    from=$1; shift
-    to=$1
-    students=""
-    for nb in $(seq $from $to); do
-	students="$students $(printf stud%04d $nb)"
-    done
-else
-    students="$@"
-fi
+while getopts ":p:" opt; do
+    case $opt in
+	p)  period=$OPTARG ;;
+	\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+	:)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1 ;;
+  esac
+done
+shift $((OPTIND-1))
 
+from=$1 ; shift
+to=$1; shift
+
+[ -n "$from" -a -n "$to" ] || usage
+[[ -z "$@" ]] || usage
+
+students=""
+for nb in $(seq $from $to); do
+    students="$students $(printf stud%04d $nb)"
+done
+
+echo $0 BEGIN - $(date)
 
 # create one every <period> s
 for student in $students; do
-    echo ========== "$student -> (period=$period)"
-    curl https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student >& $student.html &
+    echo "=== $(date) mode=$MODE, period=$period; dealing with $student"
+    case $MODE in
+	high)
+	    curl https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student >& $student.html &
+	    ;;
+	low)
+	    nbh-enroll-student-in-course $root $student $course
+	    nbh-run-student-course-jupyter $root $student $course $notebook $image >& $student.log &
+	    ;;
+    esac
     sleep $period
 done
 
