@@ -36,8 +36,8 @@ period=10
 ####################
 
 function usage() {
-    echo "Usage: $0 [-p period] from until"
     echo "create a container for all students in the range stud-<from> .. stud-<until>"
+    echo "Usage: $COMMAND [-p period] from until"
     exit 1
 }
 

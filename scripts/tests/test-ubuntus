@@ -1,18 +1,54 @@
 # -*- shell-script -*-
 
-# Usage:
-# $0 100 3
-# would create 100 containers, one every 3 seconds
+#
+# Usage: test-ubuntus [-p period] number-from number-until
+#
+# as many times as there are integers between <from> and <until>,
+# will spawn every <period> seconds a ubuntu container named ubuntu-<i>
+#
 
-echo BEGIN - $(date)
+COMMAND=$(basename $0)
 
-how_many=$1; shift
-period=$1; shift
+#################### globals
+image=ubuntu
+period=10
+
+####################
+
+function usage() {
+    echo "Usage: $COMMAND [-p period] from until"
+    echo "create a ubuntu container for all students in the range <from> .. <until>"
+    exit 1
+}
+
+# parse args
+while getopts ":p:" opt; do
+    case $opt in
+	p)  period=$OPTARG ;;
+	\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+	:)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1 ;;
+  esac
+done
+shift $((OPTIND-1))
+
+from=$1 ; shift
+to=$1; shift
+
+[ -n "$from" -a -n "$to" ] || usage
+[[ -z "$@" ]] || usage
+
+ubuntus=""
+for nb in $(seq $from $to); do
+    ubuntus="$ubuntus $(printf stud%04d $nb)"
+done
+
+echo $0 BEGIN - $(date)
 
 # create one every <period> s
-for i in $(seq $how_many); do
-    docker run -dit ubuntu bash
+for ubuntu in $ubuntus; do
+    echo "=== $(date) period=$period; dealing with $ubuntu"
+    docker run --name $ubuntu -dit $image
     sleep $period
 done
 
-echo END - $(date)
+echo $0 END - $(date)
