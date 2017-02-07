@@ -48,6 +48,7 @@ echo $0 BEGIN - $(date)
 # create one every <period> s
 for contname in $contnames; do
     echo "=== $(date) period=$period; dealing with $contname"
+    uptime
     docker run --name $contname -dit $image
     sleep $period
 done
