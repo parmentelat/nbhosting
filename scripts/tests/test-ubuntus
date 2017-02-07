@@ -16,15 +16,16 @@ period=10
 ####################
 
 function usage() {
-    echo "Usage: $COMMAND [-p period] from until"
-    echo "create a ubuntu container for all students in the range <from> .. <until>"
+    echo "Usage: $COMMAND [-p period] [-i image] from until"
+    echo "create a ubuntu container for all <i>s in the range <from> .. <until>"
     exit 1
 }
 
 # parse args
-while getopts ":p:" opt; do
+while getopts ":p:i:" opt; do
     case $opt in
 	p)  period=$OPTARG ;;
+	i)  image=$OPTARG ;;
 	\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
 	:)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1 ;;
   esac
@@ -37,17 +38,17 @@ to=$1; shift
 [ -n "$from" -a -n "$to" ] || usage
 [[ -z "$@" ]] || usage
 
-ubuntus=""
+contnames=""
 for nb in $(seq $from $to); do
-    ubuntus="$ubuntus $(printf stud%04d $nb)"
+    contnames="$contnames $(printf $image-%04d $nb | sed -e 's,/,-,') "
 done
 
 echo $0 BEGIN - $(date)
 
 # create one every <period> s
-for ubuntu in $ubuntus; do
-    echo "=== $(date) period=$period; dealing with $ubuntu"
-    docker run --name $ubuntu -dit $image
+for contname in $contnames; do
+    echo "=== $(date) period=$period; dealing with $contname"
+    docker run --name $contname -dit $image
     sleep $period
 done
 
