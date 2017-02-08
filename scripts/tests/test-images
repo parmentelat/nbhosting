@@ -12,21 +12,24 @@ COMMAND=$(basename $0)
 #################### globals
 image=ubuntu
 period=10
+sequential=
 
 ####################
 
 function usage() {
-    echo "Usage: $COMMAND [-p period] [-i image] from until"
-    echo "create a ubuntu container for all <i>s in the range <from> .. <until>"
+    echo "Usage: $COMMAND [-p period] [-i image] [-s] from until"
+    echo "create a container (default ubuntu) for all <i>s in the range <from> .. <until>"
+    echo "-s means sequential; docker run is not run in background here"
     exit 1
 }
 
 # parse args
-while getopts ":p:i:" opt; do
+while getopts ":p:i:s" opt; do
     case $opt in
 	p)  period=$OPTARG ;;
 	i)  image=$OPTARG ;;
-	\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+	s)  sequential=true;; 
+	\?) echo "Invalid option: -$OPTARG" >&2; usage ;;
 	:)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1 ;;
   esac
 done
@@ -43,13 +46,20 @@ for nb in $(seq $from $to); do
     contnames="$contnames $(printf $image-%04d $nb | sed -e 's,/,-,') "
 done
 
+[ -z "$sequential" ] && mode_message="sequentially" || mode_message="spawn in background"
+
 echo $0 BEGIN - $(date)
 
 # create one every <period> s
 for contname in $contnames; do
-    echo "=== $(date) period=$period; dealing with $contname"
+    echo "=== $(date) mode=$mode_message period=$period; dealing with $contname"
     uptime
-    docker run --name $contname -dit $image
+    command="docker run --name $contname -dit $image"
+    if [ -z $sequential ]; then
+	$command
+    else
+	$command &
+    fi
     sleep $period
 done
 

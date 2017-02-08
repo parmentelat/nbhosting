@@ -12,7 +12,7 @@
 #
 
 #
-# Usage: test-dockers-{high,low} [-p period] number-from number-until
+# Usage: test-nbh-{high,low} [-p period] number-from number-until
 #
 # will open a hard-wired notebook on behalf of students
 # stud-<from> .. stud-<until>
@@ -67,6 +67,7 @@ echo $0 BEGIN - $(date)
 # create one every <period> s
 for student in $students; do
     echo "=== $(date) mode=$MODE, period=$period; dealing with $student"
+    uptime
     case $MODE in
 	high)
 	    curl https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student >& $student.html &
