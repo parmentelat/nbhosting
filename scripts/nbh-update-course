@@ -36,8 +36,13 @@ course_stats=$root/stats/$course
 course_logs=$root/logs/$course
 log=$root/logs/$course/000.log
 
+# check the course is known
 [ -d $course_git ] || die "Cannot find git repo $course_git"
-[ -d $course_notebooks ] || die "Cannot find git notebooks dir $course_notebooks"
+# initialize 
+[ -d $course_notebooks ] || {
+    echo Creating notebooks dir $course_notebooks
+    mkdir -p $course_notebooks
+}
 
 rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 
