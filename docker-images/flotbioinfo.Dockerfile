@@ -1,8 +1,11 @@
-# xxx would make sense to use some fix version some day
-FROM jupyter/scipy-notebook:latest
+# scipy is really big, let's try something smaller
+#FROM jupyter/scipy-notebook:latest
+FROM jupyter/base-notebook:latest
 
-# bioinfo uses python2
-RUN /bin/bash -c "source /opt/conda/bin/activate python2 && conda install -y mpld3"
+# bioinfo used to use python2
+#RUN /bin/bash -c "source /opt/conda/bin/activate python2 && conda install -y mpld3"
+# but that's not in base-notebook, and python2 is not the point
+# it should work in both environments anyway..
 # but we might want to run python3
 RUN conda install -y mpld3
 
