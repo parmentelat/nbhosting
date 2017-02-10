@@ -27,7 +27,7 @@ def send_metrics(request, course):
     return HttpResponse(result, content_type = "application/json")
 
 
-csrf_protect
+@csrf_protect
 def send_counts(request, course):
     stats = Stats(course)
     counts = stats.counts_points()
