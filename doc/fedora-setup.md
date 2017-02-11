@@ -98,8 +98,6 @@ Python 3.5.2
 ```
 systemctl start docker
 systemctl enable docker
-docker pull jupyter/scipy-notebook
-docker pull jupyter/base-notebook
 
 systemctl start nginx
 systemctl enable nginx
@@ -171,6 +169,9 @@ nbh-update-course /nbhosting flotbioinfo
 * This assumes a dockerfile has been created for that course
 
 ```
+# first 2 optional - will be pulled if needed
+#docker pull jupyter/scipy-notebook
+#docker pull jupyter/base-notebook
 cd /root/nbhosting/docker-images
 make flotbioinfo
 ```
