@@ -100,6 +100,9 @@ log=$root/logs/$course/run-$student.log
 [ -d $course_media ] || echo-stderr WARNING $course_media dir not found
 [ -d $course_data ] || echo-stderr WARNING $course_data dir not found
 
+# image : use the same name as the course
+docker inspect --type image $course >& /dev/null || die image $course not known in docker
+
 # create directory/ies leading to file <file>
 function mkdir-for-file () {
     local filename=$1; shift
