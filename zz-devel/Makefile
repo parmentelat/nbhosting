@@ -9,7 +9,7 @@ TESTBOX=root@nbhosting.inria.fr
 sync:
 	@echo 'cd /tmp/nbhosting-sync/django/; export PATH=/tmp/nbhosting-sync/scripts/:$$PATH; export PYTHONPATH=/tmp/nbhosting-sync/django'
 	@echo 'systemctl stop nginx; systemctl stop nbh-uwsgi; manage.py runserver thermals:80'
-	rsync -rltpv --relative $$(git ls-files) $(TESTBOX):/tmp/nbhosting-sync/
+	(cd ..;	rsync -rltpv --relative $$(git ls-files) $(TESTBOX):/tmp/nbhosting-sync/)
 
 
 
