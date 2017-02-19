@@ -12,3 +12,7 @@ RUN conda install -y mpld3
 # disable these widgets as otherwise they cause the 'Widgets' submenu in the menubar
 # to appear again even though we turn it off in custom.js
 RUN jupyter nbextension disable jupyter-js-widgets/extension
+
+# disable check done when saving files
+# see https://github.com/jupyter/notebook/issues/484
+RUN find /opt /usr -name notebook.js | grep static/notebook/js/notebook.js | xargs sed -i -e 's,if (check_last_modified),if (false),'
