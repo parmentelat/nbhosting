@@ -52,9 +52,9 @@ forcecopy=$1; shift
 # this is 10 times .1s so 1s - proceed immediately
 timeout_wait_for_port="10 .1 0"
 # how long should we wait for the container to answer http
-# trying to create 6 containers at the exact same time : 10 is not long enough
-# then we wait an extra one second
-timeout_wait_for_http="20 1 1"
+# trying to create 6 containersa at the exact same time : 10 is not long enough
+# then we wait an extra safety timeout
+timeout_wait_for_http="20 1 3"
 
 # set to any non-empty string to enable
 debug=
@@ -134,7 +134,8 @@ function check-student-notebook() {
     if [ ! -f $student_notebook ] || [ "$forcecopy" == "force" ]; then
 	mkdir-for-file $student_notebook
 	echo-stderr Cloning $student_notebook from $course_notebook 
-	sudo -u $student cp $course_notebook $student_notebook
+	# use rsync for preserving creation time
+	sudo -u $student rsync -tp $course_notebook $student_notebook
 	create-symlink-at-file $student_notebook /home/jovyan/work/media
 	create-symlink-at-file $student_notebook /home/jovyan/work/data
     else
