@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# installs etc-sysconfig-docker into /etc/sysconfig/docker
+# installs etc-sysconfig-docker.<variant> into /etc/sysconfig/docker
 #
 # this is not done as part of the toplevel install.sh because
 # (*) for now we want to try out several variants
@@ -19,6 +19,12 @@ function die() {
     exit 1
 }
 
+function warning() {
+    echo "WARNING - running this can and will trash your docker setup entirely"
+    echo "so data loss is to be expected if you proceed"
+    echo "Type Control-C to abort"; read _
+}
+
 function apply() {
     variant=$1; shift
     config=etc-sysconfig-docker.$variant
@@ -35,6 +41,7 @@ function apply() {
 
 function main() {
     variant=$1
+    warning
     apply $variant
 }
 
