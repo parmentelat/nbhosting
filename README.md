@@ -41,5 +41,6 @@ As a summary:
 
 # TODO
 
-A lot remains to be done, see [doc/TODO-nbhosting.md]()
+A lot remains to be done, incuding using github's issues for tracking what remains to be done ;)
+For now see [doc/TODO-nbhosting.md](doc/TODO-nbhosting.md)
 
