@@ -1,10 +1,10 @@
 # -*- shell-script -*-
 
 #
-# Usage: test-ubuntus [-p period] number-from number-until
+# Usage: test-images [-p period] number-from number-until
 #
 # as many times as there are integers between <from> and <until>,
-# will spawn every <period> seconds a ubuntu container named ubuntu-<i>
+# will spawn every <period> seconds a docker container named <image>-<i>
 #
 
 COMMAND=$(basename $0)

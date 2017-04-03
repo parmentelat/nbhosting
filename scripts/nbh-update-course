@@ -1,4 +1,5 @@
 #!/bin/bash
+# -*- mode: shell-script -*-
 
 # pull from upstream git repo
 # and updates the various parts accordingly
@@ -31,10 +32,10 @@ course_static=$root/static/$course
 course_data=$root/static/$course/data
 course_media=$root/static/$course/media
 course_jupyter=$root/jupyter/$course
-course_stats=$root/stats/$course
+course_raw=$root/raw/$course
 
 course_logs=$root/logs/$course
-log=$root/logs/$course/000.log
+log=$root/logs/$course/update.log
 
 # check the course is known
 [ -d $course_git ] || die "Cannot find git repo $course_git"
@@ -63,7 +64,7 @@ function update-course() {
     git submodule update
     
     # create course dirs if needed
-    for dir in $course_notebooks $course_modules $course_data $course_media $course_stats; do
+    for dir in $course_notebooks $course_modules $course_data $course_media $course_raw; do
 	[ -d $dir ] || {
 	    echo Creating $dir
 	    mkdir -p $dir
@@ -88,4 +89,4 @@ function update-course() {
 }
 
 [ -d $course_logs ] || mkdir -p $course_logs
-update-course >> $log 2>&1
+update-course 2> >(tee -a $log >&2)

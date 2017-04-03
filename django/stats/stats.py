@@ -1,26 +1,33 @@
-import os.path
+from pathlib import Path
 import time
 
 from collections import OrderedDict
 
 from nbhosting.settings import nbhosting_settings, logger
 
-# xxx
-# would be probably best to aggregate
-# on a hourly basis instead of a daily basis
-# xxx
-
-# attach to one day
+# attach to a given instant
 class DayFigures:
-    def __init__(self):
+    def __init__(self, previous=None):
         self.students = set()
-        self.cumulative_students = set()
         self.notebooks = set()
-        self.cumulative_notebooks = set()
+        if previous is None:
+            self.cumul_students = set()
+            self.cumul_notebooks = set()
+        else:
+            self.cumul_students = previous.cumul_students
+            self.cumul_notebooks = previous.cumul_notebooks
+
+    def add_student(self, student):
+        self.students.add(student)
+        self.cumul_students.add(student)
+
+    def add_notebook(self, notebook):
+        self.notebooks.add(notebook)
+        self.cumul_notebooks.add(notebook)
 
 class Stats:
 
-    root = nbhosting_settings['root']
+    root = Path(nbhosting_settings['root'])
 
     time_format = "%Y-%m-%dT%H:%M:%SZ"
     day_format = "%Y-%m-%d"
@@ -28,24 +35,28 @@ class Stats:
 
     def __init__(self, course):
         self.course = course
+        self.course_dir = self.root / "raw" / self.course
+        self.course_dir.mkdir(parents=True, exist_ok=True)
 
-    def events_filename(self):
-        return os.path.join(self.root, "stats", self.course, "events.raw")
-    def counts_filename(self):
-        return os.path.join(self.root, "stats", self.course, "counts.raw")
+    ####################
+    def notebook_events_path(self):
+        return self.course_dir / "events.raw"
+    def monitor_counts_path(self):
+        return self.course_dir / "counts.raw"
     
     ####################
     def _write_events_line(self, student, notebook, action, port, timestamp=None):
         timestamp = timestamp or time.strftime(self.time_format, time.gmtime())
-        filename = self.events_filename()
+        path = self.notebook_events_path()
         course = self.course
         try:
-            with open(filename, "a") as f:
-                f.write("{timestamp} {course} {student} {action} {notebook} {port}\n".
+            with path.open("a") as f:
+                f.write("{timestamp} {course} {student} {notebook} {action} {port}\n".
                         format(**locals()))
         except:
-            logger.error("Cannot store stats line into {}".format(filename))
-    
+            logger.error("Cannot store stats line into {}".format(path))
+            import traceback
+            traceback.print_exc()
 
     def record_open_notebook(self, student, notebook, action, port):
         """
@@ -63,121 +74,133 @@ class Stats:
         return self._write_events_line(student, '-', 'killing', '-')
 
     ####################
-    def record_jupyters_count(self, running, frozen, timestamp=None):
+    def record_monitor_counts(self, running_containers, frozen_containers,
+                              running_kernels, students_count,
+                              timestamp=None):
         timestamp = timestamp or time.strftime(self.time_format, time.gmtime())
-        filename = self.counts_filename()
+        path = self.monitor_counts_path()
         try:
-            with open(filename, 'a') as f:
-                f.write("{timestamp} {running} {frozen}\n"
-                        .format(**locals()))
+            with path.open('a') as f:
+                f.write("{} {} {} {} {}\n"
+                        .format(timestamp, running_containers, frozen_containers,
+                                running_kernels, students_count))
         except Exception as e:
-            logger.error("Cannot store counts line into {} {}".format(filename, e))
+            logger.error("Cannot store counts line into {} {}".format(path, e))
         
     ####################
-    def metrics_per_day(self):
+    def daily_metrics(self):
         """
         read the events file for that course and produce
-        a tuple of data arrays suitable for metricsgrahicsjs
+        data arrays suitable for being composed under plotly
         
-        returns:
-        # first is students per day
-        [ { "date" : "2016-12-30", "value" : 20 }, ... ]
-        # second is same but cumulative (not additive, based on set union)
-        [ { "date" : "2016-12-30", "value" : 20 }, ... ]
-        # third is the total number of notebooks opened that day
+        returns a dict with the following components
+        * 'daily': { 'timestamps', 'new_students', 'new_notebooks' } - all 3 same size
+          (one per day, time is always 23:59:59)
+        * 'events': { 'timestamps', 'total_students', 'total_notebooks' } - 3 same size
         """
-        filename = self.events_filename()
+        path = self.notebook_events_path()
         # a dictionary day -> figures
-        day_figures = OrderedDict()
+        figures_by_day = OrderedDict()
+        previous_figures = None
+        current_figures = DayFigures()
+        # results
+        events_timestamps = []
+        total_students = []
+        total_notebooks = []
         try:
-            with open(filename) as f:
+            with path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     try:
-                        timestamp, course, student, action, notebook, port = line.split()
-                        day = timestamp.split('T')[0]
-                        day_figures.setdefault(day, DayFigures())
-                        figures = day_figures[day]
-                        figures.students.add(student)
-                        if action not in ('killing'):
-                            figures.notebooks.add(notebook)
-                    except:
-                        logger.error("{}:{}: skipped misformed line".format(filename, lineno))
+                        timestamp, course, student, notebook, action, port = line.split()
+                        day = timestamp.split('T')[0] + ' 23:59:59'
+                        if day in figures_by_day:
+                            current_figures = figures_by_day[day]
+                        else:
+                            previous_figures = current_figures
+                            current_figures = DayFigures(previous_figures)
+                            figures_by_day[day] = current_figures
+                        # if action is 'killing' it means we already know
+                        # about that notebook, right ? so let's count this notebook
+                        # no matter what, it makes the code less brittle
+                        current_figures.add_notebook(notebook)
+                        current_figures.add_student(student)
+                        events_timestamps.append(timestamp)
+                        total_students.append(len(current_figures.cumul_students))
+                        total_notebooks.append(len(current_figures.cumul_notebooks))
+                    except Exception as e:
+                        logger.error("{}:{}: skipped misformed events line - {}: {}"
+                                     .format(path, lineno, type(e), e))
                         continue
     
-            # we have the day's students, let's cumulate
-            days = list(day_figures.keys())
-            # first cell needs to be dealt with separately
-            if days:
-                day1 = days[0]
-                figures1 = day_figures[day1]
-                figures1.cumulative_students = figures1.students
-                figures1.cumulative_notebooks = figures1.notebooks
-            # add yesterday's cumulative to today's studs to get today's cumulative
-            for yesterday, today in zip(days, days[1:]):
-                day_figures[today].cumulative_students \
-                    = day_figures[yesterday].cumulative_students \
-                    | day_figures[today].students
-                day_figures[today].cumulative_notebooks \
-                    = day_figures[yesterday].cumulative_notebooks \
-                    | day_figures[today].notebooks
-            
         except:
             pass
         finally:
-            students_per_day = [
-                { "date" : day,
-                  "value" : len(figures.students)}
-                for day, figures in day_figures.items()]
-            cumulative_students_per_day = [
-                { "date" : day,
-                  "value" : len(figures.cumulative_students)}
-                for day, figures in day_figures.items()]
-            notebooks_per_day = [
-                { "date" : day,
-                  "value" : len(figures.notebooks)}
-                for day, figures in day_figures.items()]
-            cumulative_notebooks_per_day = [
-                { "date" : day,
-                  "value" : len(figures.cumulative_notebooks)}
-                for day, figures in day_figures.items()]
-            
-            return \
-                students_per_day, cumulative_students_per_day,\
-                notebooks_per_day, cumulative_notebooks_per_day,
+            daily_timestamps = []
+            new_students = []
+            new_notebooks = []
 
+            for timestamp, figures in figures_by_day.items():
+                daily_timestamps.append(timestamp)
+                new_students.append(len(figures.students))
+                new_notebooks.append(len(figures.notebooks))
 
-    def counts_points(self):
+            return { 'daily' : { 'timestamps' : daily_timestamps,
+                                 'new_students' : new_students,
+                                 'new_notebooks' : new_notebooks},
+                     'events' : { 'timestamps' : events_timestamps,
+                                  'total_students' : total_students,
+                                  'total_notebooks' : total_notebooks}}
+                
+    def monitor_counts(self):
         """
         read the counts file for that course and produce
-        data arrays suitable for metricsgrahicsjs
+        data arrays suitable for plotly
 
-        returns
-        # first is number of running jupyters; precision is the second
-        [ { "date" : "2016-12-30 12:30:45", "value" : 20 }, ... ]
-        # second : ditto with frozen containers
-        [ { "date" : "2016-12-30 12:30:45", "value" : 20 }, ... ]
+        returns a dictionary with the following keys
+        'timestamps' : the times where monitor reported the figures
+        'running_jupyters': running containers
+        'total_jupyters' :  total containers
+        'running_kernels' : sum of open notebooks 
+        'student_homes' : number of students that have this course in their homedir 
         """
-        filename = self.counts_filename()
-        runnings, totals = [], []
+        path = self.monitor_counts_path()
+        timestamps = []
+        running_jupyters = []
+        total_jupyters = []
+        running_kernels = []
+        student_counts = []
         try:
-            with open(filename) as f:
+            with path.open() as f:
                 for lineno, line in enumerate(f, 1):
+                    logger.info("read line {} from {}".format(lineno, path))
                     try:
-                        timestamp, running, frozen = line.split()
-                        running, frozen = int(running), int(frozen)
+                        timestamp, *values = line.split()
+                        # xxx could be more flexible if we ever add counters in there
+                        rj, fj, rk, sc = [int(value) for value in values]
                         jstime= timestamp.replace('T', ' ').replace('Z', '')
-                        runnings.append({'date' : jstime, 'value' : running})
-                        totals.append({'date' : jstime, 'value' : running+frozen})
-                    except:
-                        logger.error("{}:{}: skipped misformed line".format(filename, lineno))
+                        timestamps.append(jstime)
+                        running_jupyters.append(rj)
+                        total_jupyters.append(rj + fj)
+                        running_kernels.append(rk)
+                        student_counts.appent(sc)
+                        logger.info("adding one monitor counts")
+                    except Exception as e:
+                        logger.error("{}:{}: skipped misformed counts line - {}: {}"
+                                     .format(path, lineno, type(e), e))
         except:
             pass
         finally:
-            return runnings, totals
+            return {
+                'timestamps' : timestamps,
+                'running_jupyters' : running_jupyters,
+                'total_jupyters' : total_jupyters,
+                'running_kernels' : running_kernels,
+                'student_counts' : student_counts
+            }
 
 if __name__ == '__main__':
     import sys
     course = 'flotbioinfo' if len(sys.argv) == 1 else sys.argv[1]
-    mg = Stats(course).metrics_per_day()
+    mg = Stats(course).daily_metrics()
     for m in mg:
         print(m)

@@ -5,76 +5,118 @@ Stats for course {{course}}
 {% endblock %}
 
 {% block content %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.11.0/metricsgraphics.min.js"></script>
-<style type="text/css">@import url("https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.11.0/metricsgraphics.css"); </style>
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href='/nbh/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/nbh/courses'>courses</a></li>
+  <li class="breadcrumb-item active">{{course}} stats</li>
+</ol>
+
+
+
+<!-- avoid the symlink to use the latest one in production
+  -- but quite useful for adopting the latest one 
+  -- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>-->
+<script src="https://cdn.plot.ly/plotly-1.25.2.min.js"></script>
+
+<div class="card">
+<div class="card-block">
+<h1 class="card-title card-header">Progression</h1>
 <!-- students -->
-<h1>Students</h1>
+<h2 class="card-title card-header">Students - who showed up at least once</h2>
 <div  id="stats-students"></div>
 <span id="legend-students"></span>
 <!-- notebooks -->
-<h1>Notebooks</h1>
+<h2 class="card-title card-header">Notebooks - read at least once</h2>
 <div  id="stats-notebooks"></div>
 <span id="legend-notebooks"></span>
-<!-- notebooks -->
-<h1>Jupyter containers</h1>
+</div>
+</div>
+
+<hr/ >
+<div class="card">
+<div class="card-block">
+<h1 class="card-title card-header">Activity</h1>
+<!-- jupyter containers -->
+<h2 class="card-title card-header">Jupyter containers</h2>
 <div  id="stats-jupyters"></div>
 <span id="legend-jupyters"></span>
+</div>
+<div class="card-block">
+<h2 class="card-title card-header">Running kernels / kernels</h2>
+<div  id="stats-kernels"></div>
+<span id="legend-kernels"></span>
+</div>
+<div class="card-block">
+<h2 class="card-title card-header">Students with homedirs</h2>
+<div  id="stats-student-counts"></div>
+<span id="legend-student-counts"></span>
+</div>
+</div>
+
 <!-- end -->
+
 <script>
-var url_metrics="/nbh/stats/metrics/{{course}}";
+var url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     var incoming = JSON.parse(response.response);
-    console.log("from metrics");
+    console.log("from daily_metrics");
     console.log(incoming);
-    // incoming has 4 arrays
-    var students        = MG.convert.date(incoming[0], 'date');
-    var students_cumul  = MG.convert.date(incoming[1], 'date');
-    var notebooks       = MG.convert.date(incoming[2], 'date');
-    var notebooks_cumul = MG.convert.date(incoming[3], 'date');
-    MG.data_graphic({
-        data: [ students, students_cumul ],
-        target:        document.getElementById('stats-students'),
-        legend_target: document.getElementById('legend-students'),
-        legend: ["per day", "cumulative"],
-        title: "Connected students",
-        description: "per day, and cumulative",
-        width: 900,
-        height: 400,
-        right: 50,
-	linked: true,
-    });
-    MG.data_graphic({
-        data: [ notebooks, notebooks_cumul ],
-        target:        document.getElementById('stats-notebooks'),
-        legend_target: document.getElementById('legend-notebooks'),
-        legend: ["per day", "cumulative"],
-        title: "Opened notebooks",
-        description: "per day, and cumulative",
-        width: 900,
-        height: 400,
-        right: 50,
-	linked: true,
-    });
+    // incoming parts
+    var d_timestamps     = incoming['daily']['timestamps'];
+    var e_timestamps     = incoming['events']['timestamps'];
+    var d_new_students   = incoming['daily']['new_students'];
+    var e_total_students = incoming['events']['total_students'];
+    var d_new_notebooks   = incoming['daily']['new_notebooks'];
+    var e_total_notebooks = incoming['events']['total_notebooks'];
+
+    var new_students_data =   { 'x' : d_timestamps, 'y' : d_new_students,
+			        'name': 'new students / day'};
+    var total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
+				'name': 'total students'};
+    Plotly.newPlot('stats-students',
+		   [new_students_data, total_students_data]);
+
+    var new_notebooks_data =   { 'x' : d_timestamps, 'y' : d_new_notebooks,
+			         'name': 'new notebooks / day'};
+    var total_notebooks_data = { 'x' : e_timestamps, 'y' : e_total_notebooks,
+    			       	 'name': 'notebooks read at least once'};
+    Plotly.newPlot('stats-notebooks',
+		   [ new_notebooks_data, total_notebooks_data]);
 });
-var url_counts="/nbh/stats/counts/{{course}}";
+var url_counts="/nbh/stats/monitor_counts/{{course}}";
 d3.request(url_counts, function (error, response) {
     var incoming = JSON.parse(response.response);
-    console.log("from counts");
+    console.log("from monitor counts");
     console.log(incoming);
-    // incoming has 2 arrays
-    var running  = MG.convert.date(incoming[0], 'date', '%Y-%m-%d %H:%M:%S');
-    var total   = MG.convert.date(incoming[1], 'date', '%Y-%m-%d %H:%M:%S');
-    MG.data_graphic({
-        data: [ running, total ], 
-        target:        document.getElementById('stats-jupyters'),
-        legend_target: document.getElementById('legend-jupyters'),
-        legend: ["running", "total"], 
-        title: "Jupyters containers",
-        description: "Number of jupyter instances",
-        width: 900,
-        height: 400,
-        right: 50, 
-    });
+
+    // incoming parts
+    var timestamps  = incoming['timestamps'];
+    var running_jupyters = incoming['running_jupyters'];
+    var	total_jupyters = incoming['total_jupyters'];
+    var running_kernels = incoming['running_kernels'];
+    var student_counts = incoming['student_counts'];
+    
+    var running_jupyters_data = {
+	'x' : timestamps, 'y' : running_jupyters,
+	'name' : "running jupyter containers",
+    };
+    var total_jupyters_data = {
+	'x' : timestamps, 'y' : total_jupyters,
+	'name' : "total jupyter containers",
+    };
+    Plotly.newPlot('stats-jupyters', [running_jupyters_data,
+				      total_jupyters_data]);
+    var running_kernels_data = {
+	'x' : timestamps, 'y' : running_kernels,
+	'name' : "running kernels"
+    }
+    Plotly.newPlot('stats-kernels', [running_kernels_data]);
+
+    var student_counts_data = {
+    'x': timestamps, 'y' : student_counts,
+    'name' : "students found with a homedir"
+    }
+    Plotly.newPlot('stats-student-counts', [student_counts_data]);
 });
-</script> 
+</script>
 {% endblock %}

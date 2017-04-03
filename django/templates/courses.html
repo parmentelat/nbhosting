@@ -6,12 +6,18 @@ Known courses
 
 
 {% block content %}
-<ul>
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href='/nbh/'>home</a></li>
+  <li class="breadcrumb-item active">courses</li>
+</ol>
+
 {% for course in courses %}
- <li class='course-link'>
- <a href='/nbh/course/{{course}}'>{{course}}</a>
- <a class='course-stat-link' href='/nbh/stats/{{course}}'>(stats)</a>
- </li>
+<div class="card text-center">
+<div class="card-block">
+<h3 class="card-title">{{course}}</h3>
+  <a class='btn btn-primary' href='/nbh/course/{{course}}' class="card-link">notebooks</a>
+  <a class='btn btn-primary' href='/nbh/stats/{{course}}' class="card-link">stats</a>
+</div>
+</div>
 {% endfor %}
-</ul>
 {% endblock %}

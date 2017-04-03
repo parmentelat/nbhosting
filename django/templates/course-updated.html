@@ -4,11 +4,18 @@
 Course {{course}} updated
 {% endblock %}
 
-
 {% block content %}
 
+<div class='section'>
+<button type="button"
+  class="btn btn-lg btn-block btn-{%if returncode == 0%}success{%else%}warning{%endif%}">
+ <a href='/nbh/course/{{course}}'>Back to {{course}}</a>
+</button>
+</div>
+
+
 <h1 class='page-header'>Status</h1>
-Command nbh-update-course returned
+Command <code>{{command}}</code> returned
 {% if returcode == 0 %}
 OK
 {% else %}
@@ -33,10 +40,6 @@ OK
 </pre>
 </code>
 {% endif %}
-
-<div class='jumbotron update-course'>
-<a href='/nbh/course/{{course}}' class='btn btn-primary btn-lg'>
-Back to {{course}}</a></div>
 
 {% endblock %}
 

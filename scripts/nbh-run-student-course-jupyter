@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# -*- mode: shell-script -*-
+#
 # primarily does 3 things
 #
 # (*) check for existence of notebook in the student's space

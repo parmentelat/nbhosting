@@ -28,23 +28,31 @@ esac
 
 #################### globals
 root=/nbhosting
-course=flotbioinfo
-notebook=w1/fr-w1-s07-c1-walking
-image=$course
-period=10
+
+default_course=flotbioinfo
+default_notebook=w1/fr-w1-s07-c1-walking
+alt_notebook=w1/en-w1-s07-c1-walking
+default_period=8
 
 ####################
 
 function usage() {
     echo "create a container for all students in the range stud-<from> .. stud-<until>"
-    echo "Usage: $COMMAND [-p period] from until"
+    echo "Usage: $COMMAND [-p period] [-c course] [-n notebook] [-a] from until"
     exit 1
 }
 
+period=$default_period
+course=$default_course
+notebook=$default_notebook
+
 # parse args
-while getopts ":p:" opt; do
+while getopts ":p:c:n:a" opt; do
     case $opt in
 	p)  period=$OPTARG ;;
+	c)  course=$OPTARG ;;
+	n)  notebook=$OPTARG ;;
+	a)  notebook=$alt_notebook ;;
 	\?) echo "Invalid option: -$OPTARG" >&2; usage ;;
 	:)  echo "Option -$OPTARG requires an argument." >&2 ; usage ;;
   esac
@@ -70,11 +78,13 @@ for student in $students; do
     uptime
     case $MODE in
 	high)
-	    curl https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student >& $student.html &
+	    url="https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student"
+	    echo Fetching "$url" into $student.html
+	    curl --silent -L $url >& $student.html &
 	    ;;
 	low)
 	    nbh-enroll-student-in-course $root $student $course
-	    nbh-run-student-course-jupyter $root $student $course $notebook $image >& $student.log &
+	    nbh-run-student-course-jupyter $root $student $course $notebook $course >& $student.log &
 	    ;;
     esac
     sleep $period

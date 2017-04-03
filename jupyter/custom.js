@@ -60,6 +60,8 @@ define([
 	// celltoolbar
 	$("#maintoolbar>div>div>div:nth-child(8)").hide();
 
+	$("#notification_trusted").hide();
+
 	// top right (python2/python3..)
 	$("p#kernel_indicator").hide();
 	// move stuff from first (originally upper, then left) area

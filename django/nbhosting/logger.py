@@ -2,10 +2,11 @@ import logging
 import logging.config
 
 import os
-import os.path
 
 def init_logger(filename):
 
+    # in case we receive a Path
+    filename = str(filename)
     # creating a dir in python is such a pain
     bash = 'f="{}"; d=$(dirname $f); [ -d $d ] || mkdir -p $d'.format(filename)
     os.system(bash)

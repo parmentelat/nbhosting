@@ -1,0 +1,20 @@
+from monitor import Monitor
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+def main():
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    # default was 2 hours with the jupyter-v4 strategy,
+    # which was based on the last time a notebook was opened
+    # with jupyter-v5 we can now really apply a timeout 
+    parser.add_argument("-g", "--grace", default=40, type=int,
+                        help="grace timeout in minutes - kill containers idle more than that")
+    parser.add_argument("-p", "--period", default=10, type=int,
+                        help="monitor period in minutes - how often are checks performed")
+    args = parser.parse_args()
+    monitor = Monitor(60 * args.grace, 60 * args.period)
+    monitor.run_forever()
+
+
+if __name__ == '__main__':
+    main()

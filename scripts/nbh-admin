@@ -66,17 +66,22 @@ function clear-users() {
 }
 
 function clear-logs-light() {
-    for file in /var/log/nginx/daemon $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
+    for file in /var/log/nginx/*.log $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo resetting log file $file
 	echo ==================== > $file
     done
 }
 
 function clear-logs() {
-    for file in /var/log/nginx/daemon $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
+    for file in /var/log/nginx/*.log $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo clearing log file $file
 	rm -f $file
     done
+}
+
+function clear-raw() {
+    echo "Clearing raw data completely"
+    rm -rf /nbhosting/raw
 }
 
 function clear() {
@@ -84,14 +89,24 @@ function clear() {
     clear-docker-deep
     clear-users
     clear-logs
+    clear-raw
 }
 
 function clear-light() {
     clear-docker-light
 }
 
+function journal() {
+    journalctl -u nginx -u nbh-uwsgi -u nbh-monitor "$@"
+}
+
+function logs() {
+    cd /nbhosting/logs
+    tail -f /var/log/nginx/*.log $(find /nbhosting/logs -type f)
+}
+    
+
 # if args are provided, take this as a call to a local function
 # e.g. meta status-tree => status-tree
 # or call just status by default
 [[ -z "$@" ]] && status || "$@"
-

@@ -1,4 +1,4 @@
-import os.path
+from pathlib import Path
 import subprocess
 
 from django.shortcuts import render
@@ -7,6 +7,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 
 from nbhosting.settings import nbhosting_settings
+
+from courses.models import CoursesDir, CourseDir
 
 # Create your views here.
 
@@ -24,66 +26,37 @@ def stderr_html(message, stderr):
         html += "<pre>\n{stderr}</pre>".format(stderr=stderr)
     return html
 
-#def stderr_page(message, stderr):
-#    return HttpResponse(stderr_page(message, stderr))
-
-def top_link(html):
-    return "<a class='top-link' href='/nbh/'>{html}</a>".format(html=html)
 
 @login_required
 @csrf_protect
 def list_courses(request):
-    root = nbhosting_settings['root']
-    courses_git_dir = os.path.join(root, "courses-git")
-    command = [ "ls", courses_git_dir ]
-    completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if completed.returncode != 0:
-        return render(request, "error.html", {
-            'message' : "when listing courses",
-            'stderr'  :  completed.stderr})
+    courses_dir = CoursesDir()
     return render(request, "courses.html",
-                  {'courses' : [ c for c in completed.stdout.decode().split("\n") if c ]})
-
+                  {'courses' : courses_dir.coursenames})
 
 @login_required
 @csrf_protect
 def list_course(request, course):
-    root = nbhosting_settings['root']
-    course_root = os.path.join(root, "courses", course)
-    command = [ "find", course_root, "-name", "*.ipynb"]
-    completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if completed.returncode != 0:
-        return render(request, "error.html", {
-            'message' : "when listing notebooks in {course}".format(course=course),
-            'stderr'  :  completed.stderr})
-    def normalize(path):
-        path = path.replace(course_root, "")
-        if path.startswith('/'):
-            path = path[1:]
-        if path.endswith(".ipynb"):
-            path = path[:-6]
-        return path
-    notebooks = [
-        normalize(path) for path in completed.stdout.decode().split("\n")
-        if path and 'ipynb_checkpoints' not in path]
-
+    course_dir = CourseDir(course)
+    notebooks = course_dir.notebooks()
+    
     return render(request, "course.html", {
+        'how_many' : len(notebooks),
         'course' : course,
         'notebooks': notebooks })
 
 @login_required
 @csrf_protect
 def update_course(request, course):
-    root = nbhosting_settings['root']
-    command = [ "nbh-update-course", root, course]
-    completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if completed.returncode != 0:
-        return render(request, "error.html", {
-            'message' : "when updating {course}".format(course=course),
-            'stderr'  :  completed.stderr})
-
-    return render(request, "course-updated.html",
-                  { 'course' : course,
-                    'stdout' : completed.stdout,
-                    'stderr' : completed.stderr,
-                    'returncode' : completed.returncode})
+    course_dir = CourseDir(course)
+    completed = course_dir.update_completed()
+    command = " ".join(completed.args)
+    message = "when updating {course}".format(course=course)
+    # expose most locals, + the attributes of completed
+    # like stdout and stderr
+    env = vars(completed)
+    env.update(locals())
+    # this is an instance and so would not serialize
+    del env['course_dir']
+    template = "course-updated.html"
+    return render(request, template, env)

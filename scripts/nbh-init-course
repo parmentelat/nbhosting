@@ -1,4 +1,5 @@
 #!/bin/bash
+# -*- mode: shell-script -*-
 
 # pull from upstream git repo
 # and updates the various parts accordingly

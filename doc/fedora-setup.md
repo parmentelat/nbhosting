@@ -75,6 +75,7 @@ dnf -y install -y curl
 pip3 install --upgrade pip setuptools
 pip3 install --upgrade Django
 pip3 install --upgrade docker
+pip3 install --upgrade aiohttp
 ```
 
 ```

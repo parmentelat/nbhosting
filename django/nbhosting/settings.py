@@ -11,12 +11,14 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
-import os.path
+from pathlib import Path
 
 from .logger import init_logger
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# .parents[0] is dirname(f)
+# .parents[1] is dirname(dirname(f))
+BASE_DIR = Path(__file__).parents[1]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -28,6 +30,7 @@ SECRET_KEY = 'xb1ys4a$_cp5te*wk=+&5ud5)5pj9v+iykoff)juur@ift47(v'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '138.96.112.37',
     'nbhosting.inria.fr',
     'localhost',
 ]
@@ -83,7 +86,7 @@ WSGI_APPLICATION = 'nbhosting.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': str(BASE_DIR / 'db.sqlite3'),
     }
 }
 
@@ -138,11 +141,11 @@ nbhosting_settings = {
 
 ########## for both production and devel
 if os.getuid() == 0:
-    LOG_FILE = os.path.join(nbhosting_settings['root'], 'logs', 'nbhosting.log')
+    LOG_FILE = Path(nbhosting_settings['root']) / 'logs' / 'nbhosting.log'
 else:
     # some provisions for devel mode
     LOG_FILE = "nbhosting.log"
-    nbhosting_settings['root'] = os.path.join(os.getcwd(), 'fake-root')
+    nbhosting_settings['root'] = str(Path.cwd() / 'fake-root')
 
 # this will create <root>/logs - and thus <root> - if needed
 logger = init_logger(LOG_FILE)

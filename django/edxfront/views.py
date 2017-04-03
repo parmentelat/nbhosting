@@ -1,5 +1,4 @@
-import os
-import os.path
+from pathlib import Path
 import subprocess
 import pprint
 
@@ -45,7 +44,7 @@ def edx_request(request, course, student, notebook):
 
     script = 'nbh-enroll-student-in-course'
     command = [ script, root, student, course ]
-    logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
+    logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -55,7 +54,7 @@ def edx_request(request, course, student, notebook):
     # use image named after the course for now
     image = course
     command = [ script, root, student, course, notebook_full, image ]
-    logger.info("In {}\n-> Running command {}".format(os.getcwd(), " ".join(command)))
+    logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)

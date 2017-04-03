@@ -8,8 +8,6 @@ from django.contrib.auth.decorators import login_required
 from stats.stats import Stats
 
 # Create your views here.
-def top_link(html):
-    return "<a class='top-link' href='/nbh/'>{html}</a>".format(html=html)
 
 @login_required
 @csrf_protect
@@ -20,16 +18,16 @@ def show_stats(request, course):
     })
 
 @csrf_protect
-def send_metrics(request, course):
+def send_daily_metrics(request, course):
     stats = Stats(course)
-    all_metrics = stats.metrics_per_day()
-    result = json.dumps(all_metrics)
+    metrics = stats.daily_metrics()
+    result = json.dumps(metrics)
     return HttpResponse(result, content_type = "application/json")
 
 
 @csrf_protect
-def send_counts(request, course):
+def send_monitor_counts(request, course):
     stats = Stats(course)
-    counts = stats.counts_points()
+    counts = stats.monitor_counts()
     result = json.dumps(counts)
     return HttpResponse(result, content_type = "application/json")

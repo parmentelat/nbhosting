@@ -20,3 +20,8 @@
 | scipy-notebook       | 2+3 | 1.3G |
 | tensorflow-notebook  | 2+3 | 1.8G |
 
+# Updates
+
+## April 6 2017
+
+* jupyter-5.0 released

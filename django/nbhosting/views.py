@@ -1,6 +1,3 @@
-import os.path
-import subprocess
-
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
