@@ -10,7 +10,7 @@ This code produces random data for testing the stats view
 of course it is not meant to run in production
 """
 
-from nbhosting.stats import Stats
+from nbhosting.stats.stats import Stats
 
 actions = ['created', 'restarted', 'running', 'killing']
 

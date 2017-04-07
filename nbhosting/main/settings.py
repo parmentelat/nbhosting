@@ -59,7 +59,7 @@ MIDDLEWARE = [
 
 X_FRAME_OPTIONS = 'ALLOWALL'
 
-ROOT_URLCONF = 'nbhosting.urls'
+ROOT_URLCONF = 'nbhosting.main.urls'
 
 TEMPLATES = [
     {
@@ -133,8 +133,7 @@ STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = '/nbh/accounts/profile/'
 LOGIN_URL =          '/nbh/accounts/login/'
 
-
-####################
+############################################################
 nbhosting_settings = {
     'root' : '/nbhosting',
 }
@@ -149,3 +148,5 @@ else:
 
 # this will create <root>/logs - and thus <root> - if needed
 logger = init_logger(LOG_FILE)
+
+############################################################

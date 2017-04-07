@@ -5,7 +5,7 @@ import pprint
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 
-from nbhosting.django.settings import logger, nbhosting_settings as settings
+from nbhosting.main.settings import logger, nbhosting_settings as settings
 from nbhosting.stats.stats import Stats
 
 # Create your views here.

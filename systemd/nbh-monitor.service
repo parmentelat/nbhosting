@@ -6,7 +6,7 @@ Description=nbh-monitor kills jupyter containers that have been idle for too lon
 # or --period=5 if we want to run every 5 minutes
 [Service]
 Environment=PYTHONPATH=/root/nbhosting/nbhosting
-ExecStart=/bin/bash -c "/usr/bin/python3 /root/nbhosting/nbhosting/stats/nbh-monitor --period 5"
+ExecStart=/bin/bash -c "python3 /usr/bin/nbh-monitor --period 5"
 
 [Install]
 WantedBy=multi-user.target

@@ -10,9 +10,9 @@ import aiohttp
 
 import docker
 
-from nbhosting.django.settings import nbhosting_settings, logger
+from nbhosting.main.settings import nbhosting_settings, logger
 from nbhosting.courses.models import CourseDir
-from nbhosting.stats import Stats
+from nbhosting.stats.stats import Stats
 
 """
 This processor is designed to be started as a systemd service
@@ -230,7 +230,7 @@ class Monitor:
 
         # one cycle can take some time as all the jupyters need to be http-probed
         # so let us compute the actual time to wait
-        logger.info("nbh-monitor is strating up")
+        logger.info("nbh-monitor is starting up")
         while True:
             self.run_once()
             tick += self.period

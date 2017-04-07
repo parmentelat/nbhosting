@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 
-from nbhosting.django.settings import nbhosting_settings
+from nbhosting.main.settings import nbhosting_settings
 
 root = Path(nbhosting_settings['root'])
 

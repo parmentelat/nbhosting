@@ -2,7 +2,7 @@
 projectname = nbhosting
 chdir = @DJANGO-ROOT@
 #
-module = nbhosting.wsgi:application
+module = nbhosting.main.wsgi:application
 plugins = python3
 #
 pidfile = /run/uwsgi.pid

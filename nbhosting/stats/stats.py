@@ -3,7 +3,7 @@ import time
 
 from collections import OrderedDict
 
-from nbhosting.django.settings import nbhosting_settings, logger
+from nbhosting.main.settings import nbhosting_settings, logger
 
 root = Path(nbhosting_settings['root'])
 
@@ -35,7 +35,7 @@ class Stats:
 
     def __init__(self, course):
         self.course = course
-        self.course_dir = self.root / "raw" / self.course
+        self.course_dir = root / "raw" / self.course
         self.course_dir.mkdir(parents=True, exist_ok=True)
 
     ####################

@@ -1,6 +1,6 @@
-from monitor import Monitor
-
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+from nbhosting.stats.monitor import Monitor
 
 def main():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)

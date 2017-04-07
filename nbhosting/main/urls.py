@@ -19,7 +19,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
-import nbhosting.django.views
+import nbhosting.main.views
 import nbhosting.edxfront.views
 import nbhosting.courses.views
 import nbhosting.stats.views
@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # tweaking greedy and non greedy so that the .ipynb suffix go away if there's one or even two
     url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
-        edxfront.views.edx_request
+        nbhosting.edxfront.views.edx_request
     ),
     url(r'^nbh/login/$',                                        auth_views.login, name='login'),
     url(r'^nbh/logout/$',                                       auth_views.logout, name='logout'),
@@ -41,5 +41,5 @@ urlpatterns = [
     url(r'^nbh/stats/daily_metrics/(?P<course>[\w_.-]+)',       nbhosting.stats.views.send_daily_metrics),
     url(r'^nbh/stats/monitor_counts/(?P<course>[\w_.-]+)',      nbhosting.stats.views.send_monitor_counts),
     url(r'^nbh/stats/(?P<course>[\w_.-]+)',                     nbhosting.stats.views.show_stats),
-    url(r'^nbh',                                                nbhosting.django.views.welcome),
+    url(r'^nbh',                                                nbhosting.main.views.welcome),
 ]

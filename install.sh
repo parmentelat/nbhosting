@@ -28,6 +28,19 @@ function log-symlink() {
     [ -h $varlink ] || ln -sf $root/logs $varlink
 }
 
+function update-python-libraries() {
+    ./setup.py install
+}
+
+function update-bins() {
+    rsync $rsopts scripts/nbh-* /usr/bin
+}
+
+function update-jupyter() {
+    mkdir -p $root/jupyter
+    rsync $rsopts jupyter/ $root/jupyter/
+}
+
 function update-uwsgi() {
     sed -e "s,@DJANGO-ROOT@,$srcroot/nbhosting," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
     rsync $rsopts  uwsgi/nbhosting.ini /etc/uwsgi.d/
@@ -38,15 +51,6 @@ function update-nginx() {
     rsync $rsopts nginx/nbhosting.conf /etc/nginx/conf.d/
 }
     
-function update-bins() {
-    rsync $rsopts scripts/nbh-* /usr/bin
-}
-
-function update-jupyter() {
-    mkdir -p $root/jupyter
-    rsync $rsopts jupyter/ $root/jupyter/
-}
-
 function restart-services() {
     rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
@@ -58,11 +62,15 @@ function restart-services() {
 
 function main() {
     check-subdirs
+
+    update-python-libraries
     update-bins
     update-jupyter
+
     update-uwsgi
     update-nginx
     restart-services
+
     # this is just convenience
     log-symlink
 }
