@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 
-from stats.stats import Stats
+from nbhosting.stats.stats import Stats
 
 # Create your views here.
 

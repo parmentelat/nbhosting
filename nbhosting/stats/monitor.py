@@ -10,10 +10,9 @@ import aiohttp
 
 import docker
 
-from nbhosting.settings import nbhosting_settings
-from nbhosting.settings import logger
-from courses.models import CourseDir
-from stats import Stats
+from nbhosting.django.settings import nbhosting_settings, logger
+from nbhosting.courses.models import CourseDir
+from nbhosting.stats import Stats
 
 """
 This processor is designed to be started as a systemd service

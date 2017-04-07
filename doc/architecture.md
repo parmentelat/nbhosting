@@ -4,7 +4,7 @@
 
     https://nbhosting.inria.fr/ipythonExercice/flotbioinfo/w1/en-w1-s07-c1-walking.ipynb/mary
 
-2. nginx proxies to the django app that creates if needed
+2. nginx proxies to the django app, that creates if needed
 
   * Unix id, home dir for student mary
   * copy of that notebook in the student's homedir

@@ -3,7 +3,9 @@ import time
 
 from collections import OrderedDict
 
-from nbhosting.settings import nbhosting_settings, logger
+from nbhosting.django.settings import nbhosting_settings, logger
+
+root = Path(nbhosting_settings['root'])
 
 # attach to a given instant
 class DayFigures:
@@ -26,8 +28,6 @@ class DayFigures:
         self.cumul_notebooks.add(notebook)
 
 class Stats:
-
-    root = Path(nbhosting_settings['root'])
 
     time_format = "%Y-%m-%dT%H:%M:%SZ"
     day_format = "%Y-%m-%d"
@@ -202,5 +202,5 @@ if __name__ == '__main__':
     import sys
     course = 'flotbioinfo' if len(sys.argv) == 1 else sys.argv[1]
     mg = Stats(course).daily_metrics()
-    for m in mg:
-        print(m)
+    for k, v in mg.items():
+        print(k, v)

@@ -19,10 +19,10 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
-import edxfront.views
-import nbhosting.views
-import courses.views
-import stats.views
+import nbhosting.django.views
+import nbhosting.edxfront.views
+import nbhosting.courses.views
+import nbhosting.stats.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -35,11 +35,11 @@ urlpatterns = [
     url(r'^nbh/admin/',                                         admin.site.urls),
     url('^nbh/accounts/',                                       include('django.contrib.auth.urls')),
     # our stuff
-    url(r'^nbh/courses/update/(?P<course>[\w_.-]+)',            courses.views.update_course),
-    url(r'^nbh/courses',                                        courses.views.list_courses),
-    url(r'^nbh/course/(?P<course>[\w_.-]+)',                    courses.views.list_course),
-    url(r'^nbh/stats/daily_metrics/(?P<course>[\w_.-]+)',       stats.views.send_daily_metrics),
-    url(r'^nbh/stats/monitor_counts/(?P<course>[\w_.-]+)',      stats.views.send_monitor_counts),
-    url(r'^nbh/stats/(?P<course>[\w_.-]+)',                     stats.views.show_stats),
-    url(r'^nbh',                                                nbhosting.views.welcome),
+    url(r'^nbh/courses/update/(?P<course>[\w_.-]+)',            nbhosting.courses.views.update_course),
+    url(r'^nbh/courses',                                        nbhosting.courses.views.list_courses),
+    url(r'^nbh/course/(?P<course>[\w_.-]+)',                    nbhosting.courses.views.list_course),
+    url(r'^nbh/stats/daily_metrics/(?P<course>[\w_.-]+)',       nbhosting.stats.views.send_daily_metrics),
+    url(r'^nbh/stats/monitor_counts/(?P<course>[\w_.-]+)',      nbhosting.stats.views.send_monitor_counts),
+    url(r'^nbh/stats/(?P<course>[\w_.-]+)',                     nbhosting.stats.views.show_stats),
+    url(r'^nbh',                                                nbhosting.django.views.welcome),
 ]

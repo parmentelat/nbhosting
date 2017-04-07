@@ -5,8 +5,8 @@ Description=nbh-monitor kills jupyter containers that have been idle for too lon
 # can use e.g. --grace=180 to increase grace time to 3 hours
 # or --period=5 if we want to run every 5 minutes
 [Service]
-Environment=PYTHONPATH=/root/nbhosting/django
-ExecStart=/bin/bash -c "/usr/bin/python3 /root/nbhosting/django/stats/nbh-monitor --period 5"
+Environment=PYTHONPATH=/root/nbhosting/nbhosting
+ExecStart=/bin/bash -c "/usr/bin/python3 /root/nbhosting/nbhosting/stats/nbh-monitor --period 5"
 
 [Install]
 WantedBy=multi-user.target

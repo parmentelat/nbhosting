@@ -10,7 +10,7 @@ This code produces random data for testing the stats view
 of course it is not meant to run in production
 """
 
-from stats import Stats
+from nbhosting.stats import Stats
 
 actions = ['created', 'restarted', 'running', 'killing']
 
@@ -73,7 +73,6 @@ parser.add_argument("-e", "--events", type=int, default=5000, help="total number
 parser.add_argument("-d", "--days", type=int, default=28, help="number of days for the simulated data")
 parser.add_argument("course")
 args = parser.parse_args()
-import sys
 fake_events(args.course,
             args.notebooks,
             args.students,

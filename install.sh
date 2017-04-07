@@ -9,7 +9,7 @@ srcroot=$(pwd -P)
 
 # where all the data lies; may provisions were made in the code to
 # have this configurable (in the django settings)
-# but there are still other places where it's hard-wired
+# but there might still be other places where it's hard-wired
 # so it's safer to use this for now
 root=/nbhosting
 
@@ -29,7 +29,7 @@ function log-symlink() {
 }
 
 function update-uwsgi() {
-    sed -e "s,@DJANGO-ROOT@,$srcroot/django," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
+    sed -e "s,@DJANGO-ROOT@,$srcroot/nbhosting," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
     rsync $rsopts  uwsgi/nbhosting.ini /etc/uwsgi.d/
 }
 

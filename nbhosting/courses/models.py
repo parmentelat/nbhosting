@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 
-from nbhosting.settings import nbhosting_settings
+from nbhosting.django.settings import nbhosting_settings
 
 root = Path(nbhosting_settings['root'])
 
@@ -45,7 +45,6 @@ class CourseDir:
 class CoursesDir:
 
     def __init__(self):
-        root = Path(nbhosting_settings['root'])
         subdirs = (root / "courses-git").glob("*")
         self._coursenames = [ subdir.name for subdir in subdirs ]
 
