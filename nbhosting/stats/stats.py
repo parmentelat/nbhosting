@@ -172,7 +172,6 @@ class Stats:
         try:
             with path.open() as f:
                 for lineno, line in enumerate(f, 1):
-                    logger.info("read line {} from {}".format(lineno, path))
                     try:
                         timestamp, *values = line.split()
                         # xxx could be more flexible if we ever add counters in there

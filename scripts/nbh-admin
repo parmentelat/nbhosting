@@ -96,11 +96,11 @@ function clear-light() {
     clear-docker-light
 }
 
-function journal() {
-    journalctl -u nginx -u nbh-uwsgi -u nbh-monitor "$@"
+function jou() {
+    journalctl -f -u nginx -u nbh-uwsgi -u nbh-monitor "$@"
 }
 
-function logs() {
+function log() {
     cd /nbhosting/logs
     tail -f /var/log/nginx/*.log $(find /nbhosting/logs -type f)
 }

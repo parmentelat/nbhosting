@@ -15,10 +15,28 @@ from pathlib import Path
 
 from .logger import init_logger
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-# .parents[0] is dirname(f)
-# .parents[1] is dirname(dirname(f))
-BASE_DIR = Path(__file__).parents[1]
+############################################################
+nbhosting_settings = {
+    'root' : '/nbhosting',
+    'base' : '/root/nbhosting',
+}
+
+########## for both production and devel
+if os.getuid() == 0:
+    LOG_FILE = Path(nbhosting_settings['root']) / 'logs' / 'nbhosting.log'
+    BASE_DIR = Path(nbhosting_settings['base'])
+else:
+    nbhosting_settings['root'] = str(Path.cwd() / 'fake-root')
+    # some provisions for devel mode
+    LOG_FILE = "nbhosting.log"
+    # .parents[0] is dirname(f)
+    # .parents[1] is dirname(dirname(f))
+    BASE_DIR = Path(__file__).parents[1]
+
+# this will create <root>/logs - and thus <root> - if needed
+logger = init_logger(LOG_FILE)
+
+############################################################
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -133,20 +151,3 @@ STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = '/nbh/accounts/profile/'
 LOGIN_URL =          '/nbh/accounts/login/'
 
-############################################################
-nbhosting_settings = {
-    'root' : '/nbhosting',
-}
-
-########## for both production and devel
-if os.getuid() == 0:
-    LOG_FILE = Path(nbhosting_settings['root']) / 'logs' / 'nbhosting.log'
-else:
-    # some provisions for devel mode
-    LOG_FILE = "nbhosting.log"
-    nbhosting_settings['root'] = str(Path.cwd() / 'fake-root')
-
-# this will create <root>/logs - and thus <root> - if needed
-logger = init_logger(LOG_FILE)
-
-############################################################
