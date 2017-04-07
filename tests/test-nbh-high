@@ -31,14 +31,17 @@ root=/nbhosting
 
 default_course=flotbioinfo
 default_notebook=w1/fr-w1-s07-c1-walking
-alt_notebook=w1/en-w1-s07-c1-walking
 default_period=8
+# alternative notebooks with -x -y or -z
+xlt_notebook=w1/en-w1-s07-c1-walking
+ylt_notebook=w1/fr-w1-s10-c1-counting-window
+zlt_notebook=w1/en-w1-s10-c1-counting-window
 
 ####################
 
 function usage() {
     echo "create a container for all students in the range stud-<from> .. stud-<until>"
-    echo "Usage: $COMMAND [-p period] [-c course] [-n notebook] [-a] from until"
+    echo "Usage: $COMMAND [-p period] [-c course] [-n notebook] [-x|y|z] from until"
     exit 1
 }
 
@@ -47,12 +50,14 @@ course=$default_course
 notebook=$default_notebook
 
 # parse args
-while getopts ":p:c:n:a" opt; do
+while getopts ":p:c:n:xyz" opt; do
     case $opt in
 	p)  period=$OPTARG ;;
 	c)  course=$OPTARG ;;
 	n)  notebook=$OPTARG ;;
-	a)  notebook=$alt_notebook ;;
+	x)  notebook=$xlt_notebook ;;
+	y)  notebook=$ylt_notebook ;;
+	z)  notebook=$zlt_notebook ;;
 	\?) echo "Invalid option: -$OPTARG" >&2; usage ;;
 	:)  echo "Option -$OPTARG requires an argument." >&2 ; usage ;;
   esac
