@@ -49,14 +49,14 @@ def fake_events(course, nb_notebooks, nb_students, events, days, beg=None):
     print("with {} notebooks, {} students".format(nb_notebooks, nb_students))
     print("made of {} events over {} days".format(events, days))
     print("starting {}".format(
-        time.strftime(Stats.time_format, time.gmtime(beg))))
+        time.strftime(Stats.time_format, time.localtime(beg))))
 
     for i in range(events):
         notebook = random.choice(notebooks)
         action = random.choice(actions)
         student = random.choice(students)
         epoch = random.randint(beg, end)
-        timestamp = time.strftime(Stats.time_format, time.gmtime(epoch))
+        timestamp = time.strftime(Stats.time_format, time.localtime(epoch))
 
         stats._write_events_line(student, notebook, action, 0, timestamp)
 

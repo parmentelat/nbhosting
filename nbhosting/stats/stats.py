@@ -29,8 +29,8 @@ class DayFigures:
 
 class Stats:
 
-    time_format = "%Y-%m-%dT%H:%M:%SZ"
-    day_format = "%Y-%m-%d"
+    # using localtime in all raw files
+    time_format = "%Y-%m-%dT%H:%M:%S"
 
 
     def __init__(self, course):
@@ -46,7 +46,7 @@ class Stats:
     
     ####################
     def _write_events_line(self, student, notebook, action, port, timestamp=None):
-        timestamp = timestamp or time.strftime(self.time_format, time.gmtime())
+        timestamp = timestamp or time.strftime(self.time_format, time.localtime())
         path = self.notebook_events_path()
         course = self.course
         try:
@@ -77,7 +77,7 @@ class Stats:
     def record_monitor_counts(self, running_containers, frozen_containers,
                               running_kernels, students_count,
                               timestamp=None):
-        timestamp = timestamp or time.strftime(self.time_format, time.gmtime())
+        timestamp = timestamp or time.strftime(self.time_format, time.localtime())
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
@@ -176,7 +176,7 @@ class Stats:
                         timestamp, *values = line.split()
                         # xxx could be more flexible if we ever add counters in there
                         rj, fj, rk, sc = [int(value) for value in values]
-                        jstime= timestamp.replace('T', ' ').replace('Z', '')
+                        jstime= timestamp.replace('T', ' ')
                         timestamps.append(jstime)
                         running_jupyters.append(rj)
                         total_jupyters.append(rj + fj)

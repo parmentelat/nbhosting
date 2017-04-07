@@ -46,14 +46,14 @@ def fake_counts(course, period, nb_students, delta , days, beg=None):
     print("with {} students".format(nb_students))
     print("every {} minutes over {} days".format(period, days))
     print("starting {}".format(
-        time.strftime(Stats.time_format, time.gmtime(beg))))
+        time.strftime(Stats.time_format, time.localtime(beg))))
 
     pointer = beg
     total, running, kernels = 0, 0, 0
     
     while pointer <= end:
         frozen = total - running
-        timestamp = time.strftime(Stats.time_format, time.gmtime(pointer))
+        timestamp = time.strftime(Stats.time_format, time.localtime(pointer))
         # can't fake number students in line with the other source 
         stats.record_monitor_counts(running, frozen, kernels, timestamp, 0)
 
