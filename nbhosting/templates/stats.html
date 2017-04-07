@@ -69,19 +69,25 @@ d3.request(url_metrics, function (error, response) {
     var d_new_notebooks   = incoming['daily']['new_notebooks'];
     var e_total_notebooks = incoming['events']['total_notebooks'];
 
+    var layout = {'legend' :
+		  { 'orientation' : 'h',
+		    'x' : -.1, 'y': 1.2}};
+
     var new_students_data =   { 'x' : d_timestamps, 'y' : d_new_students,
 			        'name': 'new students / day'};
     var total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
 				'name': 'total students'};
     Plotly.newPlot('stats-students',
-		   [new_students_data, total_students_data]);
+		   [new_students_data, total_students_data],
+		   layout);
 
     var new_notebooks_data =   { 'x' : d_timestamps, 'y' : d_new_notebooks,
 			         'name': 'new notebooks / day'};
     var total_notebooks_data = { 'x' : e_timestamps, 'y' : e_total_notebooks,
     			       	 'name': 'notebooks read at least once'};
     Plotly.newPlot('stats-notebooks',
-		   [ new_notebooks_data, total_notebooks_data]);
+		   [ new_notebooks_data, total_notebooks_data],
+		   layout);
 });
 var url_counts="/nbh/stats/monitor_counts/{{course}}";
 d3.request(url_counts, function (error, response) {
@@ -96,6 +102,10 @@ d3.request(url_counts, function (error, response) {
     var running_kernels = incoming['running_kernels'];
     var student_counts = incoming['student_counts'];
     
+    var layout = {'legend' :
+		  { 'orientation' : 'h',
+		    'x' : -.1, 'y': 1.2}};
+
     var running_jupyters_data = {
 	'x' : timestamps, 'y' : running_jupyters,
 	'name' : "running jupyter containers",
@@ -105,18 +115,23 @@ d3.request(url_counts, function (error, response) {
 	'name' : "total jupyter containers",
     };
     Plotly.newPlot('stats-jupyters', [running_jupyters_data,
-				      total_jupyters_data]);
+				      total_jupyters_data],
+				      layout);
     var running_kernels_data = {
 	'x' : timestamps, 'y' : running_kernels,
 	'name' : "running kernels"
     }
-    Plotly.newPlot('stats-kernels', [running_kernels_data]);
+    Plotly.newPlot('stats-kernels',
+		   [running_kernels_data],
+		   layout);
 
     var student_counts_data = {
     'x': timestamps, 'y' : student_counts,
     'name' : "students found with a homedir"
     }
-    Plotly.newPlot('stats-student-counts', [student_counts_data]);
+    Plotly.newPlot('stats-student-counts',
+		   [student_counts_data],
+		  layout);
 });
 </script>
 {% endblock %}
