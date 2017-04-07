@@ -182,7 +182,7 @@ class Stats:
                         running_jupyters.append(rj)
                         total_jupyters.append(rj + fj)
                         running_kernels.append(rk)
-                        student_counts.appent(sc)
+                        student_counts.append(sc)
                         logger.info("adding one monitor counts")
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed counts line - {}: {}"
