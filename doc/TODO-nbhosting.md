@@ -76,7 +76,7 @@ http://127.0.0.1:8000/notebooks/w1/en-w1-s07-c1-walking.ipynb?token=flotbioinfo-
 * clean up before serving this URL:
 
 ```
-docker stop flotbioinfo-x-mary ; docker rm flotbioinfo-x-mary ; ./del-student /nbhosting-test mary; rm -rf /nbhosting-test/logs/flotbioinfo/run-mary.log
+docker stop flotbioinfo-x-mary ; docker rm flotbioinfo-x-mary ; ./del-student /nbhosting mary; rm -rf /nbhosting/logs/flotbioinfo/run-mary.log
 ```
 
 * trying to get a static page using the cookie
@@ -100,14 +100,14 @@ jour-docker
 ## creating course
 
 ```
-rm -rf /nbhosting-test/courses{-git}/flotbioinfo /nbhosting-test/logs/flotbioinfo
-./init-course /nbhosting-test flotbioinfo https://github.com/parmentelat/flotbioinfo.git
-cat /nbhosting-test/logs/flotbioinfo/init-course.log
-ls /nbhosting-test/courses-git/flotbioinfo
+rm -rf /nbhosting/courses{-git}/flotbioinfo /nbhosting/logs/flotbioinfo
+./init-course /nbhosting flotbioinfo https://github.com/parmentelat/flotbioinfo.git
+cat /nbhosting/logs/flotbioinfo/init-course.log
+ls /nbhosting/courses-git/flotbioinfo
 
-./update-course /nbhosting-test flotbioinfo 
-cat /nbhosting-test/logs/flotbioinfo/update-course.log
-ls /nbhosting-test/courses/flotbioinfo
+./update-course /nbhosting flotbioinfo 
+cat /nbhosting/logs/flotbioinfo/update-course.log
+ls /nbhosting/courses/flotbioinfo
 ```
 
 ## steps for dealing with jupyter
