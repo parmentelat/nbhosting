@@ -77,6 +77,8 @@ done
 
 echo $0 BEGIN - $(date)
 
+mkdir -p logs
+
 # create one every <period> s
 for student in $students; do
     echo "=== $(date) mode=$MODE, period=$period; dealing with $student"
@@ -84,12 +86,12 @@ for student in $students; do
     case $MODE in
 	high)
 	    url="https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student"
-	    echo Fetching "$url" into $student.html
-	    curl --silent -L $url >& $student.html &
+	    echo Fetching "$url" into logs/$student.html
+	    curl --silent -L $url >& logs/$student.html &
 	    ;;
 	low)
 	    nbh-enroll-student-in-course $root $student $course
-	    nbh-run-student-course-jupyter $root $student $course $notebook $course >& $student.log &
+	    nbh-run-student-course-jupyter $root $student $course $notebook $course >& logs/$student.log &
 	    ;;
     esac
     sleep $period
