@@ -5,7 +5,12 @@
 # this is not done as part of the toplevel install.sh because
 # (*) for now we want to try out several variants
 # (*) restarting docker is very intrusive
-#     - althoug hwe do this only when needed
+#     - although we do this only when needed
+#
+# xxx NOTE xxx
+# it would maybe have been more effective to use a daemon.json
+# file to configure only these 2 settings
+# like in https://sandro-keil.de/blog/2017/01/23/docker-daemon-tuning-and-json-file-configuration/ 
 
 COMMAND=$(basename $0)
 DIRNAME=$(dirname $COMMAND)
