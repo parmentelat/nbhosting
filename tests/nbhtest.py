@@ -26,9 +26,13 @@ from selenium import webdriver
 
 def list_bioinfo_notebooks():
     from pathlib import Path
-    bioinfo = Path.home() / "git" / "flotbioinfo"
-    paths = chain((bioinfo / "w1").glob("fr*nb"), (bioinfo / "w1").glob("en*nb"))
-    return [x.stem for x in paths]
+    bioinfo = Path.home() / "git" / "flotbioinfo" 
+    if not bioinfo.is_dir():
+        print("Could not browse for test notebook named in {}"
+              .format(bioinfo))
+        exit(1)
+    paths = chain(bioinfo.glob("w?/fr*nb"), bioinfo.glob("w?/en*nb"))
+    return ['/'.join([p.parts[-2], p.stem]) for p in paths]
 
 bioinfo_notebooks = list_bioinfo_notebooks()
 
@@ -68,7 +72,7 @@ def run(user, index, delay):
     and click the 'run-all-cells' button
     """
     nb = bioinfo_notebooks[index]
-    url = "https://nbhosting.inria.fr/ipythonExercice/flotbioinfo/w1/{nb}/{user}"\
+    url = "https://nbhosting.inria.fr/ipythonExercice/flotbioinfo/{nb}/{user}"\
           .format(**locals())
 
     print("fetching URL {url}".format(url=url))
