@@ -46,7 +46,7 @@ class IntsRanges(argparse.Action):
                 self.result += list(range(a, b+1, c))
             self.result = sorted(set(self.result))
         except ValueError as e:
-            raise argparse.ArgumentError("IntsRange requires integers")
+            raise argparse.ArgumentTypeError(value, "IntsRange requires integers")
         setattr(namespace, self.dest, self.result)
 
 #################### unit test

@@ -16,26 +16,27 @@ from intsranges import IntsRanges
 
 def main() -> bool:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-r", "--range", action=IntsRanges,
-                        default=[1],
+    parser.add_argument("-r", "--ranges", default=[1], action=IntsRanges,
                         help="(cumulative) ranges of students indexes")
+    parser.add_argument("-i", "--indices", default=[0], action=IntsRanges,
+                        help="(cumulative) ranges of indices in the list of known notebooks"
+                        " - run open-notebook with -l to see list")
     parser.add_argument("-b", "--base", default='student',
                         help="basename for students name")
     parser.add_argument("-d", "--delay", default=3, type=float,
                         help="delay between 2 triggers of open-notebook")
-    parser.add_argument("-i", "--index", default=0, type=int,
-                        help="index in the list of known notebooks - run open-notebook with -l to see list")
     parser.add_argument("-s", "--sleep", default=3, type=int,
                         help="delay in seconds to sleep between actions")
     args = parser.parse_args()
     overall = True
-    for n in args.range:
-        student_name = "{}-{:04d}".format(args.base, n)
-        command = "open-notebook.py -i {} -u {} -s {} &"\
-                  .format(args.index, student_name, args.sleep)
-        print("Running command:", command)
-        subprocess.call(command, shell=True)
-        time.sleep(args.sleep)
+    for n in args.ranges:
+        for index in args.indices:
+            student_name = "{}-{:04d}".format(args.base, n)
+            command = "open-notebook.py -i {} -u {} -s {} &"\
+                      .format(index, student_name, args.sleep)
+            print("Running command:", command)
+            subprocess.call(command, shell=True)
+            time.sleep(args.sleep)
 
 if __name__ == '__main__':
     exit(0 if main() else 1)
