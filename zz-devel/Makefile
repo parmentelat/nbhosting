@@ -7,7 +7,7 @@ all:
 TESTBOX=root@nbhosting.inria.fr
 
 sync:
-	@echo 'cd /tmp/nbhosting-sync/nbhosting/; export PATH=/tmp/nbhosting-sync/scripts/:$$PATH; export PYTHONPATH=/tmp/nbhosting-sync/nbhosting'
+	@echo 'cd /tmp/nbhosting-sync/nbhosting/; export PATH=/tmp/nbhosting-sync/scripts/:$$PATH; export PYTHONPATH=/tmp/nbhosting-sync'
 	@echo 'systemctl stop nginx; systemctl stop nbh-uwsgi; manage.py runserver thermals:80'
 	(cd ..;	rsync -rltpv --relative $$(git ls-files) $(TESTBOX):/tmp/nbhosting-sync/)
 

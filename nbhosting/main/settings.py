@@ -95,7 +95,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'nbhosting.wsgi.application'
+WSGI_APPLICATION = 'main.wsgi.application'
 
 
 # Database
