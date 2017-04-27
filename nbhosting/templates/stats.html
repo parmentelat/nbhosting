@@ -65,8 +65,10 @@ d3.request(url_metrics, function (error, response) {
     var d_timestamps     = incoming['daily']['timestamps'];
     var e_timestamps     = incoming['events']['timestamps'];
     var d_new_students   = incoming['daily']['new_students'];
+    var d_uni_students   = incoming['daily']['unique_students'];
     var e_total_students = incoming['events']['total_students'];
     var d_new_notebooks   = incoming['daily']['new_notebooks'];
+    var d_uni_notebooks   = incoming['daily']['unique_notebooks'];
     var e_total_notebooks = incoming['events']['total_notebooks'];
 
     var layout = {'legend' :
@@ -75,18 +77,22 @@ d3.request(url_metrics, function (error, response) {
 
     var new_students_data =   { 'x' : d_timestamps, 'y' : d_new_students,
 			        'name': 'new students / day'};
+    var uni_students_data =   { 'x' : d_timestamps, 'y' : d_uni_students,
+			        'name': 'unique students / day'};
     var total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
 				'name': 'total students'};
     Plotly.newPlot('stats-students',
-		   [new_students_data, total_students_data],
+		   [uni_students_data, new_students_data, total_students_data],
 		   layout);
 
     var new_notebooks_data =   { 'x' : d_timestamps, 'y' : d_new_notebooks,
 			         'name': 'new notebooks / day'};
+    var uni_notebooks_data =   { 'x' : d_timestamps, 'y' : d_uni_notebooks,
+			         'name': 'unique notebooks open / day'};
     var total_notebooks_data = { 'x' : e_timestamps, 'y' : e_total_notebooks,
     			       	 'name': 'notebooks read at least once'};
     Plotly.newPlot('stats-notebooks',
-		   [ new_notebooks_data, total_notebooks_data],
+		   [ uni_notebooks_data, new_notebooks_data, total_notebooks_data],
 		   layout);
 });
 var url_counts="/nbh/stats/monitor_counts/{{course}}";

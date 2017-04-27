@@ -7,8 +7,14 @@ from nbhosting.main.settings import nbhosting_settings, logger
 
 root = Path(nbhosting_settings['root'])
 
-# attach to a given instant
-class DayFigures:
+# attach to a given day
+class DailyFigures:
+    """
+    keep track of the activity during a given day, as compared
+    to the previous day
+    in order to avoid useless expensive set copies, when moving to the next day, 
+    caller must call the wrap() method that does accounting
+    """
     def __init__(self, previous=None):
         self.students = set()
         self.notebooks = set()
@@ -21,11 +27,18 @@ class DayFigures:
 
     def add_student(self, student):
         self.students.add(student)
-        self.cumul_students.add(student)
 
     def add_notebook(self, notebook):
         self.notebooks.add(notebook)
-        self.cumul_notebooks.add(notebook)
+
+    def wrap(self):
+        self.nb_unique_students = len(self.students)
+        self.nb_unique_notebooks = len(self.notebooks)
+        self.nb_new_students = len(self.students - self.cumul_students)
+        self.nb_new_notebooks = len(self.notebooks - self.cumul_notebooks)
+        self.cumul_students.update(self.students)
+        self.cumul_notebooks.update(self.notebooks)
+
 
 class Stats:
 
@@ -94,21 +107,24 @@ class Stats:
         data arrays suitable for being composed under plotly
         
         returns a dict with the following components
-        * 'daily': { 'timestamps', 'new_students', 'new_notebooks' } - all 3 same size
+        * 'daily': { 'timestamps', 'new_students', 'new_notebooks',
+                     'unique_students', 'unique_notebooks' }
+          - all 5 same size
           (one per day, time is always 23:59:59)
-        * 'events': { 'timestamps', 'total_students', 'total_notebooks' } - 3 same size
+        * 'events': { 'timestamps', 'total_students', 'total_notebooks' } 
+           - all 3 same size
         """
-        path = self.notebook_events_path()
+        events_path = self.notebook_events_path()
         # a dictionary day -> figures
         figures_by_day = OrderedDict()
         previous_figures = None
-        current_figures = DayFigures()
+        current_figures = DailyFigures()
         # results
         events_timestamps = []
         total_students = []
         total_notebooks = []
         try:
-            with path.open() as f:
+            with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     try:
                         timestamp, course, student, notebook, action, port = line.split()
@@ -116,8 +132,9 @@ class Stats:
                         if day in figures_by_day:
                             current_figures = figures_by_day[day]
                         else:
+                            current_figures.wrap()
                             previous_figures = current_figures
-                            current_figures = DayFigures(previous_figures)
+                            current_figures = DailyFigures(previous_figures)
                             figures_by_day[day] = current_figures
                         # if action is 'killing' it means we already know
                         # about that notebook, right ? so let's count this notebook
@@ -129,22 +146,28 @@ class Stats:
                         total_notebooks.append(len(current_figures.cumul_notebooks))
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed events line - {}: {}"
-                                     .format(path, lineno, type(e), e))
+                                     .format(events_path, lineno, type(e), e))
                         continue
-    
-        except:
-            pass
+        except Exception as e:
+            logger.exception("unexpected exception")
         finally:
+            current_figures.wrap()
             daily_timestamps = []
+            unique_students = []
+            unique_notebooks = []
             new_students = []
             new_notebooks = []
 
             for timestamp, figures in figures_by_day.items():
                 daily_timestamps.append(timestamp)
-                new_students.append(len(figures.students))
-                new_notebooks.append(len(figures.notebooks))
+                unique_students.append(figures.nb_unique_students)
+                unique_notebooks.append(figures.nb_unique_notebooks)
+                new_students.append(figures.nb_new_students)
+                new_notebooks.append(figures.nb_new_notebooks)
 
             return { 'daily' : { 'timestamps' : daily_timestamps,
+                                 'unique_students' : unique_students,
+                                 'unique_notebooks' : unique_notebooks,
                                  'new_students' : new_students,
                                  'new_notebooks' : new_notebooks},
                      'events' : { 'timestamps' : events_timestamps,
@@ -163,14 +186,14 @@ class Stats:
         'running_kernels' : sum of open notebooks 
         'student_homes' : number of students that have this course in their homedir 
         """
-        path = self.monitor_counts_path()
+        counts_path = self.monitor_counts_path()
         timestamps = []
         running_jupyters = []
         total_jupyters = []
         running_kernels = []
         student_counts = []
         try:
-            with path.open() as f:
+            with counts_path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     try:
                         timestamp, *values = line.split()
@@ -185,7 +208,7 @@ class Stats:
                         logger.info("adding one monitor counts")
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed counts line - {}: {}"
-                                     .format(path, lineno, type(e), e))
+                                     .format(counts_path, lineno, type(e), e))
         except:
             pass
         finally:
