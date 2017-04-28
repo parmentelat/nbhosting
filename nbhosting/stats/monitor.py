@@ -5,6 +5,7 @@ import time
 import calendar
 import json
 from pathlib import Path
+import subprocess
 
 import asyncio
 import aiohttp
@@ -229,6 +230,17 @@ class Monitor:
             ds_percent = 0
             logger.exception("monitor cannot compute disk space")
 
+        try:
+            uptime_output = subprocess.check_output('uptime')
+            end_of_line = uptime_output.split(':')[-1]
+            floads = end_of_line.split(', ')
+            load1, load2, load3 = [round(100*x) for x in floads]
+
+        except Exception as e:
+            load1, load2, load3 = 0, 0, 0
+            logger.exception("monitor cannot compute cpu loads")
+
+
         # run the whole stuff 
         asyncio.get_event_loop().run_until_complete(
             asyncio.gather(*futures))
@@ -241,6 +253,7 @@ class Monitor:
                 figures.running_kernels,
                 number_students,
                 ds_percent, ds_free,
+                load1, load2, load3,
             )
 
     def run_forever(self):

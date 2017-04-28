@@ -90,14 +90,17 @@ class Stats:
     def record_monitor_counts(self, running_containers, frozen_containers,
                               running_kernels, students_count,
                               ds_percent, ds_free,
+                              load1, load2, load3,
                               timestamp=None):
         timestamp = timestamp or time.strftime(self.time_format, time.localtime())
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
-                f.write("{} {} {} {} {} {} {}\n"
+                f.write("{} {} {} {} {} {} {} {} {} {}\n"
                         .format(timestamp, running_containers, frozen_containers,
-                                running_kernels, students_count, ds_percent, ds_free))
+                                running_kernels, students_count,
+                                ds_percent, ds_free,
+                                load1, load2, load3))
         except Exception as e:
             logger.error("Cannot store counts line into {} {}".format(path, e))
         
@@ -195,13 +198,16 @@ class Stats:
         student_counts = []
         ds_percents = []
         ds_frees = []
+        load1s = []
+        load2s = []
+        load3s = []
         try:
             with counts_path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     try:
                         timestamp, *values = line.split()
                         # xxx could be more flexible if we ever add counters in there
-                        rj, fj, rk, sc, ds_percent, ds_free = [int(value) for value in values]
+                        rj, fj, rk, sc, ds_percent, ds_free, load1, load2, load3 = [int(value) for value in values]
                         jstime= timestamp.replace('T', ' ')
                         timestamps.append(jstime)
                         running_jupyters.append(rj)
@@ -210,6 +216,9 @@ class Stats:
                         student_counts.append(sc)
                         ds_percents.append(ds_percent)
                         ds_frees.append(ds_free)
+                        load1s.append(load1)
+                        load2s.append(load2)
+                        load3s.append(load3)
                         logger.info("adding one monitor counts")
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed counts line - {}: {}"
@@ -225,7 +234,9 @@ class Stats:
                 'student_counts' : student_counts,
                 'ds_percents' : ds_percents,
                 'ds_frees' : ds_frees,
-                
+                'load1s' : load1s,
+                'load2s' : load2s,
+                'load3s' : load3s,
             }
 
 if __name__ == '__main__':

@@ -69,6 +69,17 @@ Stats for course {{course}}
 </div>
 </div>
 
+<hr/ >
+<div class="card">
+<div class="card-block">
+<h1 class="card-title card-header">CPU load</h1>
+<!-- percentage -->
+<h2 class="card-title card-header">Loads</h2>
+<div  id="stats-cpu-load"></div>
+<span id="legend-cpu-load"></span>
+</div>
+</div>
+
 <!-- end -->
 
 <script>
@@ -125,7 +136,10 @@ d3.request(url_counts, function (error, response) {
     var student_counts = incoming['student_counts'];
     var ds_percents = incoming['ds_percents'];
     var ds_frees = incoming['ds_frees'];
-    
+    var loads1 = incoming['loads1'];
+    var loads2 = incoming['loads2'];
+    var loads3 = incoming['loads3'];
+
     var layout = {'legend' :
 		  { 'orientation' : 'h',
 		    'x' : -.1, 'y': 1.2}};
@@ -173,6 +187,22 @@ d3.request(url_counts, function (error, response) {
     }
     Plotly.newPlot('stats-ds-free',
                    [ds_frees_data],
+		   layout);
+    
+    var ds_loads1_data = {
+        'x': timestamps, 'y': ds_loads1,
+        'name' : 'uptime(1)',
+    }
+    var ds_loads2_data = {
+        'x': timestamps, 'y': ds_loads2,
+        'name' : 'uptime(2)',
+    }
+    var ds_loads3_data = {
+        'x': timestamps, 'y': ds_loads3,
+        'name' : 'uptime(3)',
+    }
+    Plotly.newPlot('stats-cpu-load',
+                   [loads1_data, loads2_data, loads3_data],
 		   layout);
     
 });
