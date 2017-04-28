@@ -74,7 +74,7 @@ Stats for course {{course}}
 <div class="card-block">
 <h1 class="card-title card-header">CPU load</h1>
 <!-- percentage -->
-<h2 class="card-title card-header">Loads</h2>
+<h2 class="card-title card-header"><code>uptime</code> CPU loads</h2>
 <div  id="stats-cpu-load"></div>
 <span id="legend-cpu-load"></span>
 </div>
@@ -137,8 +137,8 @@ d3.request(url_counts, function (error, response) {
     var ds_percents = incoming['ds_percents'];
     var ds_frees = incoming['ds_frees'];
     var load1s = incoming['load1s'];
-    var load2s = incoming['load2s'];
-    var load3s = incoming['load3s'];
+    var load5s = incoming['load5s'];
+    var load15s = incoming['load15s'];
 
     var layout = {'legend' :
 		  { 'orientation' : 'h',
@@ -183,7 +183,7 @@ d3.request(url_counts, function (error, response) {
     
     var ds_frees_data = {
         'x': timestamps, 'y': ds_frees,
-        'name' : 'freeage of free disk space',
+        'name' : 'free disk space in MiB',
     }
     Plotly.newPlot('stats-ds-free',
                    [ds_frees_data],
@@ -191,18 +191,18 @@ d3.request(url_counts, function (error, response) {
     
     var load1s_data = {
         'x': timestamps, 'y': load1s,
-        'name' : '100 x uptime(1)',
+        'name' : '100 x load past 1 minute',
     }
-    var load2s_data = {
-        'x': timestamps, 'y': load2s,
-        'name' : '100 x uptime(2)',
+    var load5s_data = {
+        'x': timestamps, 'y': load5s,
+        'name' : '100 x load past 5 minutes',
     }
-    var load3s_data = {
-        'x': timestamps, 'y': load3s,
-        'name' : '100 x uptime(3)',
+    var load15s_data = {
+        'x': timestamps, 'y': load15s,
+        'name' : '100 x load past 15 minutes',
     }
     Plotly.newPlot('stats-cpu-load',
-                   [load1s_data, load2s_data, load3s_data],
+                   [load1s_data, load5s_data, load15s_data],
 		   layout);
     
 });

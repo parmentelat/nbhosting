@@ -234,10 +234,10 @@ class Monitor:
             uptime_output = subprocess.check_output('uptime').decode().strip()
             end_of_line = uptime_output.split(':')[-1]
             floads = end_of_line.split(', ')
-            load1, load2, load3 = [round(100*float(x)) for x in floads]
+            load1, load5, load15 = [round(100*float(x)) for x in floads]
 
         except Exception as e:
-            load1, load2, load3 = 0, 0, 0
+            load1, load5, load15 = 0, 0, 0
             logger.exception("monitor cannot compute cpu loads")
 
 
@@ -253,7 +253,7 @@ class Monitor:
                 figures.running_kernels,
                 number_students,
                 ds_percent, ds_free,
-                load1, load2, load3,
+                load1, load5, load15,
             )
 
     def run_forever(self):
