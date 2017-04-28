@@ -219,14 +219,14 @@ class Monitor:
         try:
             # ds stands for disk_space
             docker_root = proxy.info()['DockerRootDir']
-            stat = os.stavfs(docker_root)
+            stat = os.statvfs(docker_root)
             ds_percent = round(100 * stat.f_bfree / stat.f_blocks)
             # unit is MiB
             ds_free = round((stat.f_bfree * stat.f_bsize) / (1024**2))
             
         except Exception as e:
-            ds_free = "0."
-            ds_percent = "0."
+            ds_free = 0
+            ds_percent = 0
             logger.exception("monitor cannot compute disk space")
 
         # run the whole stuff 
