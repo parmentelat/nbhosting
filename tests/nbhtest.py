@@ -6,7 +6,9 @@
 # then I created a symlink in ~/bin
 # a mere alias would not be good enough, or we'd need to specify the
 # full path of phantomjs to the webdriver.PhantomJS constructor
-
+#
+# ditto on linux from
+# https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
 """
 Testing utility for nbhosting
 
@@ -32,7 +34,7 @@ def list_bioinfo_notebooks():
               .format(bioinfo))
         exit(1)
     paths = chain(bioinfo.glob("w?/fr*nb"), bioinfo.glob("w?/en*nb"))
-    return ['/'.join([p.parts[-2], p.stem]) for p in paths]
+    return sorted(['/'.join([p.parts[-2], p.stem]) for p in paths])
 
 bioinfo_notebooks = list_bioinfo_notebooks()
 
