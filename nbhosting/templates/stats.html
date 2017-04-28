@@ -150,24 +150,26 @@ d3.request(url_counts, function (error, response) {
 		   layout);
 
     var student_counts_data = {
-    'x': timestamps, 'y' : student_counts,
-    'name' : "students found with a homedir"
+        'x': timestamps, 'y' : student_counts,
+        'name' : "students found with a homedir"
     }
     Plotly.newPlot('stats-student-counts',
 		   [student_counts_data],
 		  layout);
 
     var ds_percents_data = {
-    'x': timestamps, 'y': ds_percents,
-    'name' : 'percentage of free disk space',
+        'x': timestamps, 'y': ds_percents,
+        'name' : 'percentage of free disk space',
     }
+    var layout_100 = JSON.parse(JSON.stringify(layout));
+    layout_100['yaxis'] = {'range' : [0, 100]};
     Plotly.newPlot('stats-ds-percent',
                    [ds_percents_data],
-		   layout);
+		   layout_100);
     
     var ds_frees_data = {
-    'x': timestamps, 'y': ds_frees,
-    'name' : 'freeage of free disk space',
+        'x': timestamps, 'y': ds_frees,
+        'name' : 'freeage of free disk space',
     }
     Plotly.newPlot('stats-ds-free',
                    [ds_frees_data],
