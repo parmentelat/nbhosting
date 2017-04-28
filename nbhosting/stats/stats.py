@@ -95,9 +95,9 @@ class Stats:
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
-                f.write("{} {} {} {} {}\n"
+                f.write("{} {} {} {} {} {} {}\n"
                         .format(timestamp, running_containers, frozen_containers,
-                                running_kernels, students_count))
+                                running_kernels, students_count, ds_percent, ds_free))
         except Exception as e:
             logger.error("Cannot store counts line into {} {}".format(path, e))
         
