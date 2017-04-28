@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
+import os
 import time
 import calendar
 import json
+from pathlib import Path
 
 import asyncio
 import aiohttp
@@ -212,6 +213,22 @@ class Monitor:
                 # in what course it
                 logger.info("ignoring non-nbhosting container {}"
                             .format(name))
+            except Exception as e:
+                logger.exception("ignoring container {} in monitor - unexpected exception"
+                                 .format(name))
+        try:
+            # ds stands for disk_space
+            docker_root = proxy.info()['DockerRootDir']
+            stat = os.stavfs(docker_root)
+            ds_percent = round(100 * stat.f_bfree / stat.f_blocks)
+            # unit is MiB
+            ds_free = round((stat.f_bfree * stat.f_bsize) / (1024**2))
+            
+        except Exception as e:
+            ds_free = "0."
+            ds_percent = "0."
+            logger.exception("monitor cannot compute disk space")
+
         # run the whole stuff 
         asyncio.get_event_loop().run_until_complete(
             asyncio.gather(*futures))
@@ -223,6 +240,7 @@ class Monitor:
                 figures.frozen_containers,
                 figures.running_kernels,
                 number_students,
+                ds_percent, ds_free,
             )
 
     def run_forever(self):

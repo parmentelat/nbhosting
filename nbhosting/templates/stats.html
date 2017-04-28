@@ -53,6 +53,22 @@ Stats for course {{course}}
 </div>
 </div>
 
+<hr/ >
+<div class="card">
+<div class="card-block">
+<h1 class="card-title card-header">Disk space</h1>
+<!-- percentage -->
+<h2 class="card-title card-header">Percentage</h2>
+<div  id="stats-ds-percent"></div>
+<span id="legend-ds-percent"></span>
+</div>
+<div class="card-block">
+<h2 class="card-title card-header">Free Space</h2>
+<div  id="stats-ds-free"></div>
+<span id="legend-ds-free"></span>
+</div>
+</div>
+
 <!-- end -->
 
 <script>
@@ -107,6 +123,8 @@ d3.request(url_counts, function (error, response) {
     var	total_jupyters = incoming['total_jupyters'];
     var running_kernels = incoming['running_kernels'];
     var student_counts = incoming['student_counts'];
+    var ds_percents = incoming['ds_percents'];
+    var ds_frees = incoming['ds_frees'];
     
     var layout = {'legend' :
 		  { 'orientation' : 'h',
@@ -138,6 +156,23 @@ d3.request(url_counts, function (error, response) {
     Plotly.newPlot('stats-student-counts',
 		   [student_counts_data],
 		  layout);
+
+    var ds_percents_data = {
+    'x': timestamps, 'y': ds_percents,
+    'name' : 'percentage of free disk space',
+    }
+    Plotly.newPlot('stats-ds-percent',
+                   [ds_percents_data],
+		   layout);
+    
+    var ds_frees_data = {
+    'x': timestamps, 'y': ds_frees,
+    'name' : 'freeage of free disk space',
+    }
+    Plotly.newPlot('stats-ds-free',
+                   [ds_frees_data],
+		   layout);
+    
 });
 </script>
 {% endblock %}

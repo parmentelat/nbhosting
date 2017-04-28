@@ -89,6 +89,7 @@ class Stats:
     ####################
     def record_monitor_counts(self, running_containers, frozen_containers,
                               running_kernels, students_count,
+                              ds_percent, ds_free,
                               timestamp=None):
         timestamp = timestamp or time.strftime(self.time_format, time.localtime())
         path = self.monitor_counts_path()
@@ -192,19 +193,23 @@ class Stats:
         total_jupyters = []
         running_kernels = []
         student_counts = []
+        ds_percents = []
+        ds_frees = []
         try:
             with counts_path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     try:
                         timestamp, *values = line.split()
                         # xxx could be more flexible if we ever add counters in there
-                        rj, fj, rk, sc = [int(value) for value in values]
+                        rj, fj, rk, sc, ds_percent, ds_free = [int(value) for value in values]
                         jstime= timestamp.replace('T', ' ')
                         timestamps.append(jstime)
                         running_jupyters.append(rj)
                         total_jupyters.append(rj + fj)
                         running_kernels.append(rk)
                         student_counts.append(sc)
+                        ds_percents.append(ds_percent)
+                        ds_frees.append(ds_free)
                         logger.info("adding one monitor counts")
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed counts line - {}: {}"
@@ -217,7 +222,10 @@ class Stats:
                 'running_jupyters' : running_jupyters,
                 'total_jupyters' : total_jupyters,
                 'running_kernels' : running_kernels,
-                'student_counts' : student_counts
+                'student_counts' : student_counts,
+                'ds_percents' : ds_percents,
+                'ds_frees' : ds_frees,
+                
             }
 
 if __name__ == '__main__':
