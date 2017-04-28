@@ -27,9 +27,14 @@ class DailyFigures:
 
     def add_student(self, student):
         self.students.add(student)
-
     def add_notebook(self, notebook):
         self.notebooks.add(notebook)
+
+    # for events-driven reports
+    def nb_total_students(self):
+        return len(self.students | self.cumul_students)
+    def nb_total_notebooks(self):
+        return len(self.notebooks | self.cumul_notebooks)
 
     def wrap(self):
         self.nb_unique_students = len(self.students)
@@ -146,8 +151,9 @@ class Stats:
                         current_figures.add_notebook(notebook)
                         current_figures.add_student(student)
                         events_timestamps.append(timestamp)
-                        total_students.append(len(current_figures.cumul_students))
-                        total_notebooks.append(len(current_figures.cumul_notebooks))
+                        # do a union to know how many we had at that exact point in time
+                        total_students.append(current_figures.nb_total_students())
+                        total_notebooks.append(current_figures.nb_total_notebooks())
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed events line - {}: {}"
                                      .format(events_path, lineno, type(e), e))
