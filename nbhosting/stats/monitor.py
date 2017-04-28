@@ -231,10 +231,10 @@ class Monitor:
             logger.exception("monitor cannot compute disk space")
 
         try:
-            uptime_output = subprocess.check_output('uptime')
+            uptime_output = subprocess.check_output('uptime').decode().strip()
             end_of_line = uptime_output.split(':')[-1]
             floads = end_of_line.split(', ')
-            load1, load2, load3 = [round(100*x) for x in floads]
+            load1, load2, load3 = [round(100*float(x)) for x in floads]
 
         except Exception as e:
             load1, load2, load3 = 0, 0, 0

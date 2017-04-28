@@ -191,15 +191,15 @@ d3.request(url_counts, function (error, response) {
     
     var loads1_data = {
         'x': timestamps, 'y': loads1,
-        'name' : 'uptime(1)',
+        'name' : '100 x uptime(1)',
     }
     var loads2_data = {
         'x': timestamps, 'y': loads2,
-        'name' : 'uptime(2)',
+        'name' : '100 x uptime(2)',
     }
     var loads3_data = {
         'x': timestamps, 'y': loads3,
-        'name' : 'uptime(3)',
+        'name' : '100 x uptime(3)',
     }
     Plotly.newPlot('stats-cpu-load',
                    [loads1_data, loads2_data, loads3_data],
