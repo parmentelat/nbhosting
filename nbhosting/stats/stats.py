@@ -225,7 +225,6 @@ class Stats:
                         load1s.append(load1)
                         load5s.append(load5)
                         load15s.append(load15)
-                        logger.info("adding one monitor counts")
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed counts line - {}: {}"
                                      .format(counts_path, lineno, type(e), e))
