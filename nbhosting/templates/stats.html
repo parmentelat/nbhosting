@@ -189,16 +189,16 @@ d3.request(url_counts, function (error, response) {
                    [ds_frees_data],
 		   layout);
     
-    var ds_loads1_data = {
-        'x': timestamps, 'y': ds_loads1,
+    var loads1_data = {
+        'x': timestamps, 'y': loads1,
         'name' : 'uptime(1)',
     }
-    var ds_loads2_data = {
-        'x': timestamps, 'y': ds_loads2,
+    var loads2_data = {
+        'x': timestamps, 'y': loads2,
         'name' : 'uptime(2)',
     }
-    var ds_loads3_data = {
-        'x': timestamps, 'y': ds_loads3,
+    var loads3_data = {
+        'x': timestamps, 'y': loads3,
         'name' : 'uptime(3)',
     }
     Plotly.newPlot('stats-cpu-load',
