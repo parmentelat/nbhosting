@@ -136,9 +136,9 @@ d3.request(url_counts, function (error, response) {
     var student_counts = incoming['student_counts'];
     var ds_percents = incoming['ds_percents'];
     var ds_frees = incoming['ds_frees'];
-    var loads1 = incoming['loads1'];
-    var loads2 = incoming['loads2'];
-    var loads3 = incoming['loads3'];
+    var load1s = incoming['load1s'];
+    var load2s = incoming['load2s'];
+    var load3s = incoming['load3s'];
 
     var layout = {'legend' :
 		  { 'orientation' : 'h',
@@ -189,20 +189,20 @@ d3.request(url_counts, function (error, response) {
                    [ds_frees_data],
 		   layout);
     
-    var loads1_data = {
-        'x': timestamps, 'y': loads1,
+    var load1s_data = {
+        'x': timestamps, 'y': load1s,
         'name' : '100 x uptime(1)',
     }
-    var loads2_data = {
-        'x': timestamps, 'y': loads2,
+    var load2s_data = {
+        'x': timestamps, 'y': load2s,
         'name' : '100 x uptime(2)',
     }
-    var loads3_data = {
-        'x': timestamps, 'y': loads3,
+    var load3s_data = {
+        'x': timestamps, 'y': load3s,
         'name' : '100 x uptime(3)',
     }
     Plotly.newPlot('stats-cpu-load',
-                   [loads1_data, loads2_data, loads3_data],
+                   [load1s_data, load2s_data, load3s_data],
 		   layout);
     
 });
