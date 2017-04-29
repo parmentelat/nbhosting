@@ -266,7 +266,7 @@ class Monitor:
         logger.info("nbh-monitor is starting up")
         courses = CoursesDir().coursenames()
         for course in courses:
-            Stats(courses).record_monitor_known_counts_line()
+            Stats(course).record_monitor_known_counts_line()
         while True:
             self.run_once()
             tick += self.period
