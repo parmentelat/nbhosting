@@ -170,7 +170,9 @@ class MonitoredJupyter:
                         .format(name, idle_minutes))
             # not sure what signal would be best ?
             self.container.kill()
+            # this counts for one dead container
             self.figures.count_container(False)
+            # keep track or that removal in events.raw
             Stats(self.course).record_kill_jupyter(self.student)
 
 class Monitor:

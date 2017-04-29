@@ -2,11 +2,17 @@
 [Unit]
 Description=nbh-monitor kills jupyter containers that have been idle for too long
 
-# can use e.g. --grace=180 to increase grace time to 3 hours
-# or --period=5 if we want to run every 5 minutes
+# the nbh-monitor script accepts options :
+# --grace 20 : sets the idle timeout in minutes after which inactive containers
+#    get stopped; under jupyter5, this is accurate, it really refers to
+#    the latest user action
+# --period 10 : monitor cycle in minutes; this also sets the frequency
+#    at which counts.raw gets updated
+###
+# in devel mode we use shorter settings than the defaults
 [Service]
 Environment=PYTHONPATH=/root/nbhosting/nbhosting
-ExecStart=/bin/bash -c "python3 /usr/bin/nbh-monitor --period 5"
+ExecStart=/bin/bash -c "python3 /usr/bin/nbh-monitor --period 5 --grace 5"
 
 [Install]
 WantedBy=multi-user.target

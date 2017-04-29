@@ -63,8 +63,8 @@ class Stats:
         return self.course_dir / "counts.raw"
     
     ####################
-    def _write_events_line(self, student, notebook, action, port, timestamp=None):
-        timestamp = timestamp or time.strftime(self.time_format, time.localtime())
+    def _write_events_line(self, student, notebook, action, port):
+        timestamp = time.strftime(self.time_format, time.localtime())
         path = self.notebook_events_path()
         course = self.course
         try:
@@ -95,9 +95,8 @@ class Stats:
     def record_monitor_counts(self, running_containers, frozen_containers,
                               running_kernels, students_count,
                               ds_percent, ds_free,
-                              load1, load5, load15,
-                              timestamp=None):
-        timestamp = timestamp or time.strftime(self.time_format, time.localtime())
+                              load1, load5, load15):
+        timestamp = time.strftime(self.time_format, time.localtime())
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
