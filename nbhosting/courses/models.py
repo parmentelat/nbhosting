@@ -34,7 +34,7 @@ class CourseDir:
         completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return completed
 
-    def students_count(self):
+    def student_homes(self):
         """
         return the number of students who have that course in their home dir
         """

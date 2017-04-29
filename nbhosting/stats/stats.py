@@ -92,21 +92,39 @@ class Stats:
         return self._write_events_line(student, '-', 'killing', '-')
 
     ####################
-    def record_monitor_counts(self, running_containers, frozen_containers,
-                              running_kernels, students_count,
-                              ds_percent, ds_free,
-                              load1, load5, load15):
+    # every cycle the monitor writes a counts line
+    # with a predefined set of integer counts
+    # and we want this to be extensible over time
+    # this is the list - in that order - of arguments
+    # to record_monitor_counts
+    known_counts = [ 'running_container', 
+                     'frozen_container',
+                     'running_kernel',
+                     'student_home',
+                     'ds_percent', 'ds_free',
+                     'load1', 'load5', 'load15'
+    ]
+    
+    def record_monitor_known_counts_line(self):
         timestamp = time.strftime(self.time_format, time.gmtime())
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
-                f.write("{} {} {} {} {} {} {} {} {} {}\n"
-                        .format(timestamp, running_containers, frozen_containers,
-                                running_kernels, students_count,
-                                ds_percent, ds_free,
-                                load1, load5, load15))
+                f.write("# " + " ".join(self.known_counts) + "\n")
         except Exception as e:
-            logger.error("Cannot store counts line into {} {}".format(path, e))
+            logger.error("Cannot store counts line into {} - {}".format(path, e))
+        
+    def record_monitor_counts(self, *args):
+        timestamp = time.strftime(self.time_format, time.gmtime())
+        path = self.monitor_counts_path()
+        if len(args) > len(self.known_counts):
+            logger.error("two many arguments to counts line - dropped from {}"
+                         .format(path))
+        try:
+            with path.open('a') as f:
+                f.write(" ".join(args) + "\n")
+        except Exception as e:
+            logger.error("Cannot store counts line into {} - {}".format(path, e))
         
     ####################
     def daily_metrics(self):
@@ -189,63 +207,56 @@ class Stats:
         data arrays suitable for plotly
 
         returns a dictionary with the following keys
-        'timestamps' : the times where monitor reported the figures
-        'running_jupyters': running containers
-        'total_jupyters' :  total containers
-        'running_kernels' : sum of open notebooks 
-        'student_homes' : number of students that have this course in their homedir 
+        * 'timestamps' : the times where monitor reported the figures
+        plus, for known counts as listed in known_counts,
+          made plural by adding a 's', so e.g.
+        * 'running_jupyters': running containers
+        * 'total_jupyters' :  total containers
+        * ...
         """
         counts_path = self.monitor_counts_path()
         timestamps = []
-        running_jupyters = []
-        total_jupyters = []
-        running_kernels = []
-        student_counts = []
-        ds_percents = []
-        ds_frees = []
-        load1s = []
-        load5s = []
-        load15s = []
+        counts = { count: [] for count in self.known_counts}
+        known_counts = self.known_counts
+        max_counts = len(known_counts)
         try:
             with counts_path.open() as f:
                 for lineno, line in enumerate(f, 1):
+                    if line.startswith('#'):
+                        # ignore any comment
+                        continue
                     try:
                         timestamp, *values = line.split()
-                        # xxx could be more flexible if we ever add counters in there
-                        rj, fj, rk, sc, ds_percent, ds_free, load1, load5, load15 = [int(value) for value in values]
-                        jstime= timestamp.replace('T', ' ')
-                        timestamps.append(jstime)
-                        running_jupyters.append(rj)
-                        total_jupyters.append(rj + fj)
-                        running_kernels.append(rk)
-                        student_counts.append(sc)
-                        ds_percents.append(ds_percent)
-                        ds_frees.append(ds_free)
-                        load1s.append(load1)
-                        load5s.append(load5)
-                        load15s.append(load15)
+                        # each line should have at most len(known_counts)
+                        # and should all contain integers
+                        if len(values) > max_counts:
+                            logger.error("{}:{}: counts line has too many fields - {} > {}"
+                                         .format(counts_path, lineno, len(values),max_counts))
+                            continue
+                        ivalues = [int(v) for v in values]
+                        for count, ivalue in zip(known_counts, ivalues):
+                            counts[count].append(ivalue)
+                        missing = max_counts - len(values)
+                        if missing > 0:
+                            for count in known_counts[-missing:]:
+                                counts[count].append(0)
                     except Exception as e:
                         logger.error("{}:{}: skipped misformed counts line - {}: {}"
                                      .format(counts_path, lineno, type(e), e))
         except:
             pass
         finally:
-            return {
-                'timestamps' : timestamps,
-                'running_jupyters' : running_jupyters,
-                'total_jupyters' : total_jupyters,
-                'running_kernels' : running_kernels,
-                'student_counts' : student_counts,
-                'ds_percents' : ds_percents,
-                'ds_frees' : ds_frees,
-                'load1s' : load1s,
-                'load5s' : load5s,
-                'load15s' : load15s,
-            }
+            # add as many keys (with an extra 's') as we have known keys
+            result = { "{}s".format(count) : counts[count] for count in self.known_counts }
+            # do not forget the timestamps
+            result['timestamps'] = timestamps
+            return result
+
 
 if __name__ == '__main__':
     import sys
     course = 'flotbioinfo' if len(sys.argv) == 1 else sys.argv[1]
-    mg = Stats(course).daily_metrics()
-    for k, v in mg.items():
+    #d = Stats(course).daily_metrics()
+    d = Stats(course).monitor_counts()
+    for k, v in d.items():
         print(k, v)

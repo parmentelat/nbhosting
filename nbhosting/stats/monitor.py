@@ -13,7 +13,7 @@ import aiohttp
 import docker
 
 from nbhosting.main.settings import nbhosting_settings, logger
-from nbhosting.courses.models import CourseDir
+from nbhosting.courses.models import CourseDir, CoursesDir
 from nbhosting.stats.stats import Stats
 
 """
@@ -248,7 +248,7 @@ class Monitor:
             asyncio.gather(*futures))
         # write results
         for course, figures in figures_per_course.items():
-            number_students = CourseDir(course).students_count()
+            number_students = CourseDir(course).student_homes()
             Stats(course).record_monitor_counts(
                 figures.running_containers,
                 figures.frozen_containers,
@@ -264,6 +264,9 @@ class Monitor:
         # one cycle can take some time as all the jupyters need to be http-probed
         # so let us compute the actual time to wait
         logger.info("nbh-monitor is starting up")
+        courses = CoursesDir().coursenames()
+        for course in courses:
+            Stats(courses).record_monitor_known_counts_line()
         while True:
             self.run_once()
             tick += self.period

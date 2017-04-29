@@ -17,9 +17,9 @@ def show_stats(request, course):
         'title' : 'Progression',
         'id' : 'PROGRESSION',
         'subsections' : [
-            { 'plotly_name' : 'stats-students',
+            { 'plotly_name' : 'plotly-students',
               'title' : 'Students - who showed up at least once'},
-            { 'plotly_name' : 'stats-notebooks',
+            { 'plotly_name' : 'plotly-notebooks',
               'title' : 'Notebooks - read at least once'},
         ]
     }
@@ -27,23 +27,21 @@ def show_stats(request, course):
         'title' : 'Activity',
         'id' : 'ACTIVITY',
         'subsections' : [
-            { 'plotly_name' : 'stats-jupyters',
-              'title' : 'Jupyter containers'},
-            { 'plotly_name' : 'stats-kernels',
-              'title' : 'Running kernels'},
-            { 'plotly_name' : 'stats-student-counts',
-              'title' : 'Students with a homedir'},
+            { 'plotly_name' : 'plotly-containers-kernels',
+              'title' : 'Jupyter containers and kernels'},
+            # xxx student_homes as collected in counts
+            # is not really useful so we don't show it anymore
         ]
     }
     section3 = {
         'title' : 'System',
         'id' : 'SYSTEM',
         'subsections' : [
-            { 'plotly_name' : 'stats-ds-percent',
+            { 'plotly_name' : 'plotly-ds-percent',
               'title' : 'Disk Space Usage %'},
-            { 'plotly_name' : 'stats-ds-free',
+            { 'plotly_name' : 'plotly-ds-free',
               'title' : 'Free Space'},
-            { 'plotly_name' : 'stats-cpu-load',
+            { 'plotly_name' : 'plotly-cpu-load',
               'title' : 'CPU loads'},
         ]
     }
