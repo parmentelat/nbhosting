@@ -62,7 +62,7 @@ def main() -> bool:
                 print("Running command:", command)
                 if subprocess.call(command, shell=True) != 0:
                     overall = False
-                time.sleep(args.sleep)
+                time.sleep(args.delay)
     return overall
 
 
