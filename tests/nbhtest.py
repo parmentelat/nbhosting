@@ -12,10 +12,11 @@
 """
 Testing utility for nbhosting
 
-This script uses selenium/phantomjs to actually open one notebook
-and **run all cells** 
+This script uses selenium/phantomjs to
+* open one notebook
+* run all cells
+* save output in student space
 """
-
 
 import time
 from pathlib import Path
@@ -26,17 +27,22 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from selenium import webdriver
 
 
-def list_bioinfo_notebooks():
-    from pathlib import Path
-    bioinfo = Path.home() / "git" / "flotbioinfo" 
-    if not bioinfo.is_dir():
-        print("Could not browse for test notebook named in {}"
-              .format(bioinfo))
-        exit(1)
-    paths = chain(bioinfo.glob("w?/fr*nb"), bioinfo.glob("w?/en*nb"))
-    return sorted(['/'.join([p.parts[-2], p.stem]) for p in paths])
+# default location where to look for test notebooks
+default_course_gitdir = Path.home() / "git" / "flotbioinfo" 
 
-bioinfo_notebooks = list_bioinfo_notebooks()
+# for testing we need a local (git) copy of one of the courses
+def list_notebooks(course_gitdir):
+    course_gitdir = Path(course_gitdir)
+    if not course_gitdir.is_dir():
+        print("Could not browse for test notebooks in {}"
+              .format(course_gitdir))
+        exit(1)
+    paths = chain(course_gitdir.glob("w?/w*.ipynb"),
+                  course_gitdir.glob("w?/fr*.ipynb"),
+                  course_gitdir.glob("w?/en*.ipynb"))
+    notebooks = sorted(['/'.join([p.parts[-2], p.stem]) for p in paths])
+    course = course_gitdir.parts[-1]
+    return course, notebooks
 
 
 js_clear_all_on_document_load = "$(function() { Jupyter.notebook.clear_all_output(); })"
@@ -51,8 +57,9 @@ def pause(message, delay):
 
 
 class Artefact:
-    def __init__(self, user, index, kind):
+    def __init__(self, user, course, index, kind):
         self.user = user
+        self.course = course
         self.kind = kind
         self.index = index
 
@@ -65,22 +72,24 @@ class Artefact:
     def filename(self, msg):
         self.mkdir()
         ext = "png"if self.kind == "screenshot" else "txt"
-        return str(self.path / "{user}-{index}-{kind}-{msg}.{ext}"\
+        return str(self.path / "{user}-{course}-{index}-{kind}-{msg}.{ext}"\
                    .format(**locals(), **self.__dict__))
 
-def run(user, index, delay):
+
+def run(user, course, notebooks, index, delay):
     """
-    fetch bioinfo notebook of that index as this user
-    and click the 'run-all-cells' button
+    fetch - as this user - 
+    notebook indexed by index relative to that course dir
+    then perform additional tasks (exec, save, etc..)
     """
-    nb = bioinfo_notebooks[index]
-    url = "https://nbhosting.inria.fr/ipythonExercice/flotbioinfo/{nb}/{user}"\
+    nb = notebooks[index]
+    url = "https://nbhosting.inria.fr/ipythonExercice/{course}/{nb}/{user}"\
           .format(**locals())
 
     print("fetching URL {url}".format(url=url))
     driver = webdriver.PhantomJS() # or add to your PATH
     try:
-        scr = Artefact(user, index, 'screenshot')
+        scr = Artefact(user, course, index, 'screenshot')
         driver.set_window_size(1024, 2048) # optional
         driver.get(url)
         print("GET OK")
@@ -98,7 +107,7 @@ def run(user, index, delay):
         driver.execute_script(js_save)
         driver.save_screenshot(scr.filename("3evaled"))
         #
-        res = Artefact(user, index, 'contents')
+        res = Artefact(user, course, index, 'contents')
         with open(res.filename('4contents'), 'w') as out_file:
             kernel_area = driver.execute_script(
                 "return $('#notification_kernel>span').html()")
@@ -114,9 +123,9 @@ def run(user, index, delay):
         driver.save_screenshot(scr.filename('4boom'))
 
 
-def list():
+def list(notebooks):
     """List found notebooks in bioinfo with their index"""
-    for i, n in enumerate(bioinfo_notebooks):
+    for i, n in enumerate(notebooks):
         print(i, n)
 
 
@@ -124,6 +133,8 @@ def main():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("-l", "--list", default=False, action='store_true',
                         help="when given, lists known notebooks and does *not* open anything")
+    parser.add_argument("-c", "--course-gitdir", default=default_course_gitdir,
+                        help="location of a git repo where to fetch notebooks")
     parser.add_argument("-i", "--index", default=0, type=int,
                         help="index in the list of known notebooks - run with -l to see list")
     parser.add_argument("-u", "--user", default='student-0001',
@@ -131,10 +142,12 @@ def main():
     parser.add_argument("-s", "--sleep", default=3, type=int,
                         help="delay in seconds to sleep between actions")
     args = parser.parse_args()
+
+    course, notebooks = list_notebooks(args.course_gitdir)
     if args.list:
-        list()
+        list(notebooks)
     else:
-        run(args.user, args.index, args.sleep)
+        run(args.user, course, notebooks, args.index, args.sleep)
 
 if __name__ == '__main__':
     main()
