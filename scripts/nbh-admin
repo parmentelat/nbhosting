@@ -57,14 +57,6 @@ function clear-docker-deep() {
     done
 }
 
-function clear-users() {
-    for userdir in $(ls -d /nbhosting/students/* 2>/dev/null); do
-	user=$(basename $userdir)
-	echo deleting user $user
-	nbh-del-student /nbhosting $user
-    done
-}
-
 function clear-logs-light() {
     for file in /var/log/nginx/*.log $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo resetting log file $file
@@ -84,17 +76,26 @@ function clear-raw() {
     rm -rf /nbhosting/raw
 }
 
+function clear-users() {
+    for userdir in $(ls -d /nbhosting/students/* 2>/dev/null); do
+	user=$(basename $userdir)
+	echo deleting user $user
+	nbh-del-student /nbhosting $user
+    done
+}
+
 function clear() {
     clear-docker-light
     clear-docker-deep
-    clear-users
     clear-logs
-    clear-raw
+#    clear-users
+#    clear-raw
 }
 
-function clear-light() {
-    clear-docker-light
-}
+function deepclear() {
+    clear-raw
+    clear-users
+}    
 
 function jou() {
     journalctl -f -u nginx -u nbh-uwsgi -u nbh-monitor "$@"
