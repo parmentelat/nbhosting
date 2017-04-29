@@ -30,7 +30,7 @@ def main() -> bool:
                         help="if set, a random notebook index is used for each student")
     parser.add_argument("-b", "--base", default='student',
                         help="basename for students name")
-    parser.add_argument("-d", "--delay", default=3, type=float,
+    parser.add_argument("-p", "--period", default=20, type=float,
                         help="delay between 2 triggers of open-notebook")
     parser.add_argument("-s", "--sleep", default=3, type=int,
                         help="delay in seconds to sleep between actions inside nbhtest")
@@ -62,7 +62,7 @@ def main() -> bool:
                 print("Running command:", command)
                 if subprocess.call(command, shell=True) != 0:
                     overall = False
-                time.sleep(args.delay)
+                time.sleep(args.period)
     return overall
 
 
