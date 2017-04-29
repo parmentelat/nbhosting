@@ -150,4 +150,3 @@ STATIC_URL = '/static/'
 #################### additions for our /nbh/ protection against nginx
 LOGIN_REDIRECT_URL = '/nbh/accounts/profile/'
 LOGIN_URL =          '/nbh/accounts/login/'
-

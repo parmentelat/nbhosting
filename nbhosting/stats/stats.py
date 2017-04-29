@@ -47,7 +47,7 @@ class DailyFigures:
 
 class Stats:
 
-    # using localtime in all raw files
+    # using gmtime in all raw files
     time_format = "%Y-%m-%dT%H:%M:%S"
 
 
@@ -64,7 +64,7 @@ class Stats:
     
     ####################
     def _write_events_line(self, student, notebook, action, port):
-        timestamp = time.strftime(self.time_format, time.localtime())
+        timestamp = time.strftime(self.time_format, time.gmtime())
         path = self.notebook_events_path()
         course = self.course
         try:
@@ -96,7 +96,7 @@ class Stats:
                               running_kernels, students_count,
                               ds_percent, ds_free,
                               load1, load5, load15):
-        timestamp = time.strftime(self.time_format, time.localtime())
+        timestamp = time.strftime(self.time_format, time.gmtime())
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
