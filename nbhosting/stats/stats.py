@@ -227,6 +227,7 @@ class Stats:
                         continue
                     try:
                         timestamp, *values = line.split()
+                        timestamps.append(timestamp)
                         # each line should have at most len(known_counts)
                         # and should all contain integers
                         if len(values) > max_counts:
