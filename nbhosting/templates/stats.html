@@ -17,80 +17,43 @@ Stats for course {{course}}
 
 <div class="card">
 <div class="card-block">
-<button type="button" class="btn btn-outline-danger btn-block">Warning: all times are UTC</button>
+<button type="button" class="btn btn-outline-danger">Warning: all times are UTC</button>
+<button type="button" class="btn btn-outline-success" id='show-all'>Show all</button>
+<button type="button" class="btn btn-outline-primary" id='hide-all'>Hide all</button>
 </div>
 </div>
 
-<!-- avoid the symlink to use the latest one in production
+<!-- avoid the symlink in production
   -- but quite useful for adopting the latest one 
   -- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>-->
 <script src="https://cdn.plot.ly/plotly-1.25.2.min.js"></script>
 
-<div class="card">
-<div class="card-block">
-<h1 class="card-title card-header">Progression</h1>
-<!-- students -->
-<h2 class="card-title card-header">Students - who showed up at least once</h2>
-<div  id="stats-students"></div>
-<span id="legend-students"></span>
-<!-- notebooks -->
-<h2 class="card-title card-header">Notebooks - read at least once</h2>
-<div  id="stats-notebooks"></div>
-<span id="legend-notebooks"></span>
+<!-- html scafolding is based on 'sections' as defined in views.py -->
+{% for section in sections %}
+<div class='card'>
+<h1 class='card-title card-header'>
+{{section.title}}</h1>
+<div class="card-block" id='{{section.id}}'>
+{% for subsection in section.subsections %}
+<h2 class='card-title card-header' data-toggle='collapse' data-target='#{{subsection.plotly_name}}'>
+{{subsection.title}}</h2>
+<div id='{{subsection.plotly_name}}' class='collapse'></div>
+{% endfor %}
 </div>
 </div>
+{% endfor %}
 
-<hr/ >
-<div class="card">
-<div class="card-block">
-<h1 class="card-title card-header">Activity</h1>
-<!-- jupyter containers -->
-<h2 class="card-title card-header">Jupyter containers</h2>
-<div  id="stats-jupyters"></div>
-<span id="legend-jupyters"></span>
-</div>
-<div class="card-block">
-<h2 class="card-title card-header">Running kernels</h2>
-<div  id="stats-kernels"></div>
-<span id="legend-kernels"></span>
-</div>
-<div class="card-block">
-<h2 class="card-title card-header">Students with homedirs</h2>
-<div  id="stats-student-counts"></div>
-<span id="legend-student-counts"></span>
-</div>
-</div>
-
-<hr/ >
-<div class="card">
-<div class="card-block">
-<h1 class="card-title card-header">Disk space</h1>
-<!-- percentage -->
-<h2 class="card-title card-header">Percentage</h2>
-<div  id="stats-ds-percent"></div>
-<span id="legend-ds-percent"></span>
-</div>
-<div class="card-block">
-<h2 class="card-title card-header">Free Space</h2>
-<div  id="stats-ds-free"></div>
-<span id="legend-ds-free"></span>
-</div>
-</div>
-
-<hr/ >
-<div class="card">
-<div class="card-block">
-<h1 class="card-title card-header">CPU load</h1>
-<!-- percentage -->
-<h2 class="card-title card-header"><code>uptime</code> CPU loads</h2>
-<div  id="stats-cpu-load"></div>
-<span id="legend-cpu-load"></span>
-</div>
-</div>
-
-<!-- end -->
-
+<!---------------------->
 <script>
+function show_all_collapse() {
+    $(".collapse").collapse('show');
+}
+function hide_all_collapse() {
+    $(".collapse").collapse('hide');
+}
+$(show_all_collapse);
+$("#show-all").click(show_all_collapse);
+$("#hide-all").click(hide_all_collapse);
 var url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     var incoming = JSON.parse(response.response);
