@@ -97,12 +97,13 @@ class Stats:
     # and we want this to be extensible over time
     # this is the list - in that order - of arguments
     # to record_monitor_counts
-    known_counts = [ 'running_container', 
-                     'frozen_container',
-                     'running_kernel',
-                     'student_home',
-                     'ds_percent', 'ds_free',
-                     'load1', 'load5', 'load15'
+    known_counts = [
+        'running_container', 'frozen_container',
+        'running_kernel',
+        'student_home',
+        'load1', 'load5', 'load15'
+        'docker_ds_percent', 'docker_ds_free',
+        'nbhosting_ds_percent', 'nbhosting_ds_free',
     ]
     
     def record_monitor_known_counts_line(self):

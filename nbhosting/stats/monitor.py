@@ -223,19 +223,25 @@ class Monitor:
             except Exception as e:
                 logger.exception("ignoring container {} in monitor - unexpected exception"
                                  .format(name))
-        try:
-            # ds stands for disk_space
-            docker_root = proxy.info()['DockerRootDir']
-            stat = os.statvfs(docker_root)
-            ds_percent = round(100 * stat.f_bfree / stat.f_blocks)
-            # unit is MiB
-            ds_free = round((stat.f_bfree * stat.f_bsize) / (1024**2))
+        # ds stands for disk_space
+        docker_root = proxy.info()['DockerRootDir']
+        nbhosting_root = nbhosting_settings['root']
+        ds = {}
+        for name, root in ( ('docker', docker_root), ('nbhosting', nbhosting_root)):
+            ds[name] = {}
+            try:
+                stat = os.statvfs(root)
+                ds[name]['percent'] = round(100 * stat.f_bfree / stat.f_blocks)
+                # unit is MiB
+                ds[name]['free'] = round((stat.f_bfree * stat.f_bsize) / (1024**2))
             
-        except Exception as e:
-            ds_free = 0
-            ds_percent = 0
-            logger.exception("monitor cannot compute disk space")
+            except Exception as e:
+                ds[name]['free'] = 0
+                ds[name]['percent'] = 0
+                logger.exception("monitor cannot compute disk space with name {} on {}"
+                                 .format(name, root))
 
+        # loads
         try:
             uptime_output = subprocess.check_output('uptime').decode().strip()
             end_of_line = uptime_output.split(':')[-1]
@@ -252,14 +258,14 @@ class Monitor:
             asyncio.gather(*futures))
         # write results
         for course, figures in figures_per_course.items():
-            number_students = CourseDir(course).student_homes()
+            student_homes = CourseDir(course).student_homes()
             Stats(course).record_monitor_counts(
-                figures.running_containers,
-                figures.frozen_containers,
+                figures.running_containers, figures.frozen_containers,
                 figures.running_kernels,
-                number_students,
-                ds_percent, ds_free,
+                student_homes,
                 load1, load5, load15,
+                ds['docker']['percent'], ds['docker']['free'],
+                ds['nbhosting']['percent'], ds['nbhosting']['free'],
             )
 
     def run_forever(self):

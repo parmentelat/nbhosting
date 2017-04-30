@@ -106,9 +106,11 @@ d3.request(url_counts, function (error, response) {
     var	total_containers = running_containers.map(function(num, index){
         return num+frozen_containers[index];})
     var running_kernels = incoming['running_kernels'];
-// no longer displayed   var student_homes = incoming['student_homes'];
-    var ds_percents = incoming['ds_percents'];
-    var ds_frees = incoming['ds_frees'];
+// no longer displayed -   var student_homes = incoming['student_homes'];
+    var docker_ds_percents = incoming['docker_ds_percents'];
+    var docker_ds_frees = incoming['docker_ds_frees'];
+    var nbhosting_ds_percents = incoming['nbhosting_ds_percents'];
+    var nbhosting_ds_frees = incoming['nbhosting_ds_frees'];
     var load1s = incoming['load1s'];
     var load5s = incoming['load5s'];
     var load15s = incoming['load15s'];
@@ -130,23 +132,31 @@ d3.request(url_counts, function (error, response) {
   	          layout);	
 
 
-    var ds_percents_data = {
-        'x': timestamps, 'y': ds_percents,
-        'name' : 'percentage of free disk space',
+    var docker_ds_percents_data = {
+        'x': timestamps, 'y': docker_ds_percents,
+        'name' : 'percentage of free disk space - docker fs',
+    }
+    var nbhosting_ds_percents_data = {
+        'x': timestamps, 'y': nbhosting_ds_percents,
+        'name' : 'percentage of free disk space - nbhosting fs',
     }
     var layout_100 = JSON.parse(JSON.stringify(layout));
     layout_100['yaxis'] = {'range' : [0, 100]};
     Plotly.newPlot('plotly-ds-percent',
-                   [ds_percents_data],
+                   [docker_ds_percents_data, nbhosting_ds_percents_data],
 		   layout_100);
     
 
-    var ds_frees_data = {
-        'x': timestamps, 'y': ds_frees,
-        'name' : 'free disk space in MiB',
+    var docker_ds_frees_data = {
+        'x': timestamps, 'y': docker_ds_frees,
+        'name' : 'free disk space - docker fs (in MiB)',
+    }
+    var nbhosting_ds_frees_data = {
+        'x': timestamps, 'y': nbhosting_ds_frees,
+        'name' : 'free disk space - nbhosting fs (in MiB)',
     }
     Plotly.newPlot('plotly-ds-free',
-                   [ds_frees_data],
+                   [docker_ds_frees_data, nbhosting_ds_frees_data],
 		   layout);
     
     var load1s_data = {
