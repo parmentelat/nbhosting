@@ -92,7 +92,7 @@ function clear() {
 #    clear-raw
 }
 
-function deepclear() {
+function clear-deep() {
     clear-raw
     clear-users
 }    
