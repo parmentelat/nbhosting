@@ -112,17 +112,17 @@ class Stats:
             with path.open('a') as f:
                 f.write("# " + " ".join(self.known_counts) + "\n")
         except Exception as e:
-            logger.error("Cannot store counts line into {} - {}".format(path, e))
+            logger.error("Cannot store headers line into {} - {}".format(path, e))
         
     def record_monitor_counts(self, *args):
         timestamp = time.strftime(self.time_format, time.gmtime())
         path = self.monitor_counts_path()
         if len(args) > len(self.known_counts):
-            logger.error("two many arguments to counts line - dropped from {}"
-                         .format(path))
+            logger.error("two many arguments to counts line - dropped {} from {}"
+                         .format(args, path))
         try:
             with path.open('a') as f:
-                f.write(" ".join(args) + "\n")
+                f.write("{} {}\n".format(timestamp, " ".join(str(arg) for arg in args)))
         except Exception as e:
             logger.error("Cannot store counts line into {} - {}".format(path, e))
         
