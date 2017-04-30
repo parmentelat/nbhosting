@@ -56,7 +56,8 @@ function hide_all_collapse() {
 $(show_all_collapse);
 $("#show-all").click(show_all_collapse);
 $("#hide-all").click(hide_all_collapse);
-var layout = {'legend' : { 'orientation' : 'h', 'x' : -.1, 'y': 1.2}};
+var layout = {'legend' : { 'orientation' : 'h', 'x' : -.1, 'y': 1.2},
+              'showlegend' : true};
 var url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     var incoming = JSON.parse(response.response);
