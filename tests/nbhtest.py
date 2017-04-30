@@ -62,18 +62,29 @@ class Artefact:
         self.course = course
         self.kind = kind
         self.index = index
+        # keep track of the last meaningful file in this category
+        # and move all others under details/
+        self.last = None
 
     def mkdir(self):
-        path = self.path = Path('artefacts')
-        if not path.is_dir():
-            print("Creating {}".format(path))
-            path.mkdir()
+        self.path = Path('artefacts')
+        self.details = self.path / "details"
+        for path in self.path, self.details:
+            if not path.is_dir():
+                print("Creating {}".format(path))
+                path.mkdir()
 
     def filename(self, msg):
         self.mkdir()
-        ext = "png"if self.kind == "screenshot" else "txt"
-        return str(self.path / "{user}-{course}-{index}-{kind}-{msg}.{ext}"\
-                   .format(**locals(), **self.__dict__))
+        ext = "png" if self.kind == "screenshot" else "txt"
+        latest = self.path / "{user}-{course}-{index}-{kind}-{msg}.{ext}"\
+                     .format(**locals(), **self.__dict__)
+        # keep only the last file in one series
+        if self.last is not None:
+            details_last = self.details / self.last.name
+            self.last.rename(details_last)
+        self.last = latest
+        return str(latest)
 
 
 def run(user, course, notebooks, index, delay):
