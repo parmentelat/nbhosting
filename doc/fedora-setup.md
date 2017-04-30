@@ -88,9 +88,10 @@ uwsgi-2.0.14-3.fc25.x86_64
 Python 3.5.2
 
 [root@thermals ~]# python3 -c 'import django; print(django.__version__)'
-1.10.5
-
+1.11
 ```
+
+***NOTE*** Be careful to **not** install python3-django from rpm as this would give you 1.9 and the code would break.
 
 ## services
 
