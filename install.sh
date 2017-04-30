@@ -60,7 +60,7 @@ function restart-services() {
     systemctl restart nbh-monitor
 }
 
-function main() {
+function default-main() {
     check-subdirs
 
     update-python-libraries
@@ -75,4 +75,15 @@ function main() {
     log-symlink
 }
 
-main
+# with no argument we run default-main
+# otherwise one can invoke one or several steps
+# with e.g. install.sh update-uwsgi log-symlink
+function main() {
+    if [[ -z "$@" ]]; then
+	default-main
+    else
+	for command in "$@"; do $command; done
+    fi
+}
+
+main "$@"
