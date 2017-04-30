@@ -1,6 +1,6 @@
 # this is meant to be installed under /etc/systemd/system
 [Unit]
-Description=nbh-monitor kills jupyter containers that have been idle for too long
+Description=cyclic job that collects system and course data, and kills containers when kernels have been idle for too long
 
 # the nbh-monitor script accepts options :
 # --grace 20 : sets the idle timeout in minutes after which inactive containers

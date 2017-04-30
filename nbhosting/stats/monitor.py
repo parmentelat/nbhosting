@@ -197,7 +197,11 @@ class Monitor:
                 "Cannot gather containers list at the docker daemon - skipping")
             return
 
-        figures_per_course = {}
+        # initialize all known courses - we want data on courses
+        # even if they don't yet run containers 
+        courses = CoursesDir().coursenames()
+        figures_per_course = { course: CourseFigures() 
+                               for course in courses}
 
         # a list of async futures
         futures = []
@@ -273,5 +277,3 @@ class Monitor:
             duration = max(0, int(tick - time.time()))
             logger.info("monitor is waiting for {}s".format(duration))
             time.sleep(duration)
-
-
