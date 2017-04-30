@@ -101,7 +101,7 @@ class Stats:
         'running_container', 'frozen_container',
         'running_kernel',
         'student_home',
-        'load1', 'load5', 'load15'
+        'load1', 'load5', 'load15',
         'docker_ds_percent', 'docker_ds_free',
         'nbhosting_ds_percent', 'nbhosting_ds_free',
     ]
