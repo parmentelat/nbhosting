@@ -37,12 +37,12 @@ while getopts "fs:i:d" option; do
 	i) docker_image="$OPTARG";;
 	s) statics="$statics $OPTARG";;
 	d) debug=true;;
-	?) printf "$USAGE"; exit 1;;
+	?) >&2 printf "$USAGE"; exit 1;;
     esac
 done	
 shift $((OPTIND-1))
 
-[[ "$#" =~ [4] ]] || { printf "$USAGE"; exit 1; }
+[[ "$#" =~ [4] ]] || { >&2 printf "$USAGE"; exit 1; }
 
 # from config - typically /nbhosting
 root=$1; shift
@@ -57,11 +57,6 @@ notebook=$1; shift
 [[ -z "$statics" ]] && statics="$default_statics"
 # the default for the docker image
 [[ -z "$docker_image" ]] && docker_image=$course
-
-echo $root $student $course $notebook
-echo options $forcecopy $statics $docker_image
-
-exit 0
 
 ########## constants
 # we use the docker container name as the auth token

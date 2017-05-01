@@ -53,7 +53,7 @@ def edx_request(request, course, student, notebook):
     script = 'nbh-run-student-course-jupyter'
     # use image named after the course for now
     image = course
-    command = [ script, root, student, course, notebook_withext, "-i", image ]
+    command = [ script, "-i", image, root, student, course, notebook_withext ]
     logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,
