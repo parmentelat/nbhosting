@@ -26,14 +26,9 @@ It will trigger on a cyclic basis - typically 15 minutes, and will
 * also writes into stats/<course>/counts.raw one line with the numbers
   of jupyter instances (running and frozen), and number of running kernels
 
----
-* the notion of 'recent' activity is basic at the moment
-  as of this first rough implem, nbh-run-student-course-jupyter touches a file
-  named .monitor at the root of its jupyter space, and this is used as an indication 
-  of the last activity
-
-  *NOTE* : jupyter folks said that in v5 there will be some api
-  to deal with that more accurately
+Also note that
+* the notion of 'recent' activity takes advantage of a feature introduced
+  in jupyter5, where the /api/kernels/ call returns for each kernel its last activity
 
 """
 
