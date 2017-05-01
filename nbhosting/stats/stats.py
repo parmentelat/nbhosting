@@ -155,6 +155,11 @@ class Stats:
                 for lineno, line in enumerate(f, 1):
                     try:
                         timestamp, course, student, notebook, action, port = line.split()
+                        # if action is 'killing' then notebook is '-'
+                        # which should not be counted as a notebook of course
+                        # so let's ignore these lines altogether
+                        if action == 'killing':
+                            continue
                         day = timestamp.split('T')[0] + ' 23:59:59'
                         if day in figures_by_day:
                             current_figures = figures_by_day[day]
@@ -163,9 +168,6 @@ class Stats:
                             previous_figures = current_figures
                             current_figures = DailyFigures(previous_figures)
                             figures_by_day[day] = current_figures
-                        # if action is 'killing' it means we already know
-                        # about that notebook, right ? so let's count this notebook
-                        # no matter what, it makes the code less brittle
                         current_figures.add_notebook(notebook)
                         current_figures.add_student(student)
                         events_timestamps.append(timestamp)
