@@ -97,13 +97,7 @@ Python 3.5.2
 
 ### nbhosting services
 
-```
-systemctl start docker
-systemctl enable docker
-
-systemctl start nginx
-systemctl enable nginx
-```
+***This now is taken care of by `install.sh` ***
 
 ### iptables vs firewalld
 

@@ -52,12 +52,19 @@ function update-nginx() {
 }
     
 function restart-services() {
-    rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
-    rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
-    systemctl daemon-reload
     systemctl restart nginx
     systemctl restart nbh-uwsgi
     systemctl restart nbh-monitor
+}
+
+function enable-services() {
+    rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
+    rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
+    systemctl daemon-reload
+    systemctl enable docker
+    systemctl enable nginx
+    systemctl enable nbh-uwsgi
+    systemctl enable nbh-monitor
 }
 
 function default-main() {
@@ -69,6 +76,7 @@ function default-main() {
 
     update-uwsgi
     update-nginx
+    enable-services
     restart-services
 
     # this is just convenience
