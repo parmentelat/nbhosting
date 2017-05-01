@@ -28,7 +28,7 @@ from selenium import webdriver
 
 
 # default location where to look for test notebooks
-default_course_gitdir = Path.home() / "git" / "flotbioinfo" 
+default_course_gitdir = Path.home() / "git" / "flotpython" 
 
 # for testing we need a local (git) copy of one of the courses
 def list_notebooks(course_gitdir):
