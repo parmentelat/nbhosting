@@ -37,7 +37,7 @@ def edx_request(request, course, student, notebook):
 
     root = settings['root']
     # the ipynb extension is removed from the notebook name in urls.py
-    notebook_full = notebook + ".ipynb"
+    notebook_withext = notebook + ".ipynb"
     
     # xxx probably requires a sudo of some kind here
     # for when run from apache or nginx or whatever
@@ -53,7 +53,7 @@ def edx_request(request, course, student, notebook):
     script = 'nbh-run-student-course-jupyter'
     # use image named after the course for now
     image = course
-    command = [ script, root, student, course, notebook_full, image ]
+    command = [ script, root, student, course, notebook_withext, "-i", image ]
     logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,
@@ -82,7 +82,7 @@ def edx_request(request, course, student, notebook):
         # and probably be https/443
         url = "{scheme}://{host}/{port}/notebooks/{path}?token={token}"\
               .format(scheme=scheme, host=host, port=actual_port,
-                      path=notebook_full, token=jupyter_token)
+                      path=notebook_withext, token=jupyter_token)
         logger.info("edxfront: redirecting to {}".format(url))
 #        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
         return HttpResponseRedirect(url)           

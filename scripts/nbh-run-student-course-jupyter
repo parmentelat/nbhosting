@@ -4,6 +4,7 @@
 # primarily does 3 things
 #
 # (*) check for existence of notebook in the student's space
+#      create it if missing
 # (*) make sure there is a notebook server ready and running for that couple student x course
 # (*) return written on stdout as
 #     action docker-name docker-port jupyter-token
@@ -15,10 +16,33 @@
 # if forcecopy is set to force, then the master notebook is always copied
 # into the student's space, even if pre existing
 
-COMMAND=$(basename $0)
-USAGE="Usage: $COMMAND nbhosting-root student course notebook docker-image [force]"
+default_statics="media data"
 
-[[ "$#" =~ [56] ]] || { echo $USAGE; exit 1; }
+COMMAND=$(basename $0)
+USAGE="Usage: $COMMAND [-f] [-i dockerimage] [-s subdir] 
+              nbhosting-root student course notebook
+  -f : force copy of student notebook from master
+  -i : specify docker image to use for that container
+       default is course name - should of course have jupyter inside
+       there are some assumptions made about that image,
+       first version of nbhosting was developped for jupyter/scipy-notebook,
+       hopefully it can run with others as well
+  -s : (cumulative) add a static dir - defaults to ${default_statics}
+  -d : turn on debug info"
+
+statics=""
+while getopts "fs:i:d" option; do
+    case $option in
+	f) forcecopy=true;;
+	i) docker_image="$OPTARG";;
+	s) statics="$statics $OPTARG";;
+	d) debug=true;;
+	?) printf "$USAGE"; exit 1;;
+    esac
+done	
+shift $((OPTIND-1))
+
+[[ "$#" =~ [4] ]] || { printf "$USAGE"; exit 1; }
 
 # from config - typically /nbhosting
 root=$1; shift
@@ -26,39 +50,33 @@ root=$1; shift
 student=$1; shift
 # course name - should exist as /nbhosting/courses/$course
 course=$1; shift
-# notebook path - should exit as /nbhosting/courses/$course/$notebook
+# notebook path - should exist as /nbhosting/courses/$course/$notebook
 notebook=$1; shift
-# docker image - should of course have jupyter inside
-# there are some assumptions made about that image, first version of
-# nbhosting was developped for jupyter/scipy-notebook, hopefully
-# it could run with others some day
-docker_image=$1; shift
-# if forcecopy is 'force', then the student's copy is overwritten
-# from the course copy
-forcecopy=$1; shift
+
+# the defaults for static areas
+[[ -z "$statics" ]] && statics="$default_statics"
+# the default for the docker image
+[[ -z "$docker_image" ]] && docker_image=$course
+
+echo $root $student $course $notebook
+echo options $forcecopy $statics $docker_image
+
+exit 0
 
 ########## constants
-# xxx: we use the docker container name as the auth token
+# we use the docker container name as the auth token
 # this avoids the necessity to wait for the connection file to be readable
 # which can take some time
-# the name of a file where details on the running jupyter are exposed
-# including the value for the auth token
-# this change would be welcome but somehow it does not propagate
-# down to the jupyter service that still creates nbserver-7.json
-#connection_details="connection-details.json"
-#connection_details="nbserver-7.json"
 
 ### various timeouts
 # how long to wait for the port number to show up after a start
 # this is 10 times .1s so 1s - proceed immediately
 timeout_wait_for_port="10 .1 0"
+
 # how long should we wait for the container to answer http
-# trying to create 6 containersa at the exact same time : 10 is not long enough
+# trying to create 6 containers at the exact same time : 10 is not long enough
 # then we wait an extra safety timeout
 timeout_wait_for_http="20 1 3"
-
-# set to any non-empty string to enable
-debug=
 
 # all the verbosity goes to stderr as stdout is meant for the caller
 function echo-stderr() {
@@ -84,9 +102,6 @@ course_notebook=$course_nbroot/$notebook
 course_modules=$root/modules/$course
 course_jupyter=$root/jupyter/$course
 
-course_media=$root/static/$course/media
-course_data=$root/static/$course/data
-
 docker_name=${course}-x-${student}
 
 log=$root/logs/$course/run-$student.log
@@ -98,8 +113,10 @@ log=$root/logs/$course/run-$student.log
 # not enforced yet
 #[ $current_uid == $student ] || echo-stderr WARNING should be run as uid $student
 [ -d $course_modules ] || echo-stderr WARNING $course_modules dir not found
-[ -d $course_media ] || echo-stderr WARNING $course_media dir not found
-[ -d $course_data ] || echo-stderr WARNING $course_data dir not found
+for static in $statics; do
+    course_static=$root/static/$course/$static
+    [ -d $course_static ] || echo-stderr WARNING $course_static dir not found
+done
 
 # image : use the same name as the course
 docker inspect --type image $course >& /dev/null || die image $course not known in docker
@@ -137,16 +154,15 @@ function check-student-notebook() {
 	echo-stderr Cloning $student_notebook from $course_notebook 
 	# use rsync for preserving creation time
 	sudo -u $student rsync -tp $course_notebook $student_notebook
-	create-symlink-at-file $student_notebook /home/jovyan/work/media
-	create-symlink-at-file $student_notebook /home/jovyan/work/data
+	for static in $statics; do
+	    create-symlink-at-file $student_notebook /home/jovyan/work/$static
+	done
     else
 	[ -n "$debug" ] && echo-stderr Student copy $student_notebook is fine
     fi
-    # 
     # nothing else is required in the student's work area
-    # the rest (modules, media, data) will be bind-mounted
-    # in the docker container
-    # 
+    # the rest (modules for code, and media, data as specified in statics)
+    # will be bind-mounted in the docker container
 }
 
 # a lot to say here:
@@ -280,11 +296,13 @@ function run-docker-instance() {
 	       --user root -e NB_UID=$student_uid
 	       -v $student_course:/home/jovyan/work
                -v $course_modules:/home/jovyan/modules
-	       -v $course_media:/home/jovyan/work/media
-	       -v $course_data:/home/jovyan/work/data
 	       -v $course_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
 	       -v $course_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
-	       -v $course_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css
+	       -v $course_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
+	   for static in $statics; do
+	       command="$command -v $root/static/$course/$static:/home/jovyan/work/$static"
+	   done
+	   command="$command
 	       -e PYTHONPATH=/home/jovyan/modules
 	       $docker_image 
 	       start-notebook.sh
