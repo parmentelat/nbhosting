@@ -73,14 +73,14 @@ d3.request(url_metrics, function (error, response) {
     var d_uni_notebooks   = incoming['daily']['unique_notebooks'];
     var e_total_notebooks = incoming['events']['total_notebooks'];
 
+    var total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
+				'name': 'total students'};
     var new_students_data =   { 'x' : d_timestamps, 'y' : d_new_students,
 			        'name': 'new students / day'};
     var uni_students_data =   { 'x' : d_timestamps, 'y' : d_uni_students,
 			        'name': 'unique students / day'};
-    var total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
-				'name': 'total students'};
     Plotly.newPlot('plotly-students',
-		   [uni_students_data, new_students_data, total_students_data],
+		   [total_students_data, uni_students_data, new_students_data],
 		   layout);
 
     var new_notebooks_data =   { 'x' : d_timestamps, 'y' : d_new_notebooks,
