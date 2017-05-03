@@ -102,6 +102,8 @@ def run(user, course, notebooks, index, delay):
     try:
         scr = Artefact(user, course, index, 'screenshot')
         driver.set_window_size(1024, 2048) # optional
+        # xxx unfortunately this returns None and there seems to be no way
+        # to retrive the http header code
         driver.get(url)
         print("GET OK")
         driver.save_screenshot(scr.filename('0bare'))
