@@ -20,11 +20,11 @@ class CourseDir:
         course_root = root / "courses" / self.coursename
         absolute_notebooks = course_root.glob("**/*.ipynb")
         # relative notebooks without extension
-        return [
+        return sorted([
             notebook.relative_to(course_root).with_suffix("")
             for notebook in absolute_notebooks
             if 'ipynb_checkpoints' not in str(notebook)
-        ]
+        ])
     
     def update_completed(self):
         """
