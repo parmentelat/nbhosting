@@ -147,7 +147,8 @@ def main():
     parser.add_argument("-l", "--list", default=False, action='store_true',
                         help="when given, lists known notebooks and does *not* open anything")
     parser.add_argument("-c", "--course-gitdir", default=default_course_gitdir,
-                        help="location of a git repo where to fetch notebooks")
+                        help="""location of a git repo where to fetch notebooks;
+                                needed in order to generate relevant URLs""")
     parser.add_argument("-i", "--index", default=0, type=int,
                         help="index in the list of known notebooks - run with -l to see list")
     parser.add_argument("-u", "--user", default='student-0001',

@@ -20,18 +20,19 @@ from nbhtest import list_notebooks, default_course_gitdir
 def main() -> bool:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("-c", "--course-gitdir", default=default_course_gitdir,
-                        help="location of a git repo where to fetch notebooks")
+                        help="""location of a git repo where to fetch notebooks;
+                                needed in order to generate relevant URLs""")
     parser.add_argument("-i", "--indices", default=[0], action=IntsRanges,
                         help="(cumulative) ranges of indices in the list of known notebooks"
-                        " - run open-notebook with -l to see list")
+                        " - run nbhtest with -l to see list")
     parser.add_argument("-u", "--users", default=[1], action=IntsRanges,
-                        help="(cumulative) ranges of students indexes")
+                        help="(cumulative) ranges of students indexes; e.g. -u 101-400 -u 501-600")
     parser.add_argument("-m", "--random", action='store_true',
                         help="if set, a random notebook index is used for each student")
     parser.add_argument("-b", "--base", default='student',
                         help="basename for students name")
     parser.add_argument("-p", "--period", default=20, type=float,
-                        help="delay between 2 triggers of open-notebook")
+                        help="delay between 2 triggers of nbhtest")
     parser.add_argument("-s", "--sleep", default=3, type=int,
                         help="delay in seconds to sleep between actions inside nbhtest")
     parser.add_argument("-n", "--dry-run", action='store_true')
