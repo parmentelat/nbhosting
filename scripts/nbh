@@ -1,0 +1,955 @@
+#!/bin/bash
+# -*- mode: shell-script -*-
+#
+# group all shell commands in a single file
+# you can run any of the inside functions with e.g.
+#
+
+# terminology
+# (*) course refers to a course name as found under NBHROOT/courses
+# (*) student refers to a UNIX login name, and is identical
+# to the names used under NBHROOT when referring to a student
+# (*) container is the name of a container as known to docker
+#     incidentally, the container-name may very well match the
+#     student name forever, but I don't know that yet
+# (*) edxid is the id as coming from EDX - not sure if that's going
+#     to be relevant in here
+#
+# conventions
+# (*) functions designed to be exposed to the outside
+#     are declared with @declare-subcommand
+# (*) some other minor subcommands are available
+#     they start with a lowercase, but are not declared
+#     as subcommands
+# (*) internal-only functions start with a dash -
+# 
+# nbh-driver
+COMMAND=$0
+
+# the default values for a few globals
+# xxx miss options to tweak these
+NBHROOT=/nbhosting
+MACHINES=/homefs/btrfs/machines
+debug=
+
+### various timeouts
+# how long to wait for the port number to show up after a start
+# this is 10 times .1s so 1s - proceed immediately
+timeout_wait_for_port="10 .1 0"
+
+# how long should we wait for the container to answer http
+# trying to create 6 containers at the exact same time : 10 is not long enough
+# then we wait an extra safety timeout
+timeout_wait_for_http="20 1 3"
+
+########## for listing available subcommands
+SUBCOMMANDS=""
+function @declare-subcommand() {
+    subcommand=$1; shift
+    SUBCOMMANDS="$SUBCOMMANDS $subcommand"
+}
+
+############################## helpers
+function -echo-stderr() {
+    >&2 echo $(date "+%H:%M:%S") "$@"
+}
+
+function -die() {
+    -echo-stderr "$@"
+    exit 1
+}
+
+
+########################################
+# admin oriented
+########################################
+
+function clear-docker-light() {
+    containers=$(docker ps --format '{{.Names}}')
+    for c in $containers; do
+	echo "Killing $c"
+	docker kill $c
+    done
+}
+
+function clear-docker-deep() {
+    containers=$(docker ps -a --format '{{.Names}}')
+    for c in $containers; do
+	echo "Removing $c"
+	docker rm $c
+    done
+}
+
+function clear-logs-light() {
+    for file in /var/log/nginx/*.log $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
+	echo resetting log file $file
+	echo ==================== > $file
+    done
+}
+
+function clear-logs() {
+    for file in /var/log/nginx/*.log $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
+	echo clearing log file $file
+	rm -f $file
+    done
+}
+
+function clear-raw() {
+    echo "Clearing raw data completely"
+    rm -rf /nbhosting/raw
+}
+
+function clear-users() {
+    for userdir in $(ls -d /nbhosting/students/* 2>/dev/null); do
+	user=$(basename $userdir)
+	echo deleting user $user
+	nbh-del-student /nbhosting $user
+    done
+}
+
+function clear() {
+    clear-docker-light
+    clear-docker-deep
+    clear-logs
+#    clear-users
+#    clear-raw
+}
+
+function clear-deep() {
+    clear-raw
+    clear-users
+}    
+
+
+########################################
+# runtime
+########################################
+
+# create directory/ies leading to file <file>
+function -mkdir-for-file () {
+    [ "$#" -eq 2 ] || { -die $FUNCNAME requires 2 args; exit 1; }
+    local filename=$1; shift
+    local login=$1; shift
+    local dir=$(dirname $filename)
+    [ -d $dir ] || {
+	-echo-stderr Creating directory $dir for $filename
+	sudo -u $login mkdir -p $dir
+    }
+}
+
+# create symlink right where the notebook is, not only at the top
+function -create-symlink-at-file () {
+    [ "$#" -eq 2 ] || { -die $FUNCNAME requires 2 args; exit 1; }
+    local filename=$1; shift
+    local destination=$1; shift
+    
+    local dir=$(dirname $filename)
+    local destname=$(basename $destination)
+    # the symlink should
+    # be in dir/ (like filename)
+    # be named destname
+    # and point at destination
+    local source=$dir/$destname
+    ln -sf $destination $dir/$destname
+}
+
+
+############################## admin 
+function list-tree() {
+    find $NBHROOT -type d | fgrep -v '/.git/'
+}
+
+function status-docker() {
+    echo ========== CONTAINERS
+    local running=$(docker ps | grep -v '^CONTAINER' | wc -l)
+    local total=$(docker ps -a | grep -v '^CONTAINER' | wc -l)
+    echo "$running running / $total total containers"
+}
+
+
+function status-users() {
+    echo ========== USERS and GROUPS
+    local users=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/passwd | grep -v '^nfsnobody' | wc -l)
+    local groups=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/group | egrep -v '^(nfsnobody|docker)' | wc -l)
+    echo "$users users in /etc/passwd - $groups groups in /etc/group"
+}
+
+
+function status-tree() {
+    echo ========== CONTENTS of $NBHROOT
+    local students=$(ls $NBHROOT/students | wc -l)
+    local courses_git=$(ls $NBHROOT/courses-git | wc -l)
+    local courses=$(ls $NBHROOT/courses | wc -l)
+    echo "$students students - $courses_git course repos - $courses actual courses"
+}
+
+# this is the default when no command is provided to nbh-driver
+@declare-subcommand status
+function status() {
+    status-users "$@"
+    status-docker "$@"
+    status-tree "$@"
+}
+
+
+############################## course management
+function -compute-course-globals() {
+    [ "$#" -eq 1 ] || { -die $FUNCNAME requires 1 arg; exit 1; }
+    local course=$1; shift
+    COURSE_git=$NBHROOT/courses-git/$course
+
+    COURSE_notebooks=$NBHROOT/courses/$course
+    COURSE_modules=$NBHROOT/modules/$course
+    COURSE_static=$NBHROOT/static/$course
+    COURSE_data=$NBHROOT/static/$course/data
+    COURSE_media=$NBHROOT/static/$course/media
+    COURSE_jupyter=$NBHROOT/jupyter/$course
+    COURSE_raw=$NBHROOT/raw/$course
+    
+    COURSE_logs=$NBHROOT/logs/$course
+    COURSE_ref=$MACHINES/$course.ref
+}
+    
+
+# clone from upstream git repo
+# and updates the various parts accordingly
+
+@declare-subcommand init-course
+function init-course() {
+    local USAGE="Usage: $COMMAND $FUNCNAME course giturl" 
+    [ "$#" -eq 2 ] || -die $USAGE
+    
+    local course=$1; shift
+    local giturl=$1; shift
+
+    -compute-course-globals $course
+
+    local log=$COURSE_logs/000.log
+
+    function -init-course() {
+	[ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
+	
+	echo ==========  $(date): init-course from $giturl
+	local courses_git_parent=$(dirname $COURSE_git)
+	mkdir -p $courses_git_parent
+	echo In $(pwd) : running git clone $giturl $course
+	git clone $giturl $course
+    }
+    
+    [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
+    -init-course >> $log 2>&1
+}
+
+
+##########
+# pull from upstream git repo
+# and updates the various parts accordingly
+
+@declare-subcommand update-course-from-git
+function update-course-from-git() {
+    local USAGE="Usage: $COMMAND $FUNCNAME course" 
+
+    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+
+    course=$1; shift
+    -compute-course-globals $course
+    
+    local log=$NBHROOT/logs/$course/update.log
+
+    # check the course is known
+    [ -d $COURSE_git ] || -die "Cannot find git repo $COURSE_git"
+    # initialize 
+    [ -d $COURSE_notebooks ] || {
+	echo Creating notebooks dir $COURSE_notebooks
+	mkdir -p $COURSE_notebooks
+    }
+
+    rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
+
+    function -update-course() {
+
+	[ -d $COURSE_git ] || -die "$FUNCNAME: $course has not git repo in $COURSE_git - aborting"
+
+	echo ==========  $(date): update-course
+
+	cd $COURSE_git
+	git pull
+	# might not be exactly needed anymore if we use subtrees instead
+	git submodule init
+	git submodule update
+	
+	# create course dirs if needed
+	for dir in $COURSE_notebooks $COURSE_modules $COURSE_data $COURSE_media $COURSE_raw; do
+	    [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
+	done
+
+	# find out all immediate subdirs that contain at least one notebook
+	# also, ignore nbformat2 since we have jupyter4 here
+	notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | grep -v '^nbformat2$' | sort -u)
+	[ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $COURSE_notebooks/
+	[ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
+	[ -d static ] && { $rsync static/ $COURSE_static; chmod -R g-w,o-w $COURSE_static; }
+	# for compat with previous git repo layout
+	for subdir in media data; do
+	    [ -d $subdir ] && $rsync $subdir $COURSE_static
+	    chmod -R g-w,o-w $COURSE_static
+	done
+	[ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
+	for file in jupyter_notebook_config.py custom.js custom.css; do
+	    [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
+	done
+    }
+
+    [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
+    -update-course 2> >(tee -a $log >&2)
+}
+
+function -check-course() {
+    local course=$1; shift
+    -compute-course-globals $course
+    [ -d $COURSE_notebooks ] || -die "No such course $course"
+}
+
+
+# a lot to say here:
+# * it's unclear if we need to do the rsync here or not
+#   some course might wish to provide their own custom*
+# * the copy into a course-dependant location
+#   looks extraneous but it might come in handy some day
+# * finally this layout is painfully confusing..
+# 
+function -check-course-jupyter() {
+    local USAGE="Usage: $COMMAND $FUNCNAME course"
+    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    course=$1; shift
+    -compute-course-globals $course
+    [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
+    # temporary : if we find a file named 'DETACHED' in /nbhosting/jupyter/course/
+    # then we leave that alone; otherwise, keep that in sync with our sources
+    if [ -f $COURSE_jupyter/DETACHED ]; then
+	-echo-stderr "Leaving jupyter material for $course intact (DETACHED found)"
+    else
+	for file in jupyter_notebook_config.py custom.js custom.css; do
+	    rsync -tp $NBHROOT/jupyter/$file $COURSE_jupyter/
+	done
+    fi
+}
+
+
+############################## unix accounts and containers
+function -compute-student-globals-in-course () {
+    student=$1; shift
+    course=$1; shift
+    STUDENT_home=$NBHROOT/students/$student
+    STUDENT_course=$STUDENT_home/$course
+    STUDENT_modules=$STUDENT_course/modules
+    STUDENT_log=$NBHROOT/logs/$course/create-$student.log
+
+    sudo -u $student mkdir -p $STUDENT_course
+}
+
+
+@declare-subcommand add-student-in-course
+function add-student-in-course() {
+    local USAGE="Usage: $COMMAND $FUNCNAME student course" 
+    [ "$#" -eq 2 ] || -die $USAGE
+
+    # typically of the form <course>-nnnnn
+    local student=$1; shift
+    # course name
+    local course=$1; shift
+
+    -echo-stderr $FUNCNAME "$@"
+    -echo-stderr running in $(pwd) as $(id)
+
+    # create students root if not yet present
+    [ -d $NBHROOT/students ] || mkdir -p $NBHROOT/students
+
+    STUDENT_home=$NBHROOT/students/$student
+
+    # check login existence
+    getent passwd $student >& /dev/null || {
+	-echo-stderr Creating disabled login $student
+	useradd --user-group --create-home --home-dir $STUDENT_home $student
+	# disable login
+	usermod -L $student
+    }
+
+    # add user to both groups 
+    for group in docker $course; do 
+	# check group existence
+	getent group $group >& /dev/null || {
+	    -echo-stderr Creating group $group
+	    groupadd $group
+	}
+	-echo-stderr "Ensuring $student is in group $group"
+	groupmems -a $student -g $group &> /dev/null
+	# docker start would be way too intrusive !
+	if [ $? != 0 -a "$group" == "docker" ]; then
+	    -echo-stderr "reloading docker service after adding $student into docker"
+	    systemctl reload docker
+	fi
+    done
+
+}
+
+
+##########
+# delete unix account
+# xxx would need to properly stop/rm any attached container
+# which might be easy if we use the same name for the student and the container
+function del-student() {
+    local USAGE="Usage: $COMMAND $FUNCNAME student"
+    [ "$#" -eq 1 ] || -die $USAGE
+    # the unix login name
+    local student=$1; shift
+    # xxx ...
+    userdel --remove --force $student
+}
+
+
+# make sure the student has a copy of the nodebook
+@declare-subcommand check-student-notebook-for-course
+function check-student-notebook-for-course() {
+    local USAGE="Usage: $COMMAND $FUNCNAME student notebook course"
+    [ "$#" -eq 3 ] || { echo $USAGE; exit 1; }
+
+    student=$1; shift
+    notebook=$1; shift
+    course=$1; shift
+
+    -compute-course-globals $course
+    -compute-student-globals-in-course $student $course
+
+    local course_notebook=$COURSE_notebooks/$notebook
+    local student_notebook=$STUDENT_course/$notebook
+    
+    -compute-student-globals-in-course $student $course
+    # copy if student notebook is missing, or if force is requested
+    if [ ! -f $student_notebook ] || [ "$forcecopy" == "force" ]; then
+	-mkdir-for-file $student_notebook $student
+	-echo-stderr Cloning $student_notebook from $COURSE_notebook 
+	# use rsync for preserving creation time
+	sudo -u $student rsync -tp $course_notebook $student_notebook
+	for static in $statics; do
+	    -create-symlink-at-file $student_notebook /home/jovyan/work/$static
+	done
+    else
+	[ -n "$debug" ] && -echo-stderr Student copy $student_notebook is fine
+    fi
+    # nothing else is required in the student's work area
+    # the rest (modules for code, and media, data as specified in statics)
+    # will be bind-mounted in the docker container
+}
+
+##########
+# create a docker container
+# the student is expected to have been created with enroll-student-in-course
+# beforehand (so the unix account and homedir exists)
+#
+# returns 0 for OK (the container is successfully created)
+# and 1 otherwise
+# also it writes on stdout an action 'created' or 'existing'
+# 
+# in this implem, container is the same as the underlying login name
+#
+
+default_statics="media data"
+
+# write on stdout either
+# created
+# existing
+@declare-subcommand create-docker-container-for-student-in-course-from-image
+function create-docker-container-for-student-in-course-from-image() {
+    local USAGE="Usage: $COMMAND $FUNCNAME [-s static-subdir] container student course image
+  -s : (cumulative) add a static dir - defaults to ${default_statics}
+  -d : turn on debug info"
+
+    local statics=""
+    while getopts "s:d" option; do
+  	case $option in
+	    s) statics="$statics $OPTARG";;
+	    d) debug=true;;
+	    ?) -echo-stderr "$USAGE"; exit 1;;
+	esac
+    done	
+    shift $((OPTIND-1))
+    
+    [[ "$#" =~ [4] ]] || -die "$USAGE"
+    
+    # container name - if it exists then nothing happens here
+    local container=$1; shift
+    # student name aka student - should exist as /nbhosting/students/$student
+    local student=$1; shift
+    # course name - should exist as /nbhosting/courses/$course
+    # i.e. should have gone through init-course and update-course
+    local course=$1; shift
+    local image=$1; shift
+    
+
+    # the defaults for static areas
+    [[ -z "$statics" ]] && statics="$default_statics"
+    # the default for the docker image
+    [[ -z "$docker_image" ]] && docker_image=$course
+
+    -compute-course-globals $course
+    -compute-student-globals-in-course $student $course
+    
+    # rain check
+    [ -d $STUDENT_home ] || -die student dir not found $STUDENT_home
+    [ -d $COURSE_nbroot ] || -die course notebooks dir not found $COURSE_nbroot
+    [ -f $COURSE_notebook ] || -die master notebook not found in course $COURSE_notebook
+    [ -d $COURSE_modules ] || -echo-stderr WARNING $COURSE_modules dir not found
+    for static in $statics; do
+	COURSE_static=$NBHROOT/static/$course/$static
+	[ -d $COURSE_static ] || -echo-stderr WARNING $COURSE_static dir not found
+    done
+
+    # image : use the same name as the course
+    docker inspect --type image $docker_image >& /dev/null ||\
+	-die image $docker_image not known in docker
+
+    [ -n "$debug" ] && set -x
+
+    # update jupyter_notebook_config.py and the 2 custom files
+    -check-course-jupyter $course
+
+    # touch a file in the student's course dir
+    # so the monitoring tool can spare it
+    # <=> jupyter's root
+    touch $STUDENT_course/.monitor
+
+    #  exit with retcode != 0 if anything goes south
+    set -e
+    
+    local jupyter_token=$container
+    # check if container container is already defined
+    # beware we are in a set -e section
+    docker inspect --format "{{.Name}}" $container >& /dev/null \
+	&& { \
+	     action="existing"
+	     # this is the case where docker inspect was successful
+    } || { \
+	   action="created"
+	   # this now is when docker inspect fails
+	   -echo-stderr Creating docker container $container
+	   # * map host free port to fixed 8888 in container
+	   # * bind  mounts so that the user's data is on
+	   #   the host filesystem
+	   # * map jovyan uid to the student's
+	   #   from https://github.com/jupyter/docker-stacks/tree/master/scipy-notebook
+	   #   this requires --user root and -e NB_UID=<id>
+	   # * turn off this http header that otherwise would prevent embedding in a FUN iframe
+	   #   Content-Security-Policy: frame-ancestors 'self'; report-uri /api/security/csp-report
+	   #   so set the web server's settings to clear the Content-Security-Policy header
+	   #   it is too tedious on the command line with quoting and all, so
+	   #   let's use the config file instead
+	   ### older notes
+	   # * for turning off token auth, we would need to specify the command to run:
+	   #    --NotebookApp.token=''
+	   ##
+	   # compute student uid
+	   STUDENT_uid=$(id -u $student)
+	   command="docker create --name $container
+	       -p 8888
+	       --user root -e NB_UID=$STUDENT_uid
+	       -v $STUDENT_course:/home/jovyan/work
+               -v $COURSE_modules:/home/jovyan/modules
+	       -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
+	       -v $COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
+	       -v $COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
+	   for static in $statics; do
+	       command="$command -v $NBHROOT/static/$course/$static:/home/jovyan/work/$static"
+	   done
+	   command="$command
+	       -e PYTHONPATH=/home/jovyan/modules
+	       $docker_image 
+	       start-notebook.sh
+	       --no-browser 
+	       --NotebookApp.token=$jupyter_token 
+	       --NotebookApp.notebook_dir=/home/jovyan/work
+"
+	   # --log-level=DEBUG
+	   # show command for manual debugging
+	   -echo-stderr XXXXXXXXXX $command
+	   # we need a clean stdout : redirect stdout to stderr 
+	   >&2 $command
+    }
+
+    -echo-stderr create-docker OK - action=$action
+    echo $action
+    return 0
+}
+
+####################
+# xxx probably a lot of space for improvement here
+# retrieve port from output like this
+# map[8888/tcp:[{0.0.0.0 32774}]]
+function get-docker-container-port() {
+    local USAGE="Usage: $COMMAND $FUNCNAME container"
+    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+
+    local container=$1; shift
+    docker inspect --format '{{.NetworkSettings.Ports}}' $container | cut -d' ' -f 2 | sed -e 's,[^0-9],,g'
+}
+
+# if the container was just started it may take a little time
+# before we can know on what port it runs
+# PS: it's not even clear it's useful to do this loop...
+function -find-docker-port-number() {
+    local container=$1; shift
+    local ticks=$1; shift
+    local period=$1; shift
+    local extra=$1; shift
+    local counter=1
+    while [ $counter -le $ticks ]; do
+	-echo-stderr "Probing for port ($counter)"
+	docker_port=$(get-docker-container-port $container)
+	[ -n "$docker_port" ] && {
+	    sleep $extra
+	    echo $docker_port;
+	    return 0;
+	}
+	counter=$(( $counter + 1))
+	sleep $period
+    done
+    -echo-stderr "find-docker-port-number failed after $counter iterations"
+    return 1
+}
+
+# in particular the actual timeout is unclear
+function -wait-for-http-on-port-token() {
+    local port=$1; shift
+    local token=$1; shift
+    local ticks=$1; shift
+    local period=$1; shift
+    local extra=$1; shift
+    local counter=1
+    while [ $counter -le $ticks ]; do
+	-echo-stderr "Waiting for TCP ($counter) on port $port"
+	# first check if tcp port is up
+	if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null; then
+	    # if so, check that http is ready
+	    -echo-stderr "Checking for HTTP ($counter) on port $port"
+	    curl "http://localhost:$port/tree?token=$token" >& /dev/null && {
+		# sleep an extra .5 s to be safe
+		sleep $extra
+		-echo-stderr HTTP OK
+		return 0
+	    }
+	fi
+	counter=$(( $counter + 1))
+	sleep $period
+    done
+    -echo-stderr "timeout expired after $counter iterations"
+    return 1
+}
+
+
+####################
+# we name the docker instance as <course>-x-<student>
+# we create the container with docker create -p 8888
+# this way the container can be stopped and then restarted
+# with a fresh (unused) port each time
+@declare-subcommand start-docker-container
+function start-docker-container() {
+    local USAGE="Usage: $COMMAND $FUNCNAME container"
+    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+
+    local container="$1"; shift
+    
+    [ -n "$debug" ] && set -x
+
+    # touch a file in the student's course dir
+    # so the monitoring tool can spare it
+    # <=> jupyter's root
+    touch $STUDENT_course/.monitor
+
+    #  exit with retcode != 0 if anything goes south
+    set -e
+    
+    local jupyter_token=$container
+    # check if container container is already defined
+    # beware we are in a set -e section
+    docker inspect --format "{{.Name}}" $container >& /dev/null \
+	|| { \
+	     action="no-such-container"
+	     echo $action $container 0 none
+    }
+
+    ### at that point the docker is expected to be created
+    # so: start the container only if it needs to, and in that
+    # case wait until it's up and reachable
+    running=$(docker inspect -f "{{.State.Running}}" $container)
+    # refine action if this container was not just created
+    action=$([ "$running" == true ] && echo running || echo restarted)
+    
+    # actually restart if needed
+    if [ "$running" != "true" ]; then
+	-echo-stderr Starting container $container
+	# prevent clobbering of stdout
+	>&2 docker start $container
+    fi
+
+    # figure out on what port it runs; wait for a second (10 times .1)
+    docker_port=$(-find-docker-port-number $container $timeout_wait_for_port)
+
+    # wait until the service actually serves HTTP requests
+    # we need to do this only if we have just started it
+    if [ "$running" != "true" ]; then
+	-wait-for-http-on-port-token $docker_port $jupyter_token $timeout_wait_for_http
+    fi
+
+    # this is the only thing that goes on stdout
+    #
+    echo $action $container $docker_port $jupyter_token
+
+    [ -n "$debug" ] && set +x
+}
+
+
+# wrapper - single entry point to edxfront.views
+@declare-subcommand docker-view-student-course-notebook-from-image
+function docker-view-student-course-notebook-from-image() {
+    local USAGE="Usage: $COMMAND $FUNCNAME student course notebook image"
+    [ "$#" -eq 4 ] || { echo $USAGE; exit 1; }
+
+    local student=$1; shift
+    local course=$1; shift
+    local notebook=$1; shift
+    local image=$1; shift
+
+    ## just in case is was never done before
+    -check-course $course
+    # update jupyter_notebook_config.py and the 2 custom files
+    -check-course-jupyter $course
+
+    ## in case the student is not known yet 
+    add-student-in-course $student $course
+
+    ## create the student notebook if not there yet
+    check-student-notebook-for-course $student $notebook $course
+
+    # create and start the container
+    local container=$student
+    # either existing of created
+    action1=$(create-docker-container-for-student-in-course-from-image $container $student $course $image)
+    line2=$(start-docker-container $container)
+
+    # report: the action depends on both stages
+    local action2=$(cut -d' ' -f1 <<< $line2)
+    local container=$(cut -d' ' -f2 <<< $line2)
+    local port=$(cut -d' ' -f3 <<< $line2)
+    local token=$(cut -d' ' -f4 <<< $line2)
+
+    case $action1 in
+	created) action=$action1;;
+	*) action=$action2;;
+    esac
+    echo $action $container $port $token
+
+    return 0
+}
+
+
+@declare-subcommand enter-docker-container
+function enter-docker-container() {
+    local USAGE="Usage: $FUNCNAME container"
+    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    local container=$1; shift
+
+    docker exec -ti $container /bin/bash
+}
+    
+
+##############################
+# systemd-spawn
+##############################
+##############################
+# systemd-nspawn tentative code
+##############################
+# assuming that the docker image was redone from its dockerfile
+# which is NOT considered here, we update the actual btrfs reference
+# image in $MACHINES
+# of course $MACHINES must sit in a btrfs filesystem
+@declare-subcommand update-course-machine
+function update-course-machine() {
+    local USAGE="Usage: $FUNCNAME course"
+    local course=$1; shift
+    local reference=$course.ref
+    local log=$MACHINES/$course.log
+
+    [ -d $MACHINES ] || mkdir -p $MACHINES
+    cd $MACHINES
+
+    [ -d $reference ] || {
+	btrfs subvolume create $reference;
+    }
+
+    ##### stage1 : unwrap in a fresh repo
+    local unwrap=$course.unwrap
+    rm -rf $unwrap
+    mkdir $unwrap
+
+    # create a dummy docker container just to get its image
+    local dummy=$(docker create $course)
+    docker export $dummy | tar -C $unwrap -xf -
+    docker rm $dummy
+    
+    #### stage2 : rsync into actual live image
+    [ -d $reference ] || mkdir $reference
+    (echo ========== $(date); rsync -rltpo --delete -i $unwrap/ $reference/) >> $log
+    
+}
+
+####################
+# digression in python: find a free port
+function free-port() {
+    python3 << EOF
+import socket
+from contextlib import closing
+try:
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        print(s.getsockname()[1])
+except:
+    print(0)
+EOF
+    }
+
+
+function -compute-container-globals() {
+    local container=$1; shift
+
+    CONTAINER_root=$MACHINES/$container
+}
+
+
+@declare-subcommand spawn-container-in-course-for-student
+function spawn-container-in-course-for-student() {
+    local USAGE="Usage: $COMMAND $FUNCNAME container course student" 
+    [ "$#" -eq 3 ] || -die $USAGE
+    
+    local container=$1; shift
+    local course=$1; shift
+    local student=$1; shift
+
+    -compute-course-globals $course
+    -compute-student-globals-in-course $student $course
+    -compute-container-globals $container
+
+    local port=$(free-port)
+    local token=$student
+    # cannot use --ephemeral with --template
+    local command="systemd-nspawn 
+    	  	     --template=${COURSE_ref}
+		     --directory=${CONTAINER_root}
+		     --user=jovyan
+		     --setenv=PATH=/opt/conda/bin
+		     --bind=$STUDENT_course:/home/jovyan/work
+		     --bind=$COURSE_modules:/home/jovyan/modules
+		     --bind=$COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
+		     --bind=$COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
+		     --bind=$COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
+    for static in $statics; do
+	command="$command 
+                     --bind=$NBHROOT/static/$course/$static:/home/jovyan/work/$static"
+    done
+    command="$command
+		    /usr/local/bin/start-notebook.sh
+		    --NotebookApp.port=${port}
+		    --no-browser
+		    --NotebookApp.token=${token}
+"
+
+    echo $command
+    $command
+}
+
+
+# inspired by https://seanmcgary.com/posts/nsenter-a-systemd-nspawn-container
+@declare-subcommand enter-spawned-container
+function enter-spawned-container() {
+    local USAGE="Usage: $FUNCNAME container [command]"
+    [ "$#" -ge 1 ] || -die $USAGE
+
+    local container=$1; shift
+
+    local leaderpid=$(machinectl -p Leader show $container | cut "-d=" -f2)
+    command="nsenter --target $leaderpid --mount --uts --ipc --net $@"
+    echo $command
+    $command
+}
+
+
+function status-btrfs() {
+    command="btrfs filesystem df -h $MACHINES"
+    echo ========== $command; $command
+    command="btrfs subvolume list $MACHINES"
+    echo ========== $command; $command
+}
+
+function status-devel() {
+    local command="docker ps"
+    echo ========== $command; $command
+    local command="docker ps -a"
+    echo ========== $command; $command
+    local command="machinectl list"
+    echo ========== $command; $command
+    local command="btrfs subvolume list $MACHINES"
+    echo ========== $command; $command
+}
+
+############################## 
+USAGE="$COMMAND [-d nbhroot] [-x] subcommand ...
+  -d  allows to set another root than $NBHROOT
+  -x  turn on debugging
+"
+
+function main() {
+
+    while getopts "d:x" option; do
+	case $option in
+	    d) NBHROOT="$OPTARG"
+	       # make sure root is absolute
+	       NBHROOT=$(cd $NBHROOT; pwd -P)
+	       ;;
+	    x) debug=true ;;
+	    ?) >&2 printf "$USAGE"; exit 1;;
+	esac
+    done	
+    shift $((OPTIND-1))
+    
+    # first argument is a subcommand in this file
+    local fun="$1"
+    if [ -z "$fun" ]; then
+	# if missing altogether, use 'status'
+	fun=status-devel
+    else
+	case $(type -t -- $fun) in
+	    function)
+		shift ;;
+	    *)
+		echo "$fun not a valid subcommand; pick among the following:"
+		for s in $SUBCOMMANDS; do echo $s; done | sort
+		exit 1
+		;;
+	esac
+    fi
+
+    # call subcommand
+    $fun "$@"
+}
+
+
+# xxx from older version
+# because the outcome of this script goes on stdout,
+# so we always write on stderr, but as far as stderr is concerned,
+# we want to log it *and* to return it in stderr
+# xxx previous redirection system
+# main 2> >(tee -a $log >&2) || :
+
+
+main "$@"
+
+

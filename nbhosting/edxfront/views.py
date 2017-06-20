@@ -42,18 +42,14 @@ def edx_request(request, course, student, notebook):
     # xxx probably requires a sudo of some kind here
     # for when run from apache or nginx or whatever
 
-    script = 'nbh-enroll-student-in-course'
-    command = [ script, root, student, course ]
-    logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
-    completed_process = subprocess.run(
-        command, universal_newlines=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    log_completed_process(completed_process)
-
-    script = 'nbh-run-student-course-jupyter'
     # use image named after the course for now
     image = course
-    command = [ script, "-i", image, root, student, course, notebook_withext ]
+
+    script = 'nbh'
+    command = [ script , 'docker-view-student-course-notebook-from-image']
+    # xxx tmp; nbh driver seems to not deal with its options very gracefully
+    #command += [ '-d', root]
+    command += [ student, course, notebook_withext, image ]
     logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,

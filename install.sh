@@ -33,7 +33,7 @@ function update-python-libraries() {
 }
 
 function update-bins() {
-    rsync $rsopts scripts/nbh-* /usr/bin
+    rsync $rsopts scripts/nbh* /usr/bin
 }
 
 function update-jupyter() {
