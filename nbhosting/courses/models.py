@@ -9,22 +9,40 @@ class CourseDir:
 
     def __init__(self, coursename):
         self.coursename = coursename
+        self.notebooks_dir = root / "courses" / self.coursename
+        self._probe_settings()
         self._notebooks = None
-
+        
     def notebooks(self):
         if self._notebooks is None:
             self._notebooks = self._probe_notebooks()
         return self._notebooks
 
     def _probe_notebooks(self):
-        course_root = root / "courses" / self.coursename
-        absolute_notebooks = course_root.glob("**/*.ipynb")
+        notebooks_dir = self.notebooks_dir
+        absolute_notebooks = notebooks_dir.glob("**/*.ipynb")
         # relative notebooks without extension
         return sorted([
-            notebook.relative_to(course_root).with_suffix("")
+            notebook.relative_to(notebooks_dir).with_suffix("")
             for notebook in absolute_notebooks
             if 'ipynb_checkpoints' not in str(notebook)
         ])
+
+    def _probe_settings(self):
+        notebooks_dir = self.notebooks_dir
+        try:
+            with (notebooks_dir / ".statics").open() as storage:
+                self.statics = [ line.strip() for line in storage if line ]
+        except Exception as e:
+            self.statics = ["-- undefined -- {err}"\
+                           .format(err=e)]
+        try:
+            with (notebooks_dir / ".image").open() as storage:
+                self.image = storage.read().strip()
+        except Exception as e:
+            self.image = "-- undefined -- {err}"\
+                         .format(err=e)
+                
     
     def update_completed(self):
         """

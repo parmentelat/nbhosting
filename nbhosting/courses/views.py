@@ -42,7 +42,10 @@ def list_course(request, course):
     return render(request, "course.html", {
         'how_many' : len(notebooks),
         'course' : course,
-        'notebooks': notebooks })
+        'notebooks': notebooks,
+        'image' : course_dir.image,
+        'statics' : course_dir.statics,
+    })
 
 @login_required
 @csrf_protect

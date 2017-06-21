@@ -42,14 +42,11 @@ def edx_request(request, course, student, notebook):
     # xxx probably requires a sudo of some kind here
     # for when run from apache or nginx or whatever
 
-    # use image named after the course for now
-    image = course
-
     script = 'nbh'
-    command = [ script , 'docker-view-student-course-notebook-from-image']
+    command = [ script , 'docker-view-student-course-notebook']
     # xxx tmp; nbh driver seems to not deal with its options very gracefully
     #command += [ '-d', root]
-    command += [ student, course, notebook_withext, image ]
+    command += [ student, course, notebook_withext ]
     logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
     completed_process = subprocess.run(
         command, universal_newlines=True,

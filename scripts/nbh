@@ -32,6 +32,9 @@ NBHROOT=/nbhosting
 MACHINES=/homefs/btrfs/machines
 debug=
 
+# what to use as static areas if not specified
+default_statics="media data"
+
 ### various timeouts
 # how long to wait for the port number to show up after a start
 # this is 10 times .1s so 1s - proceed immediately
@@ -199,15 +202,22 @@ function -compute-course-globals() {
     COURSE_git=$NBHROOT/courses-git/$course
 
     COURSE_notebooks=$NBHROOT/courses/$course
+    COURSE_staticslist=$COURSE_notebooks/.statics
+    COURSE_imagename=$COURSE_notebooks/.image
     COURSE_modules=$NBHROOT/modules/$course
     COURSE_static=$NBHROOT/static/$course
-    COURSE_data=$NBHROOT/static/$course/data
-    COURSE_media=$NBHROOT/static/$course/media
     COURSE_jupyter=$NBHROOT/jupyter/$course
     COURSE_raw=$NBHROOT/raw/$course
     
     COURSE_logs=$NBHROOT/logs/$course
     COURSE_ref=$MACHINES/$course.ref
+
+    COURSE_data=$NBHROOT/static/$course/data
+    COURSE_media=$NBHROOT/static/$course/media
+    
+    # read settings files
+    COURSE_statics=$(cat $COURSE_staticslist)
+    COURSE_image=$(cat $COURSE_imagename)
 }
     
 
@@ -232,6 +242,7 @@ function init-course() {
 	echo ==========  $(date): init-course from $giturl
 	local courses_git_parent=$(dirname $COURSE_git)
 	mkdir -p $courses_git_parent
+	cd $courses_git_parent
 	echo In $(pwd) : running git clone $giturl $course
 	git clone $giturl $course
     }
@@ -242,9 +253,77 @@ function init-course() {
 
 
 ##########
+# CLI to set course attributes/settings
+###
+# -s : define a 'static' area - typically
+# we use media and data as static areas
+# for example -s data means a subdir 'data' is created
+# and linked to the toplevel git subdir 'data'
+# this link is likely to be created in each student directory
+# where at least one notebook is present
+###
+# -i : the (docker) image to use for that course
+# this way we can set up several courses fp1 fp2 fp3
+# that all are bound to the same image
+
+@declare-subcommand course-settings
+function course-settings() {
+    local USAGE="Usage: $COMMAND $FUNCNAME [-s static-subdir] [-i image] course
+      -s : (cumulative) add a static dir - defaults to ${default_statics}
+      -i : specify the docker image to use for that course
+" 
+
+    local statics=""
+    local image=""
+    while getopts "s:i:" option; do
+	echo MATCH $option
+  	case $option in
+	    s) statics="$statics $OPTARG" ;;
+	    i) image="$OPTARG" ;;
+	    ?) -echo-stderr "$USAGE"; exit 1;;
+	esac
+    done	
+    shift $((OPTIND-1))
+    
+    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+
+    course=$1; shift
+    -compute-course-globals $course
+
+    ### update the course settings
+
+    # statics - augment or init
+    if [ -n "$statics" ] ; then
+	# augment
+	local tmp=${COURSE_staticslist}.tmp
+	mv -f $COURSE_staticslist $tmp
+	for static in $statics; do
+	    echo $static >> $tmp
+	done
+	sort < $tmp | uniq > $COURSE_staticslist
+	rm -f $tmp
+    elif [ ! -f $COURSE_staticslist ]; then
+	# init
+	for static in $default_statics; do
+	    echo $static >> $COURSE_staticslist
+	done
+    fi
+
+    # likewise for the image name: redefine or create
+    if [ -n "$image" ]; then
+	echo $image > $COURSE_imagename
+    elif [ ! -f $COURSE_imagename ]; then
+	echo $course > $COURSE_imagename
+    fi
+}
+    
+
+##########
 # pull from upstream git repo
 # and updates the various parts accordingly
-
+# also the options allow to change global settings
+# for the course:
+###
 @declare-subcommand update-course-from-git
 function update-course-from-git() {
     local USAGE="Usage: $COMMAND $FUNCNAME course" 
@@ -253,7 +332,10 @@ function update-course-from-git() {
 
     course=$1; shift
     -compute-course-globals $course
-    
+
+    # just a convenience so that these get initialized
+    course-settings $course
+
     local log=$NBHROOT/logs/$course/update.log
 
     # check the course is known
@@ -431,7 +513,7 @@ function check-student-notebook-for-course() {
 	-echo-stderr Cloning $student_notebook from $COURSE_notebook 
 	# use rsync for preserving creation time
 	sudo -u $student rsync -tp $course_notebook $student_notebook
-	for static in $statics; do
+	for static in $COURSE_statics; do
 	    -create-symlink-at-file $student_notebook /home/jovyan/work/$static
 	done
     else
@@ -454,28 +536,14 @@ function check-student-notebook-for-course() {
 # in this implem, container is the same as the underlying login name
 #
 
-default_statics="media data"
-
 # write on stdout either
 # created
 # existing
-@declare-subcommand create-docker-container-for-student-in-course-from-image
-function create-docker-container-for-student-in-course-from-image() {
-    local USAGE="Usage: $COMMAND $FUNCNAME [-s static-subdir] container student course image
-  -s : (cumulative) add a static dir - defaults to ${default_statics}
-  -d : turn on debug info"
+@declare-subcommand create-docker-container-for-student-in-course
+function create-docker-container-for-student-in-course() {
+    local USAGE="Usage: $COMMAND $FUNCNAME container student course"
 
-    local statics=""
-    while getopts "s:d" option; do
-  	case $option in
-	    s) statics="$statics $OPTARG";;
-	    d) debug=true;;
-	    ?) -echo-stderr "$USAGE"; exit 1;;
-	esac
-    done	
-    shift $((OPTIND-1))
-    
-    [[ "$#" =~ [4] ]] || -die "$USAGE"
+    [ "$#" -eq 3 ] || -die "$USAGE"
     
     # container name - if it exists then nothing happens here
     local container=$1; shift
@@ -484,13 +552,6 @@ function create-docker-container-for-student-in-course-from-image() {
     # course name - should exist as /nbhosting/courses/$course
     # i.e. should have gone through init-course and update-course
     local course=$1; shift
-    local image=$1; shift
-    
-
-    # the defaults for static areas
-    [[ -z "$statics" ]] && statics="$default_statics"
-    # the default for the docker image
-    [[ -z "$docker_image" ]] && docker_image=$course
 
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
@@ -500,14 +561,13 @@ function create-docker-container-for-student-in-course-from-image() {
     [ -d $COURSE_nbroot ] || -die course notebooks dir not found $COURSE_nbroot
     [ -f $COURSE_notebook ] || -die master notebook not found in course $COURSE_notebook
     [ -d $COURSE_modules ] || -echo-stderr WARNING $COURSE_modules dir not found
-    for static in $statics; do
+    for static in $COURSE_statics; do
 	COURSE_static=$NBHROOT/static/$course/$static
 	[ -d $COURSE_static ] || -echo-stderr WARNING $COURSE_static dir not found
     done
 
-    # image : use the same name as the course
-    docker inspect --type image $docker_image >& /dev/null ||\
-	-die image $docker_image not known in docker
+    docker inspect --type image $COURSE_image >& /dev/null ||\
+	-die image $COURSE_image not known in docker
 
     [ -n "$debug" ] && set -x
 
@@ -558,12 +618,12 @@ function create-docker-container-for-student-in-course-from-image() {
 	       -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
 	       -v $COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
 	       -v $COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
-	   for static in $statics; do
+	   for static in $COURSE_statics; do
 	       command="$command -v $NBHROOT/static/$course/$static:/home/jovyan/work/$static"
 	   done
 	   command="$command
 	       -e PYTHONPATH=/home/jovyan/modules
-	       $docker_image 
+	       $COURSE_image 
 	       start-notebook.sh
 	       --no-browser 
 	       --NotebookApp.token=$jupyter_token 
@@ -709,15 +769,14 @@ function start-docker-container() {
 
 
 # wrapper - single entry point to edxfront.views
-@declare-subcommand docker-view-student-course-notebook-from-image
-function docker-view-student-course-notebook-from-image() {
-    local USAGE="Usage: $COMMAND $FUNCNAME student course notebook image"
-    [ "$#" -eq 4 ] || { echo $USAGE; exit 1; }
+@declare-subcommand docker-view-student-course-notebook
+function docker-view-student-course-notebook() {
+    local USAGE="Usage: $COMMAND $FUNCNAME student course notebook"
+    [ "$#" -eq 3 ] || { echo $USAGE; exit 1; }
 
     local student=$1; shift
     local course=$1; shift
     local notebook=$1; shift
-    local image=$1; shift
 
     ## just in case is was never done before
     -check-course $course
@@ -733,7 +792,7 @@ function docker-view-student-course-notebook-from-image() {
     # create and start the container
     local container=$student
     # either existing of created
-    action1=$(create-docker-container-for-student-in-course-from-image $container $student $course $image)
+    action1=$(create-docker-container-for-student-in-course $container $student $course)
     line2=$(start-docker-container $container)
 
     # report: the action depends on both stages
@@ -772,8 +831,8 @@ function enter-docker-container() {
 # which is NOT considered here, we update the actual btrfs reference
 # image in $MACHINES
 # of course $MACHINES must sit in a btrfs filesystem
-@declare-subcommand update-course-machine
-function update-course-machine() {
+@declare-subcommand update-course-image-from-docker-to-spawn
+function update-course-image-from-docker-to-spawn() {
     local USAGE="Usage: $FUNCNAME course"
     local course=$1; shift
     local reference=$course.ref
@@ -851,7 +910,7 @@ function spawn-container-in-course-for-student() {
 		     --bind=$COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
 		     --bind=$COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
 		     --bind=$COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
-    for static in $statics; do
+    for static in $COURSE_statics; do
 	command="$command 
                      --bind=$NBHROOT/static/$course/$static:/home/jovyan/work/$static"
     done
@@ -919,6 +978,8 @@ function main() {
 	esac
     done	
     shift $((OPTIND-1))
+    # reset OPTIND for subsequent calls to getopts
+    OPTIND=1
     
     # first argument is a subcommand in this file
     local fun="$1"
