@@ -48,7 +48,7 @@ class CourseDir:
         """
         return an instance of subprocess.CompletedProcess
         """
-        command = [ "nbh-update-course", root, self.coursename]
+        command = [ "nbh", "update-course", self.coursename ]
         completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return completed
 
