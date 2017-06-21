@@ -202,8 +202,9 @@ function -compute-course-globals() {
     COURSE_git=$NBHROOT/courses-git/$course
 
     COURSE_notebooks=$NBHROOT/courses/$course
-    COURSE_staticslist=$COURSE_notebooks/.statics
-    COURSE_imagename=$COURSE_notebooks/.image
+    COURSE_staticsfile=$COURSE_notebooks/.statics
+    COURSE_imagefile=$COURSE_notebooks/.image
+    COURSE_giturlfile=$COURSE_notebooks/.giturl
     COURSE_modules=$NBHROOT/modules/$course
     COURSE_static=$NBHROOT/static/$course
     COURSE_jupyter=$NBHROOT/jupyter/$course
@@ -216,8 +217,9 @@ function -compute-course-globals() {
     COURSE_media=$NBHROOT/static/$course/media
     
     # read settings files
-    COURSE_statics=$(cat $COURSE_staticslist)
-    COURSE_image=$(cat $COURSE_imagename)
+    COURSE_statics=$(cat $COURSE_staticsfile)
+    COURSE_image=$(cat $COURSE_imagefile)
+    COURSE_giturl=$(cat $COURSE_giturlfile)
 }
     
 
@@ -295,26 +297,32 @@ function course-settings() {
     # statics - augment or init
     if [ -n "$statics" ] ; then
 	# augment
-	local tmp=${COURSE_staticslist}.tmp
-	mv -f $COURSE_staticslist $tmp
+	local tmp=${COURSE_staticsfile}.tmp
+	mv -f $COURSE_staticsfile $tmp
 	for static in $statics; do
 	    echo $static >> $tmp
 	done
-	sort < $tmp | uniq > $COURSE_staticslist
+	sort < $tmp | uniq > $COURSE_staticsfile
 	rm -f $tmp
-    elif [ ! -f $COURSE_staticslist ]; then
+    elif [ ! -f $COURSE_staticsfile ]; then
 	# init
 	for static in $default_statics; do
-	    echo $static >> $COURSE_staticslist
+	    echo $static >> $COURSE_staticsfile
 	done
     fi
 
     # likewise for the image name: redefine or create
     if [ -n "$image" ]; then
-	echo $image > $COURSE_imagename
-    elif [ ! -f $COURSE_imagename ]; then
-	echo $course > $COURSE_imagename
+	echo $image > $COURSE_imagefile
+    elif [ ! -f $COURSE_imagefile ]; then
+	echo $course > $COURSE_imagefile
     fi
+
+    # convenience: update .giturl
+    if [ ! -f $COURSE_giturlfile ]; then
+	(cd $COURSE_git; git config --get remote.origin.url) > $COURSE_giturlfile
+    fi
+
 }
     
 

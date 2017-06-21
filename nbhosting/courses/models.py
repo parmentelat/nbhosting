@@ -35,13 +35,19 @@ class CourseDir:
                 self.statics = [ line.strip() for line in storage if line ]
         except Exception as e:
             self.statics = ["-- undefined -- {err}"\
-                           .format(err=e)]
+                            .format(err=e)]
         try:
             with (notebooks_dir / ".image").open() as storage:
                 self.image = storage.read().strip()
         except Exception as e:
             self.image = "-- undefined -- {err}"\
-                         .format(err=e)
+                .format(err=e)
+        try:
+            with (notebooks_dir / ".giturl").open() as storage:
+                self.giturl = storage.read().strip()
+        except Exception as e:
+            self.giturl = "-- undefined -- {err}"\
+                .format(err=e)
                 
     
     def update_completed(self):

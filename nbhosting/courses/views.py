@@ -45,6 +45,7 @@ def list_course(request, course):
         'notebooks': notebooks,
         'image' : course_dir.image,
         'statics' : course_dir.statics,
+        'giturl' : course_dir.giturl,
     })
 
 @login_required
