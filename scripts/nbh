@@ -963,7 +963,18 @@ function status-devel() {
 USAGE="$COMMAND [-d nbhroot] [-x] subcommand ...
   -d  allows to set another root than $NBHROOT
   -x  turn on debugging
+Available subcommands:
 "
+
+function list-subcommands() {
+    for s in $SUBCOMMANDS; do
+	echo $s
+    done | sort | sed -e 's,^, * ,'
+}
+
+function usage() {
+    printf "$USAGE"; list-subcommands; 
+}
 
 function main() {
 
@@ -974,7 +985,7 @@ function main() {
 	       NBHROOT=$(cd $NBHROOT; pwd -P)
 	       ;;
 	    x) debug=true ;;
-	    ?) >&2 printf "$USAGE"; exit 1;;
+	    ?) >&2 usage; exit 1;;
 	esac
     done	
     shift $((OPTIND-1))
@@ -991,8 +1002,9 @@ function main() {
 	    function)
 		shift ;;
 	    *)
-		echo "$fun not a valid subcommand; pick among the following:"
-		for s in $SUBCOMMANDS; do echo $s; done | sort
+		{ echo "$fun not a valid subcommand; pick among the following:"
+		  list-subcommands
+		  } >&2
 		exit 1
 		;;
 	esac
