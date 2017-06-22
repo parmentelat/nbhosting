@@ -189,6 +189,10 @@ function status-tree() {
     local courses_git=$(ls $NBHROOT/courses-git | wc -l)
     local courses=$(ls $NBHROOT/courses | wc -l)
     echo "$students students - $courses_git course repos - $courses actual courses"
+    local logfiles=$(find $NBHROOT/logs -type f| wc -l)
+    echo "$logfiles log files under $NBHROOT/logs"
+    local rawfiles=$(find $NBHROOT/raw -type f| wc -l)
+    echo "$rawfiles raw files under $NBHROOT/raw"
 }
 
 # this is the default when no command is provided to nbh-driver
