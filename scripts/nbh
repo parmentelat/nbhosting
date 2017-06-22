@@ -29,6 +29,7 @@ COMMAND=$0
 # the default values for a few globals
 # xxx miss options to tweak these
 NBHROOT=/nbhosting
+IMAGES=/homefs/btrfs/btrfs
 MACHINES=/homefs/btrfs/machines
 debug=
 
@@ -215,6 +216,7 @@ function -compute-course-globals() {
     COURSE_raw=$NBHROOT/raw/$course
     
     COURSE_logs=$NBHROOT/logs/$course
+    # for systemd-nspawn
     COURSE_ref=$MACHINES/$course.ref
 
     COURSE_data=$NBHROOT/static/$course/data
@@ -889,7 +891,7 @@ EOF
 function -compute-container-globals() {
     local container=$1; shift
 
-    CONTAINER_root=$MACHINES/$container
+    CONTAINER_nspawn_root=$MACHINES/$container
 }
 
 
@@ -911,7 +913,7 @@ function spawn-container-in-course-for-student() {
     # cannot use --ephemeral with --template
     local command="systemd-nspawn 
     	  	     --template=${COURSE_ref}
-		     --directory=${CONTAINER_root}
+		     --directory=${CONTAINER_nspawn_root}
 		     --user=jovyan
 		     --setenv=PATH=/opt/conda/bin
 		     --bind=$STUDENT_course:/home/jovyan/work
@@ -951,9 +953,11 @@ function enter-spawned-container() {
 
 
 function status-btrfs() {
+    #command="btrfs subvolume list $MACHINES"
+    #echo ========== $command; $command
     command="btrfs filesystem df -h $MACHINES"
     echo ========== $command; $command
-    command="btrfs subvolume list $MACHINES"
+    command="btrfs filesystem df -h $IMAGES"
     echo ========== $command; $command
 }
 
@@ -963,6 +967,8 @@ function status-devel() {
     local command="docker ps -a"
     echo ========== $command; $command
     local command="machinectl list"
+    echo ========== $command; $command
+    local command=status-btrfs
     echo ========== $command; $command
 #    local command="btrfs subvolume list $MACHINES"
 #    echo ========== $command; $command
