@@ -39,7 +39,9 @@ def list_notebooks(course_gitdir):
         exit(1)
     paths = chain(course_gitdir.glob("w?/w*.ipynb"),
                   course_gitdir.glob("w?/fr*.ipynb"),
-                  course_gitdir.glob("w?/en*.ipynb"))
+                  course_gitdir.glob("w?/en*.ipynb"),
+                  course_gitdir.glob("notebooks/*.ipynb"),
+    )
     notebooks = sorted(['/'.join([p.parts[-2], p.stem]) for p in paths])
     course = course_gitdir.parts[-1]
     return course, notebooks
