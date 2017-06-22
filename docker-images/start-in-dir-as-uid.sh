@@ -18,6 +18,16 @@
 #   to have been created and bind-mounted already
 # * this strategy requires the container to be run as root
 #   so we can mess with /etc/passwd
+#
+# in terms of chown:
+# * typically /home/jovyan on the image is owned by uid 1000, of course
+# * so there is a need to give this place to $uid
+# * this is why we call start-in-dir-as-uid.sh with dir /home/jovyan
+# * and then invoke jupyter notebook --NotebookApp.notebook_dir=/home/jovyan/work
+# * this way the whole pseudo-home dir is fully writable by $uid and this is
+#   needed when jupyter looks for its config and tries to do things like migration
+#   and similar
+
 
 USAGE="Usage: $0 dir uid command .. to .. run"
 REQUIRE="Usage: $0 needs to be run as root"
@@ -42,6 +52,9 @@ fi
 # go to the place 
 [ -d $dir ] || { printf "$0: no such directory $dir"; exit 1; }
 cd $dir
+# doing chown -R looks overkill, essentially all the contents is
+# bind-mounted anyway
+chown $uid .
 
 # su is such a pain, let's use sudo instead
 # it may add a requirement on the image
