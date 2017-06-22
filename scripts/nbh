@@ -799,7 +799,7 @@ function docker-view-student-course-notebook() {
     check-student-notebook-for-course $student $notebook $course
 
     # create and start the container
-    local container=$student
+    local container=${course}-x-${student}
     # either existing of created
     action1=$(create-docker-container-for-student-in-course $container $student $course)
     line2=$(start-docker-container $container)
