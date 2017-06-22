@@ -44,6 +44,9 @@ def edx_request(request, course, student, notebook):
 
     script = 'nbh'
     command = [ script , 'docker-view-student-course-notebook']
+#   version with debug enabled
+#    command = [ script , '-x', 'docker-view-student-course-notebook']
+    
     # xxx tmp; nbh driver seems to not deal with its options very gracefully
     #command += [ '-d', root]
     command += [ student, course, notebook_withext ]
