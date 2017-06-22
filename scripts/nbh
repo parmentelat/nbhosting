@@ -621,7 +621,7 @@ function create-docker-container-for-student-in-course() {
 	   STUDENT_uid=$(id -u $student)
 	   command="docker create --name $container
 	       -p 8888
-	       --user root -e NB_UID=$STUDENT_uid
+	       --user root
 	       -v $STUDENT_course:/home/jovyan/work
                -v $COURSE_modules:/home/jovyan/modules
 	       -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
@@ -633,10 +633,10 @@ function create-docker-container-for-student-in-course() {
 	   command="$command
 	       -e PYTHONPATH=/home/jovyan/modules
 	       $COURSE_image 
-	       start-notebook.sh
+	       start-in-dir-as-uid.sh /home/jovyan/work $STUDENT_uid
+	       jupyter notebook
 	       --no-browser 
 	       --NotebookApp.token=$jupyter_token 
-	       --NotebookApp.notebook_dir=/home/jovyan/work
 "
 	   # --log-level=DEBUG
 	   # show command for manual debugging
@@ -964,8 +964,8 @@ function status-devel() {
     echo ========== $command; $command
     local command="machinectl list"
     echo ========== $command; $command
-    local command="btrfs subvolume list $MACHINES"
-    echo ========== $command; $command
+#    local command="btrfs subvolume list $MACHINES"
+#    echo ========== $command; $command
 }
 
 ############################## 
@@ -1005,7 +1005,7 @@ function main() {
     local fun="$1"
     if [ -z "$fun" ]; then
 	# if missing altogether, use 'status'
-	fun=status-devel
+	fun=status
     else
 	case $(type -t -- $fun) in
 	    function)
@@ -1033,5 +1033,3 @@ function main() {
 
 
 main "$@"
-
-
