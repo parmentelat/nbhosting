@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import logging
 from pathlib import Path
 
-from .logger import init_logger
+from .loggers import init_loggers
 
 ############################################################
 nbhosting_settings = {
@@ -21,20 +22,22 @@ nbhosting_settings = {
     'base' : '/root/nbhosting',
 }
 
-########## for both production and devel
+########## production vs devel
 if os.getuid() == 0:
-    LOG_FILE = Path(nbhosting_settings['root']) / 'logs' / 'nbhosting.log'
+    LOGS_DIR = Path(nbhosting_settings['root']) / 'logs' 
     BASE_DIR = Path(nbhosting_settings['base'])
 else:
     nbhosting_settings['root'] = str(Path.cwd() / 'fake-root')
     # some provisions for devel mode
-    LOG_FILE = "nbhosting.log"
+    LOGS_DIR = Path.cwd()
     # .parents[0] is dirname(f)
     # .parents[1] is dirname(dirname(f))
     BASE_DIR = Path(__file__).parents[1]
 
 # this will create <root>/logs - and thus <root> - if needed
-logger = init_logger(LOG_FILE)
+init_loggers(LOGS_DIR)
+logger = logging.getLogger('nbhosting')
+monitor_logger = logging.getLogger('monitor')
 
 ############################################################
 
@@ -45,7 +48,8 @@ logger = init_logger(LOG_FILE)
 SECRET_KEY = 'xb1ys4a$_cp5te*wk=+&5ud5)5pj9v+iykoff)juur@ift47(v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+#DEBUG = True
 
 ALLOWED_HOSTS = [
     '138.96.112.37',

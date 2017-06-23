@@ -5,7 +5,8 @@ import pprint
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 
-from nbhosting.main.settings import logger, nbhosting_settings as settings
+from nbhosting.main.settings import nbhosting_settings as settings
+from nbhosting.main.settings import logger, DEBUG
 from nbhosting.stats.stats import Stats
 
 # Create your views here.
@@ -42,13 +43,15 @@ def edx_request(request, course, student, notebook):
     # xxx probably requires a sudo of some kind here
     # for when run from apache or nginx or whatever
 
-    script = 'nbh'
-    command = [ script , 'docker-view-student-course-notebook']
-#   version with debug enabled
-#    command = [ script , '-x', 'docker-view-student-course-notebook']
-    
-    # xxx tmp; nbh driver seems to not deal with its options very gracefully
-    #command += [ '-d', root]
+    # using docker
+    subcommand = 'docker-view-student-course-notebook'
+    # build command
+    command = ['nbh', '-d', root]
+    if DEBUG:
+        command.append('-x')
+    command.append(subcommand)
+
+    # add arguments to the subcommand
     command += [ student, course, notebook_withext ]
     logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
     completed_process = subprocess.run(
@@ -86,5 +89,5 @@ def edx_request(request, course, student, notebook):
     except Exception as e:
         return error_page(
             course, student, notebook,
-            "exception when parsing output of {}<br/>{}<br/>{}"
-            .format(script, verbatim(completed_process.stdout), verbatim(e)))
+            "exception when parsing output of nbh {}<br/>{}<br/>{}"
+            .format(subcommand, verbatim(completed_process.stdout), verbatim(e)))

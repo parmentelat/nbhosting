@@ -66,16 +66,17 @@ see `fedora/etc/selinux/config`
 
 ```
 dnf -y install git emacs-nox
-dnf -y install python3 python3-django
-dnf -y install docker
 dnf -y install nginx
+dnf -y install python3 
 dnf -y install -y uwsgi uwsgi-plugin-python3
 dnf -y install -y curl
+dnf -y install docker python3-docker-py
+
+dnf -y install python3-aiohttp python3-pip
+dnf -y install python3-django
 
 pip3 install --upgrade pip setuptools
 pip3 install --upgrade Django
-pip3 install --upgrade docker
-pip3 install --upgrade aiohttp
 ```
 
 ```

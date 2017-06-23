@@ -1,17 +1,16 @@
 import logging
 import logging.config
 
-import os
+from pathlib import Path
 
-def init_logger(filename):
+def init_loggers(dir):
 
-    # in case we receive a Path
-    filename = str(filename)
-    # creating a dir in python is such a pain
-    bash = 'f="{}"; d=$(dirname $f); [ -d $d ] || mkdir -p $d'.format(filename)
-    os.system(bash)
+    # accept a path or a string
+    path = Path(dir)
+    # create if needed
+    dir.mkdir(parents=True, exist_ok=True)
 
-    logging_config = {
+    logging.config.dictConfig({
         'version' : 1,
         'disable_existing_loggers' : True,
         'formatters': { 
@@ -29,18 +28,25 @@ def init_logger(filename):
                 'level': 'INFO',
                 'class': 'logging.FileHandler',
                 'formatter': 'standard',
-                'filename' : filename,
+                'filename' : str(path / 'nbhosting.log'),
+            },
+            'monitor': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'formatter': 'standard',
+                'filename' : str(path / 'monitor.log'),
             },
         },
         'loggers': {
             'nbhosting': {
-                'handlers': ['nbhosting'],
                 'level': 'INFO',
+                'handlers': ['nbhosting'],
+                'propagate': False,
+            },
+            'monitor': {
+                'level': 'INFO',
+                'handlers': ['monitor'],
                 'propagate': False,
             },
         },
-    }
-
-    logging.config.dictConfig(logging_config)
-
-    return logging.getLogger('nbhosting')
+    })

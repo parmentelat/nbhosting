@@ -12,7 +12,9 @@ import aiohttp
 
 import docker
 
-from nbhosting.main.settings import nbhosting_settings, logger
+from nbhosting.main.settings import nbhosting_settings
+# redirect into monitor.log
+from nbhosting.main.settings import monitor_logger as logger
 from nbhosting.courses.models import CourseDir, CoursesDir
 from nbhosting.stats.stats import Stats
 
@@ -185,7 +187,7 @@ class Monitor:
 
     def run_once(self):
         try:
-            proxy = docker.from_env()
+            proxy = docker.from_env(version='auto')
             containers = proxy.containers.list(all=True)
         except Exception as e:
             logger.exception(

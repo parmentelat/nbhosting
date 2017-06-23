@@ -16,9 +16,9 @@ function refresh() {
 ########## stolen from comp-miscell.ish
 function jou-nginx()		{ jou -f nginx; }
 function jou-uwsgi()	        { jou -f nbh-uwsgi; }
+function jou-monitor()	        { jou -f nbh-monitor; }
 function jou-docker()		{ jou -f docker; }
-function jou-httpd()		{ jou -f httpd; }
-function jou-all()		{ jou -f nginx nbh-uwsgi docker httpd; }
+function jou-all()		{ jou -f nginx docker nbh-uwsgi nbh-monitor; }
 
 ##########
 function logs-nginx() {
@@ -26,7 +26,7 @@ function logs-nginx() {
 }
 
 function logs-nbhosting() {
-    -logs $(find /nbhosting*/logs -type f)
+    -logs $(find /nbhosting/logs -type f)
 }
 
 function -logs() {
@@ -40,28 +40,33 @@ function -logs() {
 
 function logs-jup() { student=$1; shift; docker logs -f flotbioinfo-x-$student; }
 
-##########
-function l1() { jou-all; }
-function l2() { logs-nginx; }
-function l3() { logs-nbhosting; }
 
-# define l
-#echo "Configure with e.g. dl 4 - then run with just l"
-function dl() {
-    n=$1; shift;
-    function l() { echo "Running $(type l$n)"; l$n; }
-}
+########################################
+[ $(type -t ls) == alias ] && unalias ls
 
-function clear-logs() {
-    files="
-/var/log/nginx/access.log
-/var/log/nginx/error.log
-/var/log/nginx/daemon
-/var/log/nbhosting/nbhosting.log
-/var/log/nbhosting/flotbioinfo/*.log
-"
-    for file in $(ls -d $files); do
-	echo clearing file $file
-	echo ==================== > $file
-    done
-}
+BTRFS=/homefs/btrfs
+
+alias r="source /tmp/aliases"
+alias cdm="cd /homefs/btrfs/machines"
+
+########## btrfs
+alias b=btrfs
+alias bv="btrfs subvolume"
+alias bvd="btrfs subvolume delete"
+alias bvl="btrfs subvolume list $BTRFS"
+
+# hybrid
+alias bs="d status-btrfs"
+
+########## driver
+alias d=/tmp/nbh
+alias ducm="d update-course-machine"
+alias ds="d spawn-container-in-course-for-student"
+alias de="d enter-spawned-container"
+
+########## spawn
+alias s=systemd-nspawn
+
+alias m=machinectl
+alias mk="machinectl kill"
+
