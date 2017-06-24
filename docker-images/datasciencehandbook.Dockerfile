@@ -1,4 +1,4 @@
-# xxx would make sense to use some fix version some day
+# trying the big image
 FROM jupyter/scipy-notebook:latest
 
 ####################

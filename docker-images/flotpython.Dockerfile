@@ -1,5 +1,7 @@
-# xxx would make sense to use some fix version some day
-FROM jupyter/scipy-notebook:latest
+# scipy is really big, let's try something smaller
+#FROM jupyter/scipy-notebook:latest
+# xxx plus, we should specify a fixed version probably
+FROM jupyter/base-notebook:latest
 
 ####################
 # for interfacing with nbhosting, we need these 2 things in all images

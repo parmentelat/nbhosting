@@ -1,5 +1,6 @@
 # scipy is really big, let's try something smaller
 #FROM jupyter/scipy-notebook:latest
+# xxx plus, we should specify a fixed version probably
 FROM jupyter/base-notebook:latest
 
 ####################
