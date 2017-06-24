@@ -6,16 +6,27 @@
 
 * ***Don't forget*** to back up SSL certificate and especially ***the private key***
 
-# Reinstallations
+# installation
 
-## iter 3 : exhibiting a mixed setup
+## Disk partitioning
 
-* Overall performance with `btrfs` are reasonable, although not outstanding
-* More benchmarks would be needed in order to compare the various options
-* Have heard of the `overlay2` docker driver on the IRC channel and all over the place
-* except that, lucky me, this won't work on btrfs
-* so in order to avoid having to reinstall all the time
-* I create 3 partitions so I can try more combinations
+### production 
+
+`nbhosting` essentially uses 2 distinct areas
+
+* `/nbhosting` to store valuable data, that can sit on any filesystem of your choice, that contains namely
+  * the students notebooks
+  * the courses notebooks (from git)
+  * logs, raw data for stats, ...
+
+* `/btrfs` : an area for docker to deploy its images; there are many options here, but  I have made successful tests with `btrfs` (see `flavours-docker/etc-sysconfig-docker.btrfs`), so I assume that we have a reasonable space dedicated to this.
+
+At first sight, on a 1Tb hdd, I would suggest to allocate about 50-50 to these 2 areas; in theory the copy-on-write scheme used by docker avoids the need for much space in `/btrfs/` but still, several tens of Mb per student for logs only is to be expected
+
+
+### devel setup
+
+in my devel setup the `btrfs` partition was `/homefs/btrfs` because I have been running with several partitions to play with the different docker schemes:
 
 ```
 [root@thermals ssl-certificate]# df -h | grep /homefs
@@ -23,34 +34,6 @@
 /dev/sda7       359G   17M  357G   1% /homefs/btrfs
 /dev/sda2       321G   69M  305G   1% /homefs/ext4
 ```
-
-## iter 2 : using btrfs
-
-* It is **crucial to use `btrfs`** and ***NOT LVM*** - at any rate!
-* I am repeating the process on Jan. 26 2017
-* mostly because the first setup was running **on top of LVM** which induced this message by docker
-
-```
-Jan 26 11:34:40 <snip> level=warning msg="devmapper: Usage of loopback devices is strongly discouraged for production use. Please use `--storage-opt dm.thinpooldev`  or use `man docker` to refer ....
-```
-
-* as well as, most importanty, numerous errors while trying to rm a docker instance, like 
-
-```
-Driver devicemapper failed to remove root filesystem 57fd75dc922b806cfff034b571388066da807e0712f80014e799331217377828: Device is Busy
-```
-
-* we don't need LVM indeed since we already have RAID underneath, so ext4 sounds about right
-
-## iter 1 - LVM
-* jan 9 2017
-* fedora 25 - server
-* not paid too much attention, ended up with the standard LVM setup
-* turned off sshd password auth in `/etc/ssh/sshd_config`
-* turn off f... selinux: 
-  * the `SELINUX=disabled` option is configured in `/etc/selinux/config`
-  * [see also this page](http://stackoverflow.com/questions/26334526/nginx-cant-access-a-uwsgi-unix-socket-on-centos-7) in particular the location for the interesting log `/var/log/audit/audit.log`
-
 
 # config
 
@@ -62,43 +45,7 @@ see `fedora/etc/sysconfig/iptables`
 
 see `fedora/etc/selinux/config`
 
-## packages
-
-```
-dnf -y install git emacs-nox
-dnf -y install nginx
-dnf -y install python3 
-dnf -y install -y uwsgi uwsgi-plugin-python3
-dnf -y install -y curl
-dnf -y install docker python3-docker-py
-
-dnf -y install python3-aiohttp python3-pip
-dnf -y install python3-django
-
-pip3 install --upgrade pip setuptools
-pip3 install --upgrade Django
-```
-
-```
-[root@thermals sysconfig]# rpm -q docker nginx uwsgi
-docker-1.12.6-5.git037a2f5.fc25.x86_64
-nginx-1.10.2-1.fc25.x86_64
-uwsgi-2.0.14-3.fc25.x86_64
-
-[root@thermals ~]# python3 --version
-Python 3.5.2
-
-[root@thermals ~]# python3 -c 'import django; print(django.__version__)'
-1.11
-```
-
-***NOTE*** Be careful to **not** install python3-django from rpm as this would give you 1.9 and the code would break.
-
 ## services
-
-### nbhosting services
-
-***This now is taken care of by `install.sh` ***
 
 ### iptables vs firewalld
 
@@ -110,10 +57,43 @@ systemctl enable iptables.service
 
 of course **reboot as needed** (esp. regarding selinux)
 
+# packages / dependencies
+
+### IMPORTANT NOTES about python libraries
+
+* ***NOTE*** Be careful to **not** install `python3-django` from rpm as this would give you 1.9 and the code would break.
+
+* See `capture-versions.sh`  and files named `VERSIONS*` that give more details of what was running on nominal deployments, and on the actual split between what was installed with `dnf` and what comes from `pip`
+
+```
+dnf -y install git emacs-nox curl
+
+dnf -y install python3 
+dnf -y install -y uwsgi uwsgi-plugin-python3
+pip3 install --upgrade pip setuptools
+pip3 install --upgrade Django
+
+# see VERSIONS for python libraries
+```
+
+****
+
+# Comfort
+
+Some additions of mine to feel a little more at home:
+
+```
+cd
+git clone git://diana.pl.sophia.inria.fr/diana.git
+diana/bash/install.sh -b 5 systemd
+echo 'alias nbha=nbh-admin' >> .bash-private.ish
+echo source /root/nbhosting/zz-devel/logaliases >> .bash-private.ish
+```
+
 ****
 # App install
 
-## Initial install
+## initial install
 
 ```
 cd /root
@@ -133,7 +113,7 @@ python3 manage.py createsuperuser
 ```
 
 
-## Updates
+## update to a more recent version
 
 ```
 cd /root/nbhosting
@@ -145,42 +125,94 @@ git pull
 
 # Install courses
 
-## Initialisation (item 1 : pull from git)
+```
+nbh --help
+```
+## initialisation (item 1 : pull from git)
 
 * Create a course (the git repo in fact) in `/nbhosting/courses-git/flotbioinfo/`
 
 ```
-nbh-init-course /nbhosting flotbioinfo https://github.com/parmentelat/flotbioinfo.git
+nbh init-course flotbioinfo https://github.com/parmentelat/flotbioinfo.git
 ```
 
-## Updates (item 2 : update notebook master area from git)
+## updates (item 2 : update notebook master area from git)
 
 * For now this **needs to be done at least one**, as it will create the actual course notebooks master area in `/nbhosting/courses/flotbioinfo`
 
 ```
-nbh-update-course /nbhosting flotbioinfo
+nbh update-course-from-git course flotbioinfo
 ```
 
-## Image (item 3 : build image for course)
+## image (item 3 : build image for course)
 
 * This assumes a dockerfile has been created for that course
 
 ```
-# first 2 optional - will be pulled if needed
-#docker pull jupyter/scipy-notebook
-#docker pull jupyter/base-notebook
 cd /root/nbhosting/docker-images
 make flotbioinfo
 ```
 
+## settings (optional)
+
+### what ?
+
+There are a few settings available for a course; as of this writing:
+
+* docker image name to use; the default is the coursename, so `flotbioinfo` looks for image `flotbioinfo`; however you could also create flotpython-session1 that uses image `flotpython`
+
+* list of static dirs; the default here is `media` and `data` which are the conventions hard-wired in the previous notebook hosting system; when trying to deploy 'Data Science Handbook' it appeared that this should be configurable
+
+### how ?
+
+These settings are stored in e.g.
+
+* `/nbhosting/courses/flotbioinfo/.statics`
+* `/nbhosting/courses/flotbioinfo/.image`
+
+that can be edited directly, or be changed with `nbh course-settings --help`
+
+### when ?
+
+The settings are used at **container-creation** time; meaning that if a student has come at least once, her container exists and the course settings will be mostly ignored.
+
+Same goes of course if a chnge is made to the course image (like, adding a python library). 
+
+This being said, a stopped container can be safely removed manually, causing it to be re-created the next time a student shows up. But tearing down thousands of containers can be time-consuming and create a big load on the box.
+
+
 ****
 
-# comfort
+# Ops
 
-```
-cd
-git clone git://diana.pl.sophia.inria.fr/diana.git
-diana/bash/install.sh -b 5 systemd
-echo 'alias nbha=nbh-admin' >> .bash-private.ish
-echo source /root/nbhosting/zz-devel/logaliases >> .bash-private.ish
-```
+## services
+
+as far as `systemd` and `journactl` are concerned:
+
+* `nginx`
+  * fedora's nginx service as-is
+* `nbh-uwsgi`
+  * the django app runs inside nginx through uwsgi
+* `nbh-monitor`
+  * monitor performs housecleaning (kill idle containers), and on the side also gathers raw data for statistics
+
+## logs
+
+Additional logs go into
+
+* `/nbhosting/logs/nbhosting.log`
+* `/nbhosting/logs/monitor.log`
+* `/var/log/nginx/{error,acces}.log`
+* also each docker container can be probed for its logs
+  * `docker logs flotbioinfo-x-theimpossibletorememberstudentid`
+
+## visual stats
+
+* https://nbhosting.inria.fr/nbh/ is the - very rough - front-end for the django app
+* it targets only the admin of course, and the login/passwd for the admin user was created above (see `manage.py createsuperuser`)
+* main page is `https://nbhosting.inria.fr/nbh/courses`; each course comes with its stats page; probably subject to changes, so you'd better see for yourself, but as of now:
+  * number of registered students 
+  * number of notebooks read
+  * number of containers/kernels
+  * disk space
+  * cpu load

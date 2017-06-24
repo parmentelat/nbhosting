@@ -3,6 +3,9 @@
 #
 # aliases : developer helper functions to inspect various logs 
 #
+# NOTE: jou and similar convenience are from the 'systemd'
+# component in that diana bash helper repo
+#
 
 here=$(dirname $(readlink -f $BASH_SOURCE))
 
