@@ -121,10 +121,6 @@ git pull
 ./install.sh
 ```
 
-**NOTE** I need to double-check this, but install.sh very probably restarts the docker service; which in turn, will restart **all containers**, so it's very intrusive.
-
-I might have to provide an option to this less aggressively, but in devel mode that's how I do it.
-
 ****
 
 # Install courses
