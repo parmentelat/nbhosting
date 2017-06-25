@@ -46,6 +46,13 @@ function update-uwsgi() {
     rsync $rsopts  uwsgi/nbhosting.ini /etc/uwsgi.d/
 }
 
+function update-assets() {
+    local root=/var/nginx/nbhosting
+    mkdir -p $root
+    rsync $rsopts nbhosting/assets/ $root/assets/
+    chown -R nginx:nginx $root
+}
+
 function update-nginx() {
     rsync $rsopts nginx/nginx.conf /etc/nginx/
     rsync $rsopts nginx/nbhosting.conf /etc/nginx/conf.d/
@@ -73,8 +80,9 @@ function default-main() {
     update-python-libraries
     update-bins
     update-jupyter
-
     update-uwsgi
+    update-assets
+    
     update-nginx
     enable-services
     restart-services
