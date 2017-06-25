@@ -52,9 +52,10 @@ fi
 # go to the place 
 [ -d $dir ] || { printf "$0: no such directory $dir"; exit 1; }
 cd $dir
-# doing chown -R looks overkill,
-# as essentially all the contents is bind-mounted anyway
-chown $uid .
+# doing chown -R is overkill, and in fact a substantial fraction
+# of the contents is bind-mounted anyway
+# so instead we spot the files that are on the same filesystem
+find . -mount | xargs chown $uid
 
 ##########
 # use runuser, that will pass the environment as-is
