@@ -1,1 +1,3 @@
 *.pyc
+infra-florian/*
+tests/artefacts*
