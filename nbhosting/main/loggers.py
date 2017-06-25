@@ -12,7 +12,7 @@ def init_loggers(dir):
 
     logging.config.dictConfig({
         'version' : 1,
-        'disable_existing_loggers' : True,
+        'disable_existing_loggers' : False,
         'formatters': { 
             'standard': { 
                 'format': '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s',
@@ -25,13 +25,11 @@ def init_loggers(dir):
         },
         'handlers': {
             'nbhosting': {
-                'level': 'INFO',
                 'class': 'logging.FileHandler',
                 'formatter': 'standard',
                 'filename' : str(path / 'nbhosting.log'),
             },
             'monitor': {
-                'level': 'INFO',
                 'class': 'logging.FileHandler',
                 'formatter': 'standard',
                 'filename' : str(path / 'monitor.log'),

@@ -12,8 +12,9 @@ def main():
                         help="grace timeout in minutes - kill containers idle more than that")
     parser.add_argument("-p", "--period", default=10, type=int,
                         help="monitor period in minutes - how often are checks performed")
+    parser.add_argument("-d", "--debug", action='store_true', default=False)
     args = parser.parse_args()
-    monitor = Monitor(60 * args.grace, 60 * args.period)
+    monitor = Monitor(60 * args.grace, 60 * args.period, args.debug)
     monitor.run_forever()
 
 

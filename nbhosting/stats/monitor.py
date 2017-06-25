@@ -6,6 +6,7 @@ import calendar
 import json
 from pathlib import Path
 import subprocess
+import logging
 
 import asyncio
 import aiohttp
@@ -42,16 +43,16 @@ class CourseFigures:
         self.running_containers = 0
         self.running_kernels = 0
 
-    def count_container(self, running: bool):
+    # to avoid counting kernels in containers that get killed
+    # we count updateboth counters at the same time
+    # of course nb_kernels is meaningful only if running is True
+    def count_container(self, running: bool, nb_kernels: int = 0):
         if running:
             self.running_containers += 1
+            self.running_kernels += nb_kernels
         else:
             self.frozen_containers += 1
 
-    def count_kernels(self, count):
-        self.running_kernels += count
-
-        
 class MonitoredJupyter:
 
     # container is an instance of
@@ -65,10 +66,14 @@ class MonitoredJupyter:
         self.course = course
         self.student = student
         self.figures = figures
+        self.nb_kernels = None
 
     def __str__(self):
-        return "[Jupyter {}]".format(self.name)
+        return "container {} [{}k]".format(self.name, self.nb_kernels)
 
+    # docker containers have a value 'name', so it's confusing
+    # to access it through a method
+    @property
     def name(self):
         return self.container.name
 
@@ -83,7 +88,7 @@ class MonitoredJupyter:
 
     async def count_running_kernels(self):
         """
-        updates
+        updates:
         * self.figures with number of running kernels
         * self.last_activity - a epoch/timestamp/nb of seconds
           may be None if using an old jupyter
@@ -92,14 +97,13 @@ class MonitoredJupyter:
         if not port:
             return
         url = "http://localhost:{}/api/kernels?token={}"\
-            .format(port, self.name())
+            .format(port, self.name)
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     json_str = await response.text()
             api_kernels = json.loads(json_str)
-            nb_kernels = len(api_kernels)
-            self.figures.count_kernels(nb_kernels)
+            self.nb_kernels = len(api_kernels)
 
             # jupyter 4 would not return this field
             # if with jupyter-5: look for the last_activity
@@ -109,7 +113,9 @@ class MonitoredJupyter:
             # filter out the ones that don't have it
             lasts = [last for last in lasts if last]
             # all kernels should have the flag
-            if len(lasts) != nb_kernels:
+            if len(lasts) != self.nb_kernels:
+                logger.debug("mismatch found {} last activities for {} kernels"
+                             .format(len(lasts), self.nb_kernels))
                 self.last_activity = None
             else:
                 # compute overall last activity across kernels
@@ -121,18 +127,17 @@ class MonitoredJupyter:
                 ]
                 # if times is empty (no kernel): no activity
                 self.last_activity = max(times, default=0)
-                logger.debug("Found J5 last activity = {} with container {}"
-                             .format(self.last_activity, self.name()))
+                logger.debug("Found J5 last activity = {} with {}"
+                             .format(self.last_activity, self))
                 
         except Exception as e:
             logger.exception("Cannot probe number of kernels in {} - {}: {}"
-                             .format(self.name(), type(e), e))
+                             .format(self, type(e), e))
             self.last_activity = None
 
 
     async def co_run(self, grace):
         root = Path(nbhosting_settings['root'])
-        name = self.container.name
         # stopped containers are useful only for statistics
         if self.container.status != 'running':
             self.figures.count_container(False)
@@ -143,15 +148,15 @@ class MonitoredJupyter:
         # to get that info
         if not self.last_activity:
             logger.warning("Using jupyter4 method - i.e. using .monitor stamp"
-                           "- with container {}".format(self.name()))
+                           " - with {}".format(self))
             try:
                 stamp = root / "students" / self.student / self.course / ".monitor"
                 self.last_activity = stamp.stat().st_mtime
-                logger.debug("Found J4 last activity = {} with container {}"
-                             .format(self.last_activity, self.name()))
+                logger.debug("Found J4 last activity = {} with {}"
+                             .format(self.last_activity, self))
             except FileNotFoundError as e:
-                logger.info("container {} has no .monitor stamp - ignoring"
-                            .format(name))
+                logger.info("{} has no .monitor stamp - ignoring"
+                            .format(self))
                 return
         # check there has been activity in the last <grace> seconds
         last = self.last_activity
@@ -160,11 +165,11 @@ class MonitoredJupyter:
         idle_minutes = (now - last) // 60
         if last > grace_past:
             logger.debug("sparing {} that had activity {}' ago"
-                         .format(name, idle_minutes))
-            self.figures.count_container(True)
+                         .format(self, idle_minutes))
+            self.figures.count_container(True, self.nb_kernels)
         else:
-            logger.info("container {} has been {} mn idle - killing"
-                        .format(name, idle_minutes))
+            logger.info("{} has been idle for {} mn - killing"
+                        .format(self, idle_minutes))
             # not sure what signal would be best ?
             self.container.kill()
             # this counts for one dead container
@@ -174,7 +179,7 @@ class MonitoredJupyter:
 
 class Monitor:
 
-    def __init__(self, grace, period):
+    def __init__(self, grace, period, debug):
         """
         All times in seconds
 
@@ -184,28 +189,34 @@ class Monitor:
         """
         self.grace = grace
         self.period = period
+        if debug:
+            logger.setLevel(logging.DEBUG)
 
     def run_once(self):
+
+        # initialize all known courses - we want data on courses
+        # even if they don't yet run containers 
+        logger.debug("scanning courses")
+        courses = CoursesDir().coursenames()
+        figures_per_course = { course: CourseFigures() 
+                               for course in courses}
+
         try:
             proxy = docker.from_env(version='auto')
+            logger.debug("scanning containers")
             containers = proxy.containers.list(all=True)
         except Exception as e:
             logger.exception(
                 "Cannot gather containers list at the docker daemon - skipping")
             return
 
-        # initialize all known courses - we want data on courses
-        # even if they don't yet run containers 
-        courses = CoursesDir().coursenames()
-        figures_per_course = { course: CourseFigures() 
-                               for course in courses}
-
         # a list of async futures
         futures = []
         for container in containers:
             try:
                 name = container.name
-                logger.debug("monitoring container {}".format(name))
+                # too much spam ven in debug mode
+                # logger.debug("dealing with container {}".format(name))
                 course, student = name.split('-x-')
                 figures_per_course.setdefault(course, CourseFigures())
                 figures = figures_per_course[course]
@@ -215,11 +226,11 @@ class Monitor:
             except ValueError as e:
                 # ignore this container as we don't even know
                 # in what course it
-                logger.info("ignoring non-nbhosting container {}"
-                            .format(name))
+                logger.info("ignoring non-nbhosting {}"
+                            .format(container))
             except Exception as e:
-                logger.exception("ignoring container {} in monitor - unexpected exception"
-                                 .format(name))
+                logger.exception("ignoring {} in monitor - unexpected exception"
+                                 .format(container))
         # ds stands for disk_space
         docker_root = proxy.info()['DockerRootDir']
         nbhosting_root = nbhosting_settings['root']
