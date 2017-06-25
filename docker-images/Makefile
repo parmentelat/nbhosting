@@ -1,4 +1,4 @@
-IMAGES = flotbioinfo flotpython datasciencehandbook 
+IMAGES = flotpython flotbioinfo datasciencehandbook 
 
 all: $(IMAGES)
 

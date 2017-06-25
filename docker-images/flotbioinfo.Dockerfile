@@ -3,13 +3,14 @@
 # xxx plus, we should specify a fixed version probably
 FROM jupyter/base-notebook:latest
 
+
 ####################
-# for interfacing with nbhosting, we need these 2 things in all images
+# for interfacing with nbhosting, we need this startup script in all images
 # and we need to be root again for installing stuff
 ####################
 USER root
-RUN apt-get update && apt-get install sudo
 COPY start-in-dir-as-uid.sh /usr/local/bin
+
 
 ####################
 # how to install additional packages to the underlying python
@@ -21,6 +22,7 @@ COPY start-in-dir-as-uid.sh /usr/local/bin
 # but we might want to run python3
 RUN conda install -y mpld3
 
+
 ####################
 # appearance and behaviour of jupyter itself
 ####################
@@ -30,7 +32,7 @@ RUN conda install -y mpld3
 # Sylvain Corlay said he would help in fixing this someday
 RUN jupyter nbextension disable jupyter-js-widgets/extension
 
+
 # (2) disable check done when saving files
 # see https://github.com/jupyter/notebook/issues/484
 RUN find /opt /usr -name notebook.js | grep static/notebook/js/notebook.js | xargs sed -i -e 's,if (check_last_modified),if (false),'
-

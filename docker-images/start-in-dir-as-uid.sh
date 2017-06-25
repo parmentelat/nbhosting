@@ -52,11 +52,14 @@ fi
 # go to the place 
 [ -d $dir ] || { printf "$0: no such directory $dir"; exit 1; }
 cd $dir
-# doing chown -R looks overkill, essentially all the contents is
-# bind-mounted anyway
+# doing chown -R looks overkill,
+# as essentially all the contents is bind-mounted anyway
 chown $uid .
 
-# su is such a pain, let's use sudo instead
-# it may add a requirement on the image
-echo $0 executes "$@" as uid "$uid" in $(pwd)
-exec sudo -E -u $login env PATH="$PATH" PYTHONPATH="$PYTHONPATH" "$@"
+##########
+# use runuser, that will pass the environment as-is
+# only need to tweak HOME just in case
+##########
+echo $0 exec-ing "$@" as uid "$uid" in $(pwd)
+
+exec runuser --user $login -- env HOME=/home/jovyan "$@"
