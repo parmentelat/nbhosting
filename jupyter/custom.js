@@ -1,14 +1,18 @@
+"use strict";
+
 define([
     'base/js/namespace',
     'base/js/events'
 ], function(Jupyter, events) {
 
-    //////////////////////////////////////////////////
-    events.on('app_initialized.NotebookApp', function() {
+    console.log("loading nbh custom.js");
 
-	console.log("custom.js for mooc embedding: entering app_initialized");
+    //////////////////////////////////////////////////
+    let hack_header_for_nbh = function(Jupyter) {
+
+	console.log("custom.js for nbh embedding: entering hack_header_for_nbh");
 	// not truly useful, just a test indeed
-	// this is because the menubar does not exactyl stand out
+	// this is because the menubar does not exactly stand out
 	
 	//// first horizontal area (including name)
 	$("div#header-container").hide();
@@ -66,25 +70,22 @@ define([
 	$("p#kernel_indicator").hide();
 	// move stuff from first (originally upper, then left) area
 	// to second (lower, then right) area
-	var last_button_group = $("div#maintoolbar-container>div:last-child");
-	var ids_to_move = ['kernel_indicator', 'readonly-indicator',
+	let last_button_group = $("div#maintoolbar-container>div:last-child");
+	let ids_to_move = ['kernel_indicator', 'readonly-indicator',
 			   'modal_indicator', 'notification_area'];
-	for (i in ids_to_move) {
-	    var id=ids_to_move[i];
+	for (let id of ids_to_move) {
 	    last_button_group.after($("#"+id));
 	}
-	    
-	
 
 	//////////
-	console.log("custom.js for mooc embedding: exiting app_initialized");
-    });
+	console.log("custom.js for nbh embedding: exiting hack_header_for_nbh");
+    }
 
     // set this aside - from benjamin's code
     // it's kind of working but too intrusive
     // this html needs to be injected, not to replace 
-    var update_metadata = function(Jupyter) {
-	console.log("showing notebook metadata");
+    let update_metadata = function(Jupyter) {
+	console.log("showing notebook metadata like notebookname");
 	var notebook = Jupyter.notebook;
 	var notebookmeta = "";
 	if(notebook.metadata.notebookname)  
@@ -96,11 +97,10 @@ define([
 	$(notebookmetadiv).insertBefore($("#menubar"))
     }
 
-    var inactivate_non_code_cells = function(Jupyter) {
+    let inactivate_non_code_cells = function(Jupyter) {
 	console.log("custom.js : inactivating non-code cells");
-	var cells = Jupyter.notebook.get_cells();
-	for(var i in cells){
-	    var cell = cells[i];
+	let cells = Jupyter.notebook.get_cells();
+	for(let cell of cells){
 	    if (!(cell instanceof Jupyter.CodeCell)) {
 		cell.code_mirror.setOption('readOnly', 'nocursor'); 
 	    }
@@ -111,28 +111,23 @@ define([
     // 2 minutes is a long time if you know that the server
     // can be killed at any time; observed as being 120000 on my mac
     // so it sounds like milliseconds
-    var speed_up_autosave = function(Jupyter) {
-	IPython.notebook.minimum_autosave_interval = 20000;
+    let speed_up_autosave = function(Jupyter) {
+	IPython.notebook.minimum_autosave_interval = 30000;
     }
 
     // this might sound like a good idea but needs more checking
-    var redefine_enter_in_command_mode = function(Jupyter) {
+    let redefine_enter_in_command_mode = function(Jupyter) {
 	console.log("redefining the Enter key in command mode");
 	Jupyter.keyboard_manager.command_shortcuts.add_shortcut(
 	    'Enter', "jupyter-notebook:run-cell-and-select-next")
     }
     
-    //////////////////////////////////////////////////
-    events.on('notebook_loaded.Notebook', function(){
-	console.log("custom.js for mooc embedding: entering notebook_loaded");
-	$('body.notebook_app').show();
-	update_metadata(Jupyter);
-	inactivate_non_code_cells(Jupyter);
-	speed_up_autosave(Jupyter);
+    // run the parts
+    hack_header_for_nbh(Jupyter);
+    /*$('body.notebook_app').show();*/
+    update_metadata(Jupyter);
+    inactivate_non_code_cells(Jupyter);
+    speed_up_autosave(Jupyter);
 //	redefine_enter_in_command_mode(Jupyter);
-	
-	//////////
-	console.log("custom.js for mooc embedding: exiting notebook_loaded");
-    });
-  
-});
+
+})
