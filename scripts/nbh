@@ -458,8 +458,7 @@ function add-student-in-course() {
     # course name
     local course=$1; shift
 
-    -echo-stderr $FUNCNAME "$@"
-    -echo-stderr running in $(pwd) as $(id)
+    -echo-stderr $FUNCNAME $student $course - in $(pwd) as $(id)
 
     # create students root if not yet present
     [ -d $NBHROOT/students ] || mkdir -p $NBHROOT/students
@@ -547,16 +546,9 @@ function check-student-notebook-for-course() {
 # the student is expected to have been created with enroll-student-in-course
 # beforehand (so the unix account and homedir exists)
 #
-# returns 0 for OK (the container is successfully created)
-# and 1 otherwise
-# also it writes on stdout an action 'created' or 'existing'
-# 
-# in this implem, container is the same as the underlying login name
-#
-
-# write on stdout either
-# created
-# existing
+# write on stdout a single action word that is either
+# * stage1 action=created
+# * stage1 action=existing
 @declare-subcommand create-docker-container-for-student-in-course
 function create-docker-container-for-student-in-course() {
     local USAGE="Usage: $COMMAND $FUNCNAME container student course"
@@ -653,7 +645,7 @@ function create-docker-container-for-student-in-course() {
 	>&2 $command
     fi
 
-    -echo-stderr create-docker-container-for-student-in-course writes action=$action
+    -echo-stderr $FUNCNAME writes action=$action
     echo $action
     return 0
 }
@@ -728,6 +720,13 @@ function -wait-for-http-on-port-token() {
 # we create the container with docker create -p 8888
 # this way the container can be stopped and then restarted
 # with a fresh (unused) port each time
+#
+# possible resulting values for action
+# * stage2 action=failed-unknown-container
+# * stage2 action=failed-timeout
+# * stage2 action=running
+# * stage2 action=restarted
+
 @declare-subcommand start-docker-container
 function start-docker-container() {
     local USAGE="Usage: $COMMAND $FUNCNAME container"
@@ -746,7 +745,7 @@ function start-docker-container() {
     # check if container container is already defined
     if ! docker inspect --format "{{.Name}}" $container >& /dev/null; then
 	-echo-stderr "INTERNAL error: cannot start non-existent container $container"
-	action="no-such-container"
+	action="failed-unknown-container"
 	echo $action $container 0 none
 	return
     fi
@@ -771,7 +770,13 @@ function start-docker-container() {
     # wait until the service actually serves HTTP requests
     # we need to do this only if we have just started it
     if [ "$running" != "true" ]; then
-	-wait-for-http-on-port-token $docker_port $jupyter_token $timeout_wait_for_http
+	-wait-for-http-on-port-token \
+	    $docker_port $jupyter_token $timeout_wait_for_http || {
+	    # show docker logs on stderr
+	    -echo-stderr "==================== dockers logs on that container over the last 2 minutes"
+	    >&2 docker logs -t --since +2m $container
+	    action="failed-timeout"
+	}
     fi
 
     # this is the only thing that goes on stdout
@@ -783,6 +788,8 @@ function start-docker-container() {
 
 
 # wrapper - single entry point to edxfront.views
+# possible values for returned action
+# 
 @declare-subcommand docker-view-student-course-notebook
 function docker-view-student-course-notebook() {
     local USAGE="Usage: $COMMAND $FUNCNAME student course notebook"
@@ -815,9 +822,14 @@ function docker-view-student-course-notebook() {
     local port=$(cut -d' ' -f3 <<< $line2)
     local token=$(cut -d' ' -f4 <<< $line2)
 
-    case $action1 in
-	created) action=$action1;;
-	*) action=$action2;;
+    case $action2 in
+	failed*)
+	    action=$action2;;
+	*)
+	    case $action1 in
+		created) action=$action1;;
+		*) action=$action2;;
+	    esac;;
     esac
     echo $action $container $port $token
 

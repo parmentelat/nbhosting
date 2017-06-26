@@ -11,27 +11,18 @@ from nbhosting.stats.stats import Stats
 
 # Create your views here.
 
-def error_page(course, student, notebook, message=None):
-    html = ""
-    html += "<h1>nbhosting internal error</h1>"
-    html += "<p>"
-    html += "Error for course {} with student {}"\
-            .format(course, student)
-    html += "<br/>"
-    html += "Notebook was {}".format(notebook)
-    if message:
-        html += "<br/>"
-        html += message
-    html += "</p>"
-    return HttpResponse(html)
+def error_page(request, course, student, notebook, message=None):
+    env = locals()
+    return render(request, "error.html", locals())
 
-def verbatim(text):
-    return "<pre><code>{}</code></pre>".format(text)
-
-def log_completed_process(cp):
-    for field in ('returncode', 'stdout', 'stderr'):
-        logger.info("proc returned <- {}={}"
-                    .format(field, pprint.pformat(getattr(cp, field, 'undef'))))
+def log_completed_process(cp, subcommand):
+    header = "{} {}".format(10 * '=', subcommand)
+    logger.info("{} returned ==> {}".format(header, cp.returncode))
+    for field in ('stdout', 'stderr'):
+        text = getattr(cp, field, 'undef')
+        if text:
+            logger.info("{} - {}".format(header, field))
+            logger.info(text)
 
 # the main edxfront entry point
 def edx_request(request, course, student, notebook):
@@ -57,16 +48,30 @@ def edx_request(request, course, student, notebook):
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    log_completed_process(completed_process)
+    log_completed_process(completed_process, subcommand)
 
     if completed_process.returncode != 0:
+        message = "command {} returned {}\nstderr:{}"\
+                  .format(" ".join(command),
+                          completed_process.returncode,
+                          completed_process.stderr)
         return error_page(
-            course, student, notebook,
-            "command {} returned {}<br/>stderr:{}"
-            .format(" ".join(command), completed_process.returncode,
-                    verbatim(completed_process.stderr)))
+            request, course, student, notebook, message)
+
     try:
         action, docker_name, actual_port, jupyter_token = completed_process.stdout.split()
+
+        if action.startswith("failed"):
+            message = ("failed to spawn notebook container\n"
+                       "command {}\nreturned with retcod={} action={}\n"
+                       "stdout:{}\n"
+                       "stderr:{}").format(
+                           " ".join(command), completed_process.returncode, action,
+                           completed_process.stdout,
+                           completed_process.stderr)
+            return error_page(
+                request, course, student, notebook, message)
+
         # remember that in events file for statistics
         Stats(course).record_open_notebook(student, notebook, action, actual_port)
         # redirect with same proto (http or https) as incoming 
@@ -87,7 +92,7 @@ def edx_request(request, course, student, notebook):
         return HttpResponseRedirect(url)           
 
     except Exception as e:
+        message = "exception when parsing output of nbh {}\n{}\n{}"\
+                  .format(subcommand, completed_process.stdout, e)
         return error_page(
-            course, student, notebook,
-            "exception when parsing output of nbh {}<br/>{}<br/>{}"
-            .format(subcommand, verbatim(completed_process.stdout), verbatim(e)))
+            request, course, student, notebook, message)

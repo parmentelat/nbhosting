@@ -55,12 +55,16 @@ cd $dir
 # doing chown -R is overkill, and in fact a substantial fraction
 # of the contents is bind-mounted anyway
 # so instead we spot the files that are on the same filesystem
+echo ======================================== checking for permissions in $dir
 find . -mount | xargs chown $uid
+echo after chwown
+find . -mount | xargs ls -ld
 
 ##########
 # use runuser, that will pass the environment as-is
 # only need to tweak HOME just in case
 ##########
-echo $0 exec-ing "$@" as uid "$uid" in $(pwd)
+echo $0 exec-ing as uid "$uid" in $(pwd)
+echo "$@"
 
 exec runuser --user $login -- env HOME=/home/jovyan "$@"
