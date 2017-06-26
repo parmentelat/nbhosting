@@ -79,7 +79,7 @@ class Artefact:
     def filename(self, msg):
         self.mkdir()
         ext = "png" if self.kind == "screenshot" else "txt"
-        latest = self.path / "{user}-{course}-{index}-{kind}-{msg}.{ext}"\
+        latest = self.path / "{user}-{course}-{index}-{msg}.{ext}"\
                      .format(**locals(), **self.__dict__)
         # keep only the last file in one series
         if self.last is not None:
