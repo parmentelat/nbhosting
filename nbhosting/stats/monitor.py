@@ -49,7 +49,8 @@ class CourseFigures:
     def count_container(self, running: bool, nb_kernels: int = 0):
         if running:
             self.running_containers += 1
-            self.running_kernels += nb_kernels
+            # nb_kernels may be None
+            self.running_kernels += (nb_kernels or 0)
         else:
             self.frozen_containers += 1
 
