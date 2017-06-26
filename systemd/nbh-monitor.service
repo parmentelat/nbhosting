@@ -12,7 +12,7 @@ Description=cyclic job that collects system and course data, and kills container
 # in devel mode we use shorter settings than the defaults
 [Service]
 Environment=PYTHONPATH=/root/nbhosting/nbhosting
-ExecStart=/bin/bash -c "python3 /usr/bin/nbh-monitor --period 15 --grace 15"
+ExecStart=/bin/bash -c "python3 /usr/bin/nbh-monitor --period 15 --grace 30"
 
 [Install]
 WantedBy=multi-user.target
