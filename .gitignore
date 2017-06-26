@@ -1,3 +1,8 @@
 *.pyc
 infra-florian/*
 tests/artefacts*
+build/
+db.sqlite3
+dist/
+nbhosting.egg-info/
+uwsgi/nbhosting.ini
