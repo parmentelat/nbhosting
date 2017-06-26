@@ -5,12 +5,13 @@ define([
     'base/js/events'
 ], function(Jupyter, events) {
 
-    console.log("loading nbh custom.js");
+    let header = "nbh's custom.js"
+    
+    console.log(`${header} loading`);
 
     //////////////////////////////////////////////////
     let hack_header_for_nbh = function(Jupyter) {
 
-	console.log("custom.js for nbh embedding: entering hack_header_for_nbh");
 	// not truly useful, just a test indeed
 	// this is because the menubar does not exactly stand out
 	
@@ -59,7 +60,7 @@ define([
 	$("div#move_up_down").hide();
 	// cell type (markdown, code, etc..)
 	$("select#cell_type").hide();
-	// "run the command palette"
+	// run the command palette
 	$("#maintoolbar>div>div>div:nth-child(7)").hide();
 	// celltoolbar
 	$("#maintoolbar>div>div>div:nth-child(8)").hide();
@@ -74,31 +75,29 @@ define([
 	let ids_to_move = ['kernel_indicator', 'readonly-indicator',
 			   'modal_indicator', 'notification_area'];
 	for (let id of ids_to_move) {
-	    last_button_group.after($("#"+id));
+	    last_button_group.after($(`#${id}`));
 	}
 
 	//////////
-	console.log("custom.js for nbh embedding: exiting hack_header_for_nbh");
     }
 
     // set this aside - from benjamin's code
     // it's kind of working but too intrusive
     // this html needs to be injected, not to replace 
     let update_metadata = function(Jupyter) {
-	console.log("showing notebook metadata like notebookname");
-	var notebook = Jupyter.notebook;
-	var notebookmeta = "";
-	if(notebook.metadata.notebookname)  
+	console.log(`${header} showing notebook metadata like notebookname`);
+	let notebook = Jupyter.notebook;
+	let notebookmeta = "";
+	if (notebook.metadata.notebookname)  
 	    notebookmeta = notebook.metadata.notebookname;
-	if(notebook.metadata.version)
-	    notebookmeta+=" v"+notebook.metadata.version;
-	var notebookmetadiv = '<span class="metadata-bar">'
-	    + notebookmeta + '</span>' ;
+	if (notebook.metadata.version)
+	    notebookmeta += ` v${notebook.metadata.version}`;
+	let notebookmetadiv = `<span class="metadata-bar">${notebookmeta}</span>`;
 	$(notebookmetadiv).insertBefore($("#menubar"))
     }
 
     let inactivate_non_code_cells = function(Jupyter) {
-	console.log("custom.js : inactivating non-code cells");
+	console.log(`${header} inactivating non-code cells`);
 	let cells = Jupyter.notebook.get_cells();
 	for(let cell of cells){
 	    if (!(cell instanceof Jupyter.CodeCell)) {
@@ -113,18 +112,18 @@ define([
     // so it sounds like milliseconds
     let speed_up_autosave = function(Jupyter) {
 	IPython.notebook.minimum_autosave_interval = 30000;
+	console.log(`${header} speed up autosave -> ${IPython.notebook.minimum_autosave_interval/1000}s`)
     }
 
     // this might sound like a good idea but needs more checking
     let redefine_enter_in_command_mode = function(Jupyter) {
-	console.log("redefining the Enter key in command mode");
+	console.log(`${header} redefining Enter key in command mode`);
 	Jupyter.keyboard_manager.command_shortcuts.add_shortcut(
 	    'Enter', "jupyter-notebook:run-cell-and-select-next")
     }
     
     // run the parts
     hack_header_for_nbh(Jupyter);
-    /*$('body.notebook_app').show();*/
     update_metadata(Jupyter);
     inactivate_non_code_cells(Jupyter);
     speed_up_autosave(Jupyter);
