@@ -41,6 +41,7 @@ def main() -> bool:
     course_gitdir = args.course_gitdir
     course, notebooks = list_notebooks(course_gitdir)
     
+    # in random mode; what are the choices that we randomize on
     if args.random:
         if len(args.indices) > 1:
             choices = args.indices

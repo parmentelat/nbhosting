@@ -45,11 +45,21 @@ GlobalReserve, single: total=272.28MiB, used=0.00B
 
 ## a 100 students batch
 
+### typical: one notebook per student
+
 ```
-root@darktek ~/git/nbhosting/tests # ./nbhtests -m -i 0-11 -u 1-100 
+root@darktek ~/git/nbhosting/tests # ./nbhtests -m -u 1-100 
 ```
 
-Here we randomly (-m) open one notebook per student in range 0 to 11 (-i) (this is week 1 in fact) for one hundred students
+Because we have set `-m`, then only one notebook is picked for each student (among the complete set found in that course); one can add `-i 0-11` (week 1 in this case) if the notebooks are to be selected in a narrower range.
+
+### several notebooks per student
+
+```
+root@darktek ~/git/nbhosting/tests # ./nbhtests -i 1-3 -u 1-100 
+```
+
+Using an index range like this **without `-m`** will run these 3 notebooks for each of the 100 students.
 
 ## speed it up
 
