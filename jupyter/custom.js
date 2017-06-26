@@ -2,8 +2,9 @@
 
 define([
     'base/js/namespace',
-    'base/js/events'
-], function(Jupyter, events) {
+    'base/js/events',
+    'notebook/js/codecell',
+], function(Jupyter, events, codecell) {
 
     let header = "nbh's custom.js"
     
@@ -119,14 +120,26 @@ define([
     let redefine_enter_in_command_mode = function(Jupyter) {
 	console.log(`${header} redefining Enter key in command mode`);
 	Jupyter.keyboard_manager.command_shortcuts.add_shortcut(
-	    'Enter', "jupyter-notebook:run-cell-and-select-next")
+	    'Enter', {
+		help: 'nbhosting Enter key',
+		handler: function(){
+		    let cell = Jupyter.notebook.get_selected_cell();
+		    if (cell instanceof codecell.CodeCell) {
+			// code cell -> like usual Enter
+			Jupyter.notebook.edit_mode()
+		    } else {
+			// source cell -> like shift-enter
+			Jupyter.notebook.execute_cell_and_select_below()
+		    }
+		}
+	    })
     }
-    
+	    
     // run the parts
     hack_header_for_nbh(Jupyter);
     update_metadata(Jupyter);
     inactivate_non_code_cells(Jupyter);
     speed_up_autosave(Jupyter);
-//	redefine_enter_in_command_mode(Jupyter);
+    redefine_enter_in_command_mode(Jupyter);
 
 })

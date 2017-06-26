@@ -1,5 +1,6 @@
 /* CSS for embedding inside an open-edx hosted MOOC page */
 
+/* -------------------- layout (important) */
 /* have the menubar and toolbar on the same line */
 #menubar, #maintoolbar {
     display: inline-block;
@@ -26,6 +27,7 @@ div#maintoolbar-container {
     margin-right: 20px;
 }
 
+/* -------------------- cosmetic only */
 
 /*
 the segments in a markdown
@@ -47,3 +49,30 @@ this would be for `backquoted inline code`
     padding: 3px;
     border-radius: 4px;
 }
+
+/* ***** text cells ***** */
+div.text_cell.unrendered.selected>div.inner_cell>div.input_area {
+    background-color: #b1d4e7;
+}
+div.text_cell.unrendered.unselected>div.inner_cell>div.input_area {
+    background-color: #bfe3f7;
+}
+div.text_cell.rendered.selected>div.inner_cell>div.text_cell_render {
+    background-color: #f2f2f2;
+}
+div.text_cell.rendered.unselected>div.inner_cell>div.text_cell_render {
+    background-color: #f8f8f8; 
+}
+
+/* ***** code cells ***** */
+div.code_cell.unselected>div.input>div.inner_cell>div.input_area {
+    background-color: #f2efec;
+}
+div.code_cell.selected>div.input>div.inner_cell>div.input_area {
+    background-color: #e1dfdc;
+}
+/* works, but not really helpful
+div.code_cell div.output_subarea, div.code_cell div.widget-subarea {
+    background-color: #f0f8f0;
+}
+*/
