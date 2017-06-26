@@ -286,7 +286,12 @@ class Monitor:
         for course in courses:
             Stats(course).record_monitor_known_counts_line()
         while True:
-            self.run_once()
+            try:
+                self.run_once()
+            # just be extra sure it doesn't crash
+            except Exception as e:
+                logger.exception("protecting against unexpected exception {}"
+                                 .format(e))
             tick += self.period
             duration = max(0, int(tick - time.time()))
             logger.info("monitor is waiting for {}s".format(duration))
