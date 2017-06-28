@@ -148,6 +148,12 @@ define([
 		return decodeURIComponent(match[1] || '');
             }
 	}
+	let confirm_redirect = function(message, url) {
+	    if (confirm(message)) {
+		window.location.href = url;
+	    }
+	}
+	 
 	// window.location.pathname looks like this
 	// "/35162/notebooks/w1/w1-s3-c4-fibonacci-prompt.ipynb"
 	let regexp = new RegExp("^\/([0-9]+)\/notebooks\/(.*)");
@@ -166,7 +172,10 @@ define([
 	$("#file_menu").append(
 	    `<li class="divider"></li>`);
 	$('#file_menu').append(
-	    `<li id="reset_from_origin"><a href="${reset_url}">Reset from Origin</a></li>`);
+	    `<li id="reset_from_origin"><a href="#">Reset from Origin</a></li>`);
+	$('#reset_from_origin').click(function() {
+	    confirm_redirect("Are you sure to reset your notebok to the original version ?\n(all your changes will be lost)", reset_url);
+	})
     }
     
     // run the parts
