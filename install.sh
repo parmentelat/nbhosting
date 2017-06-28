@@ -14,7 +14,7 @@ srcroot=$(pwd -P)
 root=/nbhosting
 
 function check-subdirs() {
-    for subdir in jupyter courses-git logs; do
+    for subdir in jupyter courses-git logs raw; do
 	[ -d $root/$subdir ] || mkdir -p $root/$subdir
     done
 }
