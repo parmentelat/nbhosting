@@ -68,7 +68,7 @@ alias ds="d spawn-container-in-course-for-student"
 alias de="d enter-spawned-container"
 
 ########## spawn
-alias s=systemd-nspawn
+alias syp=systemd-nspawn
 
 alias m=machinectl
 alias mk="machinectl kill"
