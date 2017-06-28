@@ -30,9 +30,8 @@ def edx_request(request, course, student, notebook):
     root = settings['root']
     # the ipynb extension is removed from the notebook name in urls.py
     notebook_withext = notebook + ".ipynb"
-    
-    # xxx probably requires a sudo of some kind here
-    # for when run from apache or nginx or whatever
+    # have we received a request to force the copy (for reset_from_origin)
+    forcecopy = request.GET.get('forcecopy', False)
 
     # using docker
     subcommand = 'docker-view-student-course-notebook'
@@ -41,6 +40,9 @@ def edx_request(request, course, student, notebook):
     if DEBUG:
         command.append('-x')
     command.append(subcommand)
+    # propagate the forcecopy flag for reset_from_origin
+    if forcecopy:
+        command.append('-f')
 
     # add arguments to the subcommand
     command += [ student, course, notebook_withext ]
@@ -82,11 +84,12 @@ def edx_request(request, course, student, notebook):
         if ':' in host:
             host, _ = host.split(':', 1)
         ########## forge a URL that nginx will intercept
-        # do not specify a port, it will depend on the scheme
-        # and probably be https/443
-        url = "{scheme}://{host}/{port}/notebooks/{path}?token={token}"\
+        # port depends on scheme - we do not specify it
+        # passing along course and student is for 'reset_from_origin'
+        url = "{scheme}://{host}/{port}/notebooks/{path}?token={token}&course={course}&student={student}"\
               .format(scheme=scheme, host=host, port=actual_port,
-                      path=notebook_withext, token=jupyter_token)
+                      path=notebook_withext, token=jupyter_token,
+                      course=course, student=student)
         logger.info("edxfront: redirecting to {}".format(url))
 #        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
         return HttpResponseRedirect(url)           

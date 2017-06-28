@@ -10,10 +10,6 @@
 # (*) student refers to a UNIX login name, and is identical
 # to the names used under NBHROOT when referring to a student
 # (*) container is the name of a container as known to docker
-#     incidentally, the container-name may very well match the
-#     student name forever, but I don't know that yet
-# (*) edxid is the id as coming from EDX - not sure if that's going
-#     to be relevant in here
 #
 # conventions
 # (*) functions designed to be exposed to the outside
@@ -22,16 +18,35 @@
 #     they start with a lowercase, but are not declared
 #     as subcommands
 # (*) internal-only functions start with a dash -
+#
+#
+# NOTES about systemd-nspawn:
 # 
+# (*) there remains in here some leftovers of a rough attempt
+#     that I made at using systemd-nspawn as a replacement to docker
+# (*) in this approach we still used docker but just for doing image
+#     snapshots
+# (*) the IMAGES and MACHINES globals are only used for this
+#     systemd-nspawn variant, which was never finished
+#     although we were probably close; what was missing was:
+# (*) 
+# (*) missing was a
+#     suitable strategy for setuid as linux user namespaces
+#     looks way too 
+# (*) using the same approach to setuids as the one eventually
+#     adopted for docker (i.e. start-in-dir-as-uid) should probably
+#     be rather straightforward with systemd-nspawn too
+#
+
 # nbh-driver
 COMMAND=$0
 
 # the default values for a few globals
-# xxx miss options to tweak these
 NBHROOT=/nbhosting
+DEBUG=
+# xxx miss options to tweak these
 IMAGES=/homefs/btrfs/btrfs
 MACHINES=/homefs/btrfs/machines
-debug=
 
 # what to use as static areas if not specified
 default_statics="media data"
@@ -135,7 +150,7 @@ function clear-deep() {
 
 # create directory/ies leading to file <file>
 function -mkdir-for-file () {
-    [ "$#" -eq 2 ] || { -die $FUNCNAME requires 2 args; exit 1; }
+    [ "$#" -eq 2 ] || -die $FUNCNAME requires 2 args
     local filename=$1; shift
     local login=$1; shift
     local dir=$(dirname $filename)
@@ -147,7 +162,7 @@ function -mkdir-for-file () {
 
 # create symlink right where the notebook is, not only at the top
 function -create-symlink-at-file () {
-    [ "$#" -eq 2 ] || { -die $FUNCNAME requires 2 args; exit 1; }
+    [ "$#" -eq 2 ] || -die $FUNCNAME requires 2 args
     local filename=$1; shift
     local destination=$1; shift
     
@@ -206,7 +221,7 @@ function status() {
 
 ############################## course management
 function -compute-course-globals() {
-    [ "$#" -eq 1 ] || { -die $FUNCNAME requires 1 arg; exit 1; }
+    [ "$#" -eq 1 ] || -die $FUNCNAME requires 1 arg
     local course=$1; shift
     COURSE_git=$NBHROOT/courses-git/$course
 
@@ -291,12 +306,14 @@ function course-settings() {
   	case $option in
 	    s) statics="$statics $OPTARG" ;;
 	    i) image="$OPTARG" ;;
-	    ?) -echo-stderr "$USAGE"; exit 1;;
+	    ?) -die "$USAGE" ;;
 	esac
     done	
     shift $((OPTIND-1))
+    # reset OPTIND for subsequent calls to getopts
+    OPTIND=1
     
-    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    [ "$#" -eq 1 ] || -die $USAGE
 
     course=$1; shift
     -compute-course-globals $course
@@ -345,7 +362,7 @@ function course-settings() {
 function update-course-from-git() {
     local USAGE="Usage: $COMMAND $FUNCNAME course" 
 
-    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    [ "$#" -eq 1 ] || -die $USAGE
 
     course=$1; shift
     -compute-course-globals $course
@@ -419,7 +436,7 @@ function -check-course() {
 # 
 function -check-course-jupyter() {
     local USAGE="Usage: $COMMAND $FUNCNAME course"
-    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    [ "$#" -eq 1 ] || -die $USAGE
     course=$1; shift
     -compute-course-globals $course
     [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
@@ -509,9 +526,20 @@ function del-student() {
 # make sure the student has a copy of the nodebook
 @declare-subcommand check-student-notebook-for-course
 function check-student-notebook-for-course() {
-    local USAGE="Usage: $COMMAND $FUNCNAME student notebook course"
-    [ "$#" -eq 3 ] || { echo $USAGE; exit 1; }
+    local USAGE="Usage: $COMMAND $FUNCNAME [-f] student notebook course"
 
+    local forcecopy=""
+    while getopts "f" option; do
+  	case $option in
+	    f) forcecopy="-f" ;;
+	    ?) -die "$USAGE" ;;
+	esac
+    done	
+    shift $((OPTIND-1))
+    # reset OPTIND for subsequent calls to getopts
+    OPTIND=1
+    
+    [ "$#" -eq 3 ] || -die $USAGE
     student=$1; shift
     notebook=$1; shift
     course=$1; shift
@@ -524,9 +552,9 @@ function check-student-notebook-for-course() {
     
     -compute-student-globals-in-course $student $course
     # copy if student notebook is missing, or if force is requested
-    if [ ! -f $student_notebook ] || [ "$forcecopy" == "force" ]; then
+    if [ ! -f $student_notebook ] || [ -n "$forcecopy" ]; then
 	-mkdir-for-file $student_notebook $student
-	-echo-stderr Cloning $student_notebook from $COURSE_notebook 
+	-echo-stderr "Cloning $student_notebook from $COURSE_notebook (forcecopy=$forcecopy)"
 	# use rsync for preserving creation time
 	sudo -u $student rsync -tp $course_notebook $student_notebook
 	for static in $COURSE_statics; do
@@ -534,7 +562,7 @@ function check-student-notebook-for-course() {
 	    -create-symlink-at-file $student_notebook /home/jovyan/work/$static
 	done
     else
-	[ -n "$debug" ] && -echo-stderr Student copy $student_notebook is fine
+	[ -n "$DEBUG" ] && -echo-stderr Student copy $student_notebook is fine
     fi
     # nothing else is required in the student's work area
     # the rest (modules for code, and media, data as specified in statics)
@@ -579,7 +607,7 @@ function create-docker-container-for-student-in-course() {
     docker inspect --type image $COURSE_image >& /dev/null ||\
 	-die image $COURSE_image not known in docker
 
-    [ -n "$debug" ] && set -x
+    [ -n "$DEBUG" ] && set -x
 
     # update jupyter_notebook_config.py and the 2 custom files
     -check-course-jupyter $course
@@ -638,7 +666,7 @@ function create-docker-container-for-student-in-course() {
 	         --NotebookApp.token=$jupyter_token
 
 "
-	[ -n "$debug" ] && command="$command --log-level=DEBUG"
+	[ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
 	# show command for manual debugging
 	-echo-stderr XXXXXXXXXX $command
 	# we need a clean stdout : redirect stdout to stderr 
@@ -656,7 +684,7 @@ function create-docker-container-for-student-in-course() {
 # map[8888/tcp:[{0.0.0.0 32774}]]
 function get-docker-container-port() {
     local USAGE="Usage: $COMMAND $FUNCNAME container"
-    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    [ "$#" -eq 1 ] || -die $USAGE
 
     local container=$1; shift
     docker inspect --format '{{.NetworkSettings.Ports}}' $container | cut -d' ' -f 2 | sed -e 's,[^0-9],,g'
@@ -730,11 +758,11 @@ function -wait-for-http-on-port-token() {
 @declare-subcommand start-docker-container
 function start-docker-container() {
     local USAGE="Usage: $COMMAND $FUNCNAME container"
-    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    [ "$#" -eq 1 ] || -die $USAGE
 
     local container="$1"; shift
     
-    [ -n "$debug" ] && set -x
+    [ -n "$DEBUG" ] && set -x
 
     # touch a file in the student's course dir
     # so the monitoring tool can spare it
@@ -783,7 +811,7 @@ function start-docker-container() {
     #
     echo $action $container $docker_port $jupyter_token
 
-    [ -n "$debug" ] && set +x
+    [ -n "$DEBUG" ] && set +x
 }
 
 
@@ -792,9 +820,20 @@ function start-docker-container() {
 # 
 @declare-subcommand docker-view-student-course-notebook
 function docker-view-student-course-notebook() {
-    local USAGE="Usage: $COMMAND $FUNCNAME student course notebook"
-    [ "$#" -eq 3 ] || { echo $USAGE; exit 1; }
+    local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course notebook"
 
+    local forcecopy=""
+    while getopts "f" option; do
+  	case $option in
+	    f) forcecopy="-f" ;;
+	    ?) -die "$USAGE" ;;
+	esac
+    done	
+    shift $((OPTIND-1))
+    # reset OPTIND for subsequent calls to getopts
+    OPTIND=1
+    
+    [ "$#" -eq 3 ] || -die $USAGE
     local student=$1; shift
     local course=$1; shift
     local notebook=$1; shift
@@ -808,7 +847,7 @@ function docker-view-student-course-notebook() {
     add-student-in-course $student $course
 
     ## create the student notebook if not there yet
-    check-student-notebook-for-course $student $notebook $course
+    check-student-notebook-for-course $forcecopy $student $notebook $course
 
     # create and start the container
     local container=${course}-x-${student}
@@ -840,7 +879,7 @@ function docker-view-student-course-notebook() {
 @declare-subcommand enter-docker-container
 function enter-docker-container() {
     local USAGE="Usage: $FUNCNAME container"
-    [ "$#" -eq 1 ] || { echo $USAGE; exit 1; }
+    [ "$#" -eq 1 ] || -die $USAGE
     local container=$1; shift
 
     docker exec -ti $container /bin/bash
@@ -1014,7 +1053,7 @@ function main() {
 	       # make sure root is absolute
 	       NBHROOT=$(cd $NBHROOT; pwd -P)
 	       ;;
-	    x) debug=true ;;
+	    x) DEBUG=true ;;
 	    ?) >&2 usage; exit 1;;
 	esac
     done	

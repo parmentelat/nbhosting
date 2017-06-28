@@ -108,14 +108,6 @@ define([
 	$('.text_cell').unbind('dblclick');
     }
 
-    // 2 minutes is a long time if you know that the server
-    // can be killed at any time; observed as being 120000 on my mac
-    // so it sounds like milliseconds
-    let speed_up_autosave = function(Jupyter) {
-	IPython.notebook.minimum_autosave_interval = 30000;
-	console.log(`${header} speed up autosave -> ${IPython.notebook.minimum_autosave_interval/1000}s`)
-    }
-
     // this might sound like a good idea but needs more checking
     let redefine_enter_in_command_mode = function(Jupyter) {
 	console.log(`${header} redefining Enter key in command mode`);
@@ -135,11 +127,54 @@ define([
 	    })
     }
 	    
+    // 2 minutes is a long time if you know that the server
+    // can be killed at any time; observed as being 120000 on my mac
+    // so it sounds like milliseconds
+    let speed_up_autosave = function(Jupyter) {
+	Jupyter.notebook.minimum_autosave_interval = 30000;
+	console.log(`${header} speed up autosave -> ${Jupyter.notebook.minimum_autosave_interval/1000}s`)
+    }
+
+    // edxfront/views.py passes along course and student as params in the GET URL
+    // so all we need to do is forge the initial URL in ipythonExercice/
+    // but with the forcecopy flag
+    let add_reset_from_origin_in_file_menu = function(Jupyter) {
+	// stolen from jupyter-notebook/notebook/static/base/js/utils.js
+	let get_url_param = function (name) {
+            // get a URL parameter. I cannot believe we actually need this.
+            // Based on http://stackoverflow.com/a/25359264/938949
+            var match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+            if (match){
+		return decodeURIComponent(match[1] || '');
+            }
+	}
+	// window.location.pathname looks like this
+	// "/35162/notebooks/w1/w1-s3-c4-fibonacci-prompt.ipynb"
+	let regexp = new RegExp("^\/([0-9]+)\/notebooks\/(.*)");
+	// groups 1 and 2 refer to port and notebook respectively
+	let map = { port: 1, notebook: 2 };
+	// parse it
+	let match = regexp.exec(window.location.pathname);
+	// extract notebook
+	let notebook = match[map.notebook];
+
+	// add an entry at the end of the file submenu
+	let course = get_url_param('course');
+	let student = get_url_param('student');
+	let reset_url = `/ipythonExercice/${course}/${notebook}/${student}?forcecopy=true`;
+	console.log('course', course);
+	$("#file_menu").append(
+	    `<li class="divider"></li>`);
+	$('#file_menu').append(
+	    `<li id="reset_from_origin"><a href="${reset_url}">Reset from Origin</a></li>`);
+    }
+    
     // run the parts
     hack_header_for_nbh(Jupyter);
     update_metadata(Jupyter);
     inactivate_non_code_cells(Jupyter);
-    speed_up_autosave(Jupyter);
     redefine_enter_in_command_mode(Jupyter);
+    add_reset_from_origin_in_file_menu(Jupyter);
+    speed_up_autosave(Jupyter);
 
 })
