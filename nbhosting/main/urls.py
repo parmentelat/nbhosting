@@ -30,6 +30,9 @@ urlpatterns = [
     url(r'^ipythonExercice/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
         nbhosting.edxfront.views.edx_request
     ),
+    url(r'^ipythonShare/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
+        nbhosting.edxfront.views.share_notebook
+    ),
     url(r'^nbh/login/$',                                        auth_views.login, name='login'),
     url(r'^nbh/logout/$',                                       auth_views.logout, name='logout'),
     url(r'^nbh/admin/',                                         admin.site.urls),

@@ -11,7 +11,7 @@ define([
     console.log(`${header} loading`);
 
     //////////////////////////////////////////////////
-    let hack_header_for_nbh = function(Jupyter) {
+    let hack_header_for_nbh = function(/*Jupyter*/) {
 
 	// not truly useful, just a test indeed
 	// this is because the menubar does not exactly stand out
@@ -138,7 +138,7 @@ define([
     // edxfront/views.py passes along course and student as params in the GET URL
     // so all we need to do is forge the initial URL in ipythonExercice/
     // but with the forcecopy flag
-    let add_reset_from_origin_in_file_menu = function(Jupyter) {
+    let add_reset_and_share_buttons = function(Jupyter) {
 	// stolen from jupyter-notebook/notebook/static/base/js/utils.js
 	let get_url_param = function (name) {
             // get a URL parameter. I cannot believe we actually need this.
@@ -148,12 +148,66 @@ define([
 		return decodeURIComponent(match[1] || '');
             }
 	}
+	// for reset
 	let confirm_redirect = function(message, url) {
 	    if (confirm(message)) {
 		window.location.href = url;
 	    }
 	}
-	 
+
+	// for share
+	let post_share_url = function(url) {
+
+	    $('body').append("<div id='shareDialog' title='Static notebook Created or Updated'></div>");
+
+	    let display_dialog = function(message) {
+		message = message.replace(new RegExp("\n", 'g'), "<br/>");
+		$('div#shareDialog').html(message);
+		$( "#shareDialog" ).dialog({
+		    modal: true,
+		    width: 700,
+		    height: 200,
+		    position:['middle', 50],
+		    buttons: {
+			Close: function() {
+			    $( this ).dialog( "close" );
+			}
+		    },
+		    open: function(){
+			var closeBtn = $('.ui-dialog-titlebar-close');
+			closeBtn.html('<span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span>');
+		    }
+		})
+	    }
+	    $.ajax({
+		dataType: 'json',
+		url: url,
+		timeout: 20000,
+		success: function(data, text_status, request) {
+		    // we can still successfuly receive an error....
+		    let message;
+		    if ('error' in data) {
+			message =
+			    `Could not create snapshot`
+			    + `\n${data.error}`;
+		    } else {
+			message =
+			    `To share a static version of your notebook, copy this link:`
+			    + `\n${data.url}`
+			    + `\n<a target='_blank' href='${data.url_path}'>try it !</a>`
+			    +`\nNote that sharing the same notebook several times will overwrite the same snapshot`;
+		    }
+		    display_dialog(message);
+		},
+		error: function(request, text_status, error_thrown) {
+		    console.log("post_share_url error", request);
+		    console.log("post_share_url error", text_status, error_thrown);
+		}
+	    });
+	}
+
+	let course = get_url_param('course');
+	let student = get_url_param('student');
 	// window.location.pathname looks like this
 	// "/35162/notebooks/w1/w1-s3-c4-fibonacci-prompt.ipynb"
 	let regexp = new RegExp("^\/([0-9]+)\/notebooks\/(.*)");
@@ -164,17 +218,25 @@ define([
 	// extract notebook
 	let notebook = match[map.notebook];
 
+
 	// add an entry at the end of the file submenu
-	let course = get_url_param('course');
-	let student = get_url_param('student');
-	let reset_url = `/ipythonExercice/${course}/${notebook}/${student}?forcecopy=true`;
-	console.log('course', course);
 	$("#file_menu").append(
 	    `<li class="divider"></li>`);
+
+	let reset_url = `/ipythonExercice/${course}/${notebook}/${student}?forcecopy=true`;
 	$('#file_menu').append(
-	    `<li id="reset_from_origin"><a href="#">Reset from Origin</a></li>`);
+	    `<li id="reset_from_origin"><a href="#">Reset from original</a></li>`);
 	$('#reset_from_origin').click(function() {
-	    confirm_redirect("Are you sure to reset your notebok to the original version ?\n(all your changes will be lost)", reset_url);
+	    confirm_redirect("Are you sure to reset your notebok to the original version ?"
+			     + "\n(all your changes will be lost)",
+			     reset_url);
+	})
+	
+	let share_url = `/ipythonShare/${course}/${notebook}/${student}`;
+	$('#file_menu').append(
+	    `<li id="share_static_version"><a href="#">Share static version</a></li>`);
+	$('#share_static_version').click(function() {
+	    post_share_url(share_url);
 	})
     }
     
@@ -183,7 +245,7 @@ define([
     update_metadata(Jupyter);
     inactivate_non_code_cells(Jupyter);
     redefine_enter_in_command_mode(Jupyter);
-    add_reset_from_origin_in_file_menu(Jupyter);
+    add_reset_and_share_buttons(Jupyter);
     speed_up_autosave(Jupyter);
 
 })
