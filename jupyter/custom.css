@@ -13,18 +13,32 @@ div#maintoolbar-container {
 }
 
 /* our addition for the notebook name + version label */
-.metadata-bar {
-    padding: 6px;
-    margin-bottom: 15px; /* no effect ? */
-    margin-right: 20px;
-    font-size: large;
+#metadata-area {
+    display: inline-block;
+    vertical-align: top;
+    /* top right bottom left */
+    margin: 5px 20px 0px 0px;
+    padding: 5px 8px 0px 8px;
+    border: 0px;
+    min-height: 25px;
+    /* */
+    font-size: larger;
     background-color: #f0f0f0;
 }
 
-/* cosmetic */
 #menubar {
     padding-top: 10px;
     margin-right: 20px;
+}
+
+#menus {
+    margin-top: -6px;
+}
+
+#maintoolbar {
+    vertical-align: top;
+    margin-top: 0px;
+    padding-top: 7px;
 }
 
 /* -------------------- cosmetic only */
