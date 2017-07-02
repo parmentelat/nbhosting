@@ -3,8 +3,9 @@
 define([
     'base/js/namespace',
     'base/js/events',
+    'base/js/dialog',
     'notebook/js/codecell',
-], function(Jupyter, events, codecell) {
+], function(Jupyter, events, dialog, codecell) {
 
     let header = "nbh's custom.js"
     
@@ -85,7 +86,7 @@ define([
     // set this aside - from benjamin's code
     // it's kind of working but too intrusive
     // this html needs to be injected, not to replace 
-    let update_metadata = function(Jupyter) {
+    let show_metadata_in_header = function(Jupyter) {
 	console.log(`${header} showing notebook metadata like notebookname`);
 	let notebook = Jupyter.notebook;
 	let notebookmeta = "";
@@ -139,6 +140,7 @@ define([
     // so all we need to do is forge the initial URL in ipythonExercice/
     // but with the forcecopy flag
     let add_reset_and_share_buttons = function(Jupyter) {
+
 	// stolen from jupyter-notebook/notebook/static/base/js/utils.js
 	let get_url_param = function (name) {
             // get a URL parameter. I cannot believe we actually need this.
@@ -148,37 +150,82 @@ define([
 		return decodeURIComponent(match[1] || '');
             }
 	}
-	// for reset
-	let confirm_redirect = function(message, url) {
-	    if (confirm(message)) {
-		window.location.href = url;
-	    }
+
+	// stolen from
+	// https://stackoverflow.com/questions/36639681/how-to-copy-text-from-a-div-to-clipboard
+	// this however seems to behave a little erratically when used several times..
+	// also we don't care about IE<=9
+	function copyToClipboard(containerid) {
+	    let node = document.getElementById(containerid);
+	    console.log(node)
+	    var range = document.createRange();
+	    range.selectNode(node);
+	    window.getSelection().addRange(range);
+	    document.execCommand("Copy");
 	}
-
-	// for share
-	let post_share_url = function(url) {
-
-	    $('body').append("<div id='shareDialog' title='Static notebook Created or Updated'></div>");
-
-	    let display_dialog = function(message) {
-		message = message.replace(new RegExp("\n", 'g'), "<br/>");
-		$('div#shareDialog').html(message);
-		$( "#shareDialog" ).dialog({
-		    modal: true,
-		    width: 700,
-		    height: 200,
-		    position:['middle', 50],
-		    buttons: {
-			Close: function() {
-			    $( this ).dialog( "close" );
+	
+	// for reset
+	//
+	// NOTE. in a first implementation I naively tried to
+	// avoid creating a modal - i.e. avoid to call
+	// dialog.modal(options) - several times
+	// this however resulted in the buttons
+	// being primarily inactive the second time and on
+	//
+	let confirm_redirect = function(message, url) {
+	    // replace newlines with <br/>
+	    message = message.replace(new RegExp("\n", 'g'), "<br/>");
+	    // create dialog if not yet present
+	    dialog.modal({
+		title: "Confirm reset to original",
+		body: message,
+		sanitize: false,
+		keyboard: true,
+		buttons: {
+		    Cancel: {
+			click: function() {
+			    $(this).dialog('close');
 			}
 		    },
-		    open: function(){
-			var closeBtn = $('.ui-dialog-titlebar-close');
-			closeBtn.html('<span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span>');
+		    'Reset to Original': {
+                        class: 'btn-danger save-confirm-btn',
+			click: function() {
+			    window.location.href = url;
+			}
+		    }
+		}
+	    })
+	}
+
+
+	// for share
+	//
+	let post_share_url = function(url) {
+
+	    let display_share_url = function(message) {
+		message = message.replace(new RegExp("\n", 'g'), "<br/>");
+		// create dialog if not yet present
+		dialog.modal({
+		    title: 'Static notebook created (or updated)',
+		    body: message,
+		    sanitize: false,
+		    keyboard: true,
+		    buttons: {
+			'Copy To Clipboard': {
+			    id: 'copy-to-clipboard',
+			    class: 'btn-info',
+			    click: function() {
+				copyToClipboard('share-url');
+			    }
+			},
+			Close: function() {
+			    $(this).dialog(`close`);
+			}
 		    }
 		})
 	    }
+
+
 	    $.ajax({
 		dataType: 'json',
 		url: url,
@@ -191,17 +238,19 @@ define([
 			    `Could not create snapshot`
 			    + `\n${data.error}`;
 		    } else {
-			message =
-			    `To share a static version of your notebook, copy this link:`
-			    + `\n${data.url}`
-			    + `\n<a target='_blank' href='${data.url_path}'>try it !</a>`
-			    +`\nNote that sharing the same notebook several times will overwrite the same snapshot`;
+			message = 
+			    `<p class='nbh-dialog'>To share a static version of your notebook, copy this link:`
+			    + `<a id="try-share-url" target='_blank' href='${data.url_path}'>Try the link</a></p>`
+			    + `<span id="share-url">${data.url}</span>`
+			    + `</div>`
+			    +`<p class='nbh-dialog'>Note that sharing the same notebook several times overwrites the same snapshot</p>`;
 		    }
-		    display_dialog(message);
+		    display_share_url(message);
 		},
 		error: function(request, text_status, error_thrown) {
-		    console.log("post_share_url error", request);
-		    console.log("post_share_url error", text_status, error_thrown);
+		    console.log(`post_share_url - ajax returns status=<${text_status}>`
+				+ ` and error_thrown=<${error_thrown}>`);
+		    // debugging only // console.log(request);
 		}
 	    });
 	}
@@ -214,12 +263,18 @@ define([
 	// groups 1 and 2 refer to port and notebook respectively
 	let map = { port: 1, notebook: 2 };
 	// parse it
-	let match = regexp.exec(window.location.pathname);
-	// extract notebook
-	let notebook = match[map.notebook];
+	let notebook;
+	try {
+	    let match = regexp.exec(window.location.pathname);
+	    // extract notebook
+	    notebook = match[map.notebook];
+	} catch(e) {
+	    notebook = "works-only-under-nbhosting";
+	}
 
 
-	// add an entry at the end of the file submenu
+	////////// add entries at the end of the 'file' menu
+	
 	$("#file_menu").append(
 	    `<li class="divider"></li>`);
 
@@ -227,8 +282,8 @@ define([
 	$('#file_menu').append(
 	    `<li id="reset_from_origin"><a href="#">Reset from original</a></li>`);
 	$('#reset_from_origin').click(function() {
-	    confirm_redirect("Are you sure to reset your notebok to the original version ?"
-			     + "\n(all your changes will be lost)",
+	    confirm_redirect(`<p class="nbh-dialog">Are you sure to reset your notebook to the original version ?`
+			     + `<br/>(all your changes will be lost)</p>`,
 			     reset_url);
 	})
 	
@@ -242,7 +297,7 @@ define([
     
     // run the parts
     hack_header_for_nbh(Jupyter);
-    update_metadata(Jupyter);
+    show_metadata_in_header(Jupyter);
     inactivate_non_code_cells(Jupyter);
     redefine_enter_in_command_mode(Jupyter);
     add_reset_and_share_buttons(Jupyter);

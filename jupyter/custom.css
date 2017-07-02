@@ -29,6 +29,22 @@ div#maintoolbar-container {
 
 /* -------------------- cosmetic only */
 
+/* ---------- reset-to-original and share-static-version dialogs */
+button.btn {
+    border-radius: 4px;
+}
+
+.nbh-dialog {
+    font-size: larger;
+}
+span#share-url {
+    font-size: x-small;
+}
+#try-share-url {
+    margin-left: 40px;
+}
+
+/* ---------- the different kinds of cells */
 /*
 the segments in a markdown
 that are 4 spaces away from the margin
