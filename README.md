@@ -38,9 +38,8 @@ As a summary:
 
 ![](doc/architecture.png)
 
-
 # TODO
 
-A lot remains to be done, incuding using github's issues for tracking what remains to be done ;)
-For now see [doc/TODO-nbhosting.md](doc/TODO-nbhosting.md)
+As of end of June 2017, the platform seems fit to run the next Python3 - MOOC next November.
 
+See [Issues on github](https://github.com/parmentelat/nbhosting/issues) for an up-to-date status.
