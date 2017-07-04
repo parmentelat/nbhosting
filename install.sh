@@ -19,6 +19,16 @@ function check-subdirs() {
     done
 }
 
+# not quite crucial, but safer
+# we make sure that uid 1000 is used, so that none of the
+# dynamically created users takes that id
+# this way we avoid confusion since jovyan has uid 1000 in the jupyter images
+function ensure-uid-1000() {
+    id 1000 > /dev/null || {
+	useradd nbhjovyan --uid 10000 --home /home/nbhjovyan
+    }
+}
+
 # rsync options
 rsopts=-rltpv
 
@@ -76,6 +86,7 @@ function enable-services() {
 
 function default-main() {
     check-subdirs
+    ensure-uid-1000
 
     update-python-libraries
     update-bins

@@ -635,28 +635,39 @@ function create-docker-container-for-student-in-course() {
 	# * map host free port to fixed 8888 in container
 	# * bind  mounts so that the user's data is on
 	#   the host filesystem
+	# * we mount the directory /home/jovyan/.jupyter as a whole
+	#   instead as mounting the 2 files custom.js and custom.css individually
+	#   this is an attempt to ease propagation of changes to any of these files
+	#   as otherwise a container restart is required for this to take effect
 	# * map jovyan uid to the student's
-	#   from https://github.com/jupyter/docker-stacks/tree/master/scipy-notebook
-	#   this requires --user root and -e NB_UID=<id>
+	#   out of luck trying to use docker-stacks's native start.sh
+	#   that led to costly and useless chown's on /opt/conda; so instead we
+	#   * run the container as root
+	#   * in turn use our own script start-in-dir-as-uid.sh from ../docker/images
+	#     that does runuser to have jupyter run as the right uid
+	#   of course this means it is a requirement for the course images to contain that script
 	# * turn off this http header that otherwise would prevent embedding in a FUN iframe
 	#   Content-Security-Policy: frame-ancestors 'self'; report-uri /api/security/csp-report
 	#   so set the web server's settings to clear the Content-Security-Policy header
 	#   it is too tedious on the command line with quoting and all, so
-	#   let's use the config file instead
-	### older notes
-	# * for turning off token auth, we would need to specify the command to run:
-	#    --NotebookApp.token=''
-	##
+	#   we use jupyter's config file instead in jupyter/jupyter_notebook_config.py
+	# * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem
+	#   the default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
+	#   does not even make sense - $HOME is unset. Even if it was if would not
+	#   reside on the host filesystem.
+	#
 	# compute student uid
 	STUDENT_uid=$(id -u $student)
+	
 	command="docker create --name $container
 	         -p 8888
 	         --user root
+		 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
 	         -v $STUDENT_course:/home/jovyan/work
-                 -v $COURSE_modules:/home/jovyan/modules
 	         -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
-	         -v $COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
-	         -v $COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
+	         -v $COURSE_jupyter:/home/jovyan/.jupyter/custom
+                 -v $COURSE_modules:/home/jovyan/modules
+"
 	for static in $COURSE_statics; do
 	    command="$command -v $NBHROOT/static/$course/$static:/home/jovyan/work/$static"
 	done
