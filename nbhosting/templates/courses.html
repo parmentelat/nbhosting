@@ -14,11 +14,11 @@ Known courses
 {% for course in courses %}
 <div class="card text-center">
 <div class="card-block">
-<h2 class="card-title">{{course}}</h2>
-  <a class='btn btn-primary' href='/nbh/course/{{course}}' class="card-link">notebooks</a>
+<h1 class="card-title">{{course}}</h1>
+  <a class='btn btn-primary btn-lg' href='/nbh/course/{{course}}' class="card-link">notebooks</a>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a class='btn btn-info' href='/nbh/stats/{{course}}' class="card-link">statistics</a>
+  <a class='btn btn-info btn-lg' href='/nbh/stats/{{course}}' class="card-link">statistics</a>
 </div>
 </div>
 {% endfor %}
