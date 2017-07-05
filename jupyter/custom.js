@@ -60,6 +60,7 @@ define([
 	
 	//// third horizontal area (toolbar)
 	$("div#move_up_down").hide();
+	$("div#cut_copy_paste").hide();
 	// cell type (markdown, code, etc..)
 	$("select#cell_type").hide();
 	// run the command palette
