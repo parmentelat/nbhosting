@@ -49,11 +49,18 @@ define([
 	// Cell
 	$("#change_cell_type").hide();
 	
-	// Widgets -> hide whole submenu
-	// note that for this to actually work I had to do this:
-	// jupyter nbextension disable jupyter-js-widgets/extension
-	// otherwise this submenu entry is reactivated
-	$("div#menubar>div>div>div>ul.nav>li:nth-child(7)").hide();
+	// Widgets -> an attempt to hide the whole widget submenu
+	// that is not useful at all, because:
+	// (*) either we have the widgets extension off
+	//   (*) because it's uninstalled, as in the base-notebook image
+	//   (*) because we turn it off manually like this:
+	//       jupyter nbextension disable jupyter-js-widgets/extension
+	//    and in that case the submenu of course won't show up
+	// (*) or we have this extension active
+	//    and in that case it creates the submenu *after*
+	//    we run this custom script
+	// for the record the sentence read:
+	// $("div#menubar>div>div>div>ul.nav>li:nth-child(7)").hide();
 
 	// Help -> hide whole submenu
 	$("div#menubar>div>div>div>ul.nav>li:nth-child(8)").hide();
