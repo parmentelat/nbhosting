@@ -1,5 +1,11 @@
 /* CSS for embedding inside an open-edx hosted MOOC page */
 
+/* ---------- hiding the widgets menu */
+/* needless to say, this is very brittle */
+#menus div.navbar-collapse>ul.nav>li:nth-child(7) {
+    display: none;
+}
+
 /* -------------------- layout (important) */
 /* have the menubar and toolbar on the same line */
 #menubar, #maintoolbar {
@@ -25,13 +31,16 @@ div#maintoolbar-container {
     font-size: larger;
     background-color: #f6f6f6;
     border-radius: 6px;
+    border-style: groove;
+    border-width: 0px;
+    border-color: #aaa;
 }
 
 #metaversion {
     margin-left: 10px;
     padding: 7px 8px 5px 5px;
     font-size: normal;
-    background-color: #dee1ea;
+    background-color: #d1f8d2;
     color: navy;
     /* top-left top-right bottom-right bottom-left */
     border-radius: 0px 6px 6px 0px;
@@ -61,9 +70,8 @@ div#maintoolbar-container {
 /* -------------------- cosmetic only */
 /* pink-ish to make it stand out */
 div#header {
-    background-color: #f2dbd8;
+    background-color: #e0e9f2;
 }
-
 
 /* ---------- reset-to-original and share-static-version dialogs */
 button.btn {
