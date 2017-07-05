@@ -13,19 +13,31 @@ div#maintoolbar-container {
 }
 
 /* our addition for the notebook name + version label */
-#metadata-area {
+#metaarea {
     display: inline-block;
     vertical-align: top;
     /* top right bottom left */
-    margin: 5px 20px 0px 0px;
-    padding: 5px 8px 0px 8px;
+    margin: 5px 20px 0px -12px;
+    padding: 5px 0px 0px 12px;
     border: 0px;
     min-height: 25px;
     /* */
     font-size: larger;
-    background-color: #f0f0f0;
+    background-color: #f6f6f6;
+    border-radius: 6px;
 }
 
+#metaversion {
+    margin-left: 10px;
+    padding: 7px 8px 5px 5px;
+    font-size: normal;
+    background-color: #dee1ea;
+    color: navy;
+    /* top-left top-right bottom-right bottom-left */
+    border-radius: 0px 6px 6px 0px;
+}
+
+/* adjusting the header */
 #menubar {
     padding-top: 10px;
     margin-right: 20px;
@@ -41,11 +53,21 @@ div#maintoolbar-container {
     padding-top: 7px;
 }
 
+#menus div.navbar-collapse li.dropdown>a {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
 /* -------------------- cosmetic only */
+/* pink-ish to make it stand out */
+div#header {
+    background-color: #f2dbd8;
+}
+
 
 /* ---------- reset-to-original and share-static-version dialogs */
 button.btn {
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .nbh-dialog {

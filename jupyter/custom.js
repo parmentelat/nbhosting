@@ -93,8 +93,8 @@ define([
 	if (notebook.metadata.notebookname)  
 	    notebookmeta = notebook.metadata.notebookname;
 	if (notebook.metadata.version)
-	    notebookmeta += ` v${notebook.metadata.version}`;
-	let notebookmetadiv = `<div id="metadata-area" class="navbar">${notebookmeta}</div>`;
+	    notebookmeta += `<span id="metaversion">v${notebook.metadata.version}</span>`;
+	let notebookmetadiv = `<div id="metaarea" class="navbar">${notebookmeta}</div>`;
 	$(notebookmetadiv).insertBefore($("#menubar"))
     }
 
