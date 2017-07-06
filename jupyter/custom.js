@@ -12,73 +12,16 @@ define([
     console.log(`${header} loading`);
 
     //////////////////////////////////////////////////
+    // see also custom.css that does most of the hiding
     let hack_header_for_nbh = function(/*Jupyter*/) {
 
-	// not truly useful, just a test indeed
-	// this is because the menubar does not exactly stand out
-	
-	//// first horizontal area (including name)
-	$("div#header-container").hide();
-	
-	//// second horizontal area (menubar)
-	// hide menu entries
-
 	// hide all dividers
+	// don't do this in CSS as we have our own dividers come in later on
 	$("#menubar .divider").hide();
 
-	// 'File'
-	$("#new_notebook").hide();
-	$("#open_notebook").hide();
-	$("#copy_notebook").hide();
-	$("#rename_notebook").hide();
-	//keep this one: $("#restore_checkpoint").hide();
-	$("#trust_notebook").hide();
-	$("#kill_and_exit").hide();
-	//// missing
-	// Share static version
-	// Reset from Origin
-	
-	// 'Edit' -> hide whole submenu
-	$("div#menubar>div>div>div>ul.nav>li:nth-child(2)").hide();
+	// rephrase the 'checkpoint' thing that is confusing
+	$("#save_checkpoint>a").html("Save");
 
-	// View -> hide whole submenu
-	$("div#menubar>div>div>div>ul.nav>li:nth-child(3)").hide();
-
-	// Insert : is fine
-
-	// Cell
-	$("#change_cell_type").hide();
-	
-	// Widgets -> an attempt to hide the whole widget submenu
-	// that is not useful at all, because:
-	// (*) either we have the widgets extension off
-	//   (*) because it's uninstalled, as in the base-notebook image
-	//   (*) because we turn it off manually like this:
-	//       jupyter nbextension disable jupyter-js-widgets/extension
-	//    and in that case the submenu of course won't show up
-	// (*) or we have this extension active
-	//    and in that case it creates the submenu *after*
-	//    we run this custom script
-	// for the record the sentence read:
-	// $("div#menubar>div>div>div>ul.nav>li:nth-child(7)").hide();
-
-	// Help -> hide whole submenu
-	$("div#menubar>div>div>div>ul.nav>li:nth-child(8)").hide();
-	
-	//// third horizontal area (toolbar)
-	$("div#move_up_down").hide();
-	$("div#cut_copy_paste").hide();
-	// cell type (markdown, code, etc..)
-	$("select#cell_type").hide();
-	// run the command palette
-	$("#maintoolbar>div>div>div:nth-child(7)").hide();
-	// celltoolbar
-	$("#maintoolbar>div>div>div:nth-child(8)").hide();
-
-	$("#notification_trusted").hide();
-
-	// top right (python2/python3..)
-	$("p#kernel_indicator").hide();
 	// move stuff from first (originally upper, then left) area
 	// to second (lower, then right) area
 	let last_button_group = $("div#maintoolbar-container>div:last-child");
@@ -88,12 +31,9 @@ define([
 	    last_button_group.after($(`#${id}`));
 	}
 
-	//////////
     }
 
-    // set this aside - from benjamin's code
-    // it's kind of working but too intrusive
-    // this html needs to be injected, not to replace 
+    // display title and version
     let show_metadata_in_header = function(Jupyter) {
 	console.log(`${header} showing notebook metadata like notebookname`);
 	let notebook = Jupyter.notebook;

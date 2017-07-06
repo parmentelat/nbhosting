@@ -1,10 +1,54 @@
 /* CSS for embedding inside an open-edx hosted MOOC page */
 
-/* ---------- hiding the widgets menu */
-/* needless to say, this is very brittle */
-#menus div.navbar-collapse>ul.nav>li:nth-child(7) {
-    display: none;
-}
+/* -------------------- hiding various parts of the notebook UI and menus */
+/* first horizontal area (including name) */
+#header-container {display: none; }
+
+/* ---------- hide menu entries */
+
+/* File */
+#new_notebook, #open_notebook, #copy_notebook, #rename_notebook,
+#restore_checkpoint, #trust_notebook, #kill_and_exit	{ display: none; }
+
+/* Edit & View - hide full submenu */
+div#menus>div>div>ul.nav>li:nth-child(2),
+div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
+
+/* Insert : is fine */
+
+/* Cell */
+#change_cell_type {display: none;}
+
+/* Widgets */
+div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
+
+/* Widgets submenu
+   as opposed to the ones above, this entry cannot be hidden from custom.js
+   because the extension fires afterwards
+   needless to say, this is a little brittle 
+   xxx especially if ipywidgets is not available ! 
+*/
+div#menus>div>div>ul.nav>li:nth-last-child(2)		{ display: none; }
+
+/* Help submenu - sounds more robust already 
+   xxx would it make sense to preserve submenu
+   and filter out individual entries, like for File above ?
+*/
+div#menus>div>div>ul.nav>li:nth-last-child(1)		{ display: none; }
+
+/* ---------- other pieces in the UI */
+/* third horizontal area (toolbar) */
+#move_up_down, 
+#cut_copy_paste,
+select#cell_type,
+#notification_trusted,
+p#kernel_indicator					{display: none; }
+
+/* the command palette */
+#maintoolbar>div>div>div:nth-child(7)			{display: none; }
+/* celltoolbar */
+#maintoolbar>div>div>div:nth-child(8)			{display: none; }
+
 
 /* -------------------- layout (important) */
 /* have the menubar and toolbar on the same line */
