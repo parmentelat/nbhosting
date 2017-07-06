@@ -37,12 +37,11 @@ define([
     let show_metadata_in_header = function(Jupyter) {
 	console.log(`${header} showing notebook metadata like notebookname`);
 	let notebook = Jupyter.notebook;
-	let notebookmeta = "";
-	if (notebook.metadata.notebookname)  
-	    notebookmeta = notebook.metadata.notebookname;
-	if (notebook.metadata.version)
-	    notebookmeta += `<span id="metaversion">v${notebook.metadata.version}</span>`;
-	let notebookmetadiv = `<div id="metaarea" class="navbar">${notebookmeta}</div>`;
+	let title = notebook.metadata.notebookname || "Untitled";
+	let version = notebook.metadata.version || "0.0";
+	let notebookmeta = `${title}<span id="metaversion">v${version}</span>`;
+	let notebookmetadiv =
+	    `<div id="metaarea" class="navbar">${notebookmeta}</div>`;
 	$(notebookmetadiv).insertBefore($("#menubar"))
     }
 
