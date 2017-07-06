@@ -20,3 +20,7 @@ COPY start-in-dir-as-uid.sh /usr/local/bin
 # (*) disable check done when saving files
 # see https://github.com/jupyter/notebook/issues/484
 RUN find /opt /usr -name notebook.js | grep static/notebook/js/notebook.js | xargs sed -i -e 's,if (check_last_modified),if (false),'
+
+####
+# the ipythontutor magic
+RUN pip3 install ipythontutor
