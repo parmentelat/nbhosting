@@ -1,26 +1,21 @@
 # Fedora installation and setup
 
-* This document is about setting up `nbhosting` from metal, i.e. right after a fresh install.
-* Date: July 12 2017 
-* Based on fedora 25
-
-# SSL certificates
-
-* In case of a reinstallation:
-
-  ***Don't forget*** to back up SSL certificate and especially ***the private key***
-
-* This is stored in dir. `/root/ssl-certificate/`
-* This location is hard-wired in file `nbhosting/nginx/nbhosting.conf`
+* this document is about setting up `nbhosting` from metal, i.e. right after a fresh install.
+* date: July 12 2017 
+* based on fedora 25
+* **SSL certificates**: in case of a reinstallation:
+  * ***don't forget*** to back up SSL certificate and especially ***the private key***
+  * this is stored in dir `/root/ssl-certificate/`
 
 # disk partitioning
 
 ## system *vs* application
 
-Here's the choice that I made with the fedora installation program
-![partitioning](partitioning.png) after selecting the `btrfs` layout.
+The requirement is to have `/nbhosting` mounted on a `btrfs` partition somehow.
 
-In ny case the requirement is to have `/nbhosting` mounted on a `btrfs` partition somehow.
+Here's the choice that I made with the fedora installation program after selecting the `btrfs` layout:
+
+![partitioning](partitioning.png) .
 
 On `thermals.inria.fr` as of the setup in July 2017:
 
@@ -289,7 +284,9 @@ Additional logs go into
   * disk space
   * cpu load
 
-
+## rain check
+* it is also possible to open any of the notebooks: go to the `notebooks` page for a given course (i.e. not the `stats` page); clicking any of the notebooks will open it as if opened by a student whose name is `anonymous`.
+* this is a convenient way to check the course is up and running - in particular, make sure you have built the image for that course !
 
 # Comfort
 
