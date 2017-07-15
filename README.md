@@ -11,17 +11,17 @@ First use case is for hosting notebooks in the context of MOOCs. See e.g.
 
 On the edx side, teacher would create a bloc typed as *ipython notebook* - note that the present repo does not address the code for the edx extension that supports this type of blocs (ref?); it is reaily available at this point (jan. 2017) at `fun-mooc.fr`.
 
-![](doc/edx-bloc.png)
+![](docs/edx-bloc.png)
 
-![](doc/edx-notebook.png)
+![](docs/edx-notebook.png)
 
-![](doc/edx-details.png)
+![](docs/edx-details.png)
 
 # *Open-edX* student side
 
 Here's what a student would see; 
 
-![](doc/edx-student.png)
+![](docs/edx-student.png)
 
 # `nbhosting` side
 
@@ -36,7 +36,7 @@ Here's the general principle of how of works
  
 As a summary:
 
-![](doc/architecture.png)
+![](docs/architecture.png)
 
 # TODO
 
