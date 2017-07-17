@@ -9,6 +9,12 @@
 
 # disk partitioning
 
+## WARNING
+
+**Something to think about before setting up a production box**:
+it might make more sense to actually cut **2 separate btrfs partitions**, instead of a single one like it is exposed below; having a completely separate btrfs partition for hosting the docker images and containers may turn out to be more convenient, especially when a reset is needed. Remember that it takes less than a second to create a new btrfs filesystem on a partition, while it can take hours to properly remove images and containers using docker one by one, so there's that.
+
+
 ## system *vs* application
 
 The requirement is to have `/nbhosting` mounted on a `btrfs` partition somehow.
