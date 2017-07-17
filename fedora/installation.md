@@ -127,6 +127,8 @@ dnf -y install nginx
 dnf -y install -y uwsgi uwsgi-plugin-python3
 pip3 install --upgrade pip setuptools
 pip3 install --upgrade Django
+# for nbh-monitor
+pip3 install aiohttp docker 
 
 # see VERSIONS for python libraries
 ```
