@@ -1,12 +1,13 @@
 # run make BUILDOPTS="--no-cache" to force rebuild
 
-IMAGES = flotpython flotbioinfo datasciencehandbook 
+KNOWN = $(patsubst %.Dockerfile,%,$(wildcard *.Dockerfile))
+ALL = flotpython3
 
-all: $(IMAGES)
+all: $(ALL)
 
 define image_target
 $1:
 	docker build $(BUILDOPTS) -f $1.Dockerfile -t $1 .
 endef
 
-$(foreach image, $(IMAGES), $(eval $(call image_target, $(image))))
+$(foreach image, $(KNOWN), $(eval $(call image_target, $(image))))

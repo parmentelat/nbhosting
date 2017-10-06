@@ -22,4 +22,4 @@ RUN (find /opt /usr -name notebook.js -o -name main.min.js | xargs sed -i -e 's|
 
 # --------
 # the ipythontutor magic
-RUN pip3 install ipythontutor
+RUN pip install ipythontutor
