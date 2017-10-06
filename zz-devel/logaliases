@@ -3,9 +3,31 @@
 #
 # aliases : developer helper functions to inspect various logs 
 #
-# NOTE: jou and similar convenience are from the 'systemd'
-# component in that diana bash helper repo
-#
+
+##########
+### stolen from the 'systemd' component in diana's bash system
+alias syc=systemctl
+alias sya='systemctl start'
+alias syo='systemctl stop'
+alias syr='systemctl restart'
+alias syt='systemctl status'
+
+alias joc=journalctl
+
+function jou() {
+    local usage="jou [journalctl-options] unit [.. unit]"
+    options=""
+    while [[ "$1" =~ ^-.* ]]; do
+	options="$options $1"; shift
+    done
+    [[ -n $@ ]] || { echo $usage; return; }
+    units=""
+    for unit in "$@"; do
+	units="$units --unit $unit"
+    done
+    journalctl $options $units
+}
+##########
 
 here=$(dirname $(readlink -f $BASH_SOURCE))
 
