@@ -1,9 +1,11 @@
 # --------
 # using scipy, it's kinda big but that should not be a problem
 # base-notebook lacks at least numpy, widgets, so...
-# xxx we should specify a fixed version probably though
-FROM jupyter/scipy-notebook:latest
-
+# FROM jupyter/scipy-notebook:latest
+# we want to specify a fixed version
+# in particular in oct. 2017 when using latest we had header-container
+# still active when the notebooks showed up
+FROM jupyter/scipy-notebook@sha256:d6ebaf357aa9cbc20aa8982b1860a454b90aa599377999212e2889ab5f764aea
 
 # --------
 # for interfacing with nbhosting, we need this startup script in all images
