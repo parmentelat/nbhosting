@@ -7,9 +7,9 @@ define([
     'notebook/js/codecell',
 ], function(Jupyter, events, dialog, codecell) {
 
-    let header = "nbh's custom.js"
+    let hello = "nbh's custom.js"
     
-    console.log(`${header} loading`);
+    console.log(`${hello} loading`);
 
     //////////////////////////////////////////////////
     // see also custom.css that does most of the hiding
@@ -35,7 +35,7 @@ define([
 
     // display title and version
     let show_metadata_in_header = function(Jupyter) {
-	console.log(`${header} showing notebook metadata like notebookname`);
+	console.log(`${hello} showing notebook metadata like notebookname`);
 	let notebook = Jupyter.notebook;
 	let title = notebook.metadata.notebookname || "Untitled";
 	let version = notebook.metadata.version || "0.0";
@@ -46,7 +46,7 @@ define([
     }
 
     let inactivate_non_code_cells = function(Jupyter) {
-	console.log(`${header} inactivating non-code cells`);
+	console.log(`${hello} inactivating non-code cells`);
 	let cells = Jupyter.notebook.get_cells();
 	for(let cell of cells){
 	    if (!(cell instanceof Jupyter.CodeCell)) {
@@ -58,7 +58,7 @@ define([
 
     // this might sound like a good idea but needs more checking
     let redefine_enter_in_command_mode = function(Jupyter) {
-	console.log(`${header} redefining Enter key in command mode`);
+	console.log(`${hello} redefining Enter key in command mode`);
 	Jupyter.keyboard_manager.command_shortcuts.add_shortcut(
 	    'Enter', {
 		help: 'nbhosting Enter key',
@@ -80,7 +80,7 @@ define([
     // so it sounds like milliseconds
     let speed_up_autosave = function(Jupyter) {
 	Jupyter.notebook.minimum_autosave_interval = 30000;
-	console.log(`${header} speed up autosave -> ${Jupyter.notebook.minimum_autosave_interval/1000}s`)
+	console.log(`${hello} speed up autosave -> ${Jupyter.notebook.minimum_autosave_interval/1000}s`)
     }
 
     // edxfront/views.py passes along course and student as params in the GET URL
