@@ -64,8 +64,9 @@ function update-assets() {
 }
 
 function update-nginx() {
+    # xxx should use config depending on mode (devel or prod)
     rsync $rsopts nginx/nginx.conf /etc/nginx/
-    rsync $rsopts nginx/nbhosting.conf /etc/nginx/conf.d/
+    rm -f /etc/nginx/conf.d/nbhosting.conf
 }
     
 function restart-services() {
