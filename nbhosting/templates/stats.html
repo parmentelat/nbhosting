@@ -58,19 +58,20 @@ function hide_all_collapse() {
 $(show_all_collapse);
 $("#show-all").click(show_all_collapse);
 $("#hide-all").click(hide_all_collapse);
-let layout = {'legend' : { 'orientation' : 'h', 'x' : -.1, 'y': 1.2},
-              'showlegend' : true};
+let layout = {'showlegend' : true,
+              'legend' : { 'orientation' : 'h', 'x' : -.1, 'y': 1.2} };
+              
 let url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     let incoming = JSON.parse(response.response);
     console.log("from daily_metrics");
     console.log(incoming);
     // incoming parts
-    let d_timestamps     = incoming['daily']['timestamps'];
-    let e_timestamps     = incoming['events']['timestamps'];
-    let d_new_students   = incoming['daily']['new_students'];
-    let d_uni_students   = incoming['daily']['unique_students'];
-    let e_total_students = incoming['events']['total_students'];
+    let d_timestamps      = incoming['daily']['timestamps'];
+    let e_timestamps      = incoming['events']['timestamps'];
+    let d_new_students    = incoming['daily']['new_students'];
+    let d_uni_students    = incoming['daily']['unique_students'];
+    let e_total_students  = incoming['events']['total_students'];
     let d_new_notebooks   = incoming['daily']['new_notebooks'];
     let d_uni_notebooks   = incoming['daily']['unique_notebooks'];
     let e_total_notebooks = incoming['events']['total_notebooks'];
@@ -102,20 +103,19 @@ d3.request(url_counts, function (error, response) {
     console.log(incoming);
 
     // incoming parts
-    let timestamps  = incoming['timestamps'];
-    let running_containers = incoming['running_containers'];
-    let frozen_containers = incoming['frozen_containers'];
-    var	total_containers = running_containers.map(function(num, index){
+    let timestamps            = incoming['timestamps'];
+    let running_containers    = incoming['running_containers'];
+    let frozen_containers     = incoming['frozen_containers'];
+    var	total_containers      = running_containers.map(function(num, index){
         return num+frozen_containers[index];})
-    let running_kernels = incoming['running_kernels'];
-// no longer displayed -   let student_homes = incoming['student_homes'];
-    let docker_ds_percents = incoming['docker_ds_percents'];
-    let docker_ds_frees = incoming['docker_ds_frees'];
+    let running_kernels       = incoming['running_kernels'];
+    let docker_ds_percents    = incoming['docker_ds_percents'];
+    let docker_ds_frees       = incoming['docker_ds_frees'];
     let nbhosting_ds_percents = incoming['nbhosting_ds_percents'];
-    let nbhosting_ds_frees = incoming['nbhosting_ds_frees'];
-    let load1s = incoming['load1s'];
-    let load5s = incoming['load5s'];
-    let load15s = incoming['load15s'];
+    let nbhosting_ds_frees    = incoming['nbhosting_ds_frees'];
+    let load1s                = incoming['load1s'];
+    let load5s                = incoming['load5s'];
+    let load15s               = incoming['load15s'];
 
     let running_containers_data = {
 	'x' : timestamps, 'y' : running_containers,
@@ -198,9 +198,16 @@ d3.request(url_usage, function(error, response) {
         'x' : xrange, 'y': yrange,
         'name' : 'number of students per notebook',
         };
+    /* WARNING: using the same layout object as above here
+       would result in the layout object being changed
+       and becoming unusable for the other figures
+       and that was rather nasty to troubleshoot */
+    let bar_layout = {'showlegend' : true,
+                  'legend' : { 'orientation' : 'h', 'x' : 0} };
+    
     Plotly.newPlot('plotly-notebook-students',
                    [students_per_notebook_data],
-                   layout);
+                   bar_layout);
 });
 </script>
 {% endblock %}
