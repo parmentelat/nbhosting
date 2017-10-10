@@ -1,7 +1,7 @@
 from pathlib import Path
 import time
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from nbhosting.main.settings import nbhosting_settings, logger
 
@@ -256,6 +256,33 @@ class Stats:
             result['timestamps'] = timestamps
             return result
 
+    def students_per_notebook(self):
+        # dict : notebook -> {students}
+        set_by_notebook = defaultdict(set)
+        filepath = self.notebook_events_path()
+        try:
+            with filepath.open() as f:
+                for line in f.readlines():
+                    _, _, student_hash, notebook, action, *_ = line.split()
+                    # action 'killing' needs to be ignored
+                    if action in ('killing',):
+                        continue
+                    set_by_notebook[notebook].add(student_hash)
+        except Exception as e:
+            logger.error("could not read {} to count students per notebook"
+                         .format(filepath))
+        # cannot serialize a set
+        # plus, result needs to be sorted
+        # so output a list of tuples (notebook, number_students)
+        return [
+            (notebook, len(set_by_notebook[notebook]))
+            for notebook in sorted(set_by_notebook)
+        ]
+
+    def material_usage(self):
+        return {
+            'students_per_notebook' : self.students_per_notebook(),
+        }
 
 if __name__ == '__main__':
     import sys

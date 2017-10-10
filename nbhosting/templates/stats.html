@@ -48,6 +48,7 @@ Stats for course {{course}}
 
 <!---------------------->
 <script>
+"use strict";
 function show_all_collapse() {
     $(".collapse").collapse('show');
 }
@@ -176,6 +177,30 @@ d3.request(url_counts, function (error, response) {
                    [load1s_data, load5s_data, load15s_data],
 		   layout);
     
+});
+let url_usage="/nbh/stats/material_usage/{{course}}";
+d3.request(url_usage, function(error, response) {
+    let incoming = JSON.parse(response.response);
+    console.log("from material usage");
+    console.log(incoming);
+
+    // incoming parts
+    let students_per_notebook = incoming['students_per_notebook'];
+    // arbitrarily start at 1
+    let xrange = students_per_notebook.map(function(_, i) { return String(i+1);});
+    // notebook id like w1/w1-s1-path
+    let labels = students_per_notebook.map(function(tuple) { return tuple[0];});
+    // actual number of students that have seend it
+    let yrange = students_per_notebook.map(function(tuple) { return tuple[1];});
+
+    let students_per_notebook_data = {
+        'type' : 'bar', 'text' : labels,
+        'x' : xrange, 'y': yrange,
+        'name' : 'number of students per notebook',
+        };
+    Plotly.newPlot('plotly-notebook-students',
+                   [students_per_notebook_data],
+                   layout);
 });
 </script>
 {% endblock %}

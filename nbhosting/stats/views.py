@@ -21,6 +21,8 @@ def show_stats(request, course):
               'title' : 'Students - who showed up at least once'},
             { 'plotly_name' : 'plotly-notebooks',
               'title' : 'Notebooks - read at least once'},
+            { 'plotly_name' : 'plotly-notebook-students',
+              'title' : 'Students per notebook'},
         ]
     }
     section2 = {
@@ -63,4 +65,12 @@ def send_monitor_counts(request, course):
     stats = Stats(course)
     counts = stats.monitor_counts()
     result = json.dumps(counts)
+    return HttpResponse(result, content_type = "application/json")
+
+
+@csrf_protect
+def send_material_usage(request, course):
+    stats = Stats(course)
+    usage = stats.material_usage()
+    result = json.dumps(usage)
     return HttpResponse(result, content_type = "application/json")
