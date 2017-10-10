@@ -57,74 +57,74 @@ function hide_all_collapse() {
 $(show_all_collapse);
 $("#show-all").click(show_all_collapse);
 $("#hide-all").click(hide_all_collapse);
-var layout = {'legend' : { 'orientation' : 'h', 'x' : -.1, 'y': 1.2},
+let layout = {'legend' : { 'orientation' : 'h', 'x' : -.1, 'y': 1.2},
               'showlegend' : true};
-var url_metrics="/nbh/stats/daily_metrics/{{course}}";
+let url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
-    var incoming = JSON.parse(response.response);
+    let incoming = JSON.parse(response.response);
     console.log("from daily_metrics");
     console.log(incoming);
     // incoming parts
-    var d_timestamps     = incoming['daily']['timestamps'];
-    var e_timestamps     = incoming['events']['timestamps'];
-    var d_new_students   = incoming['daily']['new_students'];
-    var d_uni_students   = incoming['daily']['unique_students'];
-    var e_total_students = incoming['events']['total_students'];
-    var d_new_notebooks   = incoming['daily']['new_notebooks'];
-    var d_uni_notebooks   = incoming['daily']['unique_notebooks'];
-    var e_total_notebooks = incoming['events']['total_notebooks'];
+    let d_timestamps     = incoming['daily']['timestamps'];
+    let e_timestamps     = incoming['events']['timestamps'];
+    let d_new_students   = incoming['daily']['new_students'];
+    let d_uni_students   = incoming['daily']['unique_students'];
+    let e_total_students = incoming['events']['total_students'];
+    let d_new_notebooks   = incoming['daily']['new_notebooks'];
+    let d_uni_notebooks   = incoming['daily']['unique_notebooks'];
+    let e_total_notebooks = incoming['events']['total_notebooks'];
 
-    var total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
+    let total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
 				'name': 'total students'};
-    var new_students_data =   { 'x' : d_timestamps, 'y' : d_new_students,
+    let new_students_data =   { 'x' : d_timestamps, 'y' : d_new_students,
 			        'name': 'new students / day'};
-    var uni_students_data =   { 'x' : d_timestamps, 'y' : d_uni_students,
+    let uni_students_data =   { 'x' : d_timestamps, 'y' : d_uni_students,
 			        'name': 'unique students / day'};
     Plotly.newPlot('plotly-students',
 		   [total_students_data, uni_students_data, new_students_data],
 		   layout);
 
-    var new_notebooks_data =   { 'x' : d_timestamps, 'y' : d_new_notebooks,
+    let new_notebooks_data =   { 'x' : d_timestamps, 'y' : d_new_notebooks,
 			         'name': 'new notebooks / day'};
-    var uni_notebooks_data =   { 'x' : d_timestamps, 'y' : d_uni_notebooks,
+    let uni_notebooks_data =   { 'x' : d_timestamps, 'y' : d_uni_notebooks,
 			         'name': 'unique notebooks open / day'};
-    var total_notebooks_data = { 'x' : e_timestamps, 'y' : e_total_notebooks,
+    let total_notebooks_data = { 'x' : e_timestamps, 'y' : e_total_notebooks,
     			       	 'name': 'notebooks read at least once'};
     Plotly.newPlot('plotly-notebooks',
 		   [ uni_notebooks_data, new_notebooks_data, total_notebooks_data],
 		   layout);
 });
-var url_counts="/nbh/stats/monitor_counts/{{course}}";
+let url_counts="/nbh/stats/monitor_counts/{{course}}";
 d3.request(url_counts, function (error, response) {
-    var incoming = JSON.parse(response.response);
+    let incoming = JSON.parse(response.response);
     console.log("from monitor counts");
     console.log(incoming);
 
     // incoming parts
-    var timestamps  = incoming['timestamps'];
-    var running_containers = incoming['running_containers'];
-    var frozen_containers = incoming['frozen_containers'];
+    let timestamps  = incoming['timestamps'];
+    let running_containers = incoming['running_containers'];
+    let frozen_containers = incoming['frozen_containers'];
     var	total_containers = running_containers.map(function(num, index){
         return num+frozen_containers[index];})
-    var running_kernels = incoming['running_kernels'];
-// no longer displayed -   var student_homes = incoming['student_homes'];
-    var docker_ds_percents = incoming['docker_ds_percents'];
-    var docker_ds_frees = incoming['docker_ds_frees'];
-    var nbhosting_ds_percents = incoming['nbhosting_ds_percents'];
-    var nbhosting_ds_frees = incoming['nbhosting_ds_frees'];
-    var load1s = incoming['load1s'];
-    var load5s = incoming['load5s'];
-    var load15s = incoming['load15s'];
+    let running_kernels = incoming['running_kernels'];
+// no longer displayed -   let student_homes = incoming['student_homes'];
+    let docker_ds_percents = incoming['docker_ds_percents'];
+    let docker_ds_frees = incoming['docker_ds_frees'];
+    let nbhosting_ds_percents = incoming['nbhosting_ds_percents'];
+    let nbhosting_ds_frees = incoming['nbhosting_ds_frees'];
+    let load1s = incoming['load1s'];
+    let load5s = incoming['load5s'];
+    let load15s = incoming['load15s'];
 
-    var running_containers_data = {
+    let running_containers_data = {
 	'x' : timestamps, 'y' : running_containers,
 	'name' : "running jupyter containers",
     };
-    var total_containers_data = {
+    let total_containers_data = {
 	'x' : timestamps, 'y' : total_containers,
 	'name' : "total jupyter containers",
     };
-    var running_kernels_data = {
+    let running_kernels_data = {
 	'x' : timestamps, 'y' : running_kernels,
 	'name' : "running kernels"
     }
@@ -133,26 +133,26 @@ d3.request(url_counts, function (error, response) {
   	          layout);	
 
 
-    var docker_ds_percents_data = {
+    let docker_ds_percents_data = {
         'x': timestamps, 'y': docker_ds_percents,
         'name' : 'percentage of free disk space - docker fs',
     }
-    var nbhosting_ds_percents_data = {
+    let nbhosting_ds_percents_data = {
         'x': timestamps, 'y': nbhosting_ds_percents,
         'name' : 'percentage of free disk space - nbhosting fs',
     }
-    var layout_100 = JSON.parse(JSON.stringify(layout));
+    let layout_100 = JSON.parse(JSON.stringify(layout));
     layout_100['yaxis'] = {'range' : [0, 100]};
     Plotly.newPlot('plotly-ds-percent',
                    [docker_ds_percents_data, nbhosting_ds_percents_data],
 		   layout_100);
     
 
-    var docker_ds_frees_data = {
+    let docker_ds_frees_data = {
         'x': timestamps, 'y': docker_ds_frees,
         'name' : 'free disk space - docker fs (in MiB)',
     }
-    var nbhosting_ds_frees_data = {
+    let nbhosting_ds_frees_data = {
         'x': timestamps, 'y': nbhosting_ds_frees,
         'name' : 'free disk space - nbhosting fs (in MiB)',
     }
@@ -160,15 +160,15 @@ d3.request(url_counts, function (error, response) {
                    [docker_ds_frees_data, nbhosting_ds_frees_data],
 		   layout);
     
-    var load1s_data = {
+    let load1s_data = {
         'x': timestamps, 'y': load1s,
         'name' : '100 x load past 1 minute',
     }
-    var load5s_data = {
+    let load5s_data = {
         'x': timestamps, 'y': load5s,
         'name' : '100 x load past 5 minutes',
     }
-    var load15s_data = {
+    let load15s_data = {
         'x': timestamps, 'y': load15s,
         'name' : '100 x load past 15 minutes',
     }
