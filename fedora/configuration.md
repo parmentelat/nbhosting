@@ -14,3 +14,6 @@
 | `nbhosting/main/settings.py` | `ALLOWED_HOSTS`     |  django | define your hostname(s)  |
 |                              |                     |         | otherwise `Bad Request (400)`  |
 | `nbhosting/main/settings.py` |    `SECRET_KEY`     |  django | use your own       |
+| `nbhosting/main/settings.py` |  `allowed_incoming_ips`       |    nbhosting | IP's that you authorize   |
+|                              |                     |         | typically FUN and your own trusted ones |
+

@@ -2,9 +2,10 @@ from pathlib import Path
 import subprocess
 import pprint
 import hashlib
+import re
 
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseForbidden
 
 from nbhosting.main.settings import nbhosting_settings as settings
 from nbhosting.main.settings import logger, DEBUG
@@ -28,6 +29,17 @@ def log_completed_process(cp, subcommand):
             logger.info(text)
 
 
+def authorized(request):
+    incoming_ip = request.META['REMOTE_ADDR']
+    allowed_incoming_ips = settings['allowed_incoming_ips']
+    for mode, allowed in allowed_incoming_ips:
+        if mode == 'exact' and incoming_ip == allowed:
+            return True
+        if mode == 'match' and re.match(allowed, incoming_ip):
+            return True
+        logger.warn("check your allowed_incoming_ips settings")
+    return False
+
 def edx_request(request, course, student, notebook):
 
     """
@@ -38,6 +50,9 @@ def edx_request(request, course, student, notebook):
     and then returns a http redirect to /port/<notebook_path>
     """
 
+    if not authorized(request):
+        return HttpResponseForbidden()
+    
     # the ipynb extension is removed from the notebook name in urls.py
     notebook_withext = notebook + ".ipynb"
     # have we received a request to force the copy (for reset_from_origin)

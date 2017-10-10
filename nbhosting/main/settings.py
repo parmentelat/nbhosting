@@ -18,8 +18,20 @@ from .loggers import init_loggers
 
 ############################################################
 nbhosting_settings = {
+    # the location used by the application
     'root' : '/nbhosting',
+    # the location where the application is installed
     'base' : '/root/nbhosting',
+    # the IPs that are allowed to issue this stuff
+    # typically fun-mooc.fr + a couple devel boxes
+    'allowed_incoming_ips' : [
+        # fun-mooc
+        ( 'exact', '84.39.42.145'),
+        # home
+        ( 'exact', '82.226.190.44'),
+        # work
+        ( 'match', '138\.96\.[0-9]+\.[0-9]+'),
+    ]
 }
 
 ########## production vs devel
