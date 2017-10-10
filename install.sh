@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# globals that can be changed through options
+USE_HTTP=
+
 # can do installs or updates
 # expected to run in a repository that is git-updated
 # run as ./install.sh 
@@ -64,8 +67,14 @@ function update-assets() {
 }
 
 function update-nginx() {
-    # xxx should use config depending on mode (devel or prod)
-    rsync $rsopts nginx/nginx.conf /etc/nginx/
+    local config
+    if [ -z "$USE_HTTP" ] ; then
+        config="nginx-https.conf"
+    else
+        config="nginx-http.conf"
+    fi
+    rsync $rsopts nginx/$config /etc/nginx/nginx.conf
+    # xxx remove sequels
     rm -f /etc/nginx/conf.d/nbhosting.conf
 }
     
@@ -107,6 +116,15 @@ function default-main() {
 # otherwise one can invoke one or several steps
 # with e.g. install.sh update-uwsgi log-symlink
 function main() {
+    # d stands for development
+    while getopts "d" opt; do
+        case $opt in
+            d) USE_HTTP=true;;
+            \?) echo "unknown option $opt - exiting"; exit 1;;
+        esac
+    done
+    shift $(($OPTIND - 1))
+    
     if [[ -z "$@" ]]; then
 	default-main
     else

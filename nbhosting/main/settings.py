@@ -52,9 +52,13 @@ DEBUG = False
 #DEBUG = True
 
 ALLOWED_HOSTS = [
-    '138.96.112.37',
-    'nbhosting.inria.fr',
-    'localhost',
+    '138.96.112.37',                    # thermals
+    'nbhosting-dev.inria.fr',           #
+    'thermals.pl.sophia.inria.fr',      #
+    '138.96.19.2',                      # nbhosting
+    'nbhosting.inria.fr',               # 
+    'nbhosting.pl.sophia.inria.fr',     # 
+    'localhost',                        # for devel
 ]
 
 
