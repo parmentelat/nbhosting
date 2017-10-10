@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # globals that can be changed through options
-USE_HTTP=
+DEVEL_MODE=
 
 # can do installs or updates
 # expected to run in a repository that is git-updated
@@ -68,7 +68,7 @@ function update-assets() {
 
 function update-nginx() {
     local config
-    if [ -z "$USE_HTTP" ] ; then
+    if [ -z "$DEVEL_MODE" ] ; then
         config="nginx-https.conf"
     else
         config="nginx-http.conf"
@@ -103,6 +103,11 @@ function restore-local-secret() {
 }
 
 
+function turn-on-debug-if-develop() {
+    [ -z "$DEVEL_MODE" ] && return
+    (cd nbhosting/main; sed -i.git -e "s,^DEBUG.*,DEBUG = True," settings.py)
+}
+
 function default-main() {
     check-subdirs
     ensure-uid-1000
@@ -118,6 +123,7 @@ function default-main() {
     restart-services
 
     restore-local-secret
+    turn-on-debug-if-develop
 
     # this is just convenience
     log-symlink
@@ -130,7 +136,7 @@ function main() {
     # d stands for development
     while getopts "d" opt; do
         case $opt in
-            d) USE_HTTP=true;;
+            d) DEVEL_MODE=true;;
             \?) echo "unknown option $opt - exiting"; exit 1;;
         esac
     done
