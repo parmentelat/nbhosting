@@ -291,7 +291,7 @@ class Stats:
                         continue
                     # remove test / debug student names like student, anonymous, or mary
                     if len(student) <= 10:
-                        logger.warn("ignoring too short student name {}"
+                        logger.debug("ignoring too short student name {}"
                                      .format(student))
                         continue
                     set_by_notebook[notebook].add(student)
