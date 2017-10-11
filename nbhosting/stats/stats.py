@@ -267,6 +267,7 @@ class Stats:
         read the events file and produce data about relations 
         between notebooks and students
         remember we cannot serialize a set, plus a sorted result is better
+        'nbstudents' : how many students are considered (test students are removed..)
         'nbstudents_per_notebook' : a sorted list of tuples (notebook, nb_students)
                                   how many students have read this notebook
         'nbstudents_per_nbnotebooks' : a sorted list of tuples (nb_notebooks, nb_students)
@@ -290,6 +291,7 @@ class Stats:
                     if action in ('killing',):
                         continue
                     # remove test / debug student names like student, anonymous, or mary
+                    # official student hashes are 32 chars long
                     if len(student) <= 10:
                         logger.debug("ignoring too short student name {}"
                                      .format(student))
@@ -331,6 +333,8 @@ class Stats:
             zmin = min( min(x for x in line if x) for line in heatmap_z )
                 
             return {
+                'nbnotebooks' : len(set_by_notebook),
+                'nbstudents' : len(set_by_student),
                 'nbstudents_per_notebook' : nbstudents_per_notebook,
                 'nbstudents_per_nbnotebooks' : nbstudents_per_nbnotebooks,
                 'heatmap' : {'x' : heatmap_notebooks, 'y' : heatmap_students,

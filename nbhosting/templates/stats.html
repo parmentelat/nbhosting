@@ -212,7 +212,7 @@ d3.request(url_usage, function(error, response) {
     let nbstudents_per_notebook_data = {
         type : 'bar', text : labels1,
         x : x1, y: y1,
-        name : 'number of students per notebook',
+        name : `number of students/${incoming.nbstudents} per notebook`,
         };
     Plotly.newPlot('plotly-nbstudents-per-notebook',
                    [nbstudents_per_notebook_data],
@@ -229,7 +229,7 @@ d3.request(url_usage, function(error, response) {
     let nbstudents_per_nbnotebooks_data = {
         type : 'bar', text : labels2,
         x : x2, y : y2,
-        name : 'number of students who have read exactly that many notebooks',
+        name : `number of students/${incoming.nbstudents} who have read exactly that many notebooks`,
         marker : { color: '#91d27e'},
         };
     Plotly.newPlot('plotly-nbstudents-per-nbnotebooks',
@@ -253,7 +253,7 @@ d3.request(url_usage, function(error, response) {
             [1.0, 'rgb(215,48,39)'],
         ],
         colorbar : {
-            title : 'times opened',
+            title : '# times opened',
             titleside : 'top',
             lenmode : 'pixels',
             len :     400,
@@ -271,7 +271,7 @@ d3.request(url_usage, function(error, response) {
         xaxis : { ticks: "", showticklabels: false, },
         yaxis : { ticks: "", showticklabels: false, },
         legend: legend_layout,
-        title:  'notebook ＊ student map',
+        title:  `${incoming.nbnotebooks} notebooks ＊ ${incoming.nbstudents} students map`,
     };
     console.log(heatmap_layout);
     Plotly.newPlot('plotly-heatmap',
