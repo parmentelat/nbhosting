@@ -78,10 +78,8 @@ class Stats:
             with path.open("a") as f:
                 f.write("{timestamp} {course} {student} {notebook} {action} {port}\n".
                         format(**locals()))
-        except:
-            logger.error("Cannot store stats line into {}".format(path))
-            import traceback
-            traceback.print_exc()
+        except Exception as e:
+            logger.exception("Cannot store stats line into {}".format(path))
 
     def record_open_notebook(self, student, notebook, action, port):
         """
@@ -120,7 +118,7 @@ class Stats:
             with path.open('a') as f:
                 f.write("# " + " ".join(self.known_counts) + "\n")
         except Exception as e:
-            logger.error("Cannot store headers line into {} - {}".format(path, e))
+            logger.exception("Cannot store headers line into {}".format(path))
         
     def record_monitor_counts(self, *args):
         timestamp = time.strftime(self.time_format, time.gmtime())
@@ -132,7 +130,7 @@ class Stats:
             with path.open('a') as f:
                 f.write("{} {}\n".format(timestamp, " ".join(str(arg) for arg in args)))
         except Exception as e:
-            logger.error("Cannot store counts line into {} - {}".format(path, e))
+            logger.exception("Cannot store counts line into {}".format(path))
         
     ####################
     def daily_metrics(self):
@@ -183,8 +181,8 @@ class Stats:
                         total_students.append(current_figures.nb_total_students())
                         total_notebooks.append(current_figures.nb_total_notebooks())
                     except Exception as e:
-                        logger.error("{}:{}: skipped misformed events line - {}: {}"
-                                     .format(events_path, lineno, type(e), e))
+                        logger.exception("{}:{}: skipped misformed events line :{}"
+                                         .format(events_path, lineno, line))
                         continue
         except Exception as e:
             logger.exception("unexpected exception")
@@ -253,8 +251,8 @@ class Stats:
                             for count in known_counts[-missing:]:
                                 counts[count].append(0)
                     except Exception as e:
-                        logger.error("{}:{}: skipped misformed counts line - {}: {}"
-                                     .format(counts_path, lineno, type(e), e))
+                        logger.exception("{}:{}: skipped misformed counts line - {}"
+                                         .format(counts_path, lineno, line))
         except:
             pass
         finally:
@@ -273,6 +271,8 @@ class Stats:
                                   how many students have read this notebook
         'nbstudents_per_nbnotebooks' : a sorted list of tuples (nb_notebooks, nb_students)
                                   how many students have read exactly that number of notebooks
+        'heatmap' : a complete matrix notebook x student ready to feed to plotly.heatmap
+                    comes with 'x', 'y' and 'z' keys
         """
 
         events_path = self.notebook_events_path()
@@ -280,18 +280,26 @@ class Stats:
         set_by_notebook = defaultdict(set)
         # a dict student -> set of notebooks
         set_by_student = defaultdict(set)
+        # a dict hashed on a tuple (notebook, student) -> number of visits
+        raw_counts = defaultdict(int)
         try:
             with events_path.open() as f:
-                for line in f.readlines():
+                for lineno, line in enumerate(f, 1):
                     _, _, student, notebook, action, *_ = line.split()
                     # action 'killing' needs to be ignored
                     if action in ('killing',):
                         continue
+                    # remove test / debug student names like student, anonymous, or mary
+                    if len(student) <= 10:
+                        logger.warn("ignoring too short student name {}"
+                                     .format(student))
+                        continue
                     set_by_notebook[notebook].add(student)
                     set_by_student[student].add(notebook)
+                    raw_counts[notebook, student] += 1
         except Exception as e:
-            logger.error("could not read {} to count students per notebook"
-                         .format(events_path))
+            logger.exception("could not read {} to count students per notebook"
+                             .format(events_path))
 
         finally:
             nbstudents_per_notebook = [
@@ -305,9 +313,30 @@ class Stats:
                 (number, iter_len(v))
                 for (number, v) in itertools.groupby(sorted(nb_by_student.values()))
             ]
+            # the heatmap
+            heatmap_notebooks = sorted(set_by_notebook.keys())
+            heatmap_students = sorted(set_by_student.keys())
+            # a first attempt at showing the number of times a given notebook was open
+            # by a given student resulted in poor outcome
+            # problem being mostly with colorscale, we'd need to have '0' stick out
+            # as transparent or something, but OTOH sending None instead or 0 
+            heatmap_z = [
+                [raw_counts.get( (notebook, student,), None) for notebook in heatmap_notebooks]
+                for student in heatmap_students
+            ]
+            # sort students on total number of opened notebooks
+            heatmap_z.sort(key = lambda student_line: sum(x for x in student_line if x))
+
+            zmax = max( max(x for x in line if x) for line in heatmap_z )
+            zmin = min( min(x for x in line if x) for line in heatmap_z )
+                
             return {
                 'nbstudents_per_notebook' : nbstudents_per_notebook,
                 'nbstudents_per_nbnotebooks' : nbstudents_per_nbnotebooks,
+                'heatmap' : {'x' : heatmap_notebooks, 'y' : heatmap_students,
+                             'z' : heatmap_z,
+                             'zmin' : zmin, 'zmax' : zmax,
+                },
             }
 
 if __name__ == '__main__':

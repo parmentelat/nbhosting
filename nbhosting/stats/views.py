@@ -25,6 +25,9 @@ def show_stats(request, course):
               'title' : 'Students per notebook'},
             { 'plotly_name' : 'plotly-nbstudents-per-nbnotebooks',
               'title' : 'Number of notebooks per student'},
+            { 'plotly_name' : 'plotly-heatmap',
+              'title' : 'Complete map'},
+            
         ]
     }
     section2 = {

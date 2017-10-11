@@ -36,8 +36,11 @@ Stats for course {{course}}
 {{section.title}}</h1>
 <div class="card-block" id='{{section.id}}'>
 {% for subsection in section.subsections %}
+<a name='{{subsection.plotly_name}}'></a>
 <h2 class='card-title card-header' data-toggle='collapse' data-target='#{{subsection.plotly_name}}-collapse'>
-{{subsection.title}}</h2>
+{{subsection.title}}
+<!-- more harmful than helpful <a class="anchor-link" href="#{{subsection.plotly_name}}">¶</a>-->
+</h2>
 <div id='{{subsection.plotly_name}}-collapse' class='collapse'>
 <div id='{{subsection.plotly_name}}'>
 </div></div>
@@ -58,8 +61,12 @@ function hide_all_collapse() {
 $(show_all_collapse);
 $("#show-all").click(show_all_collapse);
 $("#hide-all").click(hide_all_collapse);
-let layout = {showlegend : true,
-              legend : { orientation : 'h', x : -.1, y: 1.2} };
+//////////
+let legend_layout = { orientation : 'h', x : -.1, y: 1.2};
+let layout = {
+    showlegend : true,
+    legend : legend_layout,
+};
               
 let url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
@@ -188,11 +195,13 @@ d3.request(url_usage, function(error, response) {
        would result in the layout object being changed
        and becoming unusable for the other figures
        and that was rather nasty to troubleshoot */
-    let bar_layout = {'showlegend' : true,
-                  'legend' : { 'orientation' : 'h', x : 0} };
+    let bar_layout = {
+        showlegend : true,
+        legend : legend_layout,
+    }
     
     // raw incoming is a list of couples
-    let nbstudents_per_notebook = incoming['nbstudents_per_notebook'];
+    let nbstudents_per_notebook = incoming.nbstudents_per_notebook;
     // arbitrarily start at 1
     let x1 = nbstudents_per_notebook.map(function(_, i) { return String(i+1);});
     // actual number of students that have seend it
@@ -210,7 +219,7 @@ d3.request(url_usage, function(error, response) {
                    bar_layout);
 
     //////////
-    let nbstudents_per_nbnotebooks = incoming['nbstudents_per_nbnotebooks'];
+    let nbstudents_per_nbnotebooks = incoming.nbstudents_per_nbnotebooks;
     let x2 = nbstudents_per_nbnotebooks.map(function(tuple) { return tuple[0];});
     let y2 = nbstudents_per_nbnotebooks.map(function(tuple) { return tuple[1];});
     let labels2 = nbstudents_per_nbnotebooks.map(function(tuple) {
@@ -226,7 +235,49 @@ d3.request(url_usage, function(error, response) {
     Plotly.newPlot('plotly-nbstudents-per-nbnotebooks',
                    [nbstudents_per_nbnotebooks_data],
                    bar_layout);
-    
+
+    //////////
+    let heatmap = incoming.heatmap;
+
+    let heatmap_data = {
+        type : 'heatmap', 
+        x : heatmap.x, y : heatmap.y, z : heatmap.z,
+        zmin : 1, zmax : heatmap.zmax,
+        hoverinfo : 'x+z',
+        colorscale : [
+            [0.0, 'rgb(69,117,180)'], 
+            [0.2, 'rgb(171,217,233)'], 
+            [0.4, 'rgb(224,243,248)'], 
+            [0.6, 'rgb(254,224,144)'],
+            [0.8, 'rgb(253,174,97)'], 
+            [1.0, 'rgb(215,48,39)'],
+        ],
+        colorbar : {
+            title : 'times opened',
+            titleside : 'top',
+            lenmode : 'pixels',
+            len :     400,
+            thickness : 50,
+            xpad : 50,
+        }         
+    }
+
+    // how many x's and y's
+    let markx = 8, marky = 5;
+    let hx = heatmap.z[0].length;
+    let hy = heatmap.z.length;
+    let heatmap_layout = {
+        width : markx * hx, height : marky * hy,
+        xaxis : { ticks: "", showticklabels: false, },
+        yaxis : { ticks: "", showticklabels: false, },
+        legend: legend_layout,
+        title:  'notebook ＊ student map',
+    };
+    console.log(heatmap_layout);
+    Plotly.newPlot('plotly-heatmap',
+                   [heatmap_data],
+                   heatmap_layout);
+        
 });
 </script>
 {% endblock %}
