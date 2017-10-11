@@ -21,8 +21,10 @@ def show_stats(request, course):
               'title' : 'Students - who showed up at least once'},
             { 'plotly_name' : 'plotly-notebooks',
               'title' : 'Notebooks - read at least once'},
-            { 'plotly_name' : 'plotly-notebook-students',
+            { 'plotly_name' : 'plotly-nbstudents-per-notebook',
               'title' : 'Students per notebook'},
+            { 'plotly_name' : 'plotly-nbstudents-per-nbnotebooks',
+              'title' : 'Number of notebooks per student'},
         ]
     }
     section2 = {

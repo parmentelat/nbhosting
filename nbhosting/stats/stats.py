@@ -1,11 +1,18 @@
 from pathlib import Path
 import time
-
+import itertools
 from collections import OrderedDict, defaultdict
 
 from nbhosting.main.settings import nbhosting_settings, logger
 
 root = Path(nbhosting_settings['root'])
+
+# an iterable has no builtin len method
+def iter_len(iterable):
+    count = 0
+    for _ in iterable: count += 1
+    return count
+
 
 # attach to a given day
 class DailyFigures:
@@ -141,6 +148,7 @@ class Stats:
         * 'events': { 'timestamps', 'total_students', 'total_notebooks' } 
            - all 3 same size
         """
+        
         events_path = self.notebook_events_path()
         # a dictionary day -> figures
         figures_by_day = OrderedDict()
@@ -256,33 +264,51 @@ class Stats:
             result['timestamps'] = timestamps
             return result
 
-    def students_per_notebook(self):
-        # dict : notebook -> {students}
+    def material_usage(self):
+        """
+        read the events file and produce data about relations 
+        between notebooks and students
+        remember we cannot serialize a set, plus a sorted result is better
+        'nbstudents_per_notebook' : a sorted list of tuples (notebook, nb_students)
+                                  how many students have read this notebook
+        'nbstudents_per_nbnotebooks' : a sorted list of tuples (nb_notebooks, nb_students)
+                                  how many students have read exactly that number of notebooks
+        """
+
+        events_path = self.notebook_events_path()
+        # a dict notebook -> set of students
         set_by_notebook = defaultdict(set)
-        filepath = self.notebook_events_path()
+        # a dict student -> set of notebooks
+        set_by_student = defaultdict(set)
         try:
-            with filepath.open() as f:
+            with events_path.open() as f:
                 for line in f.readlines():
-                    _, _, student_hash, notebook, action, *_ = line.split()
+                    _, _, student, notebook, action, *_ = line.split()
                     # action 'killing' needs to be ignored
                     if action in ('killing',):
                         continue
-                    set_by_notebook[notebook].add(student_hash)
+                    set_by_notebook[notebook].add(student)
+                    set_by_student[student].add(notebook)
         except Exception as e:
             logger.error("could not read {} to count students per notebook"
-                         .format(filepath))
-        # cannot serialize a set
-        # plus, result needs to be sorted
-        # so output a list of tuples (notebook, number_students)
-        return [
-            (notebook, len(set_by_notebook[notebook]))
-            for notebook in sorted(set_by_notebook)
-        ]
+                         .format(events_path))
 
-    def material_usage(self):
-        return {
-            'students_per_notebook' : self.students_per_notebook(),
-        }
+        finally:
+            nbstudents_per_notebook = [
+                (notebook, len(set_by_notebook[notebook]))
+                for notebook in sorted(set_by_notebook)
+            ]
+            nb_by_student = { student: len(s) for (student, s) in set_by_student.items() }
+
+            # counting in the other direction is surprisingly tedious
+            nbstudents_per_nbnotebooks = [
+                (number, iter_len(v))
+                for (number, v) in itertools.groupby(sorted(nb_by_student.values()))
+            ]
+            return {
+                'nbstudents_per_notebook' : nbstudents_per_notebook,
+                'nbstudents_per_nbnotebooks' : nbstudents_per_nbnotebooks,
+            }
 
 if __name__ == '__main__':
     import sys

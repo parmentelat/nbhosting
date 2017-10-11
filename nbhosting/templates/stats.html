@@ -58,40 +58,40 @@ function hide_all_collapse() {
 $(show_all_collapse);
 $("#show-all").click(show_all_collapse);
 $("#hide-all").click(hide_all_collapse);
-let layout = {'showlegend' : true,
-              'legend' : { 'orientation' : 'h', 'x' : -.1, 'y': 1.2} };
+let layout = {showlegend : true,
+              legend : { orientation : 'h', x : -.1, y: 1.2} };
               
 let url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     let incoming = JSON.parse(response.response);
-    console.log("from daily_metrics");
+    console.log(`from daily_metrics ${url_metrics}`);
     console.log(incoming);
     // incoming parts
-    let d_timestamps      = incoming['daily']['timestamps'];
-    let e_timestamps      = incoming['events']['timestamps'];
-    let d_new_students    = incoming['daily']['new_students'];
-    let d_uni_students    = incoming['daily']['unique_students'];
-    let e_total_students  = incoming['events']['total_students'];
-    let d_new_notebooks   = incoming['daily']['new_notebooks'];
-    let d_uni_notebooks   = incoming['daily']['unique_notebooks'];
-    let e_total_notebooks = incoming['events']['total_notebooks'];
+    let d_timestamps      = incoming.daily.timestamps;
+    let e_timestamps      = incoming.events.timestamps;
+    let d_new_students    = incoming.daily.new_students;
+    let d_uni_students    = incoming.daily.unique_students;
+    let e_total_students  = incoming.events.total_students;
+    let d_new_notebooks   = incoming.daily.new_notebooks;
+    let d_uni_notebooks   = incoming.daily.unique_notebooks;
+    let e_total_notebooks = incoming.events.total_notebooks;
 
-    let total_students_data = { 'x' : e_timestamps, 'y' : e_total_students,
-				'name': 'total students'};
-    let new_students_data =   { 'x' : d_timestamps, 'y' : d_new_students,
-			        'name': 'new students / day'};
-    let uni_students_data =   { 'x' : d_timestamps, 'y' : d_uni_students,
-			        'name': 'unique students / day'};
+    let total_students_data = { x : e_timestamps, y : e_total_students,
+				name : 'total students'};
+    let new_students_data =   { x : d_timestamps, y : d_new_students,
+			        name: 'new students / day'};
+    let uni_students_data =   { x : d_timestamps, y : d_uni_students,
+			        name: 'unique students / day'};
     Plotly.newPlot('plotly-students',
 		   [total_students_data, uni_students_data, new_students_data],
 		   layout);
 
-    let new_notebooks_data =   { 'x' : d_timestamps, 'y' : d_new_notebooks,
-			         'name': 'new notebooks / day'};
-    let uni_notebooks_data =   { 'x' : d_timestamps, 'y' : d_uni_notebooks,
-			         'name': 'unique notebooks open / day'};
-    let total_notebooks_data = { 'x' : e_timestamps, 'y' : e_total_notebooks,
-    			       	 'name': 'notebooks read at least once'};
+    let new_notebooks_data =   { x : d_timestamps, y : d_new_notebooks,
+			         name: 'new notebooks / day'};
+    let uni_notebooks_data =   { x : d_timestamps, y : d_uni_notebooks,
+			         name: 'unique notebooks open / day'};
+    let total_notebooks_data = { x : e_timestamps, y : e_total_notebooks,
+    			       	 name: 'notebooks read at least once'};
     Plotly.newPlot('plotly-notebooks',
 		   [ uni_notebooks_data, new_notebooks_data, total_notebooks_data],
 		   layout);
@@ -99,35 +99,35 @@ d3.request(url_metrics, function (error, response) {
 let url_counts="/nbh/stats/monitor_counts/{{course}}";
 d3.request(url_counts, function (error, response) {
     let incoming = JSON.parse(response.response);
-    console.log("from monitor counts");
+    console.log(`from monitor counts ${url_counts}`);
     console.log(incoming);
 
     // incoming parts
-    let timestamps            = incoming['timestamps'];
-    let running_containers    = incoming['running_containers'];
-    let frozen_containers     = incoming['frozen_containers'];
+    let timestamps            = incoming.timestamps;
+    let running_containers    = incoming.running_containers;
+    let frozen_containers     = incoming.frozen_containers;
     var	total_containers      = running_containers.map(function(num, index){
         return num+frozen_containers[index];})
-    let running_kernels       = incoming['running_kernels'];
-    let docker_ds_percents    = incoming['docker_ds_percents'];
-    let docker_ds_frees       = incoming['docker_ds_frees'];
-    let nbhosting_ds_percents = incoming['nbhosting_ds_percents'];
-    let nbhosting_ds_frees    = incoming['nbhosting_ds_frees'];
-    let load1s                = incoming['load1s'];
-    let load5s                = incoming['load5s'];
-    let load15s               = incoming['load15s'];
+    let running_kernels       = incoming.running_kernels;
+    let docker_ds_percents    = incoming.docker_ds_percents;
+    let docker_ds_frees       = incoming.docker_ds_frees;
+    let nbhosting_ds_percents = incoming.nbhosting_ds_percents;
+    let nbhosting_ds_frees    = incoming.nbhosting_ds_frees;
+    let load1s                = incoming.load1s;
+    let load5s                = incoming.load5s;
+    let load15s               = incoming.load15s;
 
     let running_containers_data = {
-	'x' : timestamps, 'y' : running_containers,
-	'name' : "running jupyter containers",
+	x : timestamps, y : running_containers,
+	name : "running jupyter containers",
     };
     let total_containers_data = {
-	'x' : timestamps, 'y' : total_containers,
-	'name' : "total jupyter containers",
+	x : timestamps, y : total_containers,
+	name : "total jupyter containers",
     };
     let running_kernels_data = {
-	'x' : timestamps, 'y' : running_kernels,
-	'name' : "running kernels"
+	x : timestamps, y : running_kernels,
+	name : "running kernels"
     }
     Plotly.newPlot('plotly-containers-kernels',
 		  [running_containers_data, total_containers_data, running_kernels_data],
@@ -135,43 +135,43 @@ d3.request(url_counts, function (error, response) {
 
 
     let docker_ds_percents_data = {
-        'x': timestamps, 'y': docker_ds_percents,
-        'name' : 'percentage of free disk space - docker fs',
+        x: timestamps, y: docker_ds_percents,
+        name : 'percentage of free disk space - docker fs',
     }
     let nbhosting_ds_percents_data = {
-        'x': timestamps, 'y': nbhosting_ds_percents,
-        'name' : 'percentage of free disk space - nbhosting fs',
+        x: timestamps, y: nbhosting_ds_percents,
+        name : 'percentage of free disk space - nbhosting fs',
     }
     let layout_100 = JSON.parse(JSON.stringify(layout));
-    layout_100['yaxis'] = {'range' : [0, 100]};
+    layout_100.yaxis = {range : [0, 100]};
     Plotly.newPlot('plotly-ds-percent',
                    [docker_ds_percents_data, nbhosting_ds_percents_data],
 		   layout_100);
     
 
     let docker_ds_frees_data = {
-        'x': timestamps, 'y': docker_ds_frees,
-        'name' : 'free disk space - docker fs (in MiB)',
+        x: timestamps, y: docker_ds_frees,
+        name : 'free disk space - docker fs (in MiB)',
     }
     let nbhosting_ds_frees_data = {
-        'x': timestamps, 'y': nbhosting_ds_frees,
-        'name' : 'free disk space - nbhosting fs (in MiB)',
+        x: timestamps, y: nbhosting_ds_frees,
+        name : 'free disk space - nbhosting fs (in MiB)',
     }
     Plotly.newPlot('plotly-ds-free',
                    [docker_ds_frees_data, nbhosting_ds_frees_data],
 		   layout);
     
     let load1s_data = {
-        'x': timestamps, 'y': load1s,
-        'name' : '100 x load past 1 minute',
+        x: timestamps, y: load1s,
+        name : '100 x load past 1 minute',
     }
     let load5s_data = {
-        'x': timestamps, 'y': load5s,
-        'name' : '100 x load past 5 minutes',
+        x: timestamps, y: load5s,
+        name : '100 x load past 5 minutes',
     }
     let load15s_data = {
-        'x': timestamps, 'y': load15s,
-        'name' : '100 x load past 15 minutes',
+        x: timestamps, y: load15s,
+        name : '100 x load past 15 minutes',
     }
     Plotly.newPlot('plotly-cpu-load',
                    [load1s_data, load5s_data, load15s_data],
@@ -181,33 +181,52 @@ d3.request(url_counts, function (error, response) {
 let url_usage="/nbh/stats/material_usage/{{course}}";
 d3.request(url_usage, function(error, response) {
     let incoming = JSON.parse(response.response);
-    console.log("from material usage");
+    console.log(`from material usage ${url_usage}`);
     console.log(incoming);
 
-    // incoming parts
-    let students_per_notebook = incoming['students_per_notebook'];
-    // arbitrarily start at 1
-    let xrange = students_per_notebook.map(function(_, i) { return String(i+1);});
-    // notebook id like w1/w1-s1-path
-    let labels = students_per_notebook.map(function(tuple) { return tuple[0];});
-    // actual number of students that have seend it
-    let yrange = students_per_notebook.map(function(tuple) { return tuple[1];});
-
-    let students_per_notebook_data = {
-        'type' : 'bar', 'text' : labels,
-        'x' : xrange, 'y': yrange,
-        'name' : 'number of students per notebook',
-        };
     /* WARNING: using the same layout object as above here
        would result in the layout object being changed
        and becoming unusable for the other figures
        and that was rather nasty to troubleshoot */
     let bar_layout = {'showlegend' : true,
-                  'legend' : { 'orientation' : 'h', 'x' : 0} };
+                  'legend' : { 'orientation' : 'h', x : 0} };
     
-    Plotly.newPlot('plotly-notebook-students',
-                   [students_per_notebook_data],
+    // raw incoming is a list of couples
+    let nbstudents_per_notebook = incoming['nbstudents_per_notebook'];
+    // arbitrarily start at 1
+    let x1 = nbstudents_per_notebook.map(function(_, i) { return String(i+1);});
+    // actual number of students that have seend it
+    let y1 = nbstudents_per_notebook.map(function(tuple) { return tuple[1];});
+    // notebook id like w1/w1-s1-path
+    let labels1 = nbstudents_per_notebook.map(function(tuple) { return tuple[0];});
+
+    let nbstudents_per_notebook_data = {
+        type : 'bar', text : labels1,
+        x : x1, y: y1,
+        name : 'number of students per notebook',
+        };
+    Plotly.newPlot('plotly-nbstudents-per-notebook',
+                   [nbstudents_per_notebook_data],
                    bar_layout);
+
+    //////////
+    let nbstudents_per_nbnotebooks = incoming['nbstudents_per_nbnotebooks'];
+    let x2 = nbstudents_per_nbnotebooks.map(function(tuple) { return tuple[0];});
+    let y2 = nbstudents_per_nbnotebooks.map(function(tuple) { return tuple[1];});
+    let labels2 = nbstudents_per_nbnotebooks.map(function(tuple) {
+        return `# of students who have read ${tuple[0]} notebooks`;
+    });
+
+    let nbstudents_per_nbnotebooks_data = {
+        type : 'bar', text : labels2,
+        x : x2, y : y2,
+        name : 'number of students who have read exactly that many notebooks',
+        marker : { color: '#91d27e'},
+        };
+    Plotly.newPlot('plotly-nbstudents-per-nbnotebooks',
+                   [nbstudents_per_nbnotebooks_data],
+                   bar_layout);
+    
 });
 </script>
 {% endblock %}
