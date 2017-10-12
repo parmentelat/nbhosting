@@ -37,7 +37,7 @@ def authorized(request):
     # check HTTP_REFERER against allowed_referer_domains
     def authorize_refered_request(request):
         # actual referer
-        referer = request.META['META.HTTP_REFERER']
+        referer = request.META['HTTP_REFERER']
         return any(domain in referer
                    for domain in settings['allowed_referer_domains'])
 
@@ -52,7 +52,7 @@ def authorized(request):
                 return True
         return False
     
-    if 'META.HTTP_REFERER' in request.META:
+    if 'HTTP_REFERER' in request.META:
         result = authorize_refered_request(request)
         method = 'referer'
     else:

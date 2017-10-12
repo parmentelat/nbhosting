@@ -24,7 +24,7 @@ nbhosting_settings = {
     'base' : '/root/nbhosting',
     # the domains that are trusted
     'allowed_referer_domains' : [
-        'func-mooc.fr',
+        'fun-mooc.fr',
     ],
     # the IPs of devel boxes 
     # these will be able to send /ipythonExercice/ urls directly
