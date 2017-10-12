@@ -29,16 +29,40 @@ def log_completed_process(cp, subcommand):
             logger.info(text)
 
 
+# auth scheme here depends on the presence of META.HTTP_REFERER
+# if present, check that one of the fields in 'allowed_referer_domains' appears in referer
+# otherwise, performs check of META.REMOTE_ADDR against 'allowed_devel_ips'
 def authorized(request):
-    incoming_ip = request.META['REMOTE_ADDR']
-    allowed_incoming_ips = settings['allowed_incoming_ips']
-    for mode, allowed in allowed_incoming_ips:
-        if mode == 'exact' and incoming_ip == allowed:
-            return True
-        if mode == 'match' and re.match(allowed, incoming_ip):
-            return True
-        logger.warn("check your allowed_incoming_ips settings")
-    return False
+
+    # check HTTP_REFERER against allowed_referer_domains
+    def authorize_refered_request(request):
+        # actual referer
+        referer = request.META['META.HTTP_REFERER']
+        return any(domain in referer
+                   for domain in settings['allowed_referer_domains'])
+
+    # check REMOTE_ADDR against allowed_devel_ips
+    def authorize_devel_request(request):
+        incoming_ip = request.META['REMOTE_ADDR']
+        allowed_devel_ips = settings['allowed_devel_ips']
+        for mode, allowed in allowed_devel_ips:
+            if mode == 'exact' and incoming_ip == allowed:
+                return True
+            if mode == 'match' and re.match(allowed, incoming_ip):
+                return True
+        return False
+    
+    if 'META.HTTP_REFERER' in request.META:
+        result = authorize_refered_request(request)
+        method = 'referer'
+    else:
+        result = authorize_devel_request(request)
+        method = 'devel'
+    if not result:
+        logger.warn("ACCESS REFUSED (method={}):"
+                    " check your trusted_domains and/or allowed_devel_ips settings"
+                    .format(method))
+    return result
 
 def edx_request(request, course, student, notebook):
 

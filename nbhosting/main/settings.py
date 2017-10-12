@@ -22,11 +22,13 @@ nbhosting_settings = {
     'root' : '/nbhosting',
     # the location where the application is installed
     'base' : '/root/nbhosting',
-    # the IPs that are allowed to issue this stuff
-    # typically fun-mooc.fr + a couple devel boxes
-    'allowed_incoming_ips' : [
-        # fun-mooc
-        ( 'exact', '84.39.42.145'),
+    # the domains that are trusted
+    'allowed_referer_domains' : [
+        'func-mooc.fr',
+    ],
+    # the IPs of devel boxes 
+    # these will be able to send /ipythonExercice/ urls directly
+    'allowed_devel_ips' : [
         # home
         ( 'exact', '82.226.190.44'),
         # work

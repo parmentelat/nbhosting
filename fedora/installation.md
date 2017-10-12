@@ -1,4 +1,4 @@
-  # Fedora installation and setup
+# Fedora installation and setup
 
 * this document is about setting up `nbhosting` from metal, i.e. right after a fresh install.
 * date: July 12 2017
@@ -6,6 +6,10 @@
 * **SSL certificates**: in case of a reinstallation:
   * ***don't forget*** to back up SSL certificate and especially ***the private key***
   * this is stored in dir `/root/ssl-certificate/`
+
+# see also
+
+* companion file `configuration.md` is an attempt at describing all the places where changes can be needed
 
 # disk partitioning
 
