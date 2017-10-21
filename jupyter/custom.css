@@ -2,7 +2,10 @@
 
 /* -------------------- hiding various parts of the notebook UI and menus */
 /* first horizontal area (including name) */
-#header-container {display: none; }
+#header-container {
+    /* https://github.com/jupyter/docker-stacks/issues/480#issuecomment-336603502 */
+    display: none !important;
+}
 
 /* ---------- hide menu entries */
 
