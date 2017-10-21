@@ -94,15 +94,6 @@ function enable-services() {
     systemctl enable nbh-monitor
 }
 
-# write your own executable secret.sh script in nbh-monitor/main
-# to keep inserting your own secret key in settings.py
-# that could otherwise get lost in git updates
-function restore-local-secret() {
-    [ -x nbhosting/main/secret.sh ] && \
-        ( echo "running secret.sh" ; cd nbhosting/main; ./secret.sh )
-}
-
-
 function turn-on-debug-if-develop() {
     [ -z "$DEVEL_MODE" ] && return
     (cd nbhosting/main; sed -i.git -e "s,^DEBUG.*,DEBUG = True," settings.py)
@@ -122,7 +113,6 @@ function default-main() {
     enable-services
     restart-services
 
-    restore-local-secret
     turn-on-debug-if-develop
 
     # this is just convenience
