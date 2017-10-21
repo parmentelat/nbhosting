@@ -262,12 +262,20 @@ d3.request(url_usage, function(error, response) {
         }         
     }
 
+    // default sizes for each rectangle notebook x student
+    let defx = 8, defy = 5;
+    // at most 800 in width, at least 500 in height
+    let minx = 500, maxx = 800, miny = 500;
     // how many x's and y's
-    let markx = 8, marky = 5;
     let hx = heatmap.z[0].length;
     let hy = heatmap.z.length;
+    // total sizes
+    let width  = Math.max(minx, Math.min(maxx, defx*hx)),
+        height = Math.max(miny, defy*hy);
+
+    console.log(`width=${width} height=${height}`);
     let heatmap_layout = {
-        width : markx * hx, height : marky * hy,
+        width : width, height : height,
         xaxis : { ticks: "", showticklabels: false, },
         yaxis : { ticks: "", showticklabels: false, },
         legend: legend_layout,
