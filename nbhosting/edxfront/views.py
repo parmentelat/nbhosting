@@ -34,34 +34,40 @@ def log_completed_process(cp, subcommand):
 # otherwise, performs check of META.REMOTE_ADDR against 'allowed_devel_ips'
 def authorized(request):
 
+    explanation = ""
     # check HTTP_REFERER against allowed_referer_domains
     def authorize_refered_request(request):
         # actual referer
         referer = request.META['HTTP_REFERER']
-        return any(domain in referer
-                   for domain in settings['allowed_referer_domains'])
+        domains = settings['allowed_referer_domains']
+        result = any(domain in referer
+                     for domain in domains)
+        explanation = "HTTP_REFERER = {}, allowed_referer_domains = {}"\
+                      .format(referer, domains)
+        return result, explanation
 
     # check REMOTE_ADDR against allowed_devel_ips
     def authorize_devel_request(request):
         incoming_ip = request.META['REMOTE_ADDR']
         allowed_devel_ips = settings['allowed_devel_ips']
+        result = False
         for mode, allowed in allowed_devel_ips:
             if mode == 'exact' and incoming_ip == allowed:
-                return True
+                result = True
             if mode == 'match' and re.match(allowed, incoming_ip):
-                return True
-        return False
+                result = True
+        explanation = "REMOTE_ADDR = {}, allowed_devel_ips = {}"\
+                      .format(incoming_ip, allowed_devel_ips)
+        return result, explanation
     
+    # inside an iframe ?
     if 'HTTP_REFERER' in request.META:
-        result = authorize_refered_request(request)
-        method = 'referer'
+        result, explanation = authorize_refered_request(request)
     else:
-        result = authorize_devel_request(request)
-        method = 'devel'
+        result, explanation = authorize_devel_request(request)
     if not result:
-        logger.warn("ACCESS REFUSED (method={}):"
-                    " check your trusted_domains and/or allowed_devel_ips settings"
-                    .format(method))
+        logger.warn("ACCESS REFUSED - check your nbhosting_settings"
+                    "explanation = {}".format(explanation))
     return result
 
 def edx_request(request, course, student, notebook):

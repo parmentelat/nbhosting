@@ -25,6 +25,9 @@ nbhosting_settings = {
     # the domains that are trusted
     'allowed_referer_domains' : [
         'fun-mooc.fr',
+        # add yourself here so the 'revert_to_original' and
+        # 'share_static_version' feature can work properly
+        'nbhosting.inria.fr',
     ],
     # the IPs of devel boxes 
     # these will be able to send /ipythonExercice/ urls directly
