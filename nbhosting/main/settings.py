@@ -16,34 +16,22 @@ from pathlib import Path
 
 from .loggers import init_loggers
 
-############################################################
-nbhosting_settings = {
-    # the location used by the application
-    'root' : '/nbhosting',
-    # the location where the application is installed
-    'base' : '/root/nbhosting',
-    # the domains that are trusted
-    'allowed_referer_domains' : [
-        'fun-mooc.fr',
-        # add yourself here so the 'revert_to_original' and
-        # 'share_static_version' feature can work properly
-        'nbhosting.inria.fr',
-    ],
-    # the IPs of devel boxes 
-    # these will be able to send /ipythonExercice/ urls directly
-    'allowed_devel_ips' : [
-        # home
-        ( 'exact', '82.226.190.44'),
-        # work
-        ( 'match', '138\.96\.[0-9]+\.[0-9]+'),
-    ]
-}
+########## load sitesettings.py module that is **NOT** managed under git
+# see sitesettings.py.example for a template
+from main.sitesettings import (
+    nbhosting_settings,
+    SECRET_KEY,
+    ALLOWED_HOSTS,
+)
 
 ########## production vs devel
 if os.getuid() == 0:
-    LOGS_DIR = Path(nbhosting_settings['root']) / 'logs' 
+    # typically /nbhosting/logs
+    LOGS_DIR = Path(nbhosting_settings['root']) / 'logs'
+    # typically /root/nbhosting
     BASE_DIR = Path(nbhosting_settings['base'])
 else:
+    # just a convenience for devel boxes
     nbhosting_settings['root'] = str(Path.cwd() / 'fake-root')
     # some provisions for devel mode
     LOGS_DIR = Path.cwd()
@@ -62,22 +50,14 @@ monitor_logger = logging.getLogger('monitor')
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'xb1ys4a$_cp5te*wk=+&5ud5)5pj9v+iykoff)juur@ift47(v'
+# define this in sitesettings.py
+# SECRET_KEY = 'xb1ys4a$_cp5te*wk=+&5ud5)5pj9v+iykoff)juur@ift47(v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 #DEBUG = True
 
-ALLOWED_HOSTS = [
-    '138.96.112.37',                    # thermals
-    'nbhosting-dev.inria.fr',           #
-    'thermals.pl.sophia.inria.fr',      #
-    '138.96.19.2',                      # nbhosting
-    'nbhosting.inria.fr',               # 
-    'nbhosting.pl.sophia.inria.fr',     # 
-    'localhost',                        # for devel
-]
-
+# you need to define ALLOWED_HOSTS in sitesettings.py
 
 # Application definition
 
@@ -124,8 +104,10 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-
+# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+# this sqlite3 database will contain the account info
+# for the admin
+# typically in /nbhosting/db.sqlite3
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

@@ -1,0 +1,55 @@
+# -*- python -*-
+####################
+# in order to configure for your site without interfering with
+# settings.py as shipped in the git repo, you can use this file
+# as a template for a file that you have to name sitesettings.py
+# in the same directory as settings.py
+####################
+
+nbhosting_settings = {
+    
+    # the location used by the application
+    # typically where you have a big fat btrfs filesystem
+    'root' : '/nbhosting',
+    
+    # the location where the application is installed
+    # i.e. the place where you have git clone'd it before
+    # running ./install.sh
+    'base' : '/root/nbhosting',
+    
+    # the domains that are trusted
+    # typically the edx platform, as well as your own
+    # SSL-exposed domain name
+    'allowed_referer_domains' : [
+        'fun-mooc.fr',
+        # add yourself here so the 'revert_to_original' and
+        # 'share_static_version' feature can work properly
+        'nbhosting.inria.fr',
+    ],
+    
+    # the IPs of devel boxes 
+    # these will be able to send /ipythonExercice/ urls directly
+    'allowed_devel_ips' : [
+        # home
+        ( 'exact', '82.226.190.44'),
+        # work
+        ( 'match', '138\.96\.[0-9]+\.[0-9]+'),
+    ]
+}
+
+# see e.g. https://www.miniwebtool.com/django-secret-key-generator/
+SECRET_KEY = 'your-actual-production-key-here'
+
+# this is a native django setting
+# see https://docs.djangoproject.com/en/1.11/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = [
+    '138.96.112.37',                    # thermals
+    'nbhosting-dev.inria.fr',           #
+    'thermals.pl.sophia.inria.fr',      #
+    '138.96.19.2',                      # nbhosting
+    'nbhosting.inria.fr',               # 
+    'nbhosting.pl.sophia.inria.fr',     # 
+    'localhost',                        # for devel
+]
+
+
