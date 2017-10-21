@@ -18,7 +18,7 @@ from .loggers import init_loggers
 
 ########## load sitesettings.py module that is **NOT** managed under git
 # see sitesettings.py.example for a template
-from main.sitesettings import (
+from .sitesettings import (
     nbhosting_settings,
     SECRET_KEY,
     ALLOWED_HOSTS,
