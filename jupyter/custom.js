@@ -1,11 +1,15 @@
 "use strict";
 
+// the promises thing is described in
+// https://github.com/jupyter/notebook/issues/2403
+
 define([
     'base/js/namespace',
     'base/js/events',
     'base/js/dialog',
+    'base/js/promises',
     'notebook/js/codecell',
-], function(Jupyter, events, dialog, codecell) {
+], function(Jupyter, events, dialog, promises, codecell) {
 
     let hello = "nbh's custom.js"
     
@@ -242,12 +246,15 @@ define([
 	})
     }
     
-    // run the parts
-    hack_header_for_nbh(Jupyter);
-    show_metadata_in_header(Jupyter);
-    inactivate_non_code_cells(Jupyter);
-    redefine_enter_in_command_mode(Jupyter);
-    add_reset_and_share_buttons(Jupyter);
-    speed_up_autosave(Jupyter);
-
+    // run the parts in a promise
+    promises.app_initialized.then(function(appname) {
+        if (appname === 'NotebookApp') {
+            hack_header_for_nbh(Jupyter);
+            inactivate_non_code_cells(Jupyter);
+            redefine_enter_in_command_mode(Jupyter);
+            add_reset_and_share_buttons(Jupyter);
+            speed_up_autosave(Jupyter);
+            show_metadata_in_header(Jupyter);
+        }
+    })
 })
