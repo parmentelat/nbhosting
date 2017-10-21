@@ -1,11 +1,14 @@
 # --------
 # using scipy, it's kinda big but that should not be a problem
 # base-notebook lacks at least numpy, widgets, so...
-# FROM jupyter/scipy-notebook:latest
-# we want to specify a fixed version
-# in particular in oct. 2017 when using latest we had header-container
-# still active when the notebooks showed up
-FROM jupyter/scipy-notebook@sha256:d6ebaf357aa9cbc20aa8982b1860a454b90aa599377999212e2889ab5f764aea
+FROM jupyter/scipy-notebook:latest
+# at some point we were specifying a fixed version
+# FROM jupyter/scipy-notebook@sha256:d6ebaf357aa9cbc20aa8982b1860a454b90aa599377999212e2889ab5f764aea
+# in particular in oct. 2017 when using latest
+# we had header-container still visible when the notebooks showed up
+# however this was fixed with commit 978156d63b0afd26fb130a18017adccf3cb77332
+# see also https://github.com/jupyter/docker-stacks/issues/480#issuecomment-336603502
+
 
 # --------
 # for interfacing with nbhosting, we need this startup script in all images
