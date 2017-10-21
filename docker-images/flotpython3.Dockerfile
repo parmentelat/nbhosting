@@ -28,3 +28,9 @@ RUN (find /opt /usr -name notebook.js -o -name main.min.js | xargs sed -i -e 's|
 # --------
 # the ipythontutor magic
 RUN pip install ipythontutor
+
+# --------
+# install jupyter extensions and enable the one about split cells
+# to find out an extension's name
+# look in the console in a jupyter that has it enabled
+RUN pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install --system && jupyter nbextension enable splitcell/splitcell
