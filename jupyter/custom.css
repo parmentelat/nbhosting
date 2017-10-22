@@ -183,3 +183,10 @@ div.code_cell div.output_subarea, div.code_cell div.widget-subarea {
     background-color: #f0f8f0;
 }
 */
+div.title-slide {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;            /* default value; can be omitted */
+    flex-wrap: nowrap;              /* default value; can be omitted */
+}
