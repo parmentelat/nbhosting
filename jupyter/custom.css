@@ -141,11 +141,16 @@ the segments in a markdown
 that are 4 spaces away from the margin
 we want them to stick out with some background
 */
-div.rendered_html>pre>code {
-    background-color: #f7f7f7;
+div.rendered_html>pre {
+    border-radius: 4px;
     border: 1px solid;
     border-color: #dde;
-    border-radius: 4px;
+    background-color: #f7f7f7;
+    line-height: 28px;
+}
+
+div.rendered_html>pre>code {
+    background-color: #f7f7f7;
     padding: .4em;
 }
 /*
