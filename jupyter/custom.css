@@ -147,11 +147,12 @@ div.rendered_html>pre {
     border-color: #dde;
     background-color: #f0f0f0;
     line-height: 28px;
+    padding-left: 20px;
 }
 
 div.rendered_html>pre>code {
     background-color: #f0f0f0;
-    padding: .4em;
+/*    padding: 0px;*/
 }
 /*
 this would be for `backquoted inline code`
