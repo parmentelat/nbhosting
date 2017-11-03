@@ -229,7 +229,7 @@ define([
 
 	let reset_url = `/ipythonExercice/${course}/${notebook}/${student}?forcecopy=true`;
 	$('#file_menu').append(
-	    `<li id="reset_from_origin"><a href="#">Reset from original</a></li>`);
+	    `<li id="reset_from_origin"><a href="#">Reset to Original</a></li>`);
 	$('#reset_from_origin').click(function() {
 	    confirm_redirect(`<p class="nbh-dialog">Are you sure to reset your notebook to the original version ?`
 			     + `<br/>(all your changes will be lost)</p>`,
@@ -238,7 +238,7 @@ define([
 	
 	let share_url = `/ipythonShare/${course}/${notebook}/${student}`;
 	$('#file_menu').append(
-	    `<li id="share_static_version"><a href="#">Share static version</a></li>`);
+	    `<li id="share_static_version"><a href="#">Share Static Version</a></li>`);
 	$('#share_static_version').click(function() {
 	    post_share_url(share_url);
 	})
