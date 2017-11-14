@@ -15,10 +15,19 @@ listen.owner = root
 listen.group = root
 #
 
-workers = 16
-max-requests = 4000
+# when running in the default mode (i.e. without lazy-apps)
+# our experience is that uwsgi will just stop after
+# (workers * max-requests) requests have been served
+# and then nginx sits on its own and is left hang out to dry
+# possibly of interest
+# http://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html
+# that in turn suggest to tweak
+# processes = ...
+# the fact is that thurst has 64 cores.
+workers = 64
+max-requests = 10000
 
 # looks like master mode makes
-# systemctl restart nbhosting
+# systemctl restart nbh-uwsgi
 # very slow 
 #master=True
