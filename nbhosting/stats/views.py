@@ -19,14 +19,16 @@ def show_stats(request, course):
         'subsections' : [
             { 'plotly_name' : 'plotly-students',
               'title' : 'Students - who showed up at least once'},
-            { 'plotly_name' : 'plotly-notebooks',
-              'title' : 'Notebooks - read at least once'},
             { 'plotly_name' : 'plotly-nbstudents-per-notebook',
               'title' : 'Students per notebook'},
             { 'plotly_name' : 'plotly-nbstudents-per-nbnotebooks',
               'title' : 'Number of notebooks per student'},
+            { 'plotly_name' : 'plotly-notebooks',
+              'title' : 'Notebooks - read at least once',
+              'hide' : True},
             { 'plotly_name' : 'plotly-heatmap',
-              'title' : 'Complete map'},
+              'title' : 'Complete map',
+              'hide' : True},
             
         ]
     }
@@ -52,8 +54,14 @@ def show_stats(request, course):
               'title' : 'CPU loads'},
         ]
     }
-    env = { 'course' : course,
-            'sections' : [section1, section2, section3] }
+
+    sections = [section1, section2, section3]
+    # set 'hide' to False by default
+    for section in sections:
+        for subsection in section['subsections']:
+            subsection.setdefault('hide', False)
+    
+    env = dict(course=course, sections=sections)
 
     return render(request, "stats.html", env)
 
