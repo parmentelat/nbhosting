@@ -467,7 +467,7 @@ function -compute-student-globals-in-course () {
 
     STUDENT_container="${course}-x-${student}"
 
-    sudo -u $student mkdir -p $STUDENT_course
+    [ -d $STUDENT_course ] || sudo -u $student mkdir -p $STUDENT_course
 }
 
 
