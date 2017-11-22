@@ -68,8 +68,8 @@ function update-assets() {
 
 function update-nginx() {
     # probe sitesettings.py
-    nbhosting/manage.py list-config > config.sh
-    source config.sh
+    nbhosting/manage.py list-siteconfig > nbhosting/main/sitesettings.sh
+    source nbhosting/main/sitesettings.sh
 
     # update both configs from the .in 
     local configs="nginx-https.conf nginx-http.conf"

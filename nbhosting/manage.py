@@ -4,7 +4,7 @@ import sys
 
 settings_path = "nbhosting.main.settings"
 
-def list_config():
+def list_siteconfig():
     from importlib import import_module
     # importing the settings module manually
     steps = []
@@ -41,8 +41,8 @@ def main():
 
 if __name__ == "__main__":
     try:
-        if sys.argv[1] == "list-config":
-            list_config()
+        if sys.argv[1] == "list-siteconfig":
+            list_siteconfig()
             exit(0)
         else:
             main()
