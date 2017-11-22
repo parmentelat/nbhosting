@@ -67,15 +67,26 @@ function update-assets() {
 }
 
 function update-nginx() {
+    # probe sitesettings.py
+    nbhosting/manage.py list-config > config.sh
+    source config.sh
+
+    # update both configs from the .in 
+    local configs="nginx-https.conf nginx-http.conf"
     local config
-    if [ -z "$DEVEL_MODE" ] ; then
+    for config in $configs; do
+        sed -e "s,@server_name@,$server_name,g" \
+            -e "s,@ssl_certificate@,$ssl_certificate,g" \
+            -e "s,@ssl_certificate_key@,$ssl_certificate_key,g" \
+            nginx/$config.in > nginx/$config
+    done
+
+    if [ "$server_mode" != "http" ]; then
         config="nginx-https.conf"
     else
         config="nginx-http.conf"
     fi
     rsync $rsopts nginx/$config /etc/nginx/nginx.conf
-    # xxx remove sequels
-    rm -f /etc/nginx/conf.d/nbhosting.conf
 }
     
 function restart-services() {

@@ -6,7 +6,6 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 
-from nbhosting.main.settings import nbhosting_settings
 from nbhosting.courses.models import CoursesDir, CourseDir
 
 # Create your views here.

@@ -6,37 +6,45 @@
 # in the same directory as settings.py
 ####################
 
-nbhosting_settings = {
+# set to either http or https
+# if you set https the system will accept ONLY https
+server_mode = "https"
     
-    # the location used by the application
-    # typically where you have a big fat btrfs filesystem
-    'root' : '/nbhosting',
-    
-    # the location where the application is installed
-    # i.e. the place where you have git clone'd it before
-    # running ./install.sh
-    'base' : '/root/nbhosting',
-    
-    # the domains that are trusted
-    # typically the edx platform, as well as your own
-    # SSL-exposed domain name
-    'allowed_referer_domains' : [
-        'fun-mooc.fr',
-        # add yourself here so the 'revert_to_original' and
-        # 'share_static_version' feature can work properly
-        'nbhosting.inria.fr',
-    ],
-    
-    # the IPs of devel boxes 
-    # these will be able to send /ipythonExercice/ urls directly
-    'allowed_devel_ips' : [
-        # home
-        ( 'exact', '82.226.190.44'),
-        # work
-        ( 'match', '138\.96\.[0-9]+\.[0-9]+'),
-    ]
-}
+# for the nginx config
+server_name = "nbhosting.inria.fr"
+ssl_certificate = "/root/ssl-certificate/bundle.crt"
+ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 
+
+# the location used by the application
+# typically where you have a big fat btrfs filesystem
+root = '/nbhosting'
+    
+# the location where the application is installed
+# i.e. the place where you have git clone'd it before
+# running ./install.sh
+base = '/root/nbhosting'
+    
+# the domains that are trusted
+# typically the edx platform, as well as your own
+# SSL-exposed domain name
+allowed_referer_domains = [
+    'fun-mooc.fr',
+    # add yourself here so the 'revert_to_original' and
+    # 'share_static_version' feature can work properly
+    server_name,
+],
+    
+# the IPs of devel boxes 
+# these will be able to send /ipythonExercice/ urls directly
+allowed_devel_ips : [
+    # home
+    ( 'exact', '82.226.190.44'),
+    # work
+    ( 'match', '138\.96\.[0-9]+\.[0-9]+'),
+]
+
+######################################## django settings
 # see e.g. https://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = 'your-actual-production-key-here'
 
@@ -51,5 +59,3 @@ ALLOWED_HOSTS = [
     'nbhosting.pl.sophia.inria.fr',     # 
     'localhost',                        # for devel
 ]
-
-

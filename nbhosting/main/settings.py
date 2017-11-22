@@ -18,8 +18,9 @@ from .loggers import init_loggers
 
 ########## load sitesettings.py module that is **NOT** managed under git
 # see sitesettings.py.example for a template
+import nbhosting.main.sitesettings as sitesettings
+
 from .sitesettings import (
-    nbhosting_settings,
     SECRET_KEY,
     ALLOWED_HOSTS,
 )
@@ -27,12 +28,12 @@ from .sitesettings import (
 ########## production vs devel
 if os.getuid() == 0:
     # typically /nbhosting/logs
-    LOGS_DIR = Path(nbhosting_settings['root']) / 'logs'
+    LOGS_DIR = Path(sitesettings.root) / 'logs'
     # typically /root/nbhosting
-    BASE_DIR = Path(nbhosting_settings['base'])
+    BASE_DIR = Path(sitesettings.base)
 else:
     # just a convenience for devel boxes
-    nbhosting_settings['root'] = str(Path.cwd() / 'fake-root')
+    sitesettings.root = str(Path.cwd() / 'fake-root')
     # some provisions for devel mode
     LOGS_DIR = Path.cwd()
     # .parents[0] is dirname(f)

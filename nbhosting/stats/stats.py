@@ -3,9 +3,9 @@ import time
 import itertools
 from collections import OrderedDict, defaultdict
 
-from nbhosting.main.settings import nbhosting_settings, logger
+from nbhosting.main.settings import sitesettings, logger
 
-root = Path(nbhosting_settings['root'])
+root = Path(sitesettings.root)
 
 # an iterable has no builtin len method
 def iter_len(iterable):

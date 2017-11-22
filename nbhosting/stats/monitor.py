@@ -13,7 +13,7 @@ import aiohttp
 
 import docker
 
-from nbhosting.main.settings import nbhosting_settings
+from nbhosting.main.settings import sitesettings
 # redirect into monitor.log
 from nbhosting.main.settings import monitor_logger as logger
 from nbhosting.courses.models import CourseDir, CoursesDir
@@ -138,7 +138,7 @@ class MonitoredJupyter:
 
 
     async def co_run(self, grace):
-        root = Path(nbhosting_settings['root'])
+        root = Path(sitesettings.root)
         # stopped containers are useful only for statistics
         if self.container.status != 'running':
             self.figures.count_container(False)
@@ -234,7 +234,7 @@ class Monitor:
                                  .format(container))
         # ds stands for disk_space
         docker_root = proxy.info()['DockerRootDir']
-        nbhosting_root = nbhosting_settings['root']
+        nbhosting_root = sitesettings.root
         ds = {}
         for name, root in ( ('docker', docker_root), ('nbhosting', nbhosting_root)):
             ds[name] = {}

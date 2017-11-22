@@ -2,8 +2,26 @@
 import os
 import sys
 
-if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nbhosting.main.settings")
+settings_path = "nbhosting.main.settings"
+
+def list_config():
+    from importlib import import_module
+    # importing the settings module manually
+    steps = []
+    for step in settings_path.split('.'):
+        steps.append(step)
+        path = '.'.join(steps)
+        settings = import_module(path)
+    for symbol in dir(settings.sitesettings) :
+        value = getattr(settings.sitesettings, symbol, 'undefined-in-sitesettings')
+        if not isinstance(value, str):
+            continue
+        if '__' in symbol or 'SECRET' in symbol:
+            continue
+        print("{}='{}'".format(symbol, value))
+    
+def main():
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)
     try:
         from django.core.management import execute_from_command_line
     except ImportError:
@@ -20,3 +38,15 @@ if __name__ == "__main__":
             )
         raise
     execute_from_command_line(sys.argv)
+
+if __name__ == "__main__":
+    try:
+        if sys.argv[1] == "list-config":
+            list_config()
+            exit(0)
+        else:
+            main()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        main()

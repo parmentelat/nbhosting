@@ -72,15 +72,15 @@ http {
     server {
 
         # the port your site will be served on
-        listen 443 ssl;                                                                                 # ssl-only
+        listen 443 ssl;                              # ssl-only
 
         # the domain name it will serve for
-        server_name nbhosting.inria.fr;                                                                 # ssl-only
+        server_name @server_name@;                   # ssl-only
         charset     utf-8;
 
         ########## SSL config
-        ssl_certificate /root/ssl-certificate/bundle.crt;                                               # ssl-only
-        ssl_certificate_key /root/ssl-certificate/nbhosting.inria.fr.key;                               # ssl-only
+        ssl_certificate @ssl_certificate@;           # ssl-only
+        ssl_certificate_key @ssl_certificate_key@;   # ssl-only
 
         # Protect against the BEAST attack by preferring RC4-SHA when using SSLv3 and TLS protocols.
         # Note that TLSv1.1 and TLSv1.2 are immune to the beast attack

@@ -1,9 +1,9 @@
 from pathlib import Path
 import subprocess
 
-from nbhosting.main.settings import nbhosting_settings
+from nbhosting.main.settings import sitesettings
 
-root = Path(nbhosting_settings['root'])
+root = Path(sitesettings.root)
 
 class CourseDir:
 

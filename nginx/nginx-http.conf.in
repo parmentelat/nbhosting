@@ -37,14 +37,6 @@ http {
     include             /etc/nginx/mime.types;
     default_type        application/octet-stream;
 
-#    # redirect all on https
-#    server {
-#        listen 80 default_server;
-#        listen [::]:80 default_server;
-#        server_name _;
-#        return 301 https://$host$request_uri;
-#    }
-
     ####################
 
     # about cookies : running without cookies would be a plus
@@ -75,7 +67,7 @@ http {
         listen 80;
 
         # the domain name it will serve for
-        server_name thermals.pl.sophia.inria.fr; 
+        server_name @server_name@; 
         charset     utf-8;
 
         ########## SSL config

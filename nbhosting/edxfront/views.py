@@ -7,7 +7,7 @@ import re
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseForbidden
 
-from nbhosting.main.settings import nbhosting_settings as settings
+from nbhosting.main.settings import sitesettings
 from nbhosting.main.settings import logger, DEBUG
 from nbhosting.stats.stats import Stats
 
@@ -39,7 +39,7 @@ def authorized(request):
     def authorize_refered_request(request):
         # actual referer
         referer = request.META['HTTP_REFERER']
-        domains = settings['allowed_referer_domains']
+        domains = sitesettings.allowed_referer_domains
         result = any(domain in referer
                      for domain in domains)
         explanation = "HTTP_REFERER = {}, allowed_referer_domains = {}"\
@@ -49,7 +49,7 @@ def authorized(request):
     # check REMOTE_ADDR against allowed_devel_ips
     def authorize_devel_request(request):
         incoming_ip = request.META['REMOTE_ADDR']
-        allowed_devel_ips = settings['allowed_devel_ips']
+        allowed_devel_ips = sitesettings.allowed_devel_ips
         result = False
         for mode, allowed in allowed_devel_ips:
             if mode == 'exact' and incoming_ip == allowed:
@@ -66,7 +66,7 @@ def authorized(request):
     else:
         result, explanation = authorize_devel_request(request)
     if not result:
-        logger.warn("ACCESS REFUSED - check your nbhosting_settings"
+        logger.warn("ACCESS REFUSED - check your sitesettings"
                     "explanation = {}".format(explanation))
     return result
 
@@ -91,7 +91,7 @@ def edx_request(request, course, student, notebook):
     subcommand = 'docker-view-student-course-notebook'
     
     # build command
-    command = ['nbh', '-d', settings['root']]
+    command = ['nbh', '-d', sitesettings.root]
     if DEBUG:
         command.append('-x')
     command.append(subcommand)
@@ -178,7 +178,7 @@ def share_notebook(request, course, student, notebook):
 
     subcommand = 'docker-share-student-course-notebook-in-hash'
 
-    command = ['nbh', '-d', settings['root']]
+    command = ['nbh', '-d', sitesettings.root]
     if DEBUG:
         command.append('-x')
     command.append(subcommand)
