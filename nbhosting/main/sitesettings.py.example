@@ -16,6 +16,15 @@ ssl_certificate = "/root/ssl-certificate/bundle.crt"
 ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 
 
+# describes how to log stderr from sub processes
+# depending on its returncode
+# can be either:
+# None : never logs
+# True : always log
+# False : log when return code != 0
+log_subprocess_stderr = False
+
+
 # the location used by the application
 # typically where you have a big fat btrfs filesystem
 root = '/nbhosting'
@@ -33,11 +42,11 @@ allowed_referer_domains = [
     # add yourself here so the 'revert_to_original' and
     # 'share_static_version' feature can work properly
     server_name,
-],
+]
     
 # the IPs of devel boxes 
 # these will be able to send /ipythonExercice/ urls directly
-allowed_devel_ips : [
+allowed_devel_ips = [
     # home
     ( 'exact', '82.226.190.44'),
     # work

@@ -19,14 +19,25 @@ def error_page(request, course, student, notebook, message=None):
     return render(request, "error.html", locals())
 
 
-def log_completed_process(cp, subcommand):
+def log_completed_process(completed_process, subcommand):
     header = "{} {}".format(10 * '=', subcommand)
-    logger.info("{} returned ==> {}".format(header, cp.returncode))
+    logger.info("{} returned ==> {}".format(header, completed_process.returncode))
     for field in ('stdout', 'stderr'):
-        text = getattr(cp, field, 'undef')
-        if text:
-            logger.info("{} - {}".format(header, field))
-            logger.info(text)
+        text = getattr(completed_process, field, 'undef')
+        # nothing to show 
+        if not text:
+            continue
+        # implement policy for stderr
+        if field == 'stderr':
+            # config has requested to not log stderr at all
+            if sitesettings.log_subprocess_stderr is None:
+                continue
+            # config requires stderr only for failed subprocesses
+            if sitesettings.log_subprocess_stderr is False \
+               and completed_process.returncode == 0:
+                continue
+        logger.info("{} - {}".format(header, field))
+        logger.info(text)
 
 
 # auth scheme here depends on the presence of META.HTTP_REFERER
