@@ -25,7 +25,7 @@ listen.group = root
 # processes = ...
 # the fact is that thurst has 64 cores.
 workers = 64
-max-requests = 10000
+max-requests = 100000
 
 # looks like master mode makes
 # systemctl restart nbh-uwsgi
