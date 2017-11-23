@@ -1,22 +1,37 @@
 # Notes on configuration
 
-## `http` *vs* `https`
+## Current status
 
-* you can run `./install.sh -d` (`d` stands for development) to run over http instead; in this case we use `nginx/nginx-https.conf` instead
+As of Nov. 23 2017, configuring nbhosting has become substantially simpler:
 
-## list
+* after obtaining the code through `git clone` do this
 
-* until a proper config. mechanism is in place, here's a list of places in the git files that contain hard-wired data that should be more configurable
-* **NOTE** that `sitesettings.py` is **not** under the git repo, that contains an exemple file instead, that you can copy into your `sitesetting.py` so that your site-specific settings won't conflict with updates in the git repo.
+```
+cd nbhosting/main
+cp sitesettings.py.example sitesettings.py
+```
+
+Then edit the file with the details that describe your site specifics; you can for example
+
+* chose to use http or https (https is almost mandatory though, see comments in the file)
+* define where your certificate and key are if you go for https
+* set a private `SECRET_KEY` for django
+* ...
+
+The benefit of this approach is that `sitesettings.py` is outside of git scope, and won't generate any merge conflicts. On the downside, if `sitesettings.py.example` changes, the local copy needs to be edited accordingly..
+
+## Remaining stuff
+
+There currently remains a couple settings here and there that could fruitfully be taken into account in `sitesettings` instead of the way they are now:
+
+#### devel mode: `./install.sh -d`
+
+* you can run `./install.sh -d` (`d` stands for development); this causes django to run in debug mode (set `DEBUG = True` in `settings.py`); should be replaced with e.g. `sitesettings.DEBUG`
+
+#### `Content-Security-Policy`
+
+there remains this setting here to take care of some day:
 
 | file                         | search              | config for | comment             |
 |------------------------------|---------------------|------------| ---------|
-| `nginx/nginx-https.conf`     |  `server_name`      |  nginx  | your hostname        |
-| `jupyter/jupyter_notebook_config.py` | `Content-Security-Policy` | web browser | trusted domain (typically `fun-mooc.fr`) |
-|                              |                     |         | this for now is hard-wired  |
-| `nbhosting/main/sitesettings.py` | `ALLOWED_HOSTS`     |  django | define your hostname(s)  |
-|                              |                     |         | otherwise `Bad Request (400)`  |
-| `nbhosting/main/sitesettings.py` | `SECRET_KEY`        |  django | use your own       |
-| `nbhosting/main/sitesettings.py` |  `allowed_referer_domains`  | nbhosting | domain names that can redirect to here |
-| `nbhosting/main/sitesettings.py` |  `allowed_devel_ips`  | nbhosting | IP's that you authorize to issue |
-|                              |                     |         | /ipythonExercice/ URLS directly |
+| `jupyter/jupyter_notebook_config.py` | `Content-Security-Policy` | web browser | trusted domain (typically `fun-mooc.fr`)  this for now is hard-wired  |

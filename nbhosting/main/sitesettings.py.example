@@ -8,6 +8,8 @@
 
 # set to either http or https
 # if you set https the system will accept ONLY https
+# note that fun-mooc.fr for example can be reached only over https
+# and will thus refuse to fetch the nbhoting iframe over http
 server_mode = "https"
     
 # for the nginx config
