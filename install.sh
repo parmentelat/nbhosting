@@ -50,6 +50,9 @@ function update-bins() {
 }
 
 function update-jupyter() {
+    # expand frame_ancestors
+    sed -e "s,@frame_ancestors@,$frame_ancestors," \
+        jupyter/jupyter_notebook_config.py.in > jupyter/jupyter_notebook_config.py
     mkdir -p $root/jupyter
     rsync $rsopts jupyter/ $root/jupyter/
 }
@@ -67,9 +70,6 @@ function update-assets() {
 }
 
 function update-nginx() {
-    # probe sitesettings.py
-    nbhosting/manage.py list-siteconfig > nbhosting/main/sitesettings.sh
-    source nbhosting/main/sitesettings.sh
 
     # update both configs from the .in 
     local configs="nginx-https.conf nginx-http.conf"
@@ -143,6 +143,10 @@ function main() {
     done
     shift $(($OPTIND - 1))
     
+    # probe sitesettings.py
+    nbhosting/manage.py list-siteconfig > nbhosting/main/sitesettings.sh
+    source nbhosting/main/sitesettings.sh
+
     if [[ -z "$@" ]]; then
 	default-main
     else

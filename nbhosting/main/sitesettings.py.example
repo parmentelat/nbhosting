@@ -18,6 +18,12 @@ ssl_certificate = "/root/ssl-certificate/bundle.crt"
 ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 
 
+# the domains that we accept being a sub iframe of
+# typically *.fun-mooc.fr
+# see jupyter/jupyter_notebook_config.py.in
+frame_ancestors = "https://*.fun-mooc.fr"
+
+
 # describes how to log stderr from sub processes
 # depending on its returncode
 # can be either:
