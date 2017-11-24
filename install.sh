@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# globals that can be changed through options
-DEVEL_MODE=
-
 # can do installs or updates
 # expected to run in a repository that is git-updated
 # run as ./install.sh 
@@ -105,11 +102,6 @@ function enable-services() {
     systemctl enable nbh-monitor
 }
 
-function turn-on-debug-if-develop() {
-    [ -z "$DEVEL_MODE" ] && return
-    (cd nbhosting/main; sed -i.git -e "s,^DEBUG.*,DEBUG = True," settings.py)
-}
-
 function default-main() {
     check-subdirs
     ensure-uid-1000
@@ -124,8 +116,6 @@ function default-main() {
     enable-services
     restart-services
 
-    turn-on-debug-if-develop
-
     # this is just convenience
     log-symlink
 }
@@ -134,15 +124,6 @@ function default-main() {
 # otherwise one can invoke one or several steps
 # with e.g. install.sh update-uwsgi log-symlink
 function main() {
-    # d stands for development
-    while getopts "d" opt; do
-        case $opt in
-            d) DEVEL_MODE=true;;
-            \?) echo "unknown option $opt - exiting"; exit 1;;
-        esac
-    done
-    shift $(($OPTIND - 1))
-    
     # probe sitesettings.py
     nbhosting/manage.py list-siteconfig > nbhosting/main/sitesettings.sh
     source nbhosting/main/sitesettings.sh

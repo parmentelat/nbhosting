@@ -23,6 +23,7 @@ import nbhosting.main.sitesettings as sitesettings
 from .sitesettings import (
     SECRET_KEY,
     ALLOWED_HOSTS,
+    DEBUG,
 )
 
 ########## production vs devel
@@ -50,14 +51,9 @@ monitor_logger = logging.getLogger('monitor')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# define this in sitesettings.py
-# SECRET_KEY = 'xb1ys4a$_cp5te*wk=+&5ud5)5pj9v+iykoff)juur@ift47(v'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-#DEBUG = True
-
+# SECRET_KEY = 'must-be-defined-in-sitesettings.py'
+# you need to define DEBUG in sitesettings.py
 # you need to define ALLOWED_HOSTS in sitesettings.py
 
 # Application definition

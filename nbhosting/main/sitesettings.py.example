@@ -62,6 +62,9 @@ allowed_devel_ips = [
 ]
 
 ######################################## django settings
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+
 # see e.g. https://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = 'your-actual-production-key-here'
 
