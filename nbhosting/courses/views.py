@@ -37,6 +37,10 @@ def list_courses(request):
 def list_course(request, course):
     course_dir = CourseDir(course)
     notebooks = course_dir.notebooks()
+
+    # shorten staff hashes
+
+    shorten_staff = [ hash[:7] for hash in course_dir.staff ]
     
     return render(request, "course.html", {
         'how_many' : len(notebooks),
@@ -44,6 +48,7 @@ def list_course(request, course):
         'notebooks': notebooks,
         'image' : course_dir.image,
         'statics' : course_dir.statics,
+        'staff' : shorten_staff,
         'giturl' : course_dir.giturl,
     })
 

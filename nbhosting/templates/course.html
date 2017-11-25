@@ -43,7 +43,7 @@ Update {{course}} using git pull from <br/><span class="pull-left">{{giturl}}</s
 </ul>
 </div> <!-- card-block-->
 </div> <!-- card-->
-</div> <!-- col-->
+</div> <!-- col-8-->
 
 <!------------------------------>
 <div class="col">
@@ -59,12 +59,14 @@ Use <code>nbh course-settings {{name}}</code> to tweak.
 </div> <!-- card-block-->
 </div> <!-- card-->
 
+
 <div class="card">
 <div class="card-block">
 <h3 class="card-title">Image</h3>
 <p class='card-text'> name: {{image}} </p>
 </div> <!-- card-block-->
 </div> <!-- card-->
+
 
 <div class="card">
 <div class="card-block">
@@ -73,6 +75,21 @@ Use <code>nbh course-settings {{name}}</code> to tweak.
 {% for static in statics %}
 <li class="list-group-item">
     <p class='card-text'> {{static}} </p>
+ </a>
+</li>
+{% endfor %}
+</ul>
+</div> <!-- card-block-->
+</div> <!-- card-->
+
+
+<div class="card">
+<div class="card-block">
+<h3 class="card-title">Staff</h3>
+<ul class="list-group list-group-flush">
+{% for hash in staff %}
+<li class="list-group-item">
+    <p class='card-text'> {{hash}} </p>
  </a>
 </li>
 {% endfor %}

@@ -230,8 +230,9 @@ function -compute-course-globals() {
     COURSE_git=$NBHROOT/courses-git/$course
 
     COURSE_notebooks=$NBHROOT/courses/$course
-    COURSE_staticsfile=$COURSE_notebooks/.statics
     COURSE_imagefile=$COURSE_notebooks/.image
+    COURSE_staticsfile=$COURSE_notebooks/.statics
+    COURSE_stafffile=$COURSE_notebooks/.staff
     COURSE_giturlfile=$COURSE_notebooks/.giturl
     COURSE_modules=$NBHROOT/modules/$course
     COURSE_static=$NBHROOT/static/$course
@@ -299,17 +300,20 @@ function init-course() {
 
 @declare-subcommand course-settings
 function course-settings() {
-    local USAGE="Usage: $COMMAND $FUNCNAME [-s static-subdir] [-i image] course
-      -s : (cumulative) add a static dir - defaults to ${default_statics}
+    local USAGE="Usage: $COMMAND $FUNCNAME  [-i image] [-s static-subdir] [-a staff-hash] course
       -i : specify the docker image to use for that course
+      -s : (cumulative) add a static dir - defaults to ${default_statics}
+      -a : (cumulative) add staff hash - staff members are ignored in stats
 " 
 
-    local statics=""
     local image=""
-    while getopts "s:i:" option; do
+    local statics=""
+    local staff=""
+    while getopts "i:s:a:" option; do
   	case $option in
-	    s) statics="$statics $OPTARG" ;;
 	    i) image="$OPTARG" ;;
+	    s) statics="$statics $OPTARG" ;;
+            a) staff="$staff $OPTARG" ;;
 	    ?) -die "$USAGE" ;;
 	esac
     done	
@@ -323,6 +327,13 @@ function course-settings() {
     -compute-course-globals $course
 
     ### update the course settings
+
+    # image name: redefine or create
+    if [ -n "$image" ]; then
+	echo $image > $COURSE_imagefile
+    elif [ ! -f $COURSE_imagefile ]; then
+	echo $course > $COURSE_imagefile
+    fi
 
     # statics - augment or init
     if [ -n "$statics" ] ; then
@@ -341,12 +352,15 @@ function course-settings() {
 	done
     fi
 
-    # likewise for the image name: redefine or create
-    if [ -n "$image" ]; then
-	echo $image > $COURSE_imagefile
-    elif [ ! -f $COURSE_imagefile ]; then
-	echo $course > $COURSE_imagefile
+    # likewise for staff members
+    if [ -n "$staff" ]; then
+        for hash in $staff; do
+            echo $hash >> $COURSE_stafffile
+        done
+    elif [ ! -f $COURSE_stafffile ]; then
+        touch $COURSE_stafffile
     fi
+
 
     # convenience: update .giturl
     if [ ! -f $COURSE_giturlfile ]; then
