@@ -18,7 +18,7 @@ setup(
     packages = find_packages(),
     url = "https://github.com/parmentelat/nbhosting",
     license = "See LICENSE",
-    description = "An infrastructure for hosting notebooks beind an open-edX MOOC platform",
+    description = "An infrastructure for hosting notebooks behind an open-edX MOOC platform",
     long_description = long_description,
     install_requires = [
         'Django',
