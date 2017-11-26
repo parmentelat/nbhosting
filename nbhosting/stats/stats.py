@@ -1,16 +1,25 @@
 from pathlib import Path
 import time
+import re
 import itertools
 from collections import OrderedDict, defaultdict
 
+from nbhosting.courses.models import CourseDir
 from nbhosting.main.settings import sitesettings, logger
 
 root = Path(sitesettings.root)
 
+# this is to skip artefact-users like e.g. 'student'
+# that can be seen as staff in the sense that we don't
+# want these users to pollute the stats
+edx_hash_regexp = re.compile(r"[0-9a-f]{32}")
+
+
 # an iterable has no builtin len method
 def iter_len(iterable):
     count = 0
-    for _ in iterable: count += 1
+    for _ in iterable:
+        count += 1
     return count
 
 
@@ -156,6 +165,8 @@ class Stats:
         events_timestamps = []
         total_students = []
         total_notebooks = []
+        #
+        staff = CourseDir(self.course).staff
         try:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
@@ -165,6 +176,9 @@ class Stats:
                         # which should not be counted as a notebook of course
                         # so let's ignore these lines altogether
                         if action == 'killing':
+                            continue
+                        # ignore staff or other artefact users
+                        if student in staff or not edx_hash_regexp.match(student):
                             continue
                         day = timestamp.split('T')[0] + ' 23:59:59'
                         if day in figures_by_day:
@@ -283,12 +297,17 @@ class Stats:
         set_by_student = defaultdict(set)
         # a dict hashed on a tuple (notebook, student) -> number of visits
         raw_counts = defaultdict(int)
+        #
+        staff = CourseDir(self.course).staff
         try:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     _, _, student, notebook, action, *_ = line.split()
                     # action 'killing' needs to be ignored
                     if action in ('killing',):
+                        continue
+                    # ignore staff or other artefact users
+                    if student in staff or not edx_hash_regexp.match(student):
                         continue
                     # remove test / debug student names like student, anonymous, or mary
                     # official student hashes are 32 chars long

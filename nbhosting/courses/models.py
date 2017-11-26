@@ -33,7 +33,7 @@ class CourseDir:
 
         try:
             with (notebooks_dir / ".statics").open() as storage:
-                self.statics = [ line.strip() for line in storage if line ]
+                self.statics = { line.strip() for line in storage if line }
         except Exception as e:
             self.statics = ["-- undefined -- {err}".format(err=e)]
 
@@ -46,7 +46,7 @@ class CourseDir:
 
         try:
             with (notebooks_dir / ".staff").open() as storage:
-                self.staff = [ line.strip() for line in storage if line ]
+                self.staff = { line.strip() for line in storage if line }
         except Exception as e:
             self.staff = []
 
