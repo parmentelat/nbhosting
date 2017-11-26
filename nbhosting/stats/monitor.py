@@ -235,8 +235,12 @@ class Monitor:
         # ds stands for disk_space
         docker_root = proxy.info()['DockerRootDir']
         nbhosting_root = sitesettings.root
+        system_root = "/"
         ds = {}
-        for name, root in ( ('docker', docker_root), ('nbhosting', nbhosting_root)):
+        for name, root in ( ('docker', docker_root),
+                            ('nbhosting', nbhosting_root),
+                            ('system', system_root),
+        ):
             ds[name] = {}
             try:
                 stat = os.statvfs(root)
@@ -275,6 +279,7 @@ class Monitor:
                 load1, load5, load15,
                 ds['docker']['percent'], ds['docker']['free'],
                 ds['nbhosting']['percent'], ds['nbhosting']['free'],
+                ds['system']['percent'], ds['system']['free'],
             )
 
     def run_forever(self):

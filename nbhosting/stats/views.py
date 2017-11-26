@@ -47,9 +47,9 @@ def show_stats(request, course):
         'id' : 'SYSTEM',
         'subsections' : [
             { 'plotly_name' : 'plotly-ds-percent',
-              'title' : 'Disk Space Usage %'},
+              'title' : 'Free Disk Space %'},
             { 'plotly_name' : 'plotly-ds-free',
-              'title' : 'Free Space'},
+              'title' : 'Free Disk Space in Bytes'},
             { 'plotly_name' : 'plotly-cpu-load',
               'title' : 'CPU loads'},
         ]

@@ -118,6 +118,7 @@ class Stats:
         'load1', 'load5', 'load15',
         'docker_ds_percent', 'docker_ds_free',
         'nbhosting_ds_percent', 'nbhosting_ds_free',
+        'system_ds_percent', 'system_ds_free',
     ]
     
     def record_monitor_known_counts_line(self):
@@ -260,10 +261,11 @@ class Stats:
                         ivalues = [int(v) for v in values]
                         for count, ivalue in zip(known_counts, ivalues):
                             counts[count].append(ivalue)
+                        # fill in for missing values
                         missing = max_counts - len(values)
                         if missing > 0:
                             for count in known_counts[-missing:]:
-                                counts[count].append(0)
+                                counts[count].append(None)
                     except Exception as e:
                         logger.exception("{}:{}: skipped misformed counts line - {}"
                                          .format(counts_path, lineno, line))

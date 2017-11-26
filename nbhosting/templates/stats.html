@@ -118,6 +118,8 @@ d3.request(url_counts, function (error, response) {
     let docker_ds_frees       = incoming.docker_ds_frees;
     let nbhosting_ds_percents = incoming.nbhosting_ds_percents;
     let nbhosting_ds_frees    = incoming.nbhosting_ds_frees;
+    let system_ds_percents    = incoming.system_ds_percents;
+    let system_ds_frees       = incoming.system_ds_frees;
     let load1s                = incoming.load1s;
     let load5s                = incoming.load5s;
     let load15s               = incoming.load15s;
@@ -141,16 +143,20 @@ d3.request(url_counts, function (error, response) {
 
     let docker_ds_percents_data = {
         x: timestamps, y: docker_ds_percents,
-        name : 'percentage of free disk space - docker fs',
+        name : '% of free disk space - docker fs',
     }
     let nbhosting_ds_percents_data = {
         x: timestamps, y: nbhosting_ds_percents,
-        name : 'percentage of free disk space - nbhosting fs',
+        name : 'nbhosting fs',
+    }
+    let system_ds_percents_data = {
+        x: timestamps, y: system_ds_percents,
+        name : 'system fs',
     }
     let layout_100 = JSON.parse(JSON.stringify(layout));
     layout_100.yaxis = {range : [0, 100]};
     Plotly.newPlot('plotly-ds-percent',
-                   [docker_ds_percents_data, nbhosting_ds_percents_data],
+                   [docker_ds_percents_data, nbhosting_ds_percents_data, system_ds_percents_data],
 		   layout_100);
     
 
@@ -162,8 +168,12 @@ d3.request(url_counts, function (error, response) {
         x: timestamps, y: nbhosting_ds_frees,
         name : 'free disk space - nbhosting fs (in MiB)',
     }
+    let system_ds_frees_data = {
+        x: timestamps, y: system_ds_frees,
+        name : 'free disk space - system fs (in MiB)',
+    }
     Plotly.newPlot('plotly-ds-free',
-                   [docker_ds_frees_data, nbhosting_ds_frees_data],
+                   [docker_ds_frees_data, nbhosting_ds_frees_data, system_ds_frees_data],
 		   layout);
     
     let load1s_data = {
