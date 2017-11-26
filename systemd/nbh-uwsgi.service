@@ -1,6 +1,6 @@
 # this is meant to be installed under /etc/systemd/system
 [Unit]
-Description=run the nbhosting service as a uswgi instance on the django app
+Description=the nbhosting django app as a uswgi instance
 
 [Service]
 ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/nbhosting.ini
