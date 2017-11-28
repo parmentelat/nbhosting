@@ -307,5 +307,106 @@ d3.request(url_usage, function(error, response) {
                    heatmap_layout);
         
 });
+
+// slider code from https://bl.ocks.org/mbostock/6452972
+let url_attendance="/nbh/stats/animated_attendance/{{course}}";
+d3.request(url_attendance, function(error, response) {
+    let incoming = JSON.parse(response.response);
+    console.log(`from animated_attendance ${url_attendance}`);
+    console.log(incoming);
+    
+    let total_width = 900,
+        total_height = 300,
+        margin = { top: 50, right: 200, bottom:10, left: 20},
+        width = total_width - margin.left - margin.right,
+        height = total_height - margin.top - margin.bottom;
+    
+    let timestamps = incoming.timestamps,
+        notebooks = incoming.notebooks,
+        attendance = incoming.attendance;
+    
+    // this one is in d3
+    let svg = d3.select("#d3-nb-students-per-notebook").
+        append("svg:svg").
+        attr("width", total_width).
+        attr("height", total_height);
+    
+    let scale = d3.scaleLinear()
+        .domain([0, timestamps.length - 1])
+        .range([0, width])
+        .clamp(true);
+    
+    let slider = svg.append("g")
+        .attr('class', 'slider')
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+    
+    slider.append("line")
+        .attr('class', 'track')
+        .attr('x1', scale.range()[0])
+        .attr('x2', scale.range()[1])
+      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr('class', 'track-inset')
+      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr('class', 'track-overlay')
+        .call(d3.drag()
+              .on("start.interrupt", function() { slider.interrupt(); })
+              .on("start drag", function() {
+                  console.log("BIP");
+              }));
+      
+    slider.insert("g", ".track-overlay")
+        .attr("class", "ticks")
+        .attr("transform", `translate(0, ${margin.top})`)
+      .selectAll("text")
+        .data(scale.ticks(timestamps.length))
+        .enter()
+        .append("text")
+        .attr("x", scale)
+        .attr("text-anchor", "middle")
+        .text(function(d) { return timestamps[d]; });
+
+    let handle = slider.insert("circle", ".track-overlay")
+        .attr("class", "handle")
+        .attr("r", 9);
+
+    return;
+//      barDemo.selectAll("text.yAxis").
+//  data(data).
+//  enter().append("svg:text").
+//  attr("x", function(datum, index) { return x(index) + barWidth; }).
+//  attr("y", height).
+//  attr("dx", -barWidth/2).
+//  attr("text-anchor", "middle").
+//  attr("style", "font-size: 12; font-family: Helvetica, sans-serif").
+//  text(function(datum) { return datum.year;}).
+//  attr("transform", "translate(0, 18)").
+//  attr("class", "yAxis");
+});
+
 </script>
+<style>
+.track,
+.track-inset,
+.track-overlay {
+  stroke-linecap: round;
+}
+
+.track {
+  stroke: #000;
+  stroke-opacity: 0.3;
+  stroke-width: 10px;
+}
+
+.track-inset {
+  stroke: #ddd;
+  stroke-width: 8px;
+}
+
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 50px;
+  stroke: transparent;
+  cursor: crosshair;
+}
+</style>
 {% endblock %}
