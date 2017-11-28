@@ -62,11 +62,14 @@ class MonitoredJupyter:
                  container : docker.models.containers.Container,
                  course : str,
                  student : str,
-                 figures : CourseFigures):
+                 figures : CourseFigures,
+                 # the hash of the expected image - may be None
+                 hash : str):
         self.container = container
         self.course = course
         self.student = student
         self.figures = figures
+        self.hash = hash
         self.nb_kernels = None
 
     def __str__(self):
@@ -106,8 +109,7 @@ class MonitoredJupyter:
             api_kernels = json.loads(json_str)
             self.nb_kernels = len(api_kernels)
 
-            # jupyter 4 would not return this field
-            # if with jupyter-5: look for the last_activity
+            # note: jupyter 4 would not return this field
             lasts = [
                 api_kernel.get('last_activity', None)
                 for api_kernel in api_kernels ]
@@ -115,21 +117,21 @@ class MonitoredJupyter:
             lasts = [last for last in lasts if last]
             # all kernels should have the flag
             if len(lasts) != self.nb_kernels:
-                logger.debug("mismatch found {} last activities for {} kernels"
+                logger.error("found {} last activities for {} kernels\n"
+                             "are you using jupyter <= 4 ?\n"
+                             "containers can't be properly cleaned up.."
                              .format(len(lasts), self.nb_kernels))
                 self.last_activity = None
-            else:
-                # compute overall last activity across kernels
-                times = [
-                    calendar.timegm(
-                        time.strptime(last.replace('Z', 'UTC'),
-                                      "%Y-%m-%dT%H:%M:%S.%f%Z"))
-                    for last in lasts
-                ]
-                # if times is empty (no kernel): no activity
-                self.last_activity = max(times, default=0)
-                logger.debug("Found J5 last activity = {} with {}"
-                             .format(self.last_activity, self))
+                return
+            # compute overall last activity across kernels
+            times = [
+                calendar.timegm(
+                    time.strptime(last.replace('Z', 'UTC'),
+                                  "%Y-%m-%dT%H:%M:%S.%f%Z"))
+                for last in lasts
+            ]
+            # if times is empty (no kernel): no activity
+            self.last_activity = max(times, default=0)
                 
         except Exception as e:
             logger.exception("Cannot probe number of kernels in {} - {}: {}"
@@ -148,31 +150,30 @@ class MonitoredJupyter:
         # if using an old jupyter, let's resort to the old way
         # to get that info
         if not self.last_activity:
-            logger.warning("Using jupyter4 method - i.e. using .monitor stamp"
-                           " - with {}".format(self))
-            try:
-                stamp = root / "students" / self.student / self.course / ".monitor"
-                self.last_activity = stamp.stat().st_mtime
-                logger.debug("Found J4 last activity = {} with {}"
-                             .format(self.last_activity, self))
-            except FileNotFoundError as e:
-                logger.info("{} has no .monitor stamp - ignoring"
-                            .format(self))
-                return
+            logger.error("skipping container {} with no known last_activity".format(self.name))
+            return
         # check there has been activity in the last <grace> seconds
-        last = self.last_activity
         now = time.time()
         grace_past = now - grace
-        idle_minutes = (now - last) // 60
-        if last > grace_past:
+        idle_minutes = (now - self.last_activity) // 60
+        if self.last_activity > grace_past:
             logger.debug("sparing {} that had activity {}' ago"
                          .format(self, idle_minutes))
             self.figures.count_container(True, self.nb_kernels)
         else:
             logger.info("{} has been idle for {} mn - killing"
                         .format(self, idle_minutes))
-            # not sure what signal would be best ?
+            # kill it
             self.container.kill()
+            # if that container does not run the expected image hash
+            # it is because the course image was upgraded in the meanwhile
+            # then we even remove the container so it will get re-created
+            # next time with the right image this time
+            actual_hash = self.container.image.id
+            if actual_hash != self.hash:
+                logger.info("removing container {} that has hash {} instead of expected {}"
+                            .format(self.name, actual_hash, self.hash))
+                self.container.remove(v=True)
             # this counts for one dead container
             self.figures.count_container(False)
             # keep track or that removal in events.raw
@@ -196,16 +197,19 @@ class Monitor:
     def run_once(self):
 
         # initialize all known courses - we want data on courses
-        # even if they don't yet run containers 
+        # even if they don't run any container yet 
         logger.debug("scanning courses")
-        courses = CoursesDir().coursenames()
-        figures_per_course = { course: CourseFigures() 
-                               for course in courses}
+        coursesdir = CoursesDir()
+        coursenames = coursesdir.coursenames()
+        figures_by_course = {coursename : CourseFigures() 
+                             for coursename in coursenames}
 
         try:
             proxy = docker.from_env(version='auto')
             logger.debug("scanning containers")
             containers = proxy.containers.list(all=True)
+            hash_by_course = {coursename : CourseDir(coursename).image_hash(proxy)
+                              for coursename in coursenames}
         except Exception as e:
             logger.exception(
                 "Cannot gather containers list at the docker daemon - skipping")
@@ -218,10 +222,13 @@ class Monitor:
                 name = container.name
                 # too much spam ven in debug mode
                 # logger.debug("dealing with container {}".format(name))
-                course, student = name.split('-x-')
-                figures_per_course.setdefault(course, CourseFigures())
-                figures = figures_per_course[course]
-                monitored_jupyter = MonitoredJupyter(container, course, student, figures)
+                coursename, student = name.split('-x-')
+                figures_by_course.setdefault(coursename, CourseFigures())
+                figures = figures_by_course[coursename]
+                # may be None if s/t is misconfigured
+                hash = hash_by_course[coursename] \
+                       or "hash not found for course {}".format(coursename)
+                monitored_jupyter = MonitoredJupyter(container, coursename, student, figures, hash)
                 futures.append(monitored_jupyter.co_run(self.grace))
             # typically non-nbhosting containers
             except ValueError as e:
@@ -270,9 +277,9 @@ class Monitor:
         asyncio.get_event_loop().run_until_complete(
             asyncio.gather(*futures))
         # write results
-        for course, figures in figures_per_course.items():
-            student_homes = CourseDir(course).student_homes()
-            Stats(course).record_monitor_counts(
+        for coursename, figures in figures_by_course.items():
+            student_homes = CourseDir(coursename).student_homes()
+            Stats(coursename).record_monitor_counts(
                 figures.running_containers, figures.frozen_containers,
                 figures.running_kernels,
                 student_homes,
@@ -288,9 +295,9 @@ class Monitor:
         # one cycle can take some time as all the jupyters need to be http-probed
         # so let us compute the actual time to wait
         logger.info("nbh-monitor is starting up")
-        courses = CoursesDir().coursenames()
-        for course in courses:
-            Stats(course).record_monitor_known_counts_line()
+        coursenames = CoursesDir().coursenames()
+        for coursename in coursenames:
+            Stats(coursename).record_monitor_known_counts_line()
         while True:
             try:
                 self.run_once()

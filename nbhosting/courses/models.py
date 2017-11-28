@@ -13,10 +13,12 @@ class CourseDir:
         self._probe_settings()
         self._notebooks = None
         
+
     def notebooks(self):
         if self._notebooks is None:
             self._notebooks = self._probe_notebooks()
         return self._notebooks
+
 
     def _probe_notebooks(self):
         notebooks_dir = self.notebooks_dir
@@ -27,6 +29,7 @@ class CourseDir:
             for notebook in absolute_notebooks
             if 'ipynb_checkpoints' not in str(notebook)
         ])
+
 
     def _probe_settings(self):
         notebooks_dir = self.notebooks_dir
@@ -55,6 +58,21 @@ class CourseDir:
                 self.giturl = storage.read().strip()
         except Exception as e:
             self.giturl = "-- undefined -- {err}".format(err=e)
+
+
+    def image_hash(self, docker_proxy):
+        """
+        the hash of the image that should be used for containers
+        in this course
+        or None if something goes wrong
+        """
+        try:
+            return docker_proxy.images.get(self.image).id
+        except:
+            # xxx should log the exception
+            import traceback
+            traceback.print_exc()
+            return
                 
     
     def update_completed(self):
