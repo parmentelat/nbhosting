@@ -147,9 +147,9 @@ class MonitoredJupyter:
             return
         # count number of kernels and last activity
         await self.count_running_kernels()
-        # if using an old jupyter, let's resort to the old way
-        # to get that info
-        if not self.last_activity:
+        # last_activity may be 0 if no kernel is running inside that container
+        # or None if we could not determine it properly
+        if self.last_activity is None:
             logger.error("skipping container {} with no known last_activity".format(self.name))
             return
         # check there has been activity in the last <grace> seconds
