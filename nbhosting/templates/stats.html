@@ -32,20 +32,21 @@ Stats for course {{course}}
 <!-- html scafolding is based on 'sections' as defined in views.py -->
 {% for section in sections %}
 <div class='card'>
-<h1 class='card-title card-header'>
-{{section.title}}</h1>
-<div class="card-block" id='{{section.id}}'>
-{% for subsection in section.subsections %}
-<a name='{{subsection.plotly_name}}'></a>
-<h2 class='card-title card-header' data-toggle='collapse' data-target='#{{subsection.plotly_name}}-collapse'>
-{{subsection.title}}
-<!-- more harmful than helpful <a class="anchor-link" href="#{{subsection.plotly_name}}">¶</a>-->
-</h2>
-<div id='{{subsection.plotly_name}}-collapse' class='collapse{%if not subsection.hide %} in{% endif %}'>
-<div id='{{subsection.plotly_name}}'>
-</div></div>
-{% endfor %}
-</div>
+ <h1 class='card-title card-header'>
+  {{section.title}}</h1>
+ <div class="card-block" id='{{section.id}}'>
+ {% for subsection in section.subsections %}
+  <a name='{{subsection.plotly_name}}'></a>
+  <h2 class='card-title card-header' data-toggle='collapse' data-target='#{{subsection.plotly_name}}-collapse'>
+   {{subsection.title}}
+    <!-- more harmful than helpful <a class="anchor-link" href="#{{subsection.plotly_name}}">¶</a>-->
+    <span id="{{subsection.plotly_name}}-clock" class="fa fa-clock-o"></span>
+  </h2>
+  <div id='{{subsection.plotly_name}}-collapse' class='collapse{%if not subsection.hide %} in{% endif %}'>
+   <div id='{{subsection.plotly_name}}'></div>
+  </div>
+ {% endfor %}
+ </div>
 </div>
 {% endfor %}
 
@@ -54,7 +55,10 @@ Stats for course {{course}}
 "use strict";
 function init_all_collapse() { $(".collapse.in").collapse('show'); }
 function show_all_collapse() { $(".collapse").collapse('show'); }
-function hide_all_collapse() { $(".collapse").collapse('hide');}
+function hide_all_collapse() { $(".collapse").collapse('hide'); }
+function turn_off_clock(plotly_name) {
+    $(`#${plotly_name}-clock`).hide();
+}
 /* in principle this would not be needed but well.. */
 $(init_all_collapse);
 $("#show-all").click(show_all_collapse);
@@ -87,6 +91,7 @@ d3.request(url_metrics, function (error, response) {
 			        name: 'new students / day'};
     let uni_students_data =   { x : d_timestamps, y : d_uni_students,
 			        name: 'unique students / day'};
+    turn_off_clock('plotly-students');
     Plotly.newPlot('plotly-students',
 		   [total_students_data, uni_students_data, new_students_data],
 		   layout);
@@ -97,6 +102,7 @@ d3.request(url_metrics, function (error, response) {
 			         name: 'unique notebooks open / day'};
     let total_notebooks_data = { x : e_timestamps, y : e_total_notebooks,
     			       	 name: 'notebooks read at least once'};
+    turn_off_clock('plotly-notebooks');
     Plotly.newPlot('plotly-notebooks',
 		   [ uni_notebooks_data, new_notebooks_data, total_notebooks_data],
 		   layout);
@@ -136,6 +142,7 @@ d3.request(url_counts, function (error, response) {
 	x : timestamps, y : running_kernels,
 	name : "running kernels"
     }
+    turn_off_clock('plotly-containers-kernels');
     Plotly.newPlot('plotly-containers-kernels',
 		  [running_containers_data, total_containers_data, running_kernels_data],
   	          layout);	
@@ -155,6 +162,7 @@ d3.request(url_counts, function (error, response) {
     }
     let layout_100 = JSON.parse(JSON.stringify(layout));
     layout_100.yaxis = {range : [0, 100]};
+    turn_off_clock('plotly-ds-percent');
     Plotly.newPlot('plotly-ds-percent',
                    [docker_ds_percents_data, nbhosting_ds_percents_data, system_ds_percents_data],
 		   layout_100);
@@ -172,6 +180,7 @@ d3.request(url_counts, function (error, response) {
         x: timestamps, y: system_ds_frees,
         name : 'free disk space - system fs (in MiB)',
     }
+    turn_off_clock('plotly-ds-free');
     Plotly.newPlot('plotly-ds-free',
                    [docker_ds_frees_data, nbhosting_ds_frees_data, system_ds_frees_data],
 		   layout);
@@ -188,6 +197,7 @@ d3.request(url_counts, function (error, response) {
         x: timestamps, y: load15s,
         name : '100 x load past 15 minutes',
     }
+    turn_off_clock('plotly-cpu-load');
     Plotly.newPlot('plotly-cpu-load',
                    [load1s_data, load5s_data, load15s_data],
 		   layout);
@@ -222,6 +232,7 @@ d3.request(url_usage, function(error, response) {
         x : x1, y: y1,
         name : `number of students/${incoming.nbstudents} per notebook`,
         };
+    turn_off_clock('plotly-nbstudents-per-notebook');
     Plotly.newPlot('plotly-nbstudents-per-notebook',
                    [nbstudents_per_notebook_data],
                    bar_layout);
@@ -240,6 +251,7 @@ d3.request(url_usage, function(error, response) {
         name : `number of students/${incoming.nbstudents} who have read exactly that many notebooks`,
         marker : { color: '#91d27e'},
         };
+    turn_off_clock('plotly-nbstudents-per-nbnotebooks');
     Plotly.newPlot('plotly-nbstudents-per-nbnotebooks',
                    [nbstudents_per_nbnotebooks_data],
                    bar_layout);
@@ -289,7 +301,7 @@ d3.request(url_usage, function(error, response) {
         legend: legend_layout,
         title:  `${incoming.nbnotebooks} notebooks ＊ ${incoming.nbstudents} students map`,
     };
-    console.log(heatmap_layout);
+    turn_off_clock('plotly-heatmap');
     Plotly.newPlot('plotly-heatmap',
                    [heatmap_data],
                    heatmap_layout);
