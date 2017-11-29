@@ -171,8 +171,8 @@ class MonitoredJupyter:
             # next time with the right image this time
             actual_hash = self.container.image.id
             if actual_hash != self.hash:
-                logger.info("removing container {} that has hash {} instead of expected {}"
-                            .format(self.name, actual_hash, self.hash))
+                logger.info("removing container {} - has hash {} instead of expected {}"
+                            .format(self.name, actual_hash[:15], self.hash[:15]))
                 self.container.remove(v=True)
             # this counts for one dead container
             self.figures.count_container(False)
