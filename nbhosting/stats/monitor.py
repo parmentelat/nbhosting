@@ -161,8 +161,10 @@ class MonitoredJupyter:
                          .format(self, idle_minutes))
             self.figures.count_container(True, self.nb_kernels)
         else:
-            logger.info("{} has been idle for {} mn - killing"
-                        .format(self, idle_minutes))
+            if self.last_activity:
+                logger.info("{} has been idle for {} mn - killing".format(self, idle_minutes))
+            else:
+                logger.info("{} has no kernel attached - killing".format(self))
             # kill it
             self.container.kill()
             # if that container does not run the expected image hash
