@@ -23,7 +23,6 @@ def iter_len(iterable):
     return count
 
 
-# attach to a given day
 class DailyFigures:
     """
     keep track of the activity during a given day, as compared
@@ -60,6 +59,60 @@ class DailyFigures:
         self.cumul_students.update(self.students)
         self.cumul_notebooks.update(self.notebooks)
 
+
+class EventsAccumulator:
+    """
+    if we do not pay attention we end up issuing way too many events
+    so they need to be filtered out a bit
+
+    an accumulator essentially remembers stuff like
+
+    timestamps = [14:00 14:05 14:08 15:00] some time stamps (in fact a longer format is used)
+    students =   [12    13    14    15]    number of students known at that time
+    notebooks =  [20    20    21    22]    number of notebooks opened at least once at that time
+
+    """
+    def __init__(self):
+        self.timestamps = []
+        # these 2 will remember numbers of students or of notebooks
+        self.students = []
+        self.notebooks = []
+        self.last = None
+
+
+    def _insert(self, timestamp, nb_students, nb_notebooks):
+        self.timestamps.append(timestamp)
+        self.students.append(nb_students)
+        self.notebooks.append(nb_notebooks)
+
+
+    def insert(self, timestamp, nb_students, nb_notebooks):
+        # in all cases, rememeber the last one, so we are sure to mention it at the end
+        self.last = timestamp, nb_students, nb_notebooks
+        # object is empty, record without thinking more
+        if not self.timestamps:
+            self._insert(timestamp, nb_students, nb_notebooks)
+            return
+        # same numbers as the previous entry : skip
+        if nb_students == self.students[-1] and nb_notebooks == self.notebooks[-1]:
+            return
+        # otherwise : insert it
+        self._insert(timestamp, nb_students, nb_notebooks)
+        
+
+    def wrap(self):
+        # nothing to remember
+        if self.last is None:
+            return
+        # check if we have recorded this event
+        last_t, last_s, last_n = self.last
+        if self.timestamps[-1] == last_t \
+           and self.students[-1] == last_s \
+           and self.notebooks[-1] == last_n:
+            pass
+        # record it
+        self._insert(last_t, last_s, last_n)
+        
 
 class Stats:
 
@@ -162,10 +215,8 @@ class Stats:
         figures_by_day = OrderedDict()
         previous_figures = None
         current_figures = DailyFigures()
-        # results
-        events_timestamps = []
-        total_students = []
-        total_notebooks = []
+        # the events diemnsion
+        accumulator = EventsAccumulator()
         #
         staff = CourseDir(self.course).staff
         try:
@@ -191,10 +242,10 @@ class Stats:
                             figures_by_day[day] = current_figures
                         current_figures.add_notebook(notebook)
                         current_figures.add_student(student)
-                        events_timestamps.append(timestamp)
-                        # do a union to know how many we had at that exact point in time
-                        total_students.append(current_figures.nb_total_students())
-                        total_notebooks.append(current_figures.nb_total_notebooks())
+                        accumulator.insert(
+                            timestamp,
+                            current_figures.nb_total_students(),
+                            current_figures.nb_total_notebooks())
                     except Exception as e:
                         logger.exception("{}:{}: skipped misformed events line :{}"
                                          .format(events_path, lineno, line))
@@ -203,6 +254,7 @@ class Stats:
             logger.exception("unexpected exception")
         finally:
             current_figures.wrap()
+            accumulator.wrap()
             daily_timestamps = []
             unique_students = []
             unique_notebooks = []
@@ -221,9 +273,9 @@ class Stats:
                                  'unique_notebooks' : unique_notebooks,
                                  'new_students' : new_students,
                                  'new_notebooks' : new_notebooks},
-                     'events' : { 'timestamps' : events_timestamps,
-                                  'total_students' : total_students,
-                                  'total_notebooks' : total_notebooks}}
+                     'events' : { 'timestamps' : accumulator.timestamps,
+                                  'total_students' : accumulator.students,
+                                  'total_notebooks' : accumulator.notebooks}}
                 
     def monitor_counts(self):
         """
