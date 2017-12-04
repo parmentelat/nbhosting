@@ -407,19 +407,23 @@ function update-course-from-git() {
 	echo ==========  $(date): update-course
 
 	cd $COURSE_git
+        echo "========== git pull"
 	git pull
+        echo "========== last 3 commits"
+        git log --oneline "HEAD~~~..HEAD"
+        echo "========== dealing with submodules"
 	# might not be exactly needed anymore if we use subtrees instead
 	git submodule init
 	git submodule update
 	
+        echo "========== housekeeping"
 	# create course dirs if needed
 	for dir in $COURSE_notebooks $COURSE_modules $COURSE_data $COURSE_media $COURSE_raw; do
 	    [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
 	done
 
 	# find out all immediate subdirs that contain at least one notebook
-	# also, ignore nbformat2 since we have jupyter4 here
-	notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | grep -v '^nbformat2$' | sort -u)
+	notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | sort -u)
 	[ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $COURSE_notebooks/
 	[ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
 	[ -d static ] && { $rsync static/ $COURSE_static; chmod -R g-w,o-w $COURSE_static; }
