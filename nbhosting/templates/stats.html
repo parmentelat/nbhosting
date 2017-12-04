@@ -32,9 +32,9 @@ Stats for course {{course}}
 <!-- html scafolding is based on 'sections' as defined in views.py -->
 {% for section in sections %}
 <div class='card'>
- <h1 class='card-title card-header'>
+ <h1 class='card-title card-header' data-toggle='collapse' data-target='#{{section.id}}'>
   {{section.title}}</h1>
- <div class="card-block" id='{{section.id}}'>
+ <div class="card-block collapse in" id='{{section.id}}'>
  {% for subsection in section.subsections %}
   <a name='{{subsection.plotly_name}}'></a>
   <h2 class='card-title card-header' data-toggle='collapse' data-target='#{{subsection.plotly_name}}-collapse'>

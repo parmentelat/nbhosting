@@ -20,19 +20,19 @@ def show_stats(request, course):
         subsections = [
             { 'plotly_name' : 'plotly-nbstudents-per-notebook',
               'title' : 'Students per notebook',
-#              'hide' : True,
+              'hide' : True,
             },
             { 'plotly_name' : 'plotly-nbstudents-per-nbnotebooks',
               'title' : 'Number of notebooks per student',
-#              'hide' : True,
+              'hide' : True,
             },
             { 'plotly_name' : 'plotly-students',
-              'title' : 'Students - who showed up at least once',
+              'title' : 'Students who showed up at least once',
               'hide' : True,
             },
             { 'plotly_name' : 'plotly-notebooks',
-              'title' : 'Notebooks - read at least once',
-#              'hide' : True,
+              'title' : 'Notebooks read at least once',
+              'hide' : True,
             },
         ]
     ))
@@ -54,7 +54,7 @@ def show_stats(request, course):
         subsections = [
             { 'plotly_name' : 'plotly-containers-kernels',
               'title' : 'Jupyter containers and kernels',
-             'hide' : True,
+              'hide' : True,
             },
         ]
     ))
@@ -64,12 +64,15 @@ def show_stats(request, course):
         subsections = [
             { 'plotly_name' : 'plotly-ds-percent',
               'title' : 'Free Disk Space %',
+              'hide' : True,
             },
             { 'plotly_name' : 'plotly-ds-free',
               'title' : 'Free Disk Space in Bytes',
+              'hide' : True,
             },
             { 'plotly_name' : 'plotly-cpu-load',
               'title' : 'CPU loads',
+              'hide' : True,
             },
         ]
     ))
