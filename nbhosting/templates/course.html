@@ -20,7 +20,7 @@
 <!------------------------------>
 <div class='section'>
 <a href='/nbh/courses/update/{{course}}' class='btn btn-info btn-lg btn-block'>
-Update {{course}} using git pull from <br/><span class="pull-left">{{giturl}}</span>
+Update {{course}} using git pull from <br/>{{giturl}}
 </a>
 </div>
 
@@ -34,7 +34,7 @@ Update {{course}} using git pull from <br/><span class="pull-left">{{giturl}}</s
 <h2 class="card-title">Notebooks</h2>
 <ul class="list-group list-group-flush">
 {% for notebook in notebooks %}
-<li class="list-group-item" style='padding:4px;'>
+<li class="list-group-item" style='padding:3px;'>
  <a class='card-link' style='font-size:60%;'
    href='/ipythonExercice/{{course}}/{{notebook}}/anonymous'>{{notebook}}
  </a>
