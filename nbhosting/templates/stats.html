@@ -43,7 +43,7 @@ Stats for course {{course}}
     <span id="{{subsection.plotly_name}}-clock" class="fa fa-clock-o"></span>
   </h2>
   <div id='{{subsection.plotly_name}}-collapse' class='collapse{%if not subsection.hide %} in{% endif %}'>
-   <div id='{{subsection.plotly_name}}'></div>
+   <div id='{{subsection.plotly_name}}' class='plotly-resize' style='width:94%; margin-left: 3%;'></div>
   </div>
  {% endfor %}
  </div>
@@ -52,18 +52,45 @@ Stats for course {{course}}
 
 <!---------------------->
 <script>
+
 "use strict";
-function init_all_collapse() { $(".collapse.in").collapse('show'); }
+
 function show_all_collapse() { $(".collapse").collapse('show'); }
 function hide_all_collapse() { $(".collapse").collapse('hide'); }
+$("#show-all").click(show_all_collapse);
+$("#hide-all").click(hide_all_collapse);
+
+/* in principle this would not be needed but well.. */
+function init_all_collapse() {
+console.log('init_all_collapse');
+  $(".collapse.in").collapse('show');
+}
+$(init_all_collapse);
+
+//////////////////// resizing on window resize or collapse-show
+window.onresize = function() {
+  $("div.collapse.show>.plotly-resize").each(function() {
+    Plotly.Plots.resize(this);
+  })
+}
+
+function arm_resize_on_collapse() {
+  let count = $(".collapse").length;
+  console.log(`arming with ${count}`);
+  $(".collapse").on('shown.bs.collapse', function() {
+    // this is a div.collapse and we want to locate its child
+    // div.plotly-resize
+    $(this).find("div.plotly-resize").each(function(){
+      Plotly.Plots.resize(this);
+      })
+    });
+}
+$(arm_resize_on_collapse);
+//////////
 function turn_off_clock(plotly_name) {
     $(`#${plotly_name}-clock`).hide();
 }
-/* in principle this would not be needed but well.. */
-$(init_all_collapse);
-$("#show-all").click(show_all_collapse);
-$("#hide-all").click(hide_all_collapse);
-//////////
+
 let legend_layout = { orientation : 'h', x : -.1, y: 1.2};
 let layout = {
     showlegend : true,
@@ -283,7 +310,7 @@ d3.request(url_usage, function(error, response) {
     }
 
     // default sizes for each rectangle notebook x student
-    let defx = 8, defy = 5;
+    let defx = 2, defy = 2;
     // at most 800 in width, at least 500 in height
     let minx = 500, maxx = 800, miny = 500;
     // how many x's and y's
