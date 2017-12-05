@@ -34,7 +34,9 @@ if os.getuid() == 0:
     BASE_DIR = Path(sitesettings.base)
 else:
     # just a convenience for devel boxes
-    sitesettings.root = str(Path.cwd() / 'fake-root')
+    # e.g. /users/tparment/git/nbhosting/nbhosting
+    django_root = Path(__file__).parents[2]
+    sitesettings.root = str(django_root / 'fake-root')
     # some provisions for devel mode
     LOGS_DIR = Path.cwd()
     # .parents[0] is dirname(f)

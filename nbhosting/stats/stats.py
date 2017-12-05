@@ -39,17 +39,29 @@ class DailyFigures:
         else:
             self.cumul_students = previous.cumul_students
             self.cumul_notebooks = previous.cumul_notebooks
+        self._nb_total_students = len(self.cumul_students)
+        self._nb_total_notebooks = len(self.cumul_notebooks)
+
 
     def add_student(self, student):
+        if student not in self.students and student not in self.cumul_students:
+            self._nb_total_students += 1
         self.students.add(student)
     def add_notebook(self, notebook):
+        if notebook not in self.notebooks and notebook not in self.cumul_notebooks:
+            self._nb_total_notebooks += 1
         self.notebooks.add(notebook)
 
-    # for events-driven reports
+
+    # we call these zillions of times, can't afford to
+    # compute a set union each time we need this
     def nb_total_students(self):
-        return len(self.students | self.cumul_students)
+        # return len(self.students | self.cumul_students)
+        return self._nb_total_students
     def nb_total_notebooks(self):
-        return len(self.notebooks | self.cumul_notebooks)
+        # return len(self.notebooks | self.cumul_notebooks)
+        return self._nb_total_notebooks
+
 
     def wrap(self):
         self.nb_unique_students = len(self.students)
@@ -77,7 +89,7 @@ class EventsAccumulator:
         # these 2 will remember numbers of students or of notebooks
         self.students = []
         self.notebooks = []
-        self.last = None
+        self.last_t, self.last_s, self.last_n = None, None, None
 
 
     def _insert(self, timestamp, nb_students, nb_notebooks):
@@ -87,8 +99,8 @@ class EventsAccumulator:
 
 
     def insert(self, timestamp, nb_students, nb_notebooks):
-        # in all cases, rememeber the last one, so we are sure to mention it at the end
-        self.last = timestamp, nb_students, nb_notebooks
+        # in all cases, remember the last one, so we are sure to mention it at the end
+        self.last_t, self.last_s, self.last_n = timestamp, nb_students, nb_notebooks
         # object is empty, record without thinking more
         if not self.timestamps:
             self._insert(timestamp, nb_students, nb_notebooks)
@@ -102,16 +114,15 @@ class EventsAccumulator:
 
     def wrap(self):
         # nothing to remember
-        if self.last is None:
+        if self.last_t is None:
             return
         # check if we have recorded this event
-        last_t, last_s, last_n = self.last
-        if self.timestamps[-1] == last_t \
-           and self.students[-1] == last_s \
-           and self.notebooks[-1] == last_n:
+        if self.timestamps[-1] == self.last_t \
+           and self.students[-1] == self.last_s \
+           and self.notebooks[-1] == self.last_n:
             pass
         # record it
-        self._insert(last_t, last_s, last_n)
+        self._insert(self.last_t, self.last_s, self.last_n)
         
 
 class Stats:
@@ -215,7 +226,7 @@ class Stats:
         figures_by_day = OrderedDict()
         previous_figures = None
         current_figures = DailyFigures()
-        # the events diemnsion
+        # the events dimension
         accumulator = EventsAccumulator()
         #
         staff = CourseDir(self.course).staff
@@ -251,7 +262,7 @@ class Stats:
                                          .format(events_path, lineno, line))
                         continue
         except Exception as e:
-            logger.exception("unexpected exception")
+            logger.exception("unexpected exception in daily_metrics")
         finally:
             current_figures.wrap()
             accumulator.wrap()
@@ -418,8 +429,10 @@ class Stats:
 
 if __name__ == '__main__':
     import sys
-    course = 'flotbioinfo' if len(sys.argv) == 1 else sys.argv[1]
-    #d = Stats(course).daily_metrics()
-    d = Stats(course).monitor_counts()
-    for k, v in d.items():
-        print(k, v)
+    course = 'fp' if len(sys.argv) == 1 else sys.argv[1]
+    d = Stats(course).daily_metrics()
+    for cat, cat_dict in d.items():
+        print("---------- {cat}".format(**locals()))
+        for k, v in cat_dict.items():
+            print(" {k} -> {len(v)} items".format(**locals()))
+    #d = Stats(course).monitor_counts()
