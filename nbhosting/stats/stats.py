@@ -438,6 +438,21 @@ class Stats:
                 },
             }
 
+
+    def animated_attendance(self):
+        return dict(
+            notebooks = [ 'x1', 'x2', 'x3'],
+            timestamps = ['2010', '2011', '2012', '2013', '2014',],
+            attendance = [
+                [0, 0, 0],
+                [10, 0, 0],
+                [12, 2 ,0],
+                [15, 5, 2],
+                [20, 8, 3],
+            ],
+        )
+
+
 if __name__ == '__main__':
     import sys
     course = 'fp' if len(sys.argv) == 1 else sys.argv[1]

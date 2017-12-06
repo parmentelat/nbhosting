@@ -49,6 +49,9 @@ def show_stats(request, course):
               'title' : 'Complete map',
               'hide' : True,
             },
+#            { 'plotly_name' : 'd3-nb-students-per-notebook',
+#              'title' : 'Animated students per notebook',
+#            },
         ]
     ))
 
