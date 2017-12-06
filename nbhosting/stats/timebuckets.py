@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from datetime import datetime, timedelta
 
 class TimeBuckets:
@@ -31,7 +32,7 @@ class TimeBuckets:
         self.time_format = time_format
         # hash grain_index (quotient of time / grain)
         # into whatever data is provided to snapshot
-        self.hash = {}
+        self.hash = OrderedDict()
         # n-th grain from the epoch
         self.quotient = 0
 
@@ -60,10 +61,9 @@ class TimeBuckets:
         def reverse_date(quotient):
             dt = self.epoch + (quotient+1) * self.grain
             return dt.strftime(self.time_format)
-        self.readable = {
-            reverse_date(q): v
-            for q, v in self.hash.items()
-        }
+        self.readable = OrderedDict()
+        for q, v in self.hash.items():
+            self.readable[reverse_date(q)] = v
         return self.readable
 
     def wrap(self, data):

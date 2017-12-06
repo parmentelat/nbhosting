@@ -352,7 +352,7 @@ class Stats:
         'nbstudents' : how many students are considered (test students are removed..)
         'nbstudents_per_notebook' : a sorted list of tuples (notebook, nb_students)
                                   how many students have read this notebook
-        'animated_nbstudents_per_notebook' : same but animated over time
+        'nbstudents_per_notebook_animated' : same but animated over time
         'nbstudents_per_nbnotebooks' : a sorted list of tuples (nb_notebooks, nb_students)
                                   how many students have read exactly that number of notebooks
         'heatmap' : a complete matrix notebook x student ready to feed to plotly.heatmap
@@ -402,7 +402,7 @@ class Stats:
             ]
             nb_by_student = { student: len(s) for (student, s) in set_by_student.items() }
 
-            animated_nbstudents_per_notebook = nbstudents_per_notebook_buckets.wrap(nbstudents_per_notebook)
+            nbstudents_per_notebook_animated = nbstudents_per_notebook_buckets.wrap(nbstudents_per_notebook)
             
             # counting in the other direction is surprisingly tedious
             nbstudents_per_nbnotebooks = [
@@ -430,7 +430,7 @@ class Stats:
                 'nbnotebooks' : len(set_by_notebook),
                 'nbstudents' : len(set_by_student),
                 'nbstudents_per_notebook' : nbstudents_per_notebook,
-                'animated_nbstudents_per_notebook' : animated_nbstudents_per_notebook,
+                'nbstudents_per_notebook_animated' : nbstudents_per_notebook_animated,
                 'nbstudents_per_nbnotebooks' : nbstudents_per_nbnotebooks,
                 'heatmap' : {'x' : heatmap_notebooks, 'y' : heatmap_students,
                              'z' : heatmap_z,

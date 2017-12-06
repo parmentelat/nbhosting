@@ -97,6 +97,7 @@ let layout = {
     legend : legend_layout,
 };
               
+//////////////////////////////////////////////////
 let url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     let incoming = JSON.parse(response.response);
@@ -134,6 +135,7 @@ d3.request(url_metrics, function (error, response) {
 		   [ uni_notebooks_data, new_notebooks_data, total_notebooks_data],
 		   layout);
 });
+//////////////////////////////////////////////////
 let url_counts="/nbh/stats/monitor_counts/{{course}}";
 d3.request(url_counts, function (error, response) {
     let incoming = JSON.parse(response.response);
@@ -230,6 +232,7 @@ d3.request(url_counts, function (error, response) {
 		   layout);
     
 });
+//////////////////////////////////////////////////
 let url_usage="/nbh/stats/material_usage/{{course}}";
 d3.request(url_usage, function(error, response) {
     let incoming = JSON.parse(response.response);
@@ -245,24 +248,137 @@ d3.request(url_usage, function(error, response) {
         legend : legend_layout,
     }
     
+    ////////// nb students per notebook - static version
+    //
     // raw incoming is a list of couples
     let nbstudents_per_notebook = incoming.nbstudents_per_notebook;
+
+    // extract X's and Y's from the data structure
+    // [ (nbname, nb_students) ... ]
     // arbitrarily start at 1
-    let x1 = nbstudents_per_notebook.map(function(_, i) { return String(i+1);});
-    // actual number of students that have seend it
-    let y1 = nbstudents_per_notebook.map(function(tuple) { return tuple[1];});
+    function nbs_per_nb_x(tuples) {
+        return tuples.map(function(_, i) { return String(i+1);});
+    }
+    function nbs_per_nb_y(tuples) {
+        return tuples.map(function(tuple) { return tuple[1];});
+    }
+    function nbs_per_nb_labels(tuples) {
+        return tuples.map(function(tuple) { return tuple[0];});
+    }
+    let x1 = nbs_per_nb_x(nbstudents_per_notebook);
+    // actual number of students that have seen it
+    let y1 = nbs_per_nb_y(nbstudents_per_notebook);
     // notebook id like w1/w1-s1-path
-    let labels1 = nbstudents_per_notebook.map(function(tuple) { return tuple[0];});
+    let labels1 = nbs_per_nb_labels(nbstudents_per_notebook);
 
     let nbstudents_per_notebook_data = {
-        type : 'bar', text : labels1,
-        x : x1, y: y1,
+        type : 'bar',
+        text : labels1,
+        x : x1,
+        y: y1,
         name : `number of students/${incoming.nbstudents} per notebook`,
         };
     turn_off_clock('plotly-nbstudents-per-notebook');
     Plotly.newPlot('plotly-nbstudents-per-notebook',
                    [nbstudents_per_notebook_data],
                    bar_layout);
+
+    ////////// nb students per notebook - animated version
+    //
+    // inspired from https://plot.ly/javascript/gapminder-example/
+    // and           https://plot.ly/python/animations/
+    let nbs_per_nb_a = incoming.nbstudents_per_notebook_animated;
+    console.log('nbs_per_nb_a', nbs_per_nb_a);
+
+    let traces = [];
+    // let latest_data = nbs_per_nb_a[nbs_per_nb_a.length-1];
+    traces.push(nbstudents_per_notebook_data);
+
+
+    let frames = [];
+    for (let bucket_key in nbs_per_nb_a) {
+        let data = nbs_per_nb_a[bucket_key];
+        // at that point data is a list of tuples (notebook, nb_students)
+        frames.push({
+            name : `inframe(${bucket_key})`,
+            data: [ { x : nbs_per_nb_x(data),
+                      y : nbs_per_nb_y(data),
+                      type : 'bar',
+                    }],
+        })
+    };
+
+    function tick(bucket_key){
+        return bucket_key
+            .replace(/^20/, '')
+            .replace(/T/, '@')
+            .replace(/:00:00/, 'h')
+        ;
+    }
+
+    let sliderSteps = [];
+//    for (let bucket_key in nbs_per_nb_a) {
+//        sliderSteps.push({
+//            method : 'animate',
+//            label : tick(bucket_key),
+//            args : [ [bucket_key], {
+//                mode: 'immediate',
+//                transition : {duration: 50},
+//                frame : { duration: 400, redraw: true},
+//            }]
+//        })
+//    };
+
+    let animated_bar_layout = Object.assign({
+        updatemenus: [{
+            x: 0,
+            y: 0,
+            yanchor: 'top',
+            xanchor: 'left',
+            showactive: false,
+            direction: 'left',
+            type: 'buttons',
+            pad: {t: 90, r: 10},
+            buttons: [{
+                method: 'animate',
+                args: [null, {
+                    mode: 'immediate',
+                    fromcurrent: true,
+                    transition: {duration: 0},
+                    frame: {duration: 200, redraw: true}
+                }],
+                label: 'Play'
+            }, {
+                method: 'animate',
+                args: [[null], {
+                    mode: 'immediate',
+                    transition: {duration: 0},
+                    frame: {duration: 0, redraw: true}
+                }],
+                label: 'Pause'
+            }]
+        }],
+        sliders: [{
+            pad: {l: 130, t: 55},
+            currentvalue: {
+                visible: true,
+                prefix: 'time:',
+                xanchor: 'right',
+                font: {size: 20, color: '#666'}
+            },
+            steps: sliderSteps,
+        }],
+    }, bar_layout);
+    console.log('a data', traces);
+    console.log('a frames', frames);
+    console.log('a layout', animated_bar_layout);
+    turn_off_clock('plotly-nbstudents-per-notebook-animated');
+    Plotly.newPlot('plotly-nbstudents-per-notebook-animated', {
+            data:   traces,
+            frames: frames,
+            layout: animated_bar_layout,
+    });
+
 
     //////////
     let nbstudents_per_nbnotebooks = incoming.nbstudents_per_nbnotebooks;
@@ -320,7 +436,6 @@ d3.request(url_usage, function(error, response) {
     let width  = Math.max(minx, Math.min(maxx, defx*hx)),
         height = Math.max(miny, defy*hy);
 
-    console.log(`width=${width} height=${height}`);
     let heatmap_layout = {
         width : width, height : height,
         xaxis : { ticks: "", showticklabels: false, },
