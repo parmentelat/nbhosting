@@ -2,12 +2,17 @@ from pathlib import Path
 import time
 import re
 import itertools
+from datetime import timedelta
 from collections import OrderedDict, defaultdict
 
+from nbhosting.stats.timebuckets import TimeBuckets
 from nbhosting.courses.models import CourseDir
 from nbhosting.main.settings import sitesettings, logger
 
 root = Path(sitesettings.root)
+
+# using gmtime in all raw files
+time_format = "%Y-%m-%dT%H:%M:%S"
 
 # this is to skip artefact-users like e.g. 'student'
 # that can be seen as staff in the sense that we don't
@@ -72,7 +77,7 @@ class DailyFigures:
         self.cumul_notebooks.update(self.notebooks)
 
 
-class EventsAccumulator:
+class TotalsAccumulator:
     """
     if we do not pay attention we end up issuing way too many events
     so they need to be filtered out a bit
@@ -127,9 +132,6 @@ class EventsAccumulator:
 
 class Stats:
 
-    # using gmtime in all raw files
-    time_format = "%Y-%m-%dT%H:%M:%S"
-
 
     def __init__(self, course):
         self.course = course
@@ -144,13 +146,14 @@ class Stats:
     
     ####################
     def _write_events_line(self, student, notebook, action, port):
-        timestamp = time.strftime(self.time_format, time.gmtime())
+        timestamp = time.strftime(time_format, time.gmtime())
         path = self.notebook_events_path()
         course = self.course
         try:
             with path.open("a") as f:
                 f.write("{timestamp} {course} {student} {notebook} {action} {port}\n".
-                        format(**locals()))
+                        format(timestamp=timestamp, course=course, notebook=notebook,
+                               action=action, port=port))
         except Exception as e:
             logger.exception("Cannot store stats line into {}".format(path))
 
@@ -186,7 +189,7 @@ class Stats:
     ]
     
     def record_monitor_known_counts_line(self):
-        timestamp = time.strftime(self.time_format, time.gmtime())
+        timestamp = time.strftime(time_format, time.gmtime())
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
@@ -195,7 +198,7 @@ class Stats:
             logger.exception("Cannot store headers line into {}".format(path))
         
     def record_monitor_counts(self, *args):
-        timestamp = time.strftime(self.time_format, time.gmtime())
+        timestamp = time.strftime(time_format, time.gmtime())
         path = self.monitor_counts_path()
         if len(args) > len(self.known_counts):
             logger.error("two many arguments to counts line - dropped {} from {}"
@@ -227,7 +230,7 @@ class Stats:
         previous_figures = None
         current_figures = DailyFigures()
         # the events dimension
-        accumulator = EventsAccumulator()
+        accumulator = TotalsAccumulator()
         #
         staff = CourseDir(self.course).staff
         try:
@@ -349,6 +352,7 @@ class Stats:
         'nbstudents' : how many students are considered (test students are removed..)
         'nbstudents_per_notebook' : a sorted list of tuples (notebook, nb_students)
                                   how many students have read this notebook
+        'animated_nbstudents_per_notebook' : same but animated over time
         'nbstudents_per_nbnotebooks' : a sorted list of tuples (nb_notebooks, nb_students)
                                   how many students have read exactly that number of notebooks
         'heatmap' : a complete matrix notebook x student ready to feed to plotly.heatmap
@@ -358,6 +362,8 @@ class Stats:
         events_path = self.notebook_events_path()
         # a dict notebook -> set of students
         set_by_notebook = defaultdict(set)
+        nbstudents_per_notebook_buckets = TimeBuckets(grain=timedelta(hours=6),
+                                                      time_format=time_format)
         # a dict student -> set of notebooks
         set_by_student = defaultdict(set)
         # a dict hashed on a tuple (notebook, student) -> number of visits
@@ -367,19 +373,21 @@ class Stats:
         try:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
-                    _, _, student, notebook, action, *_ = line.split()
+                    date, _, student, notebook, action, *_ = line.split()
                     # action 'killing' needs to be ignored
                     if action in ('killing',):
                         continue
                     # ignore staff or other artefact users
                     if student in staff or not edx_hash_regexp.match(student):
-                        continue
-                    # remove test / debug student names like student, anonymous, or mary
-                    # official student hashes are 32 chars long
-                    if len(student) <= 10:
-                        logger.debug("ignoring too short student name {}"
+                        logger.debug("ignoring staff or artefact student {}"
                                      .format(student))
                         continue
+                    # animated data must be taken care of before anything else
+                    previous, next, changed = nbstudents_per_notebook_buckets.prepare(date)
+                    if changed:
+                        nspn = [ (notebook, len(set_by_notebook[notebook]))
+                                for notebook in sorted(set_by_notebook)]
+                        nbstudents_per_notebook_buckets.record_data(nspn, previous, next)
                     set_by_notebook[notebook].add(student)
                     set_by_student[student].add(notebook)
                     raw_counts[notebook, student] += 1
@@ -394,6 +402,8 @@ class Stats:
             ]
             nb_by_student = { student: len(s) for (student, s) in set_by_student.items() }
 
+            animated_nbstudents_per_notebook = nbstudents_per_notebook_buckets.wrap(nbstudents_per_notebook)
+            
             # counting in the other direction is surprisingly tedious
             nbstudents_per_nbnotebooks = [
                 (number, iter_len(v))
@@ -420,6 +430,7 @@ class Stats:
                 'nbnotebooks' : len(set_by_notebook),
                 'nbstudents' : len(set_by_student),
                 'nbstudents_per_notebook' : nbstudents_per_notebook,
+                'animated_nbstudents_per_notebook' : animated_nbstudents_per_notebook,
                 'nbstudents_per_nbnotebooks' : nbstudents_per_nbnotebooks,
                 'heatmap' : {'x' : heatmap_notebooks, 'y' : heatmap_students,
                              'z' : heatmap_z,
@@ -434,5 +445,6 @@ if __name__ == '__main__':
     for cat, cat_dict in d.items():
         print("---------- {cat}".format(**locals()))
         for k, v in cat_dict.items():
-            print(" {k} -> {len(v)} items".format(**locals()))
+            print(" {k} -> {len_v} items".
+                  format(k=k, len_v=len(v)))
     #d = Stats(course).monitor_counts()
