@@ -152,8 +152,8 @@ class Stats:
         try:
             with path.open("a") as f:
                 f.write("{timestamp} {course} {student} {notebook} {action} {port}\n".
-                        format(timestamp=timestamp, course=course, notebook=notebook,
-                               action=action, port=port))
+                        format(timestamp=timestamp, course=course, student=student,
+                               notebook=notebook, action=action, port=port))
         except Exception as e:
             logger.exception("Cannot store stats line into {}".format(path))
 
@@ -322,7 +322,7 @@ class Stats:
                         # and should all contain integers
                         if len(values) > max_counts:
                             logger.error("{}:{}: counts line has too many fields - {} > {}"
-                                         .format(counts_path, lineno, len(values),max_counts))
+                                         .format(counts_path, lineno, len(values), max_counts))
                             continue
                         ivalues = [int(v) for v in values]
                         for count, ivalue in zip(known_counts, ivalues):
@@ -437,21 +437,6 @@ class Stats:
                              'zmin' : zmin, 'zmax' : zmax,
                 },
             }
-
-
-    def animated_attendance(self):
-        return dict(
-            notebooks = [ 'x1', 'x2', 'x3'],
-            timestamps = ['2010', '2011', '2012', '2013', '2014',],
-            attendance = [
-                [0, 0, 0],
-                [10, 0, 0],
-                [12, 2 ,0],
-                [15, 5, 2],
-                [20, 8, 3],
-            ],
-        )
-
 
 if __name__ == '__main__':
     import sys

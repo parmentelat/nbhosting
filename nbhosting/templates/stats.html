@@ -1,3 +1,5 @@
+{# -*- mode: JavaScript -*- #}
+
 {% extends "nbhosting.html" %}
 
 {% block head_title %}
@@ -36,14 +38,14 @@ Stats for course {{course}}
   {{section.title}}</h1>
  <div class="card-block collapse in" id='{{section.id}}'>
  {% for subsection in section.subsections %}
-  <a name='{{subsection.plotly_name}}'></a>
-  <h2 class='card-title card-header' data-toggle='collapse' data-target='#{{subsection.plotly_name}}-collapse'>
+  <a name='{{subsection.div_id}}'></a>
+  <h2 class='card-title card-header' data-toggle='collapse' data-target='#{{subsection.div_id}}-collapse'>
    {{subsection.title}}
-    <!-- more harmful than helpful <a class="anchor-link" href="#{{subsection.plotly_name}}">¶</a>-->
-    <span id="{{subsection.plotly_name}}-clock" class="fa fa-clock-o"></span>
+    <!-- more harmful than helpful <a class="anchor-link" href="#{{subsection.div_id}}">¶</a>-->
+    <span id="{{subsection.div_id}}-clock" class="fa fa-clock-o"></span>
   </h2>
-  <div id='{{subsection.plotly_name}}-collapse' class='collapse{%if not subsection.hide %} in{% endif %}'>
-   <div id='{{subsection.plotly_name}}' class='plotly-resize' style='width:94%; margin-left: 3%;'></div>
+  <div id='{{subsection.div_id}}-collapse' class='collapse{%if not subsection.hide %} in{% endif %}'>
+   <div id='{{subsection.div_id}}' class='{{subsection.engine}}-resize' style='width:94%; margin-left: 3%;'></div>
   </div>
  {% endfor %}
  </div>
@@ -62,7 +64,6 @@ $("#hide-all").click(hide_all_collapse);
 
 /* in principle this would not be needed but well.. */
 function init_all_collapse() {
-console.log('init_all_collapse');
   $(".collapse.in").collapse('show');
 }
 $(init_all_collapse);
@@ -76,7 +77,6 @@ window.onresize = function() {
 
 function arm_resize_on_collapse() {
   let count = $(".collapse").length;
-  console.log(`arming with ${count}`);
   $(".collapse").on('shown.bs.collapse', function() {
     // this is a div.collapse and we want to locate its child
     // div.plotly-resize
@@ -87,8 +87,8 @@ function arm_resize_on_collapse() {
 }
 $(arm_resize_on_collapse);
 //////////
-function turn_off_clock(plotly_name) {
-    $(`#${plotly_name}-clock`).hide();
+function turn_off_clock(div_id) {
+    $(`#${div_id}-clock`).hide();
 }
 
 let legend_layout = { orientation : 'h', x : -.1, y: 1.2};
@@ -97,6 +97,12 @@ let layout = {
     legend : legend_layout,
 };
               
+function tick(bucket_key){
+    return bucket_key
+        .replace(/T/, '@')
+        .replace(/:00:00/, 'h')
+    ;
+}
 //////////////////////////////////////////////////
 let url_metrics="/nbh/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
@@ -283,102 +289,9 @@ d3.request(url_usage, function(error, response) {
                    [nbstudents_per_notebook_data],
                    bar_layout);
 
-    ////////// nb students per notebook - animated version
-    //
-    // inspired from https://plot.ly/javascript/gapminder-example/
-    // and           https://plot.ly/python/animations/
-    let nbs_per_nb_a = incoming.nbstudents_per_notebook_animated;
-    console.log('nbs_per_nb_a', nbs_per_nb_a);
-
-    let traces = [];
-    // let latest_data = nbs_per_nb_a[nbs_per_nb_a.length-1];
-    traces.push(nbstudents_per_notebook_data);
-
-
-    let frames = [];
-    for (let bucket_key in nbs_per_nb_a) {
-        let data = nbs_per_nb_a[bucket_key];
-        // at that point data is a list of tuples (notebook, nb_students)
-        frames.push({
-            name : `inframe(${bucket_key})`,
-            data: [ { x : nbs_per_nb_x(data),
-                      y : nbs_per_nb_y(data),
-                      type : 'bar',
-                    }],
-        })
-    };
-
-    function tick(bucket_key){
-        return bucket_key
-            .replace(/^20/, '')
-            .replace(/T/, '@')
-            .replace(/:00:00/, 'h')
-        ;
-    }
-
-    let sliderSteps = [];
-//    for (let bucket_key in nbs_per_nb_a) {
-//        sliderSteps.push({
-//            method : 'animate',
-//            label : tick(bucket_key),
-//            args : [ [bucket_key], {
-//                mode: 'immediate',
-//                transition : {duration: 50},
-//                frame : { duration: 400, redraw: true},
-//            }]
-//        })
-//    };
-
-    let animated_bar_layout = Object.assign({
-        updatemenus: [{
-            x: 0,
-            y: 0,
-            yanchor: 'top',
-            xanchor: 'left',
-            showactive: false,
-            direction: 'left',
-            type: 'buttons',
-            pad: {t: 90, r: 10},
-            buttons: [{
-                method: 'animate',
-                args: [null, {
-                    mode: 'immediate',
-                    fromcurrent: true,
-                    transition: {duration: 0},
-                    frame: {duration: 200, redraw: true}
-                }],
-                label: 'Play'
-            }, {
-                method: 'animate',
-                args: [[null], {
-                    mode: 'immediate',
-                    transition: {duration: 0},
-                    frame: {duration: 0, redraw: true}
-                }],
-                label: 'Pause'
-            }]
-        }],
-        sliders: [{
-            pad: {l: 130, t: 55},
-            currentvalue: {
-                visible: true,
-                prefix: 'time:',
-                xanchor: 'right',
-                font: {size: 20, color: '#666'}
-            },
-            steps: sliderSteps,
-        }],
-    }, bar_layout);
-    console.log('a data', traces);
-    console.log('a frames', frames);
-    console.log('a layout', animated_bar_layout);
-    turn_off_clock('plotly-nbstudents-per-notebook-animated');
-    Plotly.newPlot('plotly-nbstudents-per-notebook-animated', {
-            data:   traces,
-            frames: frames,
-            layout: animated_bar_layout,
-    });
-
+    let div_id = "d3-nb-students-per-notebook";
+    d3_animated_barchart(div_id, incoming.nbstudents_per_notebook_animated);
+    turn_off_clock(div_id);
 
     //////////
     let nbstudents_per_nbnotebooks = incoming.nbstudents_per_nbnotebooks;
@@ -450,105 +363,277 @@ d3.request(url_usage, function(error, response) {
         
 });
 
+//////////////////// a d3 version for that animation thingy
 // slider code from https://bl.ocks.org/mbostock/6452972
-let url_attendance="/nbh/stats/animated_attendance/{{course}}";
-d3.request(url_attendance, function(error, response) {
-    let incoming = JSON.parse(response.response);
-    console.log(`from animated_attendance ${url_attendance}`);
-    console.log(incoming);
-    
-    let total_width = 900,
-        total_height = 300,
-        margin = { top: 50, right: 200, bottom:10, left: 20},
+// multibar_data : hash timestamp -> bar_data
+// bar_data : list of tuples (something, number)
+function d3_animated_barchart(div_id, multibar_data) {
+
+    let total_width = 1200,
+        total_height = 600,
+        margin = { top: 80, right: 20, bottom: 20, left: 50},
         width = total_width - margin.left - margin.right,
         height = total_height - margin.top - margin.bottom;
     
-    let timestamps = incoming.timestamps,
-        notebooks = incoming.notebooks,
-        attendance = incoming.attendance;
+    // compute list of timestamps
+    let timestamps = [];
+    // and preserve data attached to last timestamp as last_bucket
+    let last_bucket;
+    // also compute max_value
+    let max_value = 0;
+    for (let bucket_key in multibar_data) {
+        timestamps.push(bucket_key);
+        last_bucket = multibar_data[bucket_key];
+        for (let tuple of last_bucket) {
+            max_value = Math.max(max_value, tuple[1]);
+        }
+    }
+    // compute list of notebooks from last data
+    let notebooks = [];
+    for (let tuple of last_bucket) {
+        notebooks.push(tuple[0]);
+    }
     
-    // this one is in d3
-    let svg = d3.select("#d3-nb-students-per-notebook").
-        append("svg:svg").
-        attr("width", total_width).
-        attr("height", total_height);
+    // create top svg
+    let svg = d3.select(`#${div_id}`)
+        .append("svg:svg")
+        .attr("width", total_width)
+        .attr("height", total_height);
     
-    let scale = d3.scaleLinear()
+    let sliderScale = d3.scaleLinear()
         .domain([0, timestamps.length - 1])
         .range([0, width])
         .clamp(true);
     
     let slider = svg.append("g")
         .attr('class', 'slider')
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+        .attr("transform", `translate(${margin.left}, ${margin.top / 3})`);
     
     slider.append("line")
         .attr('class', 'track')
-        .attr('x1', scale.range()[0])
-        .attr('x2', scale.range()[1])
+        .attr('x1', sliderScale.range()[0])
+        .attr('x2', sliderScale.range()[1])
       .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
         .attr('class', 'track-inset')
       .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
         .attr('class', 'track-overlay')
         .call(d3.drag()
               .on("start.interrupt", function() { slider.interrupt(); })
-              .on("start drag", function() {
-                  console.log("BIP");
-              }));
+              .on("start drag", function() {move_slider(sliderScale.invert(d3.event.x));})
+             )
+    ;
       
-    slider.insert("g", ".track-overlay")
-        .attr("class", "ticks")
-        .attr("transform", `translate(0, ${margin.top})`)
-      .selectAll("text")
-        .data(scale.ticks(timestamps.length))
-        .enter()
-        .append("text")
-        .attr("x", scale)
-        .attr("text-anchor", "middle")
-        .text(function(d) { return timestamps[d]; });
-
+    // the slider button
     let handle = slider.insert("circle", ".track-overlay")
         .attr("class", "handle")
         .attr("r", 9);
 
-    return;
-//      barDemo.selectAll("text.yAxis").
-//  data(data).
-//  enter().append("svg:text").
-//  attr("x", function(datum, index) { return x(index) + barWidth; }).
-//  attr("y", height).
-//  attr("dx", -barWidth/2).
-//  attr("text-anchor", "middle").
-//  attr("style", "font-size: 12; font-family: Helvetica, sans-serif").
-//  text(function(datum) { return datum.year;}).
-//  attr("transform", "translate(0, 18)").
-//  attr("class", "yAxis");
-});
+    // the full bar under he slider
+    let legend = slider.insert('g')
+        .attr('class', 'legend')
+        .attr('transform', `translate(${0}, ${margin.top / 2})`);
+    
+    // the buttons to navigate
+    let navbox = legend.insert("text").attr("x", 5).attr("class", "navbox");
+    function add_navbox_button(display) {
+        return navbox.insert("tspan").attr("class", "navbox")
+            .text(display).attr("dx", 10);
+    }
+    add_navbox_button("|<").on("click", first_step);
+    add_navbox_button("<<").attr("class", "navbox-continuous")
+        .on("mouseover", auto_backward).on("mouseout", stop_auto);
+    add_navbox_button("<").on("click", prev_step); 
+    let step_text = add_navbox_button("__________", undefined);
+    add_navbox_button(">").on("click", next_step); 
+    add_navbox_button(">>").attr("class", "navbox-continuous")
+        .on("mouseover", auto_forward).on("mouseout", stop_auto);
+    add_navbox_button(">|").on("click", last_step);
 
+    let slider_step = undefined;
+    function update_step(step) {
+        slider_step = step;
+        step_text.text(`${step+1}/${timestamps.length}`);
+    }
+        
+    function first_step() {move_slider(0); }
+    function next_step() {return move_slider(slider_step+1); }
+    function prev_step() {return move_slider(slider_step-1); }
+    function last_step() {move_slider(timestamps.length-1); }
+
+    let autorun = false;
+    function auto_next(fun, timeout) {
+        timeout = timeout || 350;
+        autorun = fun();
+        setTimeout(function() { if (! autorun) return; auto_next(fun); },
+                   timeout);
+    }
+    function auto_forward() {
+        autorun = true;
+        auto_next(next_step);
+    }
+    function auto_backward() {
+        autorun = true;
+        auto_next(prev_step);
+    }
+    function stop_auto() {
+        autorun = false;
+    }
+        
+        
+    // other detail areas
+    let time_text  = legend.insert("text").attr("x", width * .4);
+    let details_text  = legend.insert("text").attr("x", width * .75);
+
+    function update_bar_details(notebook, value) {
+        let msg = (value) ? `${notebook} (${value})` : '';
+        details_text.text(msg);
+    }
+
+    function move_slider(f) {
+        let i = Math.round(f);
+        // ignore out of bound clicks
+        if ( ! ((0 <= i) && (i < timestamps.length))) {
+            return false;
+        }
+        update_step(i);
+        // update slider
+        handle.attr("cx", sliderScale(f));
+        // update label
+        let timestamp = timestamps[i];
+        let tick_text = tick(timestamp);
+        time_text.text(tick_text);
+        // propagate
+        let data = multibar_data[timestamp];
+        update_bars(data);
+        return true;
+    }
+    
+    let x = d3.scaleBand()
+        .domain(notebooks)
+        .range([0, width]).padding(0.1);
+    // y's go from top to bottom, and heights must be positive
+    let y = d3.scaleLinear()
+        .domain([0, max_value])
+        .range([height, 0]);
+    let h = d3.scaleLinear()
+        .domain([0, max_value])
+        .range([0, height]); // height, 0?
+
+    let canvas = svg.append("g")
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+        .attr('width', width)
+        .attr('height', height)
+    ;
+
+    let yAxis = d3.axisLeft(y)
+        .ticks(5, ",.2r")
+    ;
+    svg.append("g")
+        .attr("class", "y axis")
+        .attr("transform", `translate(${2*margin.left/3},${margin.top})`)
+        .call(yAxis);
+
+    // constancy for bars
+    function bar_key(d) { return d[0]; }
+    function bar_x(d) { return x(d[0]); }
+    function bar_y(d) { return y(d[1]); }
+    function bar_(d) { return h(d[1]); }
+    function bar_h(d) { return h(d[1]); }
+    function update_bars(data) {
+        let bars = canvas.selectAll("rect.bar")
+            .data(data, bar_key)
+        ;
+        bars
+          .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("title", bar_key)
+            .attr("x", bar_x)
+            .attr("y", bar_y)
+            .attr("height", bar_h)
+            .attr("width", x.bandwidth())
+        // to retrieve related data later on
+            .attr("value", function(d) {return d[1];})
+            .attr("name", function(d) {return d[0];})
+            .on("mouseover", function() {
+                let jq = $(this);
+                update_bar_details(jq.attr('name'), jq.attr('value'));
+            })
+        ;
+        bars
+            .transition()
+            .duration(100)
+            .attr("x", bar_x)
+            .attr("y", bar_y)
+            .attr("height", bar_h)
+        // to retrieve related data later on
+            .attr("value", function(d) {return d[1];})
+            .attr("name", function(d) {return d[0];})
+        
+        bars
+          .exit()
+            .transition()
+            .duration(300)
+            .style('fill-opacity', 1e-6)
+            .remove()
+        ;
+        update_bar_details('', '');
+        
+    }
+
+    move_slider(0);
+
+    return;
+}
 </script>
+    
 <style>
 .track,
 .track-inset,
 .track-overlay {
-  stroke-linecap: round;
+    stroke-linecap: round;
 }
 
 .track {
-  stroke: #000;
-  stroke-opacity: 0.3;
-  stroke-width: 10px;
+    stroke: #000;
+    stroke-opacity: 0.3;
+    stroke-width: 10px;
 }
 
 .track-inset {
-  stroke: #ddd;
-  stroke-width: 8px;
+    stroke: #ddd;
+    stroke-width: 8px;
 }
 
 .track-overlay {
-  pointer-events: stroke;
-  stroke-width: 50px;
-  stroke: transparent;
-  cursor: crosshair;
+    pointer-events: stroke;
+    stroke-width: 50px;
+    stroke: transparent;
+    cursor: crosshair;
+}
+
+.bar {
+    fill: steelblue;
+}
+
+.bar:hover {
+    fill: lightblue;
+}
+
+g.legend>text {
+    font-size: 20px;
+    text-anchor: middle;
+/*    alignment-baseline: central; */
+}
+g.legend>text.navbox {
+    text-anchor: start;
+}
+tspan.navbox {
+    fill: blue;
+    dx: 10px;
+}
+tspan.navbox-continuous {
+    fill: red;
 }
 </style>
 {% endblock %}

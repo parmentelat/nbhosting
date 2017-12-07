@@ -44,7 +44,6 @@ urlpatterns = [
     url(r'^nbh/stats/daily_metrics/(?P<course>[\w_.-]+)',       nbhosting.stats.views.send_daily_metrics),
     url(r'^nbh/stats/monitor_counts/(?P<course>[\w_.-]+)',      nbhosting.stats.views.send_monitor_counts),
     url(r'^nbh/stats/material_usage/(?P<course>[\w_.-]+)',      nbhosting.stats.views.send_material_usage),
-    url(r'^nbh/stats/animated_attendance/(?P<course>[\w_.-]+)', nbhosting.stats.views.send_animated_attendance),
     url(r'^nbh/stats/(?P<course>[\w_.-]+)',                     nbhosting.stats.views.show_stats),
     url(r'^nbh',                                                nbhosting.main.views.welcome),
 ]

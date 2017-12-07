@@ -18,23 +18,24 @@ def show_stats(request, course):
         title = 'Progression',
         id = 'PROGRESSION',
         subsections = [
-            { 'plotly_name' : 'plotly-nbstudents-per-notebook',
+            { 'div_id' : 'plotly-nbstudents-per-notebook',
               'title' : 'Students per notebook',
               'hide' : True,
             },
-            { 'plotly_name' : 'plotly-nbstudents-per-notebook-animated',
-              'title' : 'Students per notebook (animated)',
-              'hide' : True,
+            { 'div_id' : 'd3-nb-students-per-notebook',
+              'title' : 'Students per notebook - animation',
+              'engine': 'd3',
+              # 'hide' : True,
             },
-            { 'plotly_name' : 'plotly-nbstudents-per-nbnotebooks',
+            { 'div_id' : 'plotly-nbstudents-per-nbnotebooks',
               'title' : 'Number of notebooks per student',
               'hide' : True,
             },
-            { 'plotly_name' : 'plotly-students',
+            { 'div_id' : 'plotly-students',
               'title' : 'Students who showed up at least once',
               'hide' : True,
             },
-            { 'plotly_name' : 'plotly-notebooks',
+            { 'div_id' : 'plotly-notebooks',
               'title' : 'Notebooks read at least once',
               'hide' : True,
             },
@@ -45,13 +46,10 @@ def show_stats(request, course):
         title = 'Details',
         id = 'DETAILS',
         subsections = [
-            { 'plotly_name' : 'plotly-heatmap',
+            { 'div_id' : 'plotly-heatmap',
               'title' : 'Complete map',
               'hide' : True,
             },
-#            { 'plotly_name' : 'd3-nb-students-per-notebook',
-#              'title' : 'Animated students per notebook',
-#            },
         ]
     ))
 
@@ -59,7 +57,7 @@ def show_stats(request, course):
         title = 'Activity',
         id = 'ACTIVITY',
         subsections = [
-            { 'plotly_name' : 'plotly-containers-kernels',
+            { 'div_id' : 'plotly-containers-kernels',
               'title' : 'Jupyter containers and kernels',
               'hide' : True,
             },
@@ -69,15 +67,15 @@ def show_stats(request, course):
         title = 'System',
         id = 'SYSTEM',
         subsections = [
-            { 'plotly_name' : 'plotly-ds-percent',
+            { 'div_id' : 'plotly-ds-percent',
               'title' : 'Free Disk Space %',
               'hide' : True,
             },
-            { 'plotly_name' : 'plotly-ds-free',
+            { 'div_id' : 'plotly-ds-free',
               'title' : 'Free Disk Space in Bytes',
               'hide' : True,
             },
-            { 'plotly_name' : 'plotly-cpu-load',
+            { 'div_id' : 'plotly-cpu-load',
               'title' : 'CPU loads',
               'hide' : True,
             },
@@ -87,6 +85,7 @@ def show_stats(request, course):
     # set 'hide' to False by default
     for section in sections:
         for subsection in section['subsections']:
+            subsection.setdefault('engine', 'plotly')
             subsection.setdefault('hide', False)
     
     env = dict(course=course, sections=sections)
@@ -113,9 +112,3 @@ def send_material_usage(request, course):
     encoded = json.dumps(stats.material_usage())
     return HttpResponse(encoded, content_type = "application/json")
 
-@csrf_protect
-def send_animated_attendance(request, course):
-    stats = Stats(course)
-    encoded = json.dumps(stats.animated_attendance())
-    return HttpResponse(encoded, content_type = "application/json")
-    
