@@ -24,15 +24,14 @@
 # 
 # (*) there remains in here some leftovers of a rough attempt
 #     that I made at using systemd-nspawn as a replacement to docker
+#     this was never finished, although we were probably close
 # (*) in this approach we still used docker but just for doing image
 #     snapshots
 # (*) the IMAGES and MACHINES globals are only used for this
 #     systemd-nspawn variant, which was never finished
-#     although we were probably close; what was missing was:
-# (*) 
-# (*) missing was a
-#     suitable strategy for setuid as linux user namespaces
-#     looks way too 
+#     although we were probably close
+# (*) missing was a suitable strategy for setuid
+#     as linux user namespaces looks a little overkill
 # (*) using the same approach to setuids as the one eventually
 #     adopted for docker (i.e. start-in-dir-as-uid) should probably
 #     be rather straightforward with systemd-nspawn too
