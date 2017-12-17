@@ -43,7 +43,8 @@ COMMAND=$0
 # the default values for a few globals
 NBHROOT=/nbhosting
 DEBUG=
-# xxx miss options to tweak these
+
+# miss options to tweak these - which relate to systemd-nspawn
 IMAGES=/homefs/btrfs/btrfs
 MACHINES=/homefs/btrfs/machines
 
@@ -239,6 +240,7 @@ function -compute-course-globals() {
     COURSE_raw=$NBHROOT/raw/$course
     
     COURSE_logs=$NBHROOT/logs/$course
+
     # for systemd-nspawn
     COURSE_ref=$MACHINES/$course.ref
 
@@ -967,16 +969,15 @@ function enter-docker-container() {
     
 
 ##############################
-# systemd-spawn
-##############################
-##############################
-# systemd-nspawn tentative code
+# systemd-nspawn tentative code - not finished
 ##############################
 # assuming that the docker image was redone from its dockerfile
 # which is NOT considered here, we update the actual btrfs reference
 # image in $MACHINES
 # of course $MACHINES must sit in a btrfs filesystem
-@declare-subcommand update-course-image-from-docker-to-spawn
+
+# don't expose as it's not operational
+#@declare-subcommand update-course-image-from-docker-to-spawn
 function update-course-image-from-docker-to-spawn() {
     local USAGE="Usage: $FUNCNAME course"
     local course=$1; shift
@@ -1029,7 +1030,8 @@ function -compute-container-globals() {
 }
 
 
-@declare-subcommand spawn-container-in-course-for-student
+# don't expose as it's not operational
+#@declare-subcommand spawn-container-in-course-for-student
 function spawn-container-in-course-for-student() {
     local USAGE="Usage: $COMMAND $FUNCNAME container course student" 
     [ "$#" -eq 3 ] || -die $USAGE
@@ -1072,7 +1074,8 @@ function spawn-container-in-course-for-student() {
 
 
 # inspired by https://seanmcgary.com/posts/nsenter-a-systemd-nspawn-container
-@declare-subcommand enter-spawned-container
+# don't expose as it's not operational
+#@declare-subcommand enter-spawned-container
 function enter-spawned-container() {
     local USAGE="Usage: $FUNCNAME container [command]"
     [ "$#" -ge 1 ] || -die $USAGE
