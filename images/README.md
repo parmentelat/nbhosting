@@ -31,7 +31,7 @@ The logic implemented at this point has 2 aspects, whether it is at runtime, or 
 
 ### image-building time
 
-* the command `nbh update-image imagename` allows an administrator to do or redo the image of that name.
+* the command `nbh course-build-image coursename` allows an administrator to do or redo the image of that name.
 
 * for that purpose, a dockerfile is needed (here we assume the course and image names match):
 

@@ -79,7 +79,7 @@ class CourseDir:
         """
         return an instance of subprocess.CompletedProcess
         """
-        command = [ "nbh", "update-course-from-git", self.coursename ]
+        command = [ "nbh", "course-update-from-git", self.coursename ]
         completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return completed
 

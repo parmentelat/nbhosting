@@ -212,7 +212,7 @@ nbh --help
   will go in `/nbhosting/courses-git/flotpython/`
 
 ```
-nbh init-course flotpython https://github.com/parmentelat/flotpython.git
+nbh course-init flotpython https://github.com/parmentelat/flotpython.git
 ```
 
 ## updates (item 2 : update from git)
@@ -223,7 +223,7 @@ nbh init-course flotpython https://github.com/parmentelat/flotpython.git
   in `/nbhosting/courses/flotpython`
 
 ```
-nbh update-course-from-git flotpython
+nbh course-update-from-git flotpython
 ```
 
 ## image (item 3 : build image for course)

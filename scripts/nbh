@@ -246,6 +246,7 @@ function -compute-course-globals() {
 
     COURSE_data=$NBHROOT/static/$course/data
     COURSE_media=$NBHROOT/static/$course/media
+    COURSE_build=$NBHROOT/images/$course
     
     # read settings files
     COURSE_statics=$(cat $COURSE_staticsfile)
@@ -257,8 +258,8 @@ function -compute-course-globals() {
 # clone from upstream git repo
 # and updates the various parts accordingly
 
-@declare-subcommand init-course
-function init-course() {
+@declare-subcommand course-init
+function course-init() {
     local USAGE="Usage: $COMMAND $FUNCNAME course giturl" 
     [ "$#" -eq 2 ] || -die $USAGE
     
@@ -269,10 +270,10 @@ function init-course() {
 
     local log=$COURSE_logs/000.log
 
-    function -init-course() {
+    function -course-init() {
 	[ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
 	
-	echo ==========  $(date): init-course from $giturl
+	echo ==========  $(date): course-init from $giturl
 	local courses_git_parent=$(dirname $COURSE_git)
 	mkdir -p $courses_git_parent
 	cd $courses_git_parent
@@ -281,7 +282,10 @@ function init-course() {
     }
     
     [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
-    -init-course >> $log 2>&1
+    -course-init >> $log 2>&1
+    # run these automatically to avoid various frustrations
+    course-settings $course >> $log 2>&1
+    course-update-from-git $course >> $log 2>&1
 }
 
 
@@ -377,8 +381,8 @@ function course-settings() {
 # also the options allow to change global settings
 # for the course:
 ###
-@declare-subcommand update-course-from-git
-function update-course-from-git() {
+@declare-subcommand course-update-from-git
+function course-update-from-git() {
     local USAGE="Usage: $COMMAND $FUNCNAME course" 
 
     [ "$#" -eq 1 ] || -die $USAGE
@@ -445,6 +449,52 @@ function update-course-from-git() {
     -update-course 2> >(tee -a $log >&2)
 }
 
+####################
+# build a docker image
+@declare-subcommand course-build-image
+function course-build-image() {
+    local USAGE="Usage: $COMMAND $FUNCNAME course
+this command will
+. locate a dockerfile, either in the course git repo, or under images/ in nbhosting
+. (re)build the course docker image based on that 
+"
+
+    [ "$#" -eq 0 ] && -die $USAGE
+    local course="$1"; shift
+    [ "$#" -eq 0 ] || -die $USAGE
+        
+    -compute-course-globals $course
+
+    mkdir -p $COURSE_build
+    cd $COURSE_build
+    echo "Building image ${COURSE_image} in ${COURSE_build}"
+
+    ########## locate dockerfile
+    c1="$COURSE_git/docker-image/nbhosting.Dockerfile"
+    c2="$NBHROOT/images/$course.Dockerfile"
+    dockerfile=""
+    for c in $c2 $c1; do
+        [ -f $c ] && dockerfile=$c
+    done
+
+    if [ -z "$dockerfile" ]; then
+        echo "$FUNCNAME: cannot locate dockerfile among:"
+        for c in $c1 $c2; do echo "candidate $c"; done
+        exit 1
+    fi
+
+    if [ "$dockerfile" == $c1 ]; then
+        rsync -aid $(dirname $c1)/ ${COURSE_build}/
+    fi
+    echo "Installing $dockerfile in ${COURSE_build}"
+    cp $dockerfile $COURSE_build/nbhosting.Dockerfile
+    echo "Installing start-in-dir-as-uid.sh in ${COURSE_build}"
+    cp $NBHROOT/images/start-in-dir-as-uid.sh ${COURSE_build}
+    docker build -f nbhosting.Dockerfile -t $COURSE_image .
+    
+}
+
+####################
 function -check-course() {
     local course=$1; shift
     -compute-course-globals $course
@@ -615,7 +665,7 @@ function create-docker-container-for-student-in-course() {
     # student name aka student - should exist as /nbhosting/students/$student
     local student=$1; shift
     # course name - should exist as /nbhosting/courses/$course
-    # i.e. should have gone through init-course and update-course
+    # i.e. should have gone through course-init and update-course
     local course=$1; shift
 
     -compute-course-globals $course

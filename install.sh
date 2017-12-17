@@ -56,14 +56,18 @@ function update-jupyter() {
 
 function update-uwsgi() {
     sed -e "s,@DJANGO-ROOT@,$srcroot/nbhosting," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
-    rsync $rsopts  uwsgi/nbhosting.ini /etc/uwsgi.d/
+    rsync $rsopts uwsgi/nbhosting.ini /etc/uwsgi.d/
 }
 
 function update-assets() {
     local root=/var/nginx/nbhosting
     mkdir -p $root
     rsync $rsopts nbhosting/assets/ $root/assets/
-    chown -R nginx:nginx $root
+    chown -R nginx:nginx $root/images
+}
+
+function update-images() {
+    rsync $rsopts ./images $root/
 }
 
 function update-nginx() {
@@ -111,6 +115,7 @@ function default-main() {
     update-jupyter
     update-uwsgi
     update-assets
+    update-images
     
     update-nginx
     enable-services
