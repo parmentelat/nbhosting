@@ -34,3 +34,6 @@ RUN pip install ipythontutor
 # to find out an extension's name
 # look in the console in a jupyter that has it enabled
 RUN pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install --system && jupyter nbextension enable splitcell/splitcell
+
+# install plotly for w7
+RUN pip install plotly
