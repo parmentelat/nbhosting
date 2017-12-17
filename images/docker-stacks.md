@@ -25,3 +25,7 @@
 ## April 6 2017
 
 * jupyter-5.0 released
+
+## later on
+
+The images get updated within a couple days after a new version of the notebooks code is released.
