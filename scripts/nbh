@@ -1044,7 +1044,7 @@ function course-clear-staff() {
             for notebook in $notebooks; do
                 echo '>>>' $notebook
             done
-            #rm -f $notebooks
+            rm -f $notebooks
         fi
     done
 }
