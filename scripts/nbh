@@ -1017,6 +1017,47 @@ function enter-docker-container() {
     docker exec -ti $container /bin/bash
 }
     
+#
+# this will destroy any notebook in the workspace
+# of any student declared as a staff member
+# this is helpful so that all the staff always has
+# the latest version, and does not see artefacts
+# due to past activity; for example, imagine a notebook
+# is renamed in git but there is a dangling reference in
+# edx to the old name
+# 
+@declare-subcommand course-clear-staff
+function course-clear-staff() {
+    local USAGE="Usage: $FUNCNAME course"
+    [ "$#" -eq 1 ] || -die $USAGE
+
+    local course=$1; shift
+    -compute-course-globals $course
+    staffs=$(cat $COURSE_stafffile)
+    for staff in $staffs; do
+        -compute-student-globals-in-course $staff $course
+        notebooks=$(find $STUDENT_course -name '*.ipynb')
+        if [ -z "$notebooks" ]; then
+            echo "=== no notebook found in $STUDENT_course"
+        else
+            echo "Cleaning private notebooks in $STUDENT_course"
+            for notebook in $notebooks; do
+                echo '>>>' $notebook
+            done
+            #rm -f $notebooks
+        fi
+    done
+}
+
+@declare-subcommand list-courses
+function list-courses() {
+    local USAGE="Usage: $FUNCNAME"
+    [ "$#" -eq 0 ] || -die $USAGE
+
+    cd $NBHROOT/courses
+    ls
+}
+    
 
 ##############################
 # systemd-nspawn tentative code - not finished
@@ -1197,8 +1238,8 @@ function main() {
     # first argument is a subcommand in this file
     local fun="$1"
     if [ -z "$fun" ]; then
-	# if missing altogether, use 'status'
-	fun=status
+        list-subcommands >& 2
+        exit 1
     else
 	case $(type -t -- $fun) in
 	    function)
