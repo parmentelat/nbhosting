@@ -10,12 +10,15 @@ from nbhosting.courses.models import CoursesDir, CourseDir
 
 # Create your views here.
 
+
 def stdout_html(message, stdout):
     html = ""
     if stdout:
-        html += "<p class='stdout'>OUTPUT {message}</p>".format(message=message)
+        html += "<p class='stdout'>OUTPUT {message}</p>".format(
+            message=message)
         html += "<pre>\n{stdout}</pre>".format(stdout=stdout)
     return html
+
 
 def stderr_html(message, stderr):
     html = ""
@@ -30,7 +33,8 @@ def stderr_html(message, stderr):
 def list_courses(request):
     courses_dir = CoursesDir()
     return render(request, "courses.html",
-                  {'courses' : courses_dir.coursenames})
+                  {'courses': courses_dir.coursenames})
+
 
 @login_required
 @csrf_protect
@@ -40,25 +44,45 @@ def list_course(request, course):
 
     # shorten staff hashes
 
-    shorten_staff = [ hash[:7] for hash in course_dir.staff ]
-    
+    shorten_staff = [hash[:7] for hash in course_dir.staff]
+
     return render(request, "course.html", {
-        'how_many' : len(notebooks),
-        'course' : course,
+        'how_many': len(notebooks),
+        'course': course,
         'notebooks': notebooks,
-        'image' : course_dir.image,
-        'statics' : course_dir.statics,
-        'staff' : shorten_staff,
-        'giturl' : course_dir.giturl,
+        'image': course_dir.image,
+        'statics': course_dir.statics,
+        'staff': shorten_staff,
+        'giturl': course_dir.giturl,
     })
+
 
 @login_required
 @csrf_protect
-def update_course(request, course):
+def update_from_git(request, course):
     course_dir = CourseDir(course)
     completed = course_dir.update_completed()
     command = " ".join(completed.args)
     message = "when updating {course}".format(course=course)
+    managed = "updated"
+    # expose most locals, + the attributes of completed
+    # like stdout and stderr
+    env = vars(completed)
+    env.update(locals())
+    # this is an instance and so would not serialize
+    del env['course_dir']
+    template = "course-updated.html"
+    return render(request, template, env)
+
+
+@login_required
+@csrf_protect
+def build_image(request, course):
+    course_dir = CourseDir(course)
+    completed = course_dir.rebuild_completed()
+    command = " ".join(completed.args)
+    message = "when rebuilding image for {course}".format(course=course)
+    managed = "rebuilt"
     # expose most locals, + the attributes of completed
     # like stdout and stderr
     env = vars(completed)

@@ -5,6 +5,7 @@ from nbhosting.main.settings import sitesettings
 
 root = Path(sitesettings.root)
 
+
 class CourseDir:
 
     def __init__(self, coursename):
@@ -12,13 +13,11 @@ class CourseDir:
         self.notebooks_dir = root / "courses" / self.coursename
         self._probe_settings()
         self._notebooks = None
-        
 
     def notebooks(self):
         if self._notebooks is None:
             self._notebooks = self._probe_notebooks()
         return self._notebooks
-
 
     def _probe_notebooks(self):
         notebooks_dir = self.notebooks_dir
@@ -30,13 +29,12 @@ class CourseDir:
             if 'ipynb_checkpoints' not in str(notebook)
         ])
 
-
     def _probe_settings(self):
         notebooks_dir = self.notebooks_dir
 
         try:
             with (notebooks_dir / ".statics").open() as storage:
-                self.statics = { line.strip() for line in storage if line }
+                self.statics = {line.strip() for line in storage if line}
         except Exception as e:
             self.statics = ["-- undefined -- {err}".format(err=e)]
 
@@ -46,10 +44,9 @@ class CourseDir:
         except Exception as e:
             self.image = "-- undefined -- {err}".format(err=e)
 
-
         try:
             with (notebooks_dir / ".staff").open() as storage:
-                self.staff = { line.strip() for line in storage if line }
+                self.staff = {line.strip() for line in storage if line}
         except Exception as e:
             self.staff = []
 
@@ -58,7 +55,6 @@ class CourseDir:
                 self.giturl = storage.read().strip()
         except Exception as e:
             self.giturl = "-- undefined -- {err}".format(err=e)
-
 
     def image_hash(self, docker_proxy):
         """
@@ -73,30 +69,40 @@ class CourseDir:
             import traceback
             traceback.print_exc()
             return
-                
-    
+
     def update_completed(self):
         """
         return an instance of subprocess.CompletedProcess
         """
-        command = [ "nbh", "course-update-from-git", self.coursename ]
-        completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        command = ["nbh", "course-update-from-git", self.coursename]
+        completed = subprocess.run(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return completed
+
+    def rebuild_completed(self):
+        """
+        return an instance of subprocess.CompletedProcess
+        """
+        command = ["nbh", "course-build-image", self.coursename]
+        completed = subprocess.run(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return completed
 
     def student_homes(self):
         """
         return the number of students who have that course in their home dir
         """
-        student_course_dirs = (root / "students").glob("*/{}".format(self.coursename))
+        student_course_dirs = (
+            root / "students").glob("*/{}".format(self.coursename))
         # can't use len() on a generator
         return sum((1 for _ in student_course_dirs), 0)
+
 
 class CoursesDir:
 
     def __init__(self):
         subdirs = (root / "courses-git").glob("*")
-        self._coursenames = [ subdir.name for subdir in subdirs ]
+        self._coursenames = [subdir.name for subdir in subdirs]
 
     def coursenames(self):
         return self._coursenames
-        

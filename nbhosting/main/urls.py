@@ -38,7 +38,8 @@ urlpatterns = [
     url(r'^nbh/admin/',                                         admin.site.urls),
     url('^nbh/accounts/',                                       include('django.contrib.auth.urls')),
     # our stuff
-    url(r'^nbh/courses/update/(?P<course>[\w_.-]+)',            nbhosting.courses.views.update_course),
+    url(r'^nbh/courses/update-from-git/(?P<course>[\w_.-]+)',   nbhosting.courses.views.update_from_git),
+    url(r'^nbh/courses/build-image/(?P<course>[\w_.-]+)',       nbhosting.courses.views.build_image),
     url(r'^nbh/courses',                                        nbhosting.courses.views.list_courses),
     url(r'^nbh/course/(?P<course>[\w_.-]+)',                    nbhosting.courses.views.list_course),
     url(r'^nbh/stats/daily_metrics/(?P<course>[\w_.-]+)',       nbhosting.stats.views.send_daily_metrics),

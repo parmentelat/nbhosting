@@ -18,10 +18,23 @@
 </ol>
 
 <!------------------------------>
-<div class='section'>
-<a href='/nbh/courses/update/{{course}}' class='btn btn-info btn-lg btn-block'>
-Update {{course}} using git pull from <br/>{{giturl}}
-</a>
+<div class="container">
+ <div class="row">
+  <div class="col-8">
+   <div class='section'>
+    <a href='/nbh/courses/update-from-git/{{course}}' class='btn btn-info btn-lg btn-block'>
+    Update {{course}} using git pull from <br/>{{giturl}}
+    </a>
+   </div>
+  </div> 
+  <div class="col-4">
+   <div class='section'>
+    <a href='/nbh/courses/build-image/{{course}}' class='btn btn-info btn-lg btn-block'>
+    Rebuild image
+    </a>
+   </div>
+  </div> 
+ </div>
 </div>
 
 <!------------------------------>
