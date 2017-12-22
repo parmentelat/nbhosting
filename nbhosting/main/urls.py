@@ -40,6 +40,7 @@ urlpatterns = [
     # our stuff
     url(r'^nbh/courses/update-from-git/(?P<course>[\w_.-]+)',   nbhosting.courses.views.update_from_git),
     url(r'^nbh/courses/build-image/(?P<course>[\w_.-]+)',       nbhosting.courses.views.build_image),
+    url(r'^nbh/courses/clear-staff/(?P<course>[\w_.-]+)',       nbhosting.courses.views.clear_staff),
     url(r'^nbh/courses',                                        nbhosting.courses.views.list_courses),
     url(r'^nbh/course/(?P<course>[\w_.-]+)',                    nbhosting.courses.views.list_course),
     url(r'^nbh/stats/daily_metrics/(?P<course>[\w_.-]+)',       nbhosting.stats.views.send_daily_metrics),

@@ -70,23 +70,17 @@ class CourseDir:
             traceback.print_exc()
             return
 
-    def update_completed(self):
+    def _run_nbh(self, subcommand, *args):
         """
         return an instance of subprocess.CompletedProcess
         """
-        command = ["nbh", "course-update-from-git", self.coursename]
-        completed = subprocess.run(
+        command = [ 'nbh', subcommand, self.coursename] + list(args)
+        return subprocess.run(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return completed
 
-    def rebuild_completed(self):
-        """
-        return an instance of subprocess.CompletedProcess
-        """
-        command = ["nbh", "course-build-image", self.coursename]
-        completed = subprocess.run(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return completed
+    def update_from_git(self): return self._run_nbh("course-update-from-git")
+    def build_image(self): return self._run_nbh("course-build-image")
+    def clear_staff(self): return self._run_nbh("course-clear-staff")
 
     def student_homes(self):
         """
