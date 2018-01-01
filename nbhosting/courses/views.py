@@ -41,20 +41,24 @@ def list_courses(request):
 def list_course(request, course):
     course_dir = CourseDir(course)
     notebooks = course_dir.notebooks()
+    notebook_cols = [
+        notebooks[::2],
+        notebooks[1::2],
+    ]
 
     # shorten staff hashes
 
     shorten_staff = [hash[:7] for hash in course_dir.staff]
 
-    return render(request, "course.html", {
-        'how_many': len(notebooks),
-        'course': course,
-        'notebooks': notebooks,
+    env = {
+        'how_many': len(notebooks),        
         'image': course_dir.image,
         'statics': course_dir.statics,
         'staff': shorten_staff,
         'giturl': course_dir.giturl,
-    })
+    }
+    env.update(locals())
+    return render(request, "course.html", env)
 
 
 def nbh_manage(request, course, verb, managed):

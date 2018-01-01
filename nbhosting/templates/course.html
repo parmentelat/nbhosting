@@ -48,8 +48,11 @@
 <div class="card">
 <div class="card-block">
 <h2 class="card-title">Notebooks</h2>
+<div class="row">
+{% for notebook_col in notebook_cols %}
+<div class="col-6">
 <ul class="list-group list-group-flush">
-{% for notebook in notebooks %}
+{% for notebook in notebook_col %}
 <li class="list-group-item" style='padding:3px;'>
  <a class='card-link' style='font-size:60%;'
    href='/ipythonExercice/{{course}}/{{notebook}}/anonymous'>{{notebook}}
@@ -57,6 +60,9 @@
 </li>
 {% endfor %}
 </ul>
+</div> <!-- col-6-->
+{% endfor %}
+</div> <!-- row -->
 </div> <!-- card-block-->
 </div> <!-- card-->
 </div> <!-- col-8-->
