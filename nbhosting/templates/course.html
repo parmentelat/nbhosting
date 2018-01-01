@@ -86,7 +86,7 @@
 
    <div class="card">
     <div class="card-block">
-     <h3 class="card-title">Statics</h3>
+     <h3 class="card-title" title="Subdirectories listed as statics are created as symlinks in all subdirs containing at least one notebook">Statics</h3>
      <ul class="list-group list-group-flush">
      {% for static in statics %}
       <li class="list-group-item">
@@ -100,7 +100,7 @@
 
    <div class="card">
     <div class="card-block">
-     <h3 class="card-title">Staff</h3>
+     <h3 class="card-title" title="Students listed as staff are ignored when gathering usage statistics">Staff</h3>
      <ul class="list-group list-group-flush">
      {% for hash in staff %}
       <li class="list-group-item">
