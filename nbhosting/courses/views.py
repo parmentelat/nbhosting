@@ -57,26 +57,23 @@ def list_course(request, course):
     })
 
 
-def nbh_manage(request, course, verb):
+def nbh_manage(request, course, verb, managed):
     course_dir = CourseDir(course)
     if verb == 'update-from-git':
         completed = course_dir.update_from_git()
-        managed = "updated"
     elif verb == 'build-image':
         completed = course_dir.build_image()
-        managed = "rebuilt"
     elif verb == 'clear-staff':
         completed = course_dir.clear_staff()
-        managed = "cleared staff"
     command = " ".join(completed.args)
     message = "when updating {course}".format(course=course)
-    managed = "updated"
     # expose most locals, + the attributes of completed
     # like stdout and stderr
     env = vars(completed)
     env.update(locals())
     # this is an instance and so would not serialize
     del env['course_dir']
+    # the html title
     template = "course-managed.html"
     return render(request, template, env)
         
@@ -84,15 +81,16 @@ def nbh_manage(request, course, verb):
 @login_required
 @csrf_protect
 def update_from_git(request, course):
-    return nbh_manage(request, course, 'update-from-git')
+    return nbh_manage(request, course, 'update-from-git', 'updated')
 
 
 @login_required
 @csrf_protect
 def build_image(request, course):
-    return nbh_manage(request, course, 'build-image')
+    return nbh_manage(request, course, 'build-image', 'rebuilt')
+
 
 @login_required
 @csrf_protect
 def clear_staff(request, course):
-    return nbh_manage(request, course, 'clear-staff')
+    return nbh_manage(request, course, 'clear-staff', 'staff cleared')
