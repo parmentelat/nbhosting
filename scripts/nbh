@@ -177,6 +177,7 @@ function -create-symlink-at-file () {
     # be named destname
     # and point at destination
     local source=$dir/$destname
+    [ -h $destination ] || -echo-stderr creating static symlink $destination
     ln -sf $destination $dir/$destname
 }
 
@@ -635,7 +636,6 @@ function check-student-notebook-for-course() {
 	# use rsync for preserving creation time
 	sudo -u $student rsync -tp $course_notebook $student_notebook
 	for static in $COURSE_statics; do
-	    -echo-stderr creating static link $static for notebook $student_notebook
 	    -create-symlink-at-file $student_notebook /home/jovyan/work/$static
 	done
     else
