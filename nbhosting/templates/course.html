@@ -20,109 +20,101 @@
 <!------------------------------>
 <div class="container">
  <div class="row">
+ 
+<!------------------------------>
   <div class="col-8">
    <div class='section'>
     <a href='/nbh/courses/update-from-git/{{course}}' class='btn btn-info btn-lg btn-block'>
     Update {{course}} using git pull from <br/>{{giturl}}
     </a>
-   </div>
-  </div> 
-  <div class="col-4">
+   </div> <!--section-->
+
+   <div class="card">
+    <div class="card-block">
+     <h2 class="card-title">Notebooks</h2>
+     <div class="row">
+     {% for notebook_col in notebook_cols %}
+      <div class="col-6">
+       <ul class="list-group list-group-flush">
+        {% for notebook in notebook_col %}
+         <li class="list-group-item" style='padding:3px;'>
+          <a class='card-link' style='font-size:60%;'
+           href='/ipythonExercice/{{course}}/{{notebook}}/anonymous'>{{notebook}}
+          </a>
+         </li>
+        {% endfor %}
+       </ul>
+      </div> <!-- col-6-->
+     {% endfor %}
+     </div> <!-- row -->
+    </div> <!-- card-block-->
+   </div> <!-- card-->
+  </div> <!-- col-8-->
+
+<!------------------------------>
+  <div class="col">
+
    <div class='section'>
-    <a href='/nbh/courses/build-image/{{course}}' class='btn btn-info btn-lg btn-block'>
-    Rebuild image
+    <a href='/nbh/courses/build-image/{{course}}'
+      class='btn btn-info btn-lg btn-block'>
+     Rebuild image
     </a>
     <a href='/nbh/courses/clear-staff/{{course}}' class='btn btn-info btn-lg btn-block'>
-    Clear staff files
+      Clear staff files
     </a>
    </div>
-  </div> 
- </div>
-</div>
+  
+   <div class="card">
+    <div class="card-header">
+     <p class="card-text">
+      Use <code>nbh course-settings {{name}}</code> to tweak.
+     </p>
+    </div> <!-- card-header-->
+    <div class="card-block">
+     <h2 class="card-title">Settings</h2>
+    </div> <!-- card-block-->
+   </div> <!-- card-->
+
+
+   <div class="card">
+    <div class="card-block">
+     <h3 class="card-title">Image</h3>
+     <p class='card-text'> name: {{image}} </p>
+    </div> <!-- card-block-->
+   </div> <!-- card-->
+
+
+   <div class="card">
+    <div class="card-block">
+     <h3 class="card-title">Statics</h3>
+     <ul class="list-group list-group-flush">
+     {% for static in statics %}
+      <li class="list-group-item">
+       <p class='card-text'> {{static}} </p>
+      </li>
+     {% endfor %}
+     </ul>
+    </div> <!-- card-block-->
+   </div> <!-- card-->
+
+
+   <div class="card">
+    <div class="card-block">
+     <h3 class="card-title">Staff</h3>
+     <ul class="list-group list-group-flush">
+     {% for hash in staff %}
+      <li class="list-group-item">
+       <p class='card-text'> {{hash}} </p>
+      </li>
+     {% endfor %}
+     </ul>
+    </div> <!-- card-block-->
+   </div> <!-- card-->
+
+  </div> <!-- col-->
 
 <!------------------------------>
-<div class="container">
-
-<div class="row">
-<div class="col-8">
-<div class="card">
-<div class="card-block">
-<h2 class="card-title">Notebooks</h2>
-<div class="row">
-{% for notebook_col in notebook_cols %}
-<div class="col-6">
-<ul class="list-group list-group-flush">
-{% for notebook in notebook_col %}
-<li class="list-group-item" style='padding:3px;'>
- <a class='card-link' style='font-size:60%;'
-   href='/ipythonExercice/{{course}}/{{notebook}}/anonymous'>{{notebook}}
- </a>
-</li>
-{% endfor %}
-</ul>
-</div> <!-- col-6-->
-{% endfor %}
-</div> <!-- row -->
-</div> <!-- card-block-->
-</div> <!-- card-->
-</div> <!-- col-8-->
-
-<!------------------------------>
-<div class="col">
-
-<div class="card">
-<div class="card-header">
-<p class="card-text">
-Use <code>nbh course-settings {{name}}</code> to tweak.
-</p>
-</div> <!-- card-header-->
-<div class="card-block">
-<h2 class="card-title">Settings</h2>
-</div> <!-- card-block-->
-</div> <!-- card-->
-
-
-<div class="card">
-<div class="card-block">
-<h3 class="card-title">Image</h3>
-<p class='card-text'> name: {{image}} </p>
-</div> <!-- card-block-->
-</div> <!-- card-->
-
-
-<div class="card">
-<div class="card-block">
-<h3 class="card-title">Statics</h3>
-<ul class="list-group list-group-flush">
-{% for static in statics %}
-<li class="list-group-item">
-    <p class='card-text'> {{static}} </p>
- </a>
-</li>
-{% endfor %}
-</ul>
-</div> <!-- card-block-->
-</div> <!-- card-->
-
-
-<div class="card">
-<div class="card-block">
-<h3 class="card-title">Staff</h3>
-<ul class="list-group list-group-flush">
-{% for hash in staff %}
-<li class="list-group-item">
-    <p class='card-text'> {{hash}} </p>
- </a>
-</li>
-{% endfor %}
-</ul>
-</div> <!-- card-block-->
-</div> <!-- card-->
-
-</div> <!-- col-->
-
 </div> <!-- row-->
 </div> <!-- container-->
-<!------------------------------>
 
 {% endblock %}
