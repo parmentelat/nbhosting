@@ -63,7 +63,7 @@ function update-assets() {
     local root=/var/nginx/nbhosting
     mkdir -p $root
     rsync $rsopts nbhosting/assets/ $root/assets/
-    chown -R nginx:nginx $root/images
+    chown -R nginx:nginx $root/snapshots
 }
 
 function update-images() {
