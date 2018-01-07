@@ -33,7 +33,7 @@ def stderr_html(message, stderr):
 def list_courses(request):
     courses_dir = CoursesDir()
     return render(request, "courses.html",
-                  {'courses': courses_dir.coursenames})
+                  {'courses': courses_dir.coursenames()})
 
 
 @login_required

@@ -96,7 +96,7 @@ class CoursesDir:
 
     def __init__(self):
         subdirs = (root / "courses-git").glob("*")
-        self._coursenames = [subdir.name for subdir in subdirs]
+        self._coursenames = sorted([subdir.name for subdir in subdirs])
 
     def coursenames(self):
         return self._coursenames
