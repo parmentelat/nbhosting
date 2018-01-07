@@ -1033,7 +1033,8 @@ function course-clear-staff() {
 
     local course=$1; shift
     -compute-course-globals $course
-    staffs=$(cat $COURSE_stafffile)
+    # 'student' is used by FUN's studio 
+    staffs="student $(cat $COURSE_stafffile)"
     for staff in $staffs; do
         -compute-student-globals-in-course $staff $course
         notebooks=$(find $STUDENT_course -name '*.ipynb')
