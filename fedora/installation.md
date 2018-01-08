@@ -11,6 +11,8 @@
 
 * companion file `configuration.md` is an attempt at describing all the places where changes can be needed
 
+****
+
 # disk partitioning
 
 ## WARNING
@@ -74,15 +76,16 @@ The data that should be backed up is the one in
 
 * Worth being mentioned as well in this area are the various dockerfiles, that I assume are stored in the `nbhosting` git repo under `docker-images`, but well, technically this is important data as it describes the contents of each course image.
 
+****
 
-# Configs
+# fedora configs
 
 Notes
 
 * `/etc/sysconfig/docker` is the place where we define `/nbhosting/dockers` as being `docker`'s workspace
 * we want to use a static `iptables` config, and ***not firewalld*** that will just screw it all up for us
 * likewise, we need to turn off SElinux
-* the default `/etc/sudoers` does not require a tty to use `sudo`; we need this to be the case, be aware that mentioning `Defaults    requiretty` in that file will break `nbhosting`.
+* it is required that `sudo` allows non-tty apps to issue calls to `sudo`; by default on fedaora, it is the case, but it turns out our local IT has a policy in place that requires a terminal (see `requiretty` as a sudo configuration clause). To address this, `install.sh` will install
 
 ## ssh
 After raw install of fedora, do the usual:
@@ -113,6 +116,7 @@ git clone https://github.com/parmentelat/nbhosting.git
 cp etc/sysconfig/iptables /etc/sysconfig/iptables
 cp etc/selinux/config /etc/selinux/config
 cp etc/sudoers.d/99-nbhosting /etc/sudoers.d/
+chmod 440 /etc/sudoers.d/99-nbhosting
 ```
 
 ## docker setup
@@ -129,7 +133,7 @@ In order to apply changes (esp. regarding selinux, and iptables)
 
 *************************
 
-# App install
+# application install
 
 ## packages / dependencies
 
@@ -142,7 +146,10 @@ In order to apply changes (esp. regarding selinux, and iptables)
 ```
 dnf -y install python3
 dnf -y install nginx
-dnf -y install -y uwsgi uwsgi-plugin-python3
+dnf -y install uwsgi uwsgi-plugin-python3
+```
+
+```
 pip3 install --upgrade pip setuptools
 pip3 install --upgrade Django
 # for nbh-monitor
@@ -151,35 +158,53 @@ pip3 install aiohttp docker
 # see VERSIONS for python libraries
 ```
 
-****
+#### note on fedora upgrades
+
+If you upgrade to a more recent fedora, as always dnf will take care of the packages that it knows about, but won't automatically install the pip dependencies, that need to be reinstalled manually.
 
 ## SSL certificates
 
-The `nginx` config has it that the SSL certificate used by the main entry point (in our case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`, and more specifically
+The application can in theory run under simply `http`, but for any real deployment you're going to run as an iframe-embedded site for a main site that runs https (like e.g. `fun-mooc.fr`). In such a case running `nbhosting` behind `http` just won't work, as the browser won't allow it.
+
+The default config has it that the SSL certificate used by the main entry point (in our case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`, and more specifically
 
 ```
-$ egrep 'server_name|ssl_certificate' nginx/nbhosting.conf
-    server_name nbhosting.inria.fr;
-    ssl_certificate /root/ssl-certificate/bundle.crt;
-    ssl_certificate_key /root/ssl-certificate/nbhosting.inria.fr.key;
-```
+$ egrep 'server|ssl_cert' nbhosting/main/sitesettings.py
+server_mode = "https"
+server_name = "nbhosting.inria.fr"
+ssl_certificate = "/root/ssl-certificate/bundle.crt"
+ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"```
 
-Make sure to install these 2 files properly.
+Make sure to take care of these settings and cryptographic material.
 
-## initial install
+## install and update
 
-We do not expose any packaging; instead the workflow is to
+We do not expose any packaging; instead overall the workflow is to
 
 * create a git clone in `/root/nbhosting`
+* create a config. file by copying the provided template and editing it
 * run the `install.sh` script in here to install (or, update just the same)
+
+### initial installation
+
+```
+cd /root
+git clone https://github.com/parmentelat/nbhosting.git
+cd /root/nbhosting/nbhosting/main
+cp sitesettings.py.example sitesettings.py
+```
+
+* at that point, edit `sitesettings.py`, and then
 
 ```
 cd /root/nbhosting
-git pull
 ./install.sh
 ```
 
-## admin (create super user)
+that will also start the services, you should be good to go
+
+
+### admin (create super user)
 
 Initialize the admin superuser; preferably user `profs` - this is what will allow to enter the admin web interface:
 
@@ -198,6 +223,9 @@ git pull
 ./install.sh
 ```
 
+Make sure to see the reservation explained in `configuration.md`, about possible new variables introduced in `sitesettings.py.example` in the meanwhile.
+
+
 ## use
 
 There's a single command `nbh` that's an entry point into all the features exposed to the CLI; see the list with
@@ -208,37 +236,55 @@ nbh --help
 
 ****
 
-# Install courses
+# Managing courses
 
-## initialisation (item 1 : pull from git)
-
-* create a course (the git repo in fact)
-
-  will go in `/nbhosting/courses-git/flotpython/`
+## initialisation (step 1 : pull from git)
 
 ```
 nbh course-init flotpython https://github.com/parmentelat/flotpython.git
 ```
 
-## updates (item 2 : update from git)
+* this creates a course (the git repo in fact)
+* that fyi goes in `/nbhosting/courses-git/flotpython/`
 
-* for now this **needs to be done at least one**
-* as it will create the actual course notebooks master area
-
-  in `/nbhosting/courses/flotpython`
+## updates (step 2 : update from git)
 
 ```
 nbh course-update-from-git flotpython
 ```
 
-## image (item 3 : build image for course)
 
-* this assumes a dockerfile has been created for that course
+* for now this **needs to be done at least once**
+* as it will create the actual course notebooks master area
+* which fyi again goes in `/nbhosting/courses/flotpython`
+
+## image (step 3 : build image for course)
+
+#### option1 : piggyback
+
+If you use an nbhosting instance that already hosts a course, say `flotpython3`, and you want to host course `flotbioinfo` with the same image as `flotpython3`, you can do This
 
 ```
-cd /root/nbhosting/docker-images
-make flotpython
+nbh course-settings -i flotpython3 flotbioinfo
 ```
+
+and check that your setting is properly displayed on the course page for `flotbioinfo`.
+
+
+#### option2 : your own image
+
+```
+nbh course-build-image flotpython
+```
+
+* this assumes a dockerfile has been created for that course; this can be either
+
+  * in the course git repo, under `docker-image/nbhosting.Dockerfile`
+  * or in `nbhosting`'s git repo itself, under `images`/*coursename*`.Dockerfile`
+
+## UI
+
+You can trigger steps 2 (update from git) and 3 (rebuild image) from the web UI at the course page (the same that shows a list of known notebooks).
 
 ## settings (optional)
 
@@ -247,6 +293,8 @@ make flotpython
 There are a few settings available for a course; as of this writing:
 
 * docker image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however you could also create flotpython-session1 that uses image `flotpython`
+
+* list of hashes for students that are considered *staff*; thoses hashes will be ignored when building usage statistics.
 
 * list of static dirs; the default here is `media` and `data` which are the conventions hard-wired in the previous notebook hosting system; when trying to deploy 'Data Science Handbook' it appeared that this should be configurable
 
@@ -289,7 +337,7 @@ Additional logs go into
 
 * `/nbhosting/logs/nbhosting.log`
 * `/nbhosting/logs/monitor.log`
-* `/var/log/nginx/{error,acces}.log`
+* `/nbhosting/logs/nginx-{error,access}.log`
 * also each docker container can be probed for its logs
   * `docker logs flotpython-x-thestudentid`
 
@@ -299,6 +347,7 @@ Additional logs go into
 * it targets only the admin of course, and the login/passwd for the admin user was created above (see `manage.py createsuperuser`)
 * main page is `https://nbhosting.inria.fr/nbh/courses`; each course comes with its stats page; probably subject to changes, so you'd better see for yourself, but as of now:
   * number of registered students
+  * number of students per notebook, over time
   * number of notebooks read
   * number of containers/kernels
   * disk space
@@ -318,6 +367,6 @@ cd
 dnf -y install git emacs-nox curl
 
 git clone git://diana.pl.sophia.inria.fr/diana.git
-diana/bash/install.sh -b 5 systemd
+diana/bash/install.sh -b 5 systemd git gitprompt
 echo "source /root/nbhosting/zz-devel/logaliases" >> .bash-private.ish
 ```
