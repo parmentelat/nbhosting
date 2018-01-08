@@ -622,6 +622,8 @@ function check-student-notebook-for-course() {
     notebook=$1; shift
     course=$1; shift
 
+    [ -n "$DEBUG" ] && set -x
+
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
 

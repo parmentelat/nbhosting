@@ -106,12 +106,17 @@ cd /root
 git clone https://github.com/parmentelat/nbhosting.git
 ```
 
-## fedora basics, and docker setup
+## fedora basics
 
 
 ```
 cp etc/sysconfig/iptables /etc/sysconfig/iptables
 cp etc/selinux/config /etc/selinux/config
+cp etc/sudoers.d/99-nbhosting /etc/sudoers.d/
+```
+
+## docker setup
+```
 sed -i -f etc-sysconfig-docker.sed /etc/sysconfig/docker
 
 systemctl enable docker
