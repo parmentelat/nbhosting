@@ -25,6 +25,7 @@
 # (*) there remains in here some leftovers of a rough attempt
 #     that I made at using systemd-nspawn as a replacement to docker
 #     this was never finished, although we were probably close
+#     all this was commented off in Jan. 2018
 # (*) in this approach we still used docker but just for doing image
 #     snapshots
 # (*) the IMAGES and MACHINES globals are only used for this
@@ -45,8 +46,8 @@ NBHROOT=/nbhosting
 DEBUG=
 
 # miss options to tweak these - which relate to systemd-nspawn
-IMAGES=/homefs/btrfs/btrfs
-MACHINES=/homefs/btrfs/machines
+#IMAGES=/homefs/btrfs/btrfs
+#MACHINES=/homefs/btrfs/machines
 
 # what to use as static areas if not specified
 default_statics="media data"
@@ -242,8 +243,8 @@ function -compute-course-globals() {
     
     COURSE_logs=$NBHROOT/logs/$course
 
-    # for systemd-nspawn
-    COURSE_ref=$MACHINES/$course.ref
+#    # for systemd-nspawn
+#    COURSE_ref=$MACHINES/$course.ref
 
     COURSE_data=$NBHROOT/static/$course/data
     COURSE_media=$NBHROOT/static/$course/media
@@ -1124,86 +1125,86 @@ function -compute-container-globals() {
 }
 
 
-# don't expose as it's not operational
-#@declare-subcommand spawn-container-in-course-for-student
-function spawn-container-in-course-for-student() {
-    local USAGE="Usage: $COMMAND $FUNCNAME container course student" 
-    [ "$#" -eq 3 ] || -die $USAGE
-    
-    local container=$1; shift
-    local course=$1; shift
-    local student=$1; shift
-
-    -compute-course-globals $course
-    -compute-student-globals-in-course $student $course
-    -compute-container-globals $container
-
-    local port=$(free-port)
-    local token=$student
-    # cannot use --ephemeral with --template
-    local command="systemd-nspawn 
-    	  	     --template=${COURSE_ref}
-		     --directory=${CONTAINER_nspawn_root}
-		     --user=jovyan
-		     --setenv=PATH=/opt/conda/bin
-		     --bind=$STUDENT_course:/home/jovyan/work
-		     --bind=$COURSE_modules:/home/jovyan/modules
-		     --bind=$COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
-		     --bind=$COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
-		     --bind=$COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
-    for static in $COURSE_statics; do
-	command="$command 
-                     --bind=$NBHROOT/static/$course/$static:/home/jovyan/work/$static"
-    done
-    command="$command
-		    /usr/local/bin/start-notebook.sh
-		    --NotebookApp.port=${port}
-		    --no-browser
-		    --NotebookApp.token=${token}
-"
-
-    echo $command
-    $command
-}
-
-
-# inspired by https://seanmcgary.com/posts/nsenter-a-systemd-nspawn-container
-# don't expose as it's not operational
-#@declare-subcommand enter-spawned-container
-function enter-spawned-container() {
-    local USAGE="Usage: $FUNCNAME container [command]"
-    [ "$#" -ge 1 ] || -die $USAGE
-
-    local container=$1; shift
-
-    local leaderpid=$(machinectl -p Leader show $container | cut "-d=" -f2)
-    command="nsenter --target $leaderpid --mount --uts --ipc --net $@"
-    echo $command
-    $command
-}
-
-
-function status-btrfs() {
-    #command="btrfs subvolume list $MACHINES"
-    #echo ========== $command; $command
-    command="btrfs filesystem df -h $MACHINES"
-    echo ========== $command; $command
-    command="btrfs filesystem df -h $IMAGES"
-    echo ========== $command; $command
-}
-
-function status-devel() {
-    local command="docker ps"
-    echo ========== $command; $command
-    local command="docker ps -a"
-    echo ========== $command; $command
-    local command="machinectl list"
-    echo ========== $command; $command
-    local command=status-btrfs
-    echo ========== $command; $command
+## don't expose as it's not operational
+##@declare-subcommand spawn-container-in-course-for-student
+#function spawn-container-in-course-for-student() {
+#    local USAGE="Usage: $COMMAND $FUNCNAME container course student" 
+#    [ "$#" -eq 3 ] || -die $USAGE
+#    
+#    local container=$1; shift
+#    local course=$1; shift
+#    local student=$1; shift
+#
+#    -compute-course-globals $course
+#    -compute-student-globals-in-course $student $course
+#    -compute-container-globals $container
+#
+#    local port=$(free-port)
+#    local token=$student
+#    # cannot use --ephemeral with --template
+#    local command="systemd-nspawn 
+#    	  	     --template=${COURSE_ref}
+#		     --directory=${CONTAINER_nspawn_root}
+#		     --user=jovyan
+#		     --setenv=PATH=/opt/conda/bin
+#		     --bind=$STUDENT_course:/home/jovyan/work
+#		     --bind=$COURSE_modules:/home/jovyan/modules
+#		     --bind=$COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
+#		     --bind=$COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
+#		     --bind=$COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
+#    for static in $COURSE_statics; do
+#	command="$command 
+#                     --bind=$NBHROOT/static/$course/$static:/home/jovyan/work/$static"
+#    done
+#    command="$command
+#		    /usr/local/bin/start-notebook.sh
+#		    --NotebookApp.port=${port}
+#		    --no-browser
+#		    --NotebookApp.token=${token}
+#"
+#
+#    echo $command
+#    $command
+#}
+#
+#
+## inspired by https://seanmcgary.com/posts/nsenter-a-systemd-nspawn-container
+## don't expose as it's not operational
+##@declare-subcommand enter-spawned-container
+#function enter-spawned-container() {
+#    local USAGE="Usage: $FUNCNAME container [command]"
+#    [ "$#" -ge 1 ] || -die $USAGE
+#
+#    local container=$1; shift
+#
+#    local leaderpid=$(machinectl -p Leader show $container | cut "-d=" -f2)
+#    command="nsenter --target $leaderpid --mount --uts --ipc --net $@"
+#    echo $command
+#    $command
+#}
+#
+#
+#function status-btrfs() {
+#    #command="btrfs subvolume list $MACHINES"
+#    #echo ========== $command; $command
+#    command="btrfs filesystem df -h $MACHINES"
+#    echo ========== $command; $command
+#    command="btrfs filesystem df -h $IMAGES"
+#    echo ========== $command; $command
+#}
+#
+#function status-devel() {
+#    local command="docker ps"
+#    echo ========== $command; $command
+#    local command="docker ps -a"
+#    echo ========== $command; $command
+#    local command="machinectl list"
+#    echo ========== $command; $command
+#    local command=status-btrfs
+#    echo ========== $command; $command
 #    local command="btrfs subvolume list $MACHINES"
 #    echo ========== $command; $command
-}
+#}
 
 ############################## 
 USAGE="$COMMAND [-d nbhroot] [-x] subcommand ...
