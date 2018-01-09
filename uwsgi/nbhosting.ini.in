@@ -60,5 +60,4 @@ workers = 64
 max-requests = 100000
 
 # stats
-# xxx likewise, let's take it one step at a time
-# stats = /tmp/uwsgi-stats.socket
+stats = /tmp/uwsgi-stats.socket
