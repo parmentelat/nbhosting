@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import logging
 import logging.config
-
-from pathlib import Path
+from logging.handlers import TimedRotatingFileHandler
 
 def init_loggers(dir):
 
@@ -25,12 +26,16 @@ def init_loggers(dir):
         },
         'handlers': {
             'nbhosting': {
-                'class': 'logging.FileHandler',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'when': 'midnight',
+                'backupCount': 7,
                 'formatter': 'standard',
                 'filename' : str(path / 'nbhosting.log'),
             },
             'monitor': {
-                'class': 'logging.FileHandler',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'when': 'midnight',
+                'backupCount': 7,
                 'formatter': 'standard',
                 'filename' : str(path / 'monitor.log'),
             },
