@@ -15,6 +15,9 @@ plugins = python3
 socket = /run/nbhosting.sock
 pidfile = /run/uwsgi.pid
 
+# an attempt to not lose output
+logto = @nbhroot@/logs/uwsgi.log
+
 # owners and permissions
 chown-socket = nginx:nginx
 uid = root
