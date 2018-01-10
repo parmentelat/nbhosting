@@ -102,7 +102,7 @@ def edx_request(request, course, student, notebook):
     subcommand = 'docker-view-student-course-notebook'
     
     # build command
-    command = ['nbh', '-d', sitesettings.root]
+    command = ['nbh', '-d', sitesettings.nbhroot]
     if DEBUG:
         command.append('-x')
     command.append(subcommand)
@@ -189,7 +189,7 @@ def share_notebook(request, course, student, notebook):
 
     subcommand = 'docker-share-student-course-notebook-in-hash'
 
-    command = ['nbh', '-d', sitesettings.root]
+    command = ['nbh', '-d', sitesettings.nbhroot]
     if DEBUG:
         command.append('-x')
     command.append(subcommand)

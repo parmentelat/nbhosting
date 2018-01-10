@@ -3,14 +3,14 @@ import subprocess
 
 from nbhosting.main.settings import sitesettings
 
-root = Path(sitesettings.root)
+nbhroot = Path(sitesettings.nbhroot)
 
 
 class CourseDir:
 
     def __init__(self, coursename):
         self.coursename = coursename
-        self.notebooks_dir = root / "courses" / self.coursename
+        self.notebooks_dir = nbhroot / "courses" / self.coursename
         self._probe_settings()
         self._notebooks = None
 
@@ -87,7 +87,7 @@ class CourseDir:
         return the number of students who have that course in their home dir
         """
         student_course_dirs = (
-            root / "students").glob("*/{}".format(self.coursename))
+            nbhroot / "students").glob("*/{}".format(self.coursename))
         # can't use len() on a generator
         return sum((1 for _ in student_course_dirs), 0)
 
@@ -95,7 +95,7 @@ class CourseDir:
 class CoursesDir:
 
     def __init__(self):
-        subdirs = (root / "courses-git").glob("*")
+        subdirs = (nbhroot / "courses-git").glob("*")
         self._coursenames = sorted([subdir.name for subdir in subdirs])
 
     def coursenames(self):

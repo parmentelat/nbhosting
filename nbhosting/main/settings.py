@@ -29,14 +29,14 @@ from .sitesettings import (
 ########## production vs devel
 if os.getuid() == 0:
     # typically /nbhosting/logs
-    LOGS_DIR = Path(sitesettings.root) / 'logs'
+    LOGS_DIR = Path(sitesettings.nbhroot) / 'logs'
     # typically /root/nbhosting
-    BASE_DIR = Path(sitesettings.base)
+    BASE_DIR = Path(sitesettings.srcroot)
 else:
     # just a convenience for devel boxes
     # e.g. /users/tparment/git/nbhosting/nbhosting
     django_root = Path(__file__).parents[2]
-    sitesettings.root = str(django_root / 'fake-root')
+    sitesettings.nbhroot = str(django_root / 'fake-root')
     # some provisions for devel mode
     LOGS_DIR = Path.cwd()
     # .parents[0] is dirname(f)

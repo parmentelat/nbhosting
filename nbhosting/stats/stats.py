@@ -9,7 +9,7 @@ from nbhosting.stats.timebuckets import TimeBuckets
 from nbhosting.courses.models import CourseDir
 from nbhosting.main.settings import sitesettings, logger
 
-root = Path(sitesettings.root)
+nbhroot = Path(sitesettings.nbhroot)
 
 # using gmtime in all raw files
 time_format = "%Y-%m-%dT%H:%M:%S"
@@ -135,7 +135,7 @@ class Stats:
 
     def __init__(self, course):
         self.course = course
-        self.course_dir = root / "raw" / self.course
+        self.course_dir = nbhroot / "raw" / self.course
         self.course_dir.mkdir(parents=True, exist_ok=True)
 
     ####################

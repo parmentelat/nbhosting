@@ -35,12 +35,12 @@ log_subprocess_stderr = False
 
 # the location used by the application
 # typically where you have a big fat btrfs filesystem
-root = '/nbhosting'
+nbhroot = '/nbhosting'
     
 # the location where the application is installed
 # i.e. the place where you have git clone'd it before
 # running ./install.sh
-base = '/root/nbhosting'
+srcroot = '/root/nbhosting'
     
 # the domains that are trusted
 # typically the edx platform, as well as your own

@@ -4,14 +4,11 @@
 # expected to run in a repository that is git-updated
 # run as ./install.sh 
 
-# essentially: here
-srcroot=$(pwd -P)
-
 # where all the data lies; may provisions were made in the code to
 # have this configurable (in the django settings)
 # but there might still be other places where it's hard-wired
 # so it's safer to use this for now
-root=/nbhosting
+nbhroot=/nbhosting
 
 function check-subdirs() {
     for subdir in jupyter courses-git logs raw; do
@@ -55,19 +52,20 @@ function update-jupyter() {
 }
 
 function update-uwsgi() {
-    sed -e "s,@DJANGO-ROOT@,$srcroot/nbhosting," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
+    sed -e "s,@srcroot@,$srcroot," \
+        -e "s,@nbhroot@,$nbhroot," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
     rsync $rsopts uwsgi/nbhosting.ini /etc/uwsgi.d/
 }
 
 function update-assets() {
-    local root=/var/nginx/nbhosting
-    mkdir -p $root
-    rsync $rsopts nbhosting/assets/ $root/assets/
-    chown -R nginx:nginx $root/snapshots
+    local assets_root=/var/nginx/nbhosting
+    mkdir -p $assets_root
+    rsync $rsopts nbhosting/assets/ $assets_root/assets/
+    chown -R nginx:nginx $assets_root/snapshots
 }
 
 function update-images() {
-    rsync $rsopts ./images $root/
+    rsync $rsopts ./images $nbhroot/
 }
 
 function update-nginx() {
@@ -76,7 +74,8 @@ function update-nginx() {
     local configs="nginx-https.conf nginx-http.conf"
     local config
     for config in $configs; do
-        sed -e "s,@server_name@,$server_name,g" \
+        sed -e "s,@nbhroot@,$nbhroot," \
+            -e "s,@server_name@,$server_name,g" \
             -e "s,@ssl_certificate@,$ssl_certificate,g" \
             -e "s,@ssl_certificate_key@,$ssl_certificate_key,g" \
             nginx/$config.in > nginx/$config

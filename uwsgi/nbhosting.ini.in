@@ -1,20 +1,49 @@
+# install.sh does a setup.py install
+# which is how we locate the wsgi application thing
+# it is not found relative to the working directory
+# we set cwd to the django app so that ./templates/ makes sense
+
 [uwsgi]
 projectname = nbhosting
-chdir = @DJANGO-ROOT@
-#
+chdir = @srcroot@/nbhosting
+
+# link with python
 module = nbhosting.main.wsgi:application
 plugins = python3
-#
-pidfile = /run/uwsgi.pid
-#
+
+# runtime - link with nginx
 socket = /run/nbhosting.sock
+pidfile = /run/uwsgi.pid
+
+# owners and permissions
 chown-socket = nginx:nginx
 uid = root
 gid = root
 listen.owner = root
 listen.group = root
-#
 
+# operation mode:
+# at first
+# we had turned off master mode, but for a bad reason
+# turns out that running in master mode makes
+# 'systemctl restart nbh-uwsgi' **very slow**
+# which is an impediment in devel mode
+# however
+# this page below makes it very clear that it's a bad idea
+# not to run in master mode
+# https://uwsgi-docs.readthedocs.io/en/latest/Glossary.html?highlight=master
+# it kind of makes sense, when graceful loading is desired, that
+# a complete reload takes time, since there is a lot of
+# "waiting for the current jobs to finish" involved in such
+# graceful reload approaches
+# plus
+# this was probably also the reason behind our first outages,
+# when uwsgi just stopped working after some requests - see below
+# xxx however for now we'll stick on what works in production
+# because too much is going on at the same time
+# master = True
+
+# dimensioning
 # when running in the default mode (i.e. without lazy-apps)
 # our experience is that uwsgi will just stop after
 # (workers * max-requests) requests have been served
@@ -27,7 +56,6 @@ listen.group = root
 workers = 64
 max-requests = 100000
 
-# looks like master mode makes
-# systemctl restart nbh-uwsgi
-# very slow 
-#master=True
+# stats
+# xxx likewise, let's take it one step at a time
+# stats = /tmp/uwsgi-stats.socket

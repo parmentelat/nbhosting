@@ -140,7 +140,7 @@ class MonitoredJupyter:
 
 
     async def co_run(self, grace):
-        root = Path(sitesettings.root)
+        nbhroot = Path(sitesettings.nbhroot)
         # stopped containers are useful only for statistics
         if self.container.status != 'running':
             self.figures.count_container(False)
@@ -243,11 +243,11 @@ class Monitor:
                                  .format(container))
         # ds stands for disk_space
         docker_root = proxy.info()['DockerRootDir']
-        nbhosting_root = sitesettings.root
+        nbhroot = sitesettings.nbhroot
         system_root = "/"
         ds = {}
         for name, root in ( ('docker', docker_root),
-                            ('nbhosting', nbhosting_root),
+                            ('nbhosting', nbhroot),
                             ('system', system_root),
         ):
             ds[name] = {}
