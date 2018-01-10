@@ -28,7 +28,9 @@ from selenium import webdriver
 
 
 # default location where to look for test notebooks
-default_course_gitdir = Path.home() / "git" / "flotpython" 
+default_course_gitdir = Path.home() / "git" / "flotpython3" 
+
+default_topurl = "https://nbhosting-dev.inria.fr/"
 
 # for testing we need a local (git) copy of one of the courses
 def list_notebooks(course_gitdir):
@@ -89,14 +91,18 @@ class Artefact:
         return str(latest)
 
 
-def run(user, course, notebooks, index, delay):
+def run(topurl, user, course, notebooks, index, delay):
     """
     fetch - as this user - 
     notebook indexed by index relative to that course dir
     then perform additional tasks (exec, save, etc..)
     """
     nb = notebooks[index]
-    url = "https://nbhosting.inria.fr/ipythonExercice/{course}/{nb}/{user}"\
+    # be extra-safe
+    if topurl.endswith("/"):
+        topurl = topurl[:-1]
+    
+    url = "{topurl}/ipythonExercice/{course}/{nb}/{user}"\
           .format(**locals())
 
     print("fetching URL {url}".format(url=url))
@@ -146,6 +152,9 @@ def list(notebooks):
 
 def main():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-U", "--url", default=default_topurl,
+                        dest='topurl',
+                        help="url to reach nbhosting server")
     parser.add_argument("-l", "--list", default=False, action='store_true',
                         help="when given, lists known notebooks and does *not* open anything")
     parser.add_argument("-c", "--course-gitdir", default=default_course_gitdir,
@@ -163,7 +172,7 @@ def main():
     if args.list:
         list(notebooks)
     else:
-        run(args.user, course, notebooks, args.index, args.sleep)
+        run(args.topurl, args.user, course, notebooks, args.index, args.sleep)
 
 if __name__ == '__main__':
     main()

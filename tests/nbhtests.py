@@ -14,11 +14,14 @@ import random
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from intsranges import IntsRanges
 
-from nbhtest import list_notebooks, default_course_gitdir
+from nbhtest import list_notebooks, default_course_gitdir, default_topurl
    
 
 def main() -> bool:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-U", "--url", default=default_topurl,
+                        dest='topurl',
+                        help="url to reach nbhosting server")
     parser.add_argument("-c", "--course-gitdir", default=default_course_gitdir,
                         help="""location of a git repo where to fetch notebooks;
                                 needed in order to generate relevant URLs""")
@@ -56,8 +59,8 @@ def main() -> bool:
         else:
             indices = args.indices
         for index in indices:
-            command = "nbhtest.py -c {} -i {} -u {} -s {} &"\
-                      .format(course_gitdir, index, student_name, args.sleep)
+            command = "nbhtest.py -U {} -c {} -i {} -u {} -s {} &"\
+                      .format(args.topurl, course_gitdir, index, student_name, args.sleep)
             if args.dry_run:
                 print("dry-run:", command)
             else:

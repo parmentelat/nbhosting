@@ -85,7 +85,7 @@ function -die() {
 
 
 ########################################
-# admin oriented
+# devel/tests/-oriented
 ########################################
 
 function clear-docker-light() {
@@ -105,45 +105,43 @@ function clear-docker-deep() {
 }
 
 function clear-logs-light() {
-    for file in /var/log/nginx/*.log $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
+    for file in $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo resetting log file $file
 	echo ==================== > $file
     done
 }
 
 function clear-logs() {
-    for file in /var/log/nginx/*.log $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
+    for file in $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
 	echo clearing log file $file
 	rm -f $file
     done
 }
 
-function clear-raw() {
-    echo "Clearing raw data completely"
-    rm -rf /nbhosting/raw
+function list-tests() {
+    echo ==================== dockers
+    docker ps --format {{.Names}} | grep -- '-x-student-'
+    echo ==================== users
+    grep student- /etc/passwd
+    echo ==================== user dirs
+    ls -d /nbhosting/students/student-* 2> /dev/null
 }
 
-function clear-users() {
-    for userdir in $(ls -d /nbhosting/students/* 2>/dev/null); do
+function clear-tests() {
+    for userdir in $(ls -d /nbhosting/students/student-* 2>/dev/null); do
 	user=$(basename $userdir)
+        for coursedir in $(ls -d $userdir/* 2>/dev/null); do
+            course=$(basename $coursedir)
+            docker=${course}-x-${user}
+            echo killing $docker
+            docker kill $docker >& /dev/null
+            echo removing $docker
+            docker rm $docker >& /dev/null
+        done
 	echo deleting user $user
-	nbh-del-student /nbhosting $user
+	del-student $user
     done
 }
-
-function clear() {
-    clear-docker-light
-    clear-docker-deep
-    clear-logs
-#    clear-users
-#    clear-raw
-}
-
-function clear-deep() {
-    clear-raw
-    clear-users
-}    
-
 
 ########################################
 # runtime
