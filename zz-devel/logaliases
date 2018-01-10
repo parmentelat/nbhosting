@@ -46,11 +46,7 @@ function jou-docker()		{ jou -f docker; }
 function jou-all()		{ jou -f nginx docker nbh-uwsgi nbh-monitor; }
 
 ##########
-function logs-nginx() {
-    -logs $(find /var/log -type f | grep nginx | egrep -v '\.(gz|[0-9]+)$')
-}
-
-function logs-nbhosting() {
+function logs-all() {
     -logs $(find /nbhosting/logs -type f)
 }
 
@@ -63,13 +59,25 @@ function -logs() {
     tail -f $logs
 }
 
-function logs-jup() { student=$1; shift; docker logs -f flotbioinfo-x-$student; }
+function logs() {
+    cd /nbhosting/logs
+    echo "current directory is now $(pwd)"
+}
 
+function logs-jup() {
+    local USAGE="Usage: $FUNCNAME course student"
+    [[ -n "$@" ]] || { echo $usage; return 1; }
+    course=$1; shift;
+    [[ -n "$@" ]] || { echo $usage; return 1; }
+    student=$1; shift;
+    [[ -z "$@" ]] || { echo $usage; return 1; }
+    docker logs -f ${course}-x-${student};
+}
 
 ########################################
-[ $(type -t ls) == alias ] && unalias ls
+[ $(type -t ls 2> /dev/null) == alias ] && unalias ls
 
-BTRFS=/homefs/btrfs
+BTRFS=/nbhosting/dockers
 
 alias r="source /tmp/aliases"
 alias cdm="cd /homefs/btrfs/machines"
@@ -80,18 +88,18 @@ alias bv="btrfs subvolume"
 alias bvd="btrfs subvolume delete"
 alias bvl="btrfs subvolume list $BTRFS"
 
-# hybrid
-alias bs="d status-btrfs"
+## hybrid
+#alias bs="d status-btrfs"
 
-########## driver
-alias d=/tmp/nbh
-alias ducm="d update-course-machine"
-alias ds="d spawn-container-in-course-for-student"
-alias de="d enter-spawned-container"
+########## testing the systemd-nspawn thingy
+#alias d=/tmp/nbh
+#alias ducm="d update-course-machine"
+#alias ds="d spawn-container-in-course-for-student"
+#alias de="d enter-spawned-container"
 
 ########## spawn
-alias syp=systemd-nspawn
-
-alias m=machinectl
-alias mk="machinectl kill"
+#alias syp=systemd-nspawn
+#
+#alias m=machinectl
+#alias mk="machinectl kill"
 
