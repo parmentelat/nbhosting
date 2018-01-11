@@ -60,4 +60,9 @@ workers = 64
 max-requests = 100000
 
 # stats
+# thanks to this setting, it is possible to monitor
+# the processes using 
+# uwsgitop /tmp/uwsgi-stats.socket
+# install with
+# pip uwsgitop
 stats = /tmp/uwsgi-stats.socket
