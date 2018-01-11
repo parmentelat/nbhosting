@@ -119,8 +119,8 @@ function clear-logs() {
 }
 
 function list-tests() {
-    echo ==================== dockers
-    docker ps --format {{.Names}} | grep -- '-x-student-'
+    echo ==================== "(all)" dockers
+    docker ps -a --format {{.Names}} | grep -- '-x-student-'
     echo ==================== users
     grep student- /etc/passwd
     echo ==================== user dirs
