@@ -1,3 +1,6 @@
+# helpful resource:, but of great interest:
+# http://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html
+
 # install.sh does a setup.py install
 # which is how we locate the wsgi application thing
 # it is not found relative to the working directory
@@ -26,11 +29,9 @@ listen.owner = root
 listen.group = root
 
 # operation mode:
-# at first
-# we had turned off master mode, but for a bad reason
-# turns out that running in master mode makes
+# we run in master mode, even though it makes
 # 'systemctl restart nbh-uwsgi' **very slow**
-# which is an impediment in devel mode
+# this can be an impediment in devel mode
 # however
 # this page below makes it very clear that it's a bad idea
 # not to run in master mode
@@ -40,23 +41,17 @@ listen.group = root
 # "waiting for the current jobs to finish" involved in such
 # graceful reload approaches
 # plus
-# this was probably also the reason behind our first outages,
-# when uwsgi just stopped working after some requests - see below
-# xxx however for now we'll stick on what works in production
-# because too much is going on at the same time
-# master = True
+# running without that master mode was probably also
+# the reason behind our first outages, when uwsgi just stopped working
+# after a fixed number of requests
+master = True
 
 # dimensioning
-# when running in the default mode (i.e. without lazy-apps)
-# our experience is that uwsgi will just stop after
-# (workers * max-requests) requests have been served
-# and then nginx sits on its own and is left hang out to dry
-# possibly of interest
-# http://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html
-# that in turn suggest to tweak
-# processes = ...
-# the fact is that thurst has 64 cores.
-workers = 64
+# using master mode makes things much simpler, no need to
+# overprovision the number of running requests
+# note: processes and workers are synonym in uwsgi
+
+processes = 128
 max-requests = 100000
 
 # stats
