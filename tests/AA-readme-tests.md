@@ -1,13 +1,21 @@
+# Setup
+
+* one test server (typically nbhosting-dev.inria.fr)
+  * no special requirement more than being installed and ready
+
+* one test box (typically darktek.pl.sophia.inria.fr)
+  * requires selenium - `pip install selenium`
+
 # Preparation
 
 Optional but helpful
 
     root@thermals ~ # nbh list-tests
 
-
 and
 
     root@thermals ~ # nbh clear-tests
+
 
 
 # Typical use
@@ -47,22 +55,31 @@ on the linux worker
     root@darktek ~/git/nbhosting/tests (devel=) # rm -rf artefacts    
 
 
+### check it out
 
-### my first 100-students batch - typical: one notebook per student
+dry run first to check your sitesettings
 
-```
-root@darktek ~/git/nbhosting/tests # ./nbhtests -m -u 1-100
-```
+    ./nbhtests -n
+
+
+### my first 100-students batch - one notebook per student
+
+    root@darktek ~/git/nbhosting/tests # ./nbhtests -m -u 1-100
+
 
 Because we have set `-m`, then **only one** notebook is rando**m**ly picked for each student (among the complete set found in that course); one can add `-i 0-11` if the notebooks are to be selected in a specific, narrower range.
 
-### my first 100-students batch - several notebooks per student
+### several notebooks per student
 
 ```
 root@darktek ~/git/nbhosting/tests # ./nbhtests -i 1-3 -u 1-100
 ```
 
 Using an index range like this **without `-m`** will run these 3 notebooks for each of the 100 students.
+
+### unattended mode
+
+    nohup ./nbhtests -m -u 1-100 -p 10 >& TESTS.log & exit
 
 ### use another course
 

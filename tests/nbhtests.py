@@ -14,7 +14,12 @@ import random
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from intsranges import IntsRanges
 
-from nbhtest import list_notebooks, default_course_gitdir, default_topurl
+from nbhtest import (
+    pause,
+    list_notebooks,
+    default_course_gitdir, default_topurl,
+    default_sleep_internal
+    )
    
 
 def main() -> bool:
@@ -36,7 +41,7 @@ def main() -> bool:
                         help="basename for students name")
     parser.add_argument("-p", "--period", default=20, type=float,
                         help="delay between 2 triggers of nbhtest")
-    parser.add_argument("-s", "--sleep", default=3, type=int,
+    parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
     parser.add_argument("-n", "--dry-run", action='store_true')
     args = parser.parse_args()
@@ -52,7 +57,8 @@ def main() -> bool:
             choices = list(range(len(notebooks)))
 
     overall = True
-    for user in args.users:
+    nb_users = len(args.users)
+    for userid, user in enumerate(args.users):
         student_name = "{}-{:04d}".format(args.base, user)
         if args.random:
             indices = [ random.choice(choices) ]
@@ -67,7 +73,10 @@ def main() -> bool:
                 print("Running command:", command)
                 if subprocess.call(command, shell=True) != 0:
                     overall = False
-                time.sleep(args.period)
+                if userid != nb_users - 1:
+                    pause("inter-run pause", args.period)
+    pause("arbitrarily wait for last run", args.period) 
+    print("nbhtests DONE")
     return overall
 
 
