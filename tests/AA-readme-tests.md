@@ -5,6 +5,7 @@
 
 * one test box (typically darktek.pl.sophia.inria.fr)
   * requires selenium - `pip install selenium`
+  * requires nepi-ng - `pip install asyncssh asynciojobs apssh`
 
 # Preparation
 

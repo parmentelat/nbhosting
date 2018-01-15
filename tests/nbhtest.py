@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3 -u
 
 # NOTE about installing phantomjs
 # I first installed phantomjs from a binary distrib in
@@ -138,12 +138,9 @@ def run(topurl, user, course, notebooks, index, delay):
         #
         pause("about to save", delay, exec_duration)
         begin = time.time()
-        print('before exec')
         driver.execute_script(js_save)
-        print('after exec')
         save_duration = time.time() - begin
         driver.save_screenshot(scr.filename("3save"))
-        print('after save-scr')
         #
         res = Artefact(user, course, index, 'contents')
         with open(res.filename('4contents'), 'w') as out_file:
@@ -158,9 +155,7 @@ def run(topurl, user, course, notebooks, index, delay):
                            "trigger duration: {exec_duration:.2f}\n"
                            "exec duration: {save_duration:.2f}\n"
                            .format(**locals()))
-        print('before quit')
         driver.quit()
-        print('after quit')
     except Exception as e:
         import traceback
         traceback.print_exc()

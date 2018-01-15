@@ -9,10 +9,14 @@ in a single process, so let's keep it simple
 """
 
 import time
-import subprocess
 import random
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from intsranges import IntsRanges
+
+import asyncio
+from asynciojobs import Scheduler, Sequence, Job
+from apssh import LocalNode, SshJob
+from apssh.formatters import TerminalFormatter
 
 from nbhtest import (
     pause,
@@ -56,9 +60,17 @@ def main() -> bool:
         else:
             choices = list(range(len(notebooks)))
 
-    overall = True
-    nb_users = len(args.users)
-    for userid, user in enumerate(args.users):
+
+    local = LocalNode(
+        formatter=TerminalFormatter(
+            format="%H-%M-%S:@line@",
+            verbose=True
+            ))
+
+    scheduler = Scheduler()
+
+    jobs = []
+    for user in args.users:
         student_name = "{}-{:04d}".format(args.base, user)
         if args.random:
             indices = [ random.choice(choices) ]
@@ -70,12 +82,22 @@ def main() -> bool:
             if args.dry_run:
                 print("dry-run:", command)
             else:
-                print("Running command:", command)
-                if subprocess.call(command, shell=True) != 0:
-                    overall = False
-                if userid != nb_users - 1:
-                    pause("inter-run pause", args.period)
-    pause("arbitrarily wait for last run", args.period) 
+                # schule this command to run
+                job = Sequence(
+                    SshJob(scheduler=scheduler,
+                           node=local,
+                           command = command,
+                    ),
+                    Job(asyncio.sleep(args.period))
+                )
+                jobs.append(job)
+
+    if args.dry_run:
+        return True
+
+    overall = scheduler.orchestrate()
+    if not overall:
+        scheduler.debrief()
     print("nbhtests DONE")
     return overall
 
