@@ -25,6 +25,7 @@ from nbhtest import (
     default_sleep_internal
     )
    
+default_window = 5
 
 def main() -> bool:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
@@ -47,6 +48,8 @@ def main() -> bool:
                         help="delay between 2 triggers of nbhtest")
     parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
+    parser.add_argument("-w", "--window", default=default_window, type=int,
+                        help="window depth for spawning the nbhtest instances")
     parser.add_argument("-n", "--dry-run", action='store_true')
     args = parser.parse_args()
 
@@ -95,7 +98,9 @@ def main() -> bool:
     if args.dry_run:
         return True
 
-    overall = scheduler.orchestrate()
+    overall = scheduler.orchestrate(
+        jobs_window = args.window
+    )
     if not overall:
         scheduler.debrief()
     print("nbhtests DONE")
