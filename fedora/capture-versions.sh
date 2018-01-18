@@ -2,6 +2,10 @@
 
 set -x
 
+cat /etc/fedora-release
+
+uname -a
+
 ##### core pieces
 rpm -q docker nginx uwsgi
 
