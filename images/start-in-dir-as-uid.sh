@@ -57,8 +57,8 @@ cd $dir
 # so instead we spot the files that are on the same filesystem
 echo ======================================== checking for permissions in $dir
 find . -mount | xargs chown $uid
-echo after chwown
-find . -mount | xargs ls -ld
+#echo after chwown
+#find . -mount | xargs ls -ld
 
 ##########
 # use runuser, that will pass the environment as-is
