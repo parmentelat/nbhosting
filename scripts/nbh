@@ -1051,6 +1051,43 @@ function course-clear-staff() {
     done
 }
 
+
+#
+# once a course is over it is safe to remove all containers
+# attached to that course
+#
+# NOTES:
+# * because dockerd handles one request at a time
+# and so effectively sequentialize all these destruction requests
+# this is likely to take hours or even days..
+# * also the may to locate containers is based on the course name
+# in a somewhat inclusive way; it can be a bit inaccurate if I
+# have for instance 2 courses python and thepython
+# but only stopped containers will be removed
+# so it is not too big a deal
+
+@declare-subcommand course-clean-containers
+function course-clean-containers() {
+    local USAGE="Usage: $FUNCNAME course"
+    [ "$#" -eq 1 ] || -die $USAGE
+
+    local course=$1; shift
+    pattern="${course}-x-"
+    while true; do
+        focus=$(docker ps -a \
+                --filter 'status=exited' \
+                --filter "name=$pattern" \
+                --format '{{.Names}}' \
+              | head -1)
+        # we're done
+        [ -z "$focus" ] && break
+        # otherwise remove it
+        #echo $FUNCNAME removing container $focus 
+        docker rm $focus
+    done    
+}    
+
+
 @declare-subcommand list-courses
 function list-courses() {
     local USAGE="Usage: $FUNCNAME"
