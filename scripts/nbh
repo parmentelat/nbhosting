@@ -104,6 +104,22 @@ function clear-docker-rm() {
     done
 }
 
+# we assume students hashes are 32 chars long
+function clear-etc-passwd() {
+    users=$(egrep '[0-9a-f]{32}' /etc/passwd | awk -F: '{print $1;}')
+    for user in $users; do
+        del-student $user
+    done
+}
+
+# run on the box that is about to become the production box
+function prepare-swap() {
+    clear-docker-kill
+    clear-docker-rm
+    clear-etc-passwd
+}
+
+##
 function list-tests() {
     echo ==================== "(all)" dockers
     docker ps -a --format {{.Names}} | grep -- '-x-student-'
@@ -545,15 +561,27 @@ function add-student-in-course() {
 
     STUDENT_home=$NBHROOT/students/$student
 
+    # when swapping back and forth between dev and prod
+    # we may have a home dir already created  - by rsyncing data
+    # during the swap - while the user in question is not yet known
+    # in /etc/passwd; this is why we manage homedir creation explicitly
+    #
+    [ -d $STUDENT_home ] || {
+        mkdir $STUDENT_home
+    }
+    
     # check login existence
     getent passwd $student >& /dev/null || {
 	-echo-stderr Creating disabled login $student
-	useradd --user-group --create-home --home-dir $STUDENT_home $student
+	useradd --user-group --no-create-home --home-dir $STUDENT_home $student
 	# disable login
 	usermod -L $student
     }
 
-    # add user to both groups 
+    # always chown that homedir for safety
+    chown -R $student:$student $STUDENT_home
+
+    # add user to both groups docker and course
     for group in docker $course; do 
 	# check group existence
 	getent group $group >& /dev/null || {
