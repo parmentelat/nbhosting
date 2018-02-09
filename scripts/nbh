@@ -88,7 +88,7 @@ function -die() {
 # devel/tests/-oriented
 ########################################
 
-function clear-docker-light() {
+function clear-docker-kill() {
     containers=$(docker ps --format '{{.Names}}')
     for c in $containers; do
 	echo "Killing $c"
@@ -96,25 +96,11 @@ function clear-docker-light() {
     done
 }
 
-function clear-docker-deep() {
+function clear-docker-rm() {
     containers=$(docker ps -a --format '{{.Names}}')
     for c in $containers; do
 	echo "Removing $c"
 	docker rm $c
-    done
-}
-
-function clear-logs-light() {
-    for file in $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
-	echo resetting log file $file
-	echo ==================== > $file
-    done
-}
-
-function clear-logs() {
-    for file in $(find /nbhosting/logs -name '*.log' 2> /dev/null); do
-	echo clearing log file $file
-	rm -f $file
     done
 }
 
