@@ -108,6 +108,7 @@ function clear-docker-rm() {
 function clear-etc-passwd() {
     users=$(egrep '[0-9a-f]{32}' /etc/passwd | awk -F: '{print $1;}')
     for user in $users; do
+        echo "Removing user $user from /etc/passwd"
         del-student $user
     done
 }
@@ -117,6 +118,7 @@ function prepare-swap() {
     clear-docker-kill
     clear-docker-rm
     clear-etc-passwd
+    echo "WARNING: this script does not take care of the courses area"
 }
 
 ##
