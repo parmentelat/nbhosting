@@ -132,7 +132,7 @@ function call-subcommand() {
     case $(type -t -- $fun) in
 	function)
 	    shift ;;
-	*)  -die "$fun not a valid subcommand; pick among the following:" ;;
+	*)  -die "$fun not a valid subcommand - use either swap-ip / swap-ssl / pull-students" ;;
     esac
     # call subcommand
     $fun "$@"
