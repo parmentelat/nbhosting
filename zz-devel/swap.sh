@@ -71,19 +71,19 @@ function swap-ssl() {
     if [ "$mode" == "become-production" ]; then
         sed -i.swapped \
             -e 's,^server_name *=.*,server_name = "nbhosting.inria.fr",' \
-            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate/bundle.crt",'
+            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate/bundle.crt",' \
             -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key",' \
             sitesettings.py
     else
         sed -i.swapped \
             -e 's,^server_name *=.*,server_name = "nbhosting-dev.inria.fr",' \
-            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate-dev/bundle.crt",'
+            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate-dev/bundle.crt",' \
             -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate-dev/nbhosting-dev.inria.fr.key",' \
             sitesettings.py
     fi
 
-    cd /root/nbhosting
-    ./install.sh
+#    cd /root/nbhosting
+#    ./install.sh
 }
 
 function pull-students() {
