@@ -29,9 +29,11 @@ It will trigger on a cyclic basis - typically 15 minutes, and will
 * also writes into stats/<course>/counts.raw one line with the numbers
   of jupyter instances (running and frozen), and number of running kernels
 
-Also note that
-* the notion of 'recent' activity takes advantage of a feature introduced
-  in jupyter5, where the /api/kernels/ call returns for each kernel its last activity
+Also note that 
+
+* the notion of 'recent' activity takes advantage of a feature
+  introduced in jupyter5, where the /api/kernels/ call returns for
+  each kernel its last activity
 
 """
 
@@ -90,6 +92,43 @@ class MonitoredJupyter:
                          .format(self, e, type(e)))
             return 0
 
+    def last_time(self, kernel_data):
+        """
+        expects as input the data returned by /api/kernels
+        for one kernel, that is to say e.g.:
+        {'connections': 1,
+         'execution_state': 'idle',
+         'id': '15be5b4c-b5f2-46f0-9a9b-ff54f4495cb4',
+         'last_activity': '2018-02-19T12:58:25.204761Z',
+         'name': 'python3'}
+
+        returns a comparable time (using max) that this kernel
+        has been doing something
+        
+        Notes:
+        * cases where connections = 0 should not be disregarded
+          it is important to keep those alive, it does not indicate
+          a lack of activity
+        * last_activity format: we found some items where the milliseconds
+          part was simply not present (at all, i.e. not exposed as .0 or anything)
+        * if anything goes wrong, it's best to return a timestamp that means 'now'
+          rather than the epoch
+        """
+        try:
+            last = kernel_data['last_activity']
+            # normalize
+            last = last.replace('Z', 'UTC')
+            struct_time = None
+            # try 2 formats
+            try:
+                struct_time = time.strptime(last, "%Y-%m-%dT%H:%M:%S.%f%Z")
+            except:
+                struct_time = time.strptime(last, "%Y-%m-%dT%H:%M:%S%Z")
+            return calendar.timegm(struct_time)
+        except Exception as e:
+            logger.error(f"MonitoredJupyter.last_time - fatal error {type(e)} - {e}")
+            return time.time()
+
     async def count_running_kernels(self):
         """
         updates:
@@ -109,29 +148,11 @@ class MonitoredJupyter:
             api_kernels = json.loads(json_str)
             self.nb_kernels = len(api_kernels)
 
-            # note: jupyter 4 would not return this field
-            lasts = [
-                api_kernel.get('last_activity', None)
-                for api_kernel in api_kernels ]
-            # filter out the ones that don't have it
-            lasts = [last for last in lasts if last]
-            # all kernels should have the flag
-            if len(lasts) != self.nb_kernels:
-                logger.error("found {} last activities for {} kernels\n"
-                             "are you using jupyter <= 4 ?\n"
-                             "containers can't be properly cleaned up.."
-                             .format(len(lasts), self.nb_kernels))
-                self.last_activity = None
-                return
-            # compute overall last activity across kernels
-            times = [
-                calendar.timegm(
-                    time.strptime(last.replace('Z', 'UTC'),
-                                  "%Y-%m-%dT%H:%M:%S.%f%Z"))
-                for last in lasts
+            last_times = [
+                self.last_time(api_kernel) for api_kernel in api_kernels
             ]
             # if times is empty (no kernel): no activity
-            self.last_activity = max(times, default=0)
+            self.last_activity = max(last_times, default=0)
                 
         except Exception as e:
             logger.exception("Cannot probe number of kernels in {} - {}: {}"
