@@ -1104,6 +1104,30 @@ function course-clean-containers() {
 }    
 
 
+@declare-subcommand course-list-kernels
+function course-list-kernels() {
+    local USAGE="Usage: $FUNCNAME course [containers]"
+    [ "$#" -ge 1 ] || -die $USAGE
+
+    local course=$1; shift
+
+    containers="$@"
+    if [[ -z "$containers" ]]; then
+        pattern="${course}-x-"
+        containers=$(docker ps \
+                            --filter "name=$pattern" \
+                            --format '{{.Names}}')
+    fi
+    for container in $containers; do
+        port=$(docker port $container | cut -d: -f2)
+        echo ========== $container;  
+        curl -k --silent http://localhost:$port/api/kernels?token=$container | \
+            python3 -c "import sys, pprint, json; pprint.pprint(json.loads(sys.stdin.read()))"
+    done
+}   
+
+####################
+
 @declare-subcommand list-courses
 function list-courses() {
     local USAGE="Usage: $FUNCNAME"
