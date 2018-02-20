@@ -90,9 +90,9 @@ function update-nginx() {
 }
     
 function restart-services() {
+    systemctl restart nbh-monitor
     systemctl restart nginx
     systemctl restart nbh-uwsgi
-    systemctl restart nbh-monitor
 }
 
 function enable-services() {
