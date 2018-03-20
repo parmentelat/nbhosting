@@ -1,0 +1,9 @@
+need to upgrade the 4 systemd services on both thurst and thermals to implement a new strategy to swap IPs
+this new strategy should takes only seconds instead of currently minutes
+
+not sure exactly how the 4 scripts were created in the first place, they don't seem to be under git
+they should be though
+
+new script to mimick is on Inria production network in
+/net/servers/fedora/27/systemd/xxx-addr.service
+
