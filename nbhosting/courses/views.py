@@ -11,21 +11,21 @@ from nbhosting.courses.models import CoursesDir, CourseDir
 # Create your views here.
 
 
-def stdout_html(message, stdout):
-    html = ""
-    if stdout:
-        html += "<p class='stdout'>OUTPUT {message}</p>".format(
-            message=message)
-        html += "<pre>\n{stdout}</pre>".format(stdout=stdout)
-    return html
-
-
-def stderr_html(message, stderr):
-    html = ""
-    if stderr:
-        html += "<p class='stderr'>ERROR {message}</p>".format(message=message)
-        html += "<pre>\n{stderr}</pre>".format(stderr=stderr)
-    return html
+#def stdout_html(message, stdout):
+#    html = ""
+#    if stdout:
+#        html += "<p class='stdout'>OUTPUT {message}</p>".format(
+#            message=message)
+#        html += "<pre>\n{stdout}</pre>".format(stdout=stdout)
+#    return html
+#
+#
+#def stderr_html(message, stderr):
+#    html = ""
+#    if stderr:
+#        html += "<p class='stderr'>ERROR {message}</p>".format(message=message)
+#        html += "<pre>\n{stderr}</pre>".format(stderr=stderr)
+#    return html
 
 
 @login_required
@@ -51,7 +51,7 @@ def list_course(request, course):
     shorten_staff = [hash[:7] for hash in course_dir.staff]
 
     env = {
-        'how_many': len(notebooks),        
+        'how_many': len(notebooks),
         'image': course_dir.image,
         'statics': course_dir.statics,
         'staff': shorten_staff,
@@ -80,8 +80,8 @@ def nbh_manage(request, course, verb, managed):
     # the html title
     template = "course-managed.html"
     return render(request, template, env)
-        
-        
+
+
 @login_required
 @csrf_protect
 def update_from_git(request, course):
