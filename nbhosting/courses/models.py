@@ -70,17 +70,27 @@ class CourseDir:
             traceback.print_exc()
             return
 
-    def _run_nbh(self, subcommand, *args):
+    def _run_nbh(self, subcommand, *args, **run_args):
         """
         return an instance of subprocess.CompletedProcess
+
+        Parameters:
+          args: additional arguments to subcommand
+          run_args: additional arguments to subprocess.run(); typically
+            *encoding="utf-8"* is useful when text output is expected
+
         """
         command = [ 'nbh', subcommand, self.coursename] + list(args)
         return subprocess.run(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            **run_args)
 
-    def update_from_git(self): return self._run_nbh("course-update-from-git")
-    def build_image(self): return self._run_nbh("course-build-image")
-    def clear_staff(self): return self._run_nbh("course-clear-staff")
+    def update_from_git(self):
+        return self._run_nbh("course-update-from-git", encoding="utf-8")
+    def build_image(self):
+        return self._run_nbh("course-build-image", encoding="utf-8")
+    def clear_staff(self):
+        return self._run_nbh("course-clear-staff", encoding="utf-8")
 
     def student_homes(self):
         """
