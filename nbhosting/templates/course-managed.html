@@ -19,31 +19,30 @@ Course {{course}} {{managed}}
 
 
 <h1 class='page-header'>Status</h1>
+
+<div class="code code-{%if returncode == 0%}ok{%else%}ko{%endif%}">
 Command <code>{{command}}</code> returned
-{% if returcode == 0 %}
+{% if returncode == 0 %}
 OK
 {% else %}
 {{ returncode }}
 {% endif %}
+</div>
 
-
-{% if stdout %}
-<h1 class='page-header'>stdout</h1>
-<code>
-<pre>
-{{stdout}}
-</pre>
-</code>
-{% endif %}
+<h1 class="page-header"><code>stdout</code></h1>
+<div class="code code-{%if returncode == 0%}ok{%else%}ko{%endif%}">
+{%if not stdout%}
+No stdout
+{%else%}
+<pre><code>{{stdout}}</code></pre>
+{%endif%}
+</div>
 
 {% if stderr %}
-<h1 class='page-header'>stderr</h1>
-<code>
-<pre>
-{{stderr}}
-</pre>
-</code>
+<h1 class="page-header"><code>stderr</code></h1>
+<div class="code code-{%if returncode == 0%}ok{%else%}ko{%endif%}">
+<pre><code>{{stderr}}</code></pre>
+</div>
 {% endif %}
 
 {% endblock %}
-
