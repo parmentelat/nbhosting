@@ -29,6 +29,25 @@ Here's what a student would see;
 
 ******
 
+# How does it work ?
+
+In a nushell:
+
+* the first time a student tries to open a notebook, nbhosting transparently creates her an account, together with a docker container;
+* the first time a student opens a given notebook, this notebook is **copied** from the master course contents (more on this below) **into her container**; from that point on, her work for that notebook is independant from the master course
+* containers are automatically stopped (i.e. frozen) when the student is inactive, to preserve computing resources; as a consequence, a student may have to wait 5 to 10 seconds when she shows up the first time or after idle time.
+
+2 Additional features allow a student to:
+
+* **Reset to Original**: copy again the master course into her container -
+  **beware* that she will then lose her work on that notebook of course.
+* **Share Static Version**: create a read-only snapshot of her notebook, that
+  can then be used to share her work in the course's forum.
+
+![](docs/nbhosting-extras.png)
+
+******
+
 # Miscellaneous
 
 ## Enabling `New ipython notebook`
@@ -71,6 +90,13 @@ Statistics are available, for visually inspecting data like:
 * computing resources like created/active containers, disk space, CPU load...
 
 ![](docs/nbhosting-stats.png)
+
+## Staff
+
+You can declare some people as being staff; this is used by nbhosting only for
+discarding accesses done by these people, when putting stats together. A convenience button also allows to trash all the working files for people declared as staff, which can come in handy to be sure that staff people always see the latest pushed version.
+
+For declaring somebody as staff, you need to somehow locate that person's hash, as exposed by edx.
 
 
 ******
