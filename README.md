@@ -44,7 +44,7 @@ In a nushell:
 * **Share Static Version**: create a read-only snapshot of her notebook, that
   can then be used to share her work in the course's forum.
 
-![](docs/nbhosting-extras.png)
+![](docs/edx-extras.png)
 
 ******
 
@@ -81,6 +81,11 @@ the upgrade.
 
 ![](docs/nbhosting-rebuild-image.png)
 
+##  Notebook metadata
+
+Each notebook is displayed with a label and version number; like e.g. on the example above ![](docs/edx-metadata.png). For tweaking that, use your notebook's metadata and set these two items:
+
+![](docs/jupyter-metadata.png)
 
 ## Statistics
 
