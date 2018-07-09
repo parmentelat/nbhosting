@@ -21,7 +21,7 @@
 #
 #
 # NOTES about systemd-nspawn:
-# 
+#
 # (*) there remains in here some leftovers of a rough attempt
 #     that I made at using systemd-nspawn as a replacement to docker
 #     this was never finished, although we were probably close
@@ -65,7 +65,7 @@ timeout_wait_for_http="20 1 3"
 # implementation note
 #  don't do set -e, as it may cause the program to exit abruptly
 # and we need to make sure we output exactly one line with 4 tokens
-    
+
 ########## for listing available subcommands
 SUBCOMMANDS=""
 function @declare-subcommand() {
@@ -156,7 +156,7 @@ function -mkdir-for-file-as-student () {
     [ "$#" -eq 2 ] || -die $FUNCNAME requires 2 args
     local filename=$1; shift
     local login=$1; shift
-    
+
     local dir=$(dirname $filename)
     [ -d $dir ] || {
 	-echo-stderr ID=$(id)
@@ -172,7 +172,7 @@ function -create-symlink-at-file () {
     [ "$#" -eq 2 ] || -die $FUNCNAME requires 2 args
     local filename=$1; shift
     local destination=$1; shift
-    
+
     local dir=$(dirname $filename)
     local destname=$(basename $destination)
     # the symlink should
@@ -185,7 +185,7 @@ function -create-symlink-at-file () {
 }
 
 
-############################## admin 
+############################## admin
 function list-tree() {
     find $NBHROOT -type d | fgrep -v '/.git/'
 }
@@ -242,7 +242,7 @@ function -compute-course-globals() {
     COURSE_static=$NBHROOT/static/$course
     COURSE_jupyter=$NBHROOT/jupyter/$course
     COURSE_raw=$NBHROOT/raw/$course
-    
+
     COURSE_logs=$NBHROOT/logs/$course
 
 #    # for systemd-nspawn
@@ -251,22 +251,22 @@ function -compute-course-globals() {
     COURSE_data=$NBHROOT/static/$course/data
     COURSE_media=$NBHROOT/static/$course/media
     COURSE_build=$NBHROOT/images/$course
-    
+
     # read settings files
-    COURSE_statics=$(cat $COURSE_staticsfile)
-    COURSE_image=$(cat $COURSE_imagefile)
-    COURSE_giturl=$(cat $COURSE_giturlfile)
+    COURSE_statics=$(cat $COURSE_staticsfile 2> /dev/null)
+    COURSE_image=$(cat $COURSE_imagefile 2> /dev/null)
+    COURSE_giturl=$(cat $COURSE_giturlfile 2> /dev/null)
 }
-    
+
 
 # clone from upstream git repo
 # and updates the various parts accordingly
 
 @declare-subcommand course-init
 function course-init() {
-    local USAGE="Usage: $COMMAND $FUNCNAME course giturl" 
+    local USAGE="Usage: $COMMAND $FUNCNAME course giturl"
     [ "$#" -eq 2 ] || -die $USAGE
-    
+
     local course=$1; shift
     local giturl=$1; shift
 
@@ -276,7 +276,7 @@ function course-init() {
 
     function -course-init() {
 	[ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
-	
+
 	echo ==========  $(date): course-init from $giturl
 	local courses_git_parent=$(dirname $COURSE_git)
 	mkdir -p $courses_git_parent
@@ -284,7 +284,7 @@ function course-init() {
 	echo In $(pwd) : running git clone $giturl $course
 	git clone $giturl $course
     }
-    
+
     [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
     -course-init >> $log 2>&1
     # run these automatically to avoid various frustrations
@@ -313,7 +313,7 @@ function course-settings() {
       -i : specify the docker image to use for that course
       -s : (cumulative) add a static dir - defaults to ${default_statics}
       -a : (cumulative) add staff hash - staff members are ignored in stats
-" 
+"
 
     local image=""
     local statics=""
@@ -325,11 +325,11 @@ function course-settings() {
             a) staff="$staff $OPTARG" ;;
 	    ?) -die "$USAGE" ;;
 	esac
-    done	
+    done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
-    
+
     [ "$#" -eq 1 ] || -die $USAGE
 
     course=$1; shift
@@ -377,7 +377,7 @@ function course-settings() {
     fi
 
 }
-    
+
 
 ##########
 # pull from upstream git repo
@@ -387,7 +387,7 @@ function course-settings() {
 ###
 @declare-subcommand course-update-from-git
 function course-update-from-git() {
-    local USAGE="Usage: $COMMAND $FUNCNAME course" 
+    local USAGE="Usage: $COMMAND $FUNCNAME course"
 
     [ "$#" -eq 1 ] || -die $USAGE
 
@@ -401,7 +401,7 @@ function course-update-from-git() {
 
     # check the course is known
     [ -d $COURSE_git ] || -die "Cannot find git repo $COURSE_git"
-    # initialize 
+    # initialize
     [ -d $COURSE_notebooks ] || {
 	echo Creating notebooks dir $COURSE_notebooks
 	mkdir -p $COURSE_notebooks
@@ -426,7 +426,7 @@ function course-update-from-git() {
 	# might not be exactly needed anymore if we use subtrees instead
 	git submodule init
 	git submodule update
-	
+
         echo "========== housekeeping"
 	# create course dirs if needed
 	for dir in $COURSE_notebooks $COURSE_modules $COURSE_data $COURSE_media $COURSE_raw; do
@@ -460,13 +460,13 @@ function course-build-image() {
     local USAGE="Usage: $COMMAND $FUNCNAME course
 this command will
 . locate a dockerfile, either in the course git repo, or under images/ in nbhosting
-. (re)build the course docker image based on that 
+. (re)build the course docker image based on that
 "
 
     [ "$#" -eq 0 ] && -die $USAGE
     local course="$1"; shift
     [ "$#" -eq 0 ] || -die $USAGE
-        
+
     -compute-course-globals $course
 
     mkdir -p $COURSE_build
@@ -495,7 +495,7 @@ this command will
     echo "Installing start-in-dir-as-uid.sh in ${COURSE_build}"
     cp $NBHROOT/images/start-in-dir-as-uid.sh ${COURSE_build}
     docker build -f nbhosting.Dockerfile -t $COURSE_image .
-    
+
 }
 
 ####################
@@ -512,7 +512,7 @@ function -check-course() {
 # * the copy into a course-dependant location
 #   looks extraneous but it might come in handy some day
 # * finally this layout is painfully confusing..
-# 
+#
 function -check-course-jupyter() {
     local USAGE="Usage: $COMMAND $FUNCNAME course"
     [ "$#" -eq 1 ] || -die $USAGE
@@ -548,7 +548,7 @@ function -compute-student-globals-in-course () {
 
 @declare-subcommand add-student-in-course
 function add-student-in-course() {
-    local USAGE="Usage: $COMMAND $FUNCNAME student course" 
+    local USAGE="Usage: $COMMAND $FUNCNAME student course"
     [ "$#" -eq 2 ] || -die $USAGE
 
     # typically of the form <course>-nnnnn
@@ -571,7 +571,7 @@ function add-student-in-course() {
     [ -d $STUDENT_home ] || {
         mkdir $STUDENT_home
     }
-    
+
     # check login existence
     getent passwd $student >& /dev/null || {
 	-echo-stderr Creating disabled login $student
@@ -584,7 +584,7 @@ function add-student-in-course() {
     chown -R $student:$student $STUDENT_home
 
     # add user to both groups docker and course
-    for group in docker $course; do 
+    for group in docker $course; do
 	# check group existence
 	getent group $group >& /dev/null || {
 	    -echo-stderr Creating group $group
@@ -627,11 +627,11 @@ function check-student-notebook-for-course() {
 	    f) forcecopy="-f" ;;
 	    ?) -die "$USAGE" ;;
 	esac
-    done	
+    done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
-    
+
     [ "$#" -eq 3 ] || -die $USAGE
     student=$1; shift
     notebook=$1; shift
@@ -644,7 +644,7 @@ function check-student-notebook-for-course() {
 
     local course_notebook=$COURSE_notebooks/$notebook
     local student_notebook=$STUDENT_course/$notebook
-    
+
     -compute-student-globals-in-course $student $course
     # copy if student notebook is missing, or if force is requested
     if [ ! -f $student_notebook ] || [ -n "$forcecopy" ]; then
@@ -676,7 +676,7 @@ function create-docker-container-for-student-in-course() {
     local USAGE="Usage: $COMMAND $FUNCNAME container student course"
 
     [ "$#" -eq 3 ] || -die "$USAGE"
-    
+
     # container name - if it exists then nothing happens here
     local container=$1; shift
     # student name aka student - should exist as /nbhosting/students/$student
@@ -687,7 +687,7 @@ function create-docker-container-for-student-in-course() {
 
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
-    
+
     # rain check
     [ -d $STUDENT_home ] || -die student dir not found $STUDENT_home
     [ -d $COURSE_nbroot ] || -die course notebooks dir not found $COURSE_nbroot
@@ -746,7 +746,7 @@ function create-docker-container-for-student-in-course() {
 	#
 	# compute student uid
 	STUDENT_uid=$(id -u $student)
-	
+
 	command="docker create --name $container
 	         -p 8888
 	         --user root
@@ -763,10 +763,10 @@ function create-docker-container-for-student-in-course() {
 	# below
 	command="$command
 	         -e PYTHONPATH=/home/jovyan/modules
-	         $COURSE_image 
+	         $COURSE_image
 	         start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
 	         jupyter notebook
-	         --no-browser 
+	         --no-browser
 		 --NotebookApp.notebook_dir=/home/jovyan/work
 	         --NotebookApp.token=$jupyter_token
 
@@ -774,7 +774,7 @@ function create-docker-container-for-student-in-course() {
 	[ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
 	# show command for manual debugging
 	-echo-stderr XXXXXXXXXX $command
-	# we need a clean stdout : redirect stdout to stderr 
+	# we need a clean stdout : redirect stdout to stderr
 	>&2 $command
     fi
 
@@ -865,7 +865,7 @@ function start-docker-container() {
     [ "$#" -eq 1 ] || -die $USAGE
 
     local container="$1"; shift
-    
+
     [ -n "$DEBUG" ] && set -x
 
     # touch a file in the student's course dir
@@ -888,7 +888,7 @@ function start-docker-container() {
     running=$(docker inspect -f "{{.State.Running}}" $container)
     # refine action if this container was not just created
     action=$([ "$running" == true ] && echo running || echo restarted)
-    
+
     # actually restart if needed
     if [ "$running" != "true" ]; then
 	-echo-stderr Starting container $container
@@ -921,7 +921,7 @@ function start-docker-container() {
 
 # wrapper - single entry point to edxfront.views
 # possible values for returned action
-# 
+#
 @declare-subcommand docker-view-student-course-notebook
 function docker-view-student-course-notebook() {
     local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course notebook"
@@ -932,11 +932,11 @@ function docker-view-student-course-notebook() {
 	    f) forcecopy="-f" ;;
 	    ?) -die "$USAGE" ;;
 	esac
-    done	
+    done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
-    
+
     [ "$#" -eq 3 ] || -die $USAGE
     local student=$1; shift
     local course=$1; shift
@@ -947,7 +947,7 @@ function docker-view-student-course-notebook() {
     # update jupyter_notebook_config.py and the 2 custom files
     -check-course-jupyter $course
 
-    ## in case the student is not known yet 
+    ## in case the student is not known yet
     add-student-in-course $student $course
 
     ## create the student notebook if not there yet
@@ -1000,14 +1000,14 @@ function docker-share-student-course-notebook-in-hash() {
     -compute-student-globals-in-course $student $course
 
     [ -n "$DEBUG" ] && set -x
-    
-    # host side - 
+
+    # host side -
     local host_notebook=$STUDENT_course/$notebook
     [ -f $host_notebook ] || -die "Student notebook not found in $host_notebook"
 
-    # container side - 
+    # container side -
     local guest_notebook="work/$notebook"
-    
+
     # input here refers to the container
     local container_command="jupyter nbconvert --to html  --stdout $guest_notebook"
 
@@ -1033,7 +1033,7 @@ function enter-docker-container() {
 
     docker exec -ti $container /bin/bash
 }
-    
+
 #
 # this will destroy any notebook in the workspace
 # of any student declared as a staff member
@@ -1042,7 +1042,7 @@ function enter-docker-container() {
 # due to past activity; for example, imagine a notebook
 # is renamed in git but there is a dangling reference in
 # edx to the old name
-# 
+#
 @declare-subcommand course-clear-staff
 function course-clear-staff() {
     local USAGE="Usage: $FUNCNAME course"
@@ -1050,7 +1050,7 @@ function course-clear-staff() {
 
     local course=$1; shift
     -compute-course-globals $course
-    # 'student' is used by FUN's studio 
+    # 'student' is used by FUN's studio
     staffs="student $(cat $COURSE_stafffile)"
     for staff in $staffs; do
         -compute-student-globals-in-course $staff $course
@@ -1098,10 +1098,10 @@ function course-clean-containers() {
         # we're done
         [ -z "$focus" ] && break
         # otherwise remove it
-        #echo $FUNCNAME removing container $focus 
+        #echo $FUNCNAME removing container $focus
         docker rm $focus
-    done    
-}    
+    done
+}
 
 
 @declare-subcommand course-list-kernels
@@ -1120,11 +1120,11 @@ function course-list-kernels() {
     fi
     for container in $containers; do
         port=$(docker port $container | cut -d: -f2)
-        echo ========== $container;  
+        echo ========== $container;
         curl -k --silent http://localhost:$port/api/kernels?token=$container | \
             python3 -c "import sys, pprint, json; pprint.pprint(json.loads(sys.stdin.read()))"
     done
-}   
+}
 
 ####################
 
@@ -1136,7 +1136,73 @@ function list-courses() {
     cd $NBHROOT/courses
     ls
 }
-    
+
+
+####################
+function -rename-dir() {
+    local oldname=$1; shift
+    local newname=$1; shift
+    [ -d $oldname ] || echo "SOURCE $oldname NOT FOUND"
+    [ -d $newname ] && echo "DEST $newname FOUND"
+    mv $oldname $newname
+}
+
+@declare-subcommand course-rename
+function course-rename() {
+    local USAGE="Usage: $FUNCNAME oldname newname"
+    [ "$#" -eq 2 ] || -die $USAGE
+
+    local old_course=$1; shift
+    local new_course=$1; shift
+
+    -compute-course-globals $old_course
+    local old_git=$COURSE_git
+    local old_notebooks=$COURSE_notebooks
+    local old_modules=$COURSE_modules
+    local old_static=$COURSE_static
+    local old_jupyter=$COURSE_jupyter
+    local old_raw=$COURSE_raw
+    local old_logs=$COURSE_logs
+    local old_build=$COURSE_build
+
+    -compute-course-globals $new_course
+    local new_git=$COURSE_git
+    local new_notebooks=$COURSE_notebooks
+    local new_modules=$COURSE_modules
+    local new_static=$COURSE_static
+    local new_jupyter=$COURSE_jupyter
+    local new_raw=$COURSE_raw
+    local new_logs=$COURSE_logs
+    local new_build=$COURSE_build
+
+    # check old_course is a known course
+    [ -d $old_git ] || -die "Unknown course ${old_course}"
+    # check new_course is not a known course
+    [ -d $new_git ] && -die "Already existing course ${new_course}"
+
+    # check all containers are down
+    echo "Checking for remaining containers"
+    local alive=$(docker ps -a --format '{{.Names}}' | grep "^${old_course}-x" | wc -l)
+    if [ $alive != 0 ]; then
+        local message="Found $alive containers for $old_course"
+        message="$message - Delete with nbh course-clean-containers"
+        -die $message
+    fi
+    -rename-dir $old_git $new_git
+    -rename-dir $old_notebooks $new_notebooks
+    -rename-dir $old_modules $new_modules
+    -rename-dir $old_static $new_static
+    -rename-dir $old_jupyter $new_jupyter
+    -rename-dir $old_raw $new_raw
+    -rename-dir $old_logs $new_logs
+    -rename-dir $old_build $new_build
+
+    for student_dir in $(echo $NBHROOT/students/*/$old_course); do
+        local new_dir=$(sed -e "s,$old_course,$new_course," <<< $student_dir)
+        -rename-dir $student_dir $new_dir
+    done
+
+}
 
 ##############################
 # systemd-nspawn tentative code - not finished
@@ -1170,11 +1236,11 @@ function update-course-image-from-docker-to-spawn() {
     local dummy=$(docker create $course)
     docker export $dummy | tar -C $unwrap -xf -
     docker rm $dummy
-    
+
     #### stage2 : rsync into actual live image
     [ -d $reference ] || mkdir $reference
     (echo ========== $(date); rsync -rltpo --delete -i $unwrap/ $reference/) >> $log
-    
+
 }
 
 ####################
@@ -1203,9 +1269,9 @@ function -compute-container-globals() {
 ## don't expose as it's not operational
 ##@declare-subcommand spawn-container-in-course-for-student
 #function spawn-container-in-course-for-student() {
-#    local USAGE="Usage: $COMMAND $FUNCNAME container course student" 
+#    local USAGE="Usage: $COMMAND $FUNCNAME container course student"
 #    [ "$#" -eq 3 ] || -die $USAGE
-#    
+#
 #    local container=$1; shift
 #    local course=$1; shift
 #    local student=$1; shift
@@ -1217,7 +1283,7 @@ function -compute-container-globals() {
 #    local port=$(free-port)
 #    local token=$student
 #    # cannot use --ephemeral with --template
-#    local command="systemd-nspawn 
+#    local command="systemd-nspawn
 #    	  	     --template=${COURSE_ref}
 #		     --directory=${CONTAINER_nspawn_root}
 #		     --user=jovyan
@@ -1228,7 +1294,7 @@ function -compute-container-globals() {
 #		     --bind=$COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
 #		     --bind=$COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
 #    for static in $COURSE_statics; do
-#	command="$command 
+#	command="$command
 #                     --bind=$NBHROOT/static/$course/$static:/home/jovyan/work/$static"
 #    done
 #    command="$command
@@ -1281,7 +1347,7 @@ function -compute-container-globals() {
 #    echo ========== $command; $command
 #}
 
-############################## 
+##############################
 USAGE="$COMMAND [-d nbhroot] [-x] subcommand ...
   -d  allows to set another root than $NBHROOT
   -x  turn on debugging
@@ -1295,7 +1361,7 @@ function list-subcommands() {
 }
 
 function usage() {
-    printf "$USAGE"; list-subcommands; 
+    printf "$USAGE"; list-subcommands;
 }
 
 function main() {
@@ -1309,11 +1375,11 @@ function main() {
 	    x) DEBUG=true ;;
 	    ?) >&2 usage; exit 1;;
 	esac
-    done	
+    done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
-    
+
     # first argument is a subcommand in this file
     local fun="$1"
     if [ -z "$fun" ]; then
