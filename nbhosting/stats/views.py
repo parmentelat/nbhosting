@@ -87,7 +87,7 @@ def show_stats(request, course):
         for subsection in section['subsections']:
             subsection.setdefault('engine', 'plotly')
             subsection.setdefault('hide', False)
-    
+
     # propagate server_name to html template
     server_name = request.META['SERVER_NAME'].split('.')[0]
 
@@ -95,23 +95,29 @@ def show_stats(request, course):
 
     return render(request, "stats.html", env)
 
+
 @csrf_protect
 def send_daily_metrics(request, course):
     stats = Stats(course)
     encoded = json.dumps(stats.daily_metrics())
-    return HttpResponse(encoded, content_type = "application/json")
+    response = HttpResponse(encoded, content_type="application/json")
+    response['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 @csrf_protect
 def send_monitor_counts(request, course):
     stats = Stats(course)
     encoded = json.dumps(stats.monitor_counts())
-    return HttpResponse(encoded, content_type = "application/json")
+    response = HttpResponse(encoded, content_type="application/json")
+    response['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 @csrf_protect
 def send_material_usage(request, course):
     stats = Stats(course)
     encoded = json.dumps(stats.material_usage())
-    return HttpResponse(encoded, content_type = "application/json")
-
+    response = HttpResponse(encoded, content_type="application/json")
+    response['Access-Control-Allow-Origin'] = '*'
+    return response
