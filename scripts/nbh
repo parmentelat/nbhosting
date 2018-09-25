@@ -1204,6 +1204,43 @@ function course-rename() {
 
 }
 
+# if for any reason a user can't be created
+# e.g. because of limits in /etc/login.defs
+# then things can become nasty for these students
+# because a directory is created in /students, but it has the wrong owner
+# and a docker containers gets spawned on top of that
+
+# once the root issue is fixed - again typically in /etc/login.defs
+# the solution is to just remove both the directory and docker
+# - if relevant - for all these hashes
+# in other words, just pretend we've never heard from these people
+
+@declare-subcommand repair-zombies
+function repair-zombies() {
+    cd $NBHROOT/students
+
+    # locate students as the ones whose dir is owned by root
+    zombies=$(find . -maxdepth 1 -user root -print | \
+              grep -v '^\.$' | sed -e s,./,,)
+
+    # do this only once
+    docker ps --all --format '{{.Names}}' > /tmp/nbh-repair.txt
+
+    for zombie in $zombies; do
+        echo -n $zombie " "
+        docker=$(grep $zombie /tmp/nbh-repair.txt)
+        if [ -d $zombie ]; then
+            echo -n "Dir "
+            rm -rf $zombie
+        fi
+        if [ -n "$docker" ] ; then
+            echo -n "Doc "
+            docker rm $docker >& /dev/null && echo -n "."
+        fi
+        echo ""
+    done
+}
+
 ##############################
 # systemd-nspawn tentative code - not finished
 ##############################
