@@ -457,21 +457,34 @@ function course-update-from-git() {
 # build a docker image
 @declare-subcommand course-build-image
 function course-build-image() {
-    local USAGE="Usage: $COMMAND $FUNCNAME course
+    local USAGE="Usage: $COMMAND $FUNCNAME [-f] course
 this command will
 . locate a dockerfile, either in the course git repo, or under images/ in nbhosting
 . (re)build the course docker image based on that
+
+With the -f option, rebuild will be forced; that is to say, docker build
+  is invoked with the --no-cache option.
+  Of course this means a longer execution time.
 "
 
-    [ "$#" -eq 0 ] && -die $USAGE
+    local force_tag=""
+    while getopts "f" option; do
+        case $option in
+            f) force_tag="--no-cache" ;;
+            ?) -die $USAGE ;;
+        esac
+    done
+    shift $((OPTIND-1))
+    OPTIND=1
+
+    [ "$#" -eq 1 ] || -die $USAGE
     local course="$1"; shift
-    [ "$#" -eq 0 ] || -die $USAGE
 
     -compute-course-globals $course
 
     mkdir -p $COURSE_build
     cd $COURSE_build
-    echo "Building image ${COURSE_image} in ${COURSE_build}"
+    echo "Building image ${COURSE_image} in ${COURSE_build} ${force_tag}"
 
     ########## locate dockerfile
     c1="$COURSE_git/docker-image/nbhosting.Dockerfile"
@@ -494,7 +507,7 @@ this command will
     cp $dockerfile $COURSE_build/nbhosting.Dockerfile
     echo "Installing start-in-dir-as-uid.sh in ${COURSE_build}"
     cp $NBHROOT/images/start-in-dir-as-uid.sh ${COURSE_build}
-    docker build -f nbhosting.Dockerfile -t $COURSE_image .
+    docker build ${force_tag} -f nbhosting.Dockerfile -t $COURSE_image .
 
 }
 
