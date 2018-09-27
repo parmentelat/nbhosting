@@ -1254,69 +1254,72 @@ function repair-zombies() {
     done
 }
 
-##############################
-# systemd-nspawn tentative code - not finished
-##############################
-# assuming that the docker image was redone from its dockerfile
-# which is NOT considered here, we update the actual btrfs reference
-# image in $MACHINES
-# of course $MACHINES must sit in a btrfs filesystem
-
-# don't expose as it's not operational
-#@declare-subcommand update-course-image-from-docker-to-spawn
-function update-course-image-from-docker-to-spawn() {
-    local USAGE="Usage: $FUNCNAME course"
-    local course=$1; shift
-    local reference=$course.ref
-    local log=$MACHINES/$course.log
-
-    [ -d $MACHINES ] || mkdir -p $MACHINES
-    cd $MACHINES
-
-    [ -d $reference ] || {
-	btrfs subvolume create $reference;
-    }
-
-    ##### stage1 : unwrap in a fresh repo
-    local unwrap=$course.unwrap
-    rm -rf $unwrap
-    mkdir $unwrap
-
-    # create a dummy docker container just to get its image
-    local dummy=$(docker create $course)
-    docker export $dummy | tar -C $unwrap -xf -
-    docker rm $dummy
-
-    #### stage2 : rsync into actual live image
-    [ -d $reference ] || mkdir $reference
-    (echo ========== $(date); rsync -rltpo --delete -i $unwrap/ $reference/) >> $log
-
-}
-
-####################
-# digression in python: find a free port
-function free-port() {
-    python3 << EOF
-import socket
-from contextlib import closing
-try:
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(('', 0))
-        print(s.getsockname()[1])
-except:
-    print(0)
-EOF
-    }
-
-
-function -compute-container-globals() {
-    local container=$1; shift
-
-    CONTAINER_nspawn_root=$MACHINES/$container
 }
 
 
 ## don't expose as it's not operational
+
+# ##############################
+# # systemd-nspawn tentative code - not finished
+# ##############################
+# # assuming that the docker image was redone from its dockerfile
+# # which is NOT considered here, we update the actual btrfs reference
+# # image in $MACHINES
+# # of course $MACHINES must sit in a btrfs filesystem
+# 
+# #@declare-subcommand update-course-image-from-docker-to-spawn
+# function update-course-image-from-docker-to-spawn() {
+#     local USAGE="Usage: $FUNCNAME course"
+#     local course=$1; shift
+#     local reference=$course.ref
+#     local log=$MACHINES/$course.log
+# 
+#     [ -d $MACHINES ] || mkdir -p $MACHINES
+#     cd $MACHINES
+# 
+#     [ -d $reference ] || {
+# 	btrfs subvolume create $reference;
+#     }
+# 
+#     ##### stage1 : unwrap in a fresh repo
+#     local unwrap=$course.unwrap
+#     rm -rf $unwrap
+#     mkdir $unwrap
+# 
+#     # create a dummy docker container just to get its image
+#     local dummy=$(docker create $course)
+#     docker export $dummy | tar -C $unwrap -xf -
+#     docker rm $dummy
+# 
+#     #### stage2 : rsync into actual live image
+#     [ -d $reference ] || mkdir $reference
+#     (echo ========== $(date); rsync -rltpo --delete -i $unwrap/ $reference/) >> $log
+# 
+# }
+# 
+# ####################
+# # digression in python: find a free port
+# function free-port() {
+#     python3 << EOF
+# import socket
+# from contextlib import closing
+# try:
+#     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+#         s.bind(('', 0))
+#         print(s.getsockname()[1])
+# except:
+#     print(0)
+# EOF
+#     }
+# 
+# 
+# function -compute-container-globals() {
+#     local container=$1; shift
+#
+#     CONTAINER_nspawn_root=$MACHINES/$container
+#}
+#
+#
 ##@declare-subcommand spawn-container-in-course-for-student
 #function spawn-container-in-course-for-student() {
 #    local USAGE="Usage: $COMMAND $FUNCNAME container course student"
