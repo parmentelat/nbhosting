@@ -218,9 +218,9 @@ function status-tree() {
     echo "$rawfiles raw files under $NBHROOT/raw"
 }
 
-# this is the default when no command is provided to nbh-driver
-@declare-subcommand status
-function status() {
+# provide some info on the various pieces
+@declare-subcommand admin-status
+function admin-status() {
     status-users "$@"
     status-docker "$@"
     status-tree "$@"
@@ -684,8 +684,8 @@ function check-student-notebook-for-course() {
 # write on stdout a single action word that is either
 # * stage1 action=created
 # * stage1 action=existing
-@declare-subcommand create-docker-container-for-student-in-course
-function create-docker-container-for-student-in-course() {
+@declare-subcommand docker-create-container-for-student-in-course
+function docker-create-container-for-student-in-course() {
     local USAGE="Usage: $COMMAND $FUNCNAME container student course"
 
     [ "$#" -eq 3 ] || -die "$USAGE"
@@ -872,8 +872,8 @@ function -wait-for-http-on-port-token() {
 # * stage2 action=running
 # * stage2 action=restarted
 
-@declare-subcommand start-docker-container
-function start-docker-container() {
+@declare-subcommand docker-start-container
+function docker-start-container() {
     local USAGE="Usage: $COMMAND $FUNCNAME container"
     [ "$#" -eq 1 ] || -die $USAGE
 
@@ -932,9 +932,8 @@ function start-docker-container() {
 }
 
 
-# wrapper - single entry point to edxfront.views
-# possible values for returned action
-#
+# ENTRY POINT: this is the single entry point to edxfront.views
+
 @declare-subcommand docker-view-student-course-notebook
 function docker-view-student-course-notebook() {
     local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course notebook"
@@ -971,8 +970,8 @@ function docker-view-student-course-notebook() {
     # create and start the container
     local container=$STUDENT_container
     # either existing of created
-    action1=$(create-docker-container-for-student-in-course $container $student $course)
-    line2=$(start-docker-container $container)
+    action1=$(docker-create-container-for-student-in-course $container $student $course)
+    line2=$(docker-start-container $container)
 
     # report: the action depends on both stages
     local action2=$(cut -d' ' -f1 <<< $line2)
@@ -1038,8 +1037,8 @@ function docker-share-student-course-notebook-in-hash() {
 
 #################### helpers
 
-@declare-subcommand enter-docker-container
-function enter-docker-container() {
+@declare-subcommand admin-docker-enter
+function admin-docker-enter() {
     local USAGE="Usage: $FUNCNAME container"
     [ "$#" -eq 1 ] || -die $USAGE
     local container=$1; shift
@@ -1146,7 +1145,7 @@ function list-courses() {
     local USAGE="Usage: $FUNCNAME"
     [ "$#" -eq 0 ] || -die $USAGE
 
-    cd $NBHROOT/courses
+    cd $NBHROOT/courses || exit 0
     ls
 }
 
@@ -1217,22 +1216,26 @@ function course-rename() {
 
 }
 
+###########
 # if for any reason a user can't be created
 # e.g. because of limits in /etc/login.defs
 # then things can become nasty for these students
 # because a directory is created in /students, but it has the wrong owner
 # and a docker containers gets spawned on top of that
 
+# xxx todo : fix that earlier on; should not let the whole thing proceed
+# when useradd fails to work
+
 # once the root issue is fixed - again typically in /etc/login.defs
 # the solution is to just remove both the directory and docker
 # - if relevant - for all these hashes
 # in other words, just pretend we've never heard from these people
 
-@declare-subcommand repair-zombies
-function repair-zombies() {
+@declare-subcommand admin-repair-zombies
+function admin-repair-zombies() {
     cd $NBHROOT/students
 
-    # locate students as the ones whose dir is owned by root
+    # locate zombie students as the ones whose dir is owned by root
     zombies=$(find . -maxdepth 1 -user root -print | \
               grep -v '^\.$' | sed -e s,./,,)
 
@@ -1254,6 +1257,30 @@ function repair-zombies() {
     done
 }
 
+# uid allocation
+# turns out that out of the box, fedora comes with settings
+# in /etc/login.defs that are quite large in terms of subuids
+# i.e. each new user eats up a large range of subuids
+# this makes me fear a possible need for cleaning up uids at some point
+#
+# so given a course - typically old-python2-s3, we're going to
+# inspect uids that were attached to that course and try to see if there
+# has been any activity recently
+# if not, well then we can recyckle that uid - and its subuids
+#
+# the sad thing is, with uids that can go up to 10**9 or so, it's a shame
+# that we need to worry about that kind of stuff at all
+# it would be very helpful to know the actual minimal width of sub-ids
+# required for docker to work properly
+
+@declare-subcommand admin-free-uids
+function admin-free-uids() {
+    local USAGE="Usage: FUNCNAME course"
+
+    [ "$#" -eq 1 ] || -die $USAGE
+    local course=$1; shift
+
+    echo $FUNCNAME on course $course - not yet implemented
 }
 
 
