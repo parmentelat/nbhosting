@@ -1124,10 +1124,9 @@ function course-clean-containers() {
                     | head -1)
         else
             focus=$(docker ps -a \
-                    --filter 'status=exited' \
-                    --filter "name=$pattern" \
-                    --format '{{.Names}}' \
+                    | grep "$pattern" \
                     | grep 'Exited.*month.*ago' \
+                    | awk '{print $NF;}' \
                     | head -1)
         fi
         # we're done
