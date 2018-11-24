@@ -1086,27 +1086,50 @@ function course-clear-staff() {
 #
 # NOTES:
 # * because dockerd handles one request at a time
-# and so effectively sequentialize all these destruction requests
-# this is likely to take hours or even days..
+#   and so effectively sequentialize all these destruction requests
+#   this is likely to take hours or even days..
 # * also the may to locate containers is based on the course name
-# in a somewhat inclusive way; it can be a bit inaccurate if I
-# have for instance 2 courses python and thepython
-# but only stopped containers will be removed
-# so it is not too big a deal
+#   in a somewhat inclusive way; it can be a bit inaccurate if I
+#   have for instance 2 courses python and thepython
+#   but only stopped containers will be removed
+#   so it is not too big a deal
+# * by default, only containers that have exited
+#   more than one month ago are removed
+#   with the -a option, all such containers are removed
 
 @declare-subcommand course-clean-containers
 function course-clean-containers() {
-    local USAGE="Usage: $FUNCNAME course"
+    local USAGE="Usage: $FUNCNAME [-a] course"
+    [[ -z "$#" ]] && -die $USAGE
+    local kill_all=""
+    while getopts ":a" opt; do
+        case $opt in
+            a) kill_all=true;;
+            *) -die $USAGE;;
+        esac
+    done
+    shift $(($OPTIND-1))
+
     [ "$#" -eq 1 ] || -die $USAGE
 
     local course=$1; shift
-    pattern="${course}-x-"
+    local pattern="${course}-x-"
     while true; do
-        focus=$(docker ps -a \
-                --filter 'status=exited' \
-                --filter "name=$pattern" \
-                --format '{{.Names}}' \
-              | head -1)
+        local focus
+        if [ -n "$kill_all" ]; then
+            focus=$(docker ps -a \
+                    --filter 'status=exited' \
+                    --filter "name=$pattern" \
+                    --format '{{.Names}}' \
+                    | head -1)
+        else
+            focus=$(docker ps -a \
+                    --filter 'status=exited' \
+                    --filter "name=$pattern" \
+                    --format '{{.Names}}' \
+                    | grep 'Exited.*month.*ago' \
+                    | head -1)
+        fi
         # we're done
         [ -z "$focus" ] && break
         # otherwise remove it
@@ -1293,37 +1316,37 @@ function admin-free-uids() {
 # # which is NOT considered here, we update the actual btrfs reference
 # # image in $MACHINES
 # # of course $MACHINES must sit in a btrfs filesystem
-# 
+#
 # #@declare-subcommand update-course-image-from-docker-to-spawn
 # function update-course-image-from-docker-to-spawn() {
 #     local USAGE="Usage: $FUNCNAME course"
 #     local course=$1; shift
 #     local reference=$course.ref
 #     local log=$MACHINES/$course.log
-# 
+#
 #     [ -d $MACHINES ] || mkdir -p $MACHINES
 #     cd $MACHINES
-# 
+#
 #     [ -d $reference ] || {
 # 	btrfs subvolume create $reference;
 #     }
-# 
+#
 #     ##### stage1 : unwrap in a fresh repo
 #     local unwrap=$course.unwrap
 #     rm -rf $unwrap
 #     mkdir $unwrap
-# 
+#
 #     # create a dummy docker container just to get its image
 #     local dummy=$(docker create $course)
 #     docker export $dummy | tar -C $unwrap -xf -
 #     docker rm $dummy
-# 
+#
 #     #### stage2 : rsync into actual live image
 #     [ -d $reference ] || mkdir $reference
 #     (echo ========== $(date); rsync -rltpo --delete -i $unwrap/ $reference/) >> $log
-# 
+#
 # }
-# 
+#
 # ####################
 # # digression in python: find a free port
 # function free-port() {
@@ -1338,8 +1361,8 @@ function admin-free-uids() {
 #     print(0)
 # EOF
 #     }
-# 
-# 
+#
+#
 # function -compute-container-globals() {
 #     local container=$1; shift
 #
