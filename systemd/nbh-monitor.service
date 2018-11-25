@@ -3,16 +3,15 @@
 Description=job that cyclically collects system and course data, and kills idle containers
 
 # the nbh-monitor script accepts options :
-# --grace 20 : sets the idle timeout in minutes after which inactive containers
-#    get stopped; under jupyter5, this is accurate, it really refers to
-#    the latest user action
 # --period 10 : monitor cycle in minutes; this also sets the frequency
 #    at which counts.raw gets updated
-###
-# in devel mode we use shorter settings than the defaults
+# --idle 20 : the idle timeout in minutes after which inactive containers
+#    get stopped
+# --unused : the unused timeout, in days: after that time, containers that have
+#    been stopped and no longer used get removed altogether
 [Service]
 Environment=PYTHONPATH=/root/nbhosting/nbhosting
-ExecStart=/bin/bash -c "python3 /usr/bin/nbh-monitor --period 15 --grace 30"
+ExecStart=/bin/bash -c "python3 /usr/bin/nbh-monitor"
 
 [Install]
 WantedBy=multi-user.target

@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+#>>> client = docker.APIClient(base_url='unix://var/run/docker.sock')
+#>>> inspect = client.inspect_container('x-physique-x-b2f513e3b29901e453578b3af8f97568')
+#>>> inspect['State']['FinishedAt']
+#'2018-10-08T08:05:22.08653639Z'
+
+
 # pylint: disable=c0111, r0903, r0913, r0914, w1202, w1203, w0703
 
 import os
@@ -8,6 +14,7 @@ import calendar
 import json
 import subprocess
 import logging
+import re
 
 import asyncio
 import aiohttp
@@ -57,6 +64,7 @@ class CourseFigures:
         else:
             self.frozen_containers += 1
 
+
 class MonitoredJupyter:
 
     # container is an instance of
@@ -67,14 +75,16 @@ class MonitoredJupyter:
                  student: str,
                  figures: CourseFigures,
                  # the hash of the expected image - may be None
-                 image_hash: str):
+                 image_hash: str,
+                 low_level_api: docker.APIClient):
         self.container = container
         self.course = course
         self.student = student
         self.figures = figures
         self.image_hash = image_hash
-        self.nb_kernels = None
+        self.low_level_api = low_level_api
         #
+        self.nb_kernels = None
         self.last_activity = 0.
 
     def __str__(self):
@@ -94,6 +104,21 @@ class MonitoredJupyter:
         except Exception:
             logger.exception(f"Cannot locate port number for {self}")
             return 0
+
+    @staticmethod
+    def parse_docker_time(time_string):
+        """
+        turn a docker string for a time into an epoch number
+        # example #'2018-10-08T08:05:22.08653639Z'
+        # sometimes there is no sub-second part
+        """
+        # normalize
+        normalized = time_string.replace('Z', 'UTC')
+        # discard all sub-second data
+        normalized = re.sub("\.[0-9]+", "", normalized)
+        struct_time = time.strptime(normalized, "%Y-%m-%dT%H:%M:%S%Z")
+        return calendar.timegm(struct_time)
+
 
     @staticmethod
     def last_time(kernel_data):
@@ -119,19 +144,20 @@ class MonitoredJupyter:
           rather than the epoch
         """
         try:
-            last = kernel_data['last_activity']
-            # normalize
-            last = last.replace('Z', 'UTC')
-            struct_time = None
-            # try 2 formats
-            try:
-                struct_time = time.strptime(last, "%Y-%m-%dT%H:%M:%S.%f%Z")
-            except ValueError:
-                struct_time = time.strptime(last, "%Y-%m-%dT%H:%M:%S%Z")
-            return calendar.timegm(struct_time)
+            last_activity = kernel_data['last_activity']
+            return MonitoredJupyter.parse_docker_time(last_activity)
         except Exception:
             logger.exception(f"last_time failed with kernel_data = {kernel_data}")
+            # to stay on the safe side, return current time
             return time.time()
+
+
+    # docker does not seem to expose an asynchronous way to do this
+    def exited_time(self):
+        inspect = self.low_level_api.inspect_container(self.name)
+        finished_str = inspect['State']['FinishedAt']
+        return self.parse_docker_time(finished_str)
+
 
     async def count_running_kernels(self):
         """
@@ -162,66 +188,101 @@ class MonitoredJupyter:
             self.last_activity = None
 
 
-    async def co_run(self, grace):
-        # stopped containers are useful only for statistics
+    async def co_run(self, idle, unused):
+        """
+        both timeouts in seconds
+        """
+        now = time.time()
+        actual_hash = self.container.image.id
+        # stopped containers need to be handled a bit differently
         if self.container.status != 'running':
-            logger.debug(f"Ignoring stopped container {self}")
-            self.figures.count_container(False)
+            if actual_hash != self.image_hash:
+                logger.info(
+                    f"Removing (stopped & outdated) {self} "
+                    f"that has outdated hash {actual_hash[:15]} "
+                    f"vs expected {self.image_hash[:15]}")
+                self.container.remove(v=True)
+            else:
+                exited_time = self.exited_time()
+                unused_days = (int)((now - exited_time) // (24 * 3600))
+                unused_hours = (int)((now - exited_time) // (3600) % 24)
+                if (now - exited_time) > unused:
+                    logger.info(
+                        f"Removing (stopped & unused) {self} "
+                        f"that has been unused for {unused_days} days "
+                        f"{unused_hours} hours")
+                    self.container.remove(v=True)
+                else:
+                    logger.debug(
+                        f"Ignoring stopped {self} that "
+                        f"exited {unused_days} days {unused_hours} hours ago")
+                    self.figures.count_container(False)
             return
         # count number of kernels and last activity
         await self.count_running_kernels()
         # last_activity may be 0 if no kernel is running inside that container
         # or None if we could not determine it properly
         if self.last_activity is None:
-            logger.error(f"skipping container {self} with no known last_activity")
+            logger.error(f"Skipping running {self} with no known last_activity")
             return
-        # check there has been activity in the last <grace> seconds
-        now = time.time()
-        grace_past = now - grace
-        idle_minutes = (now - self.last_activity) // 60
-        if self.last_activity > grace_past:
-            logger.debug(f"sparing {self} that had activity {idle_minutes}' mn ago")
+        # check there has been activity in the last grace_idle_in_minutes
+        idle_minutes = (int)((now - self.last_activity) // 60)
+        if (now - self.last_activity) < idle:
+            logger.debug(
+                f"Sparing running {self} that had activity {idle_minutes} mn ago")
             self.figures.count_container(True, self.nb_kernels)
         else:
             if self.last_activity:
-                logger.info(f"{self} has been idle for {idle_minutes} mn - killing")
+                logger.info(
+                    f"Killing (running & idle) {self} "
+                    f"that has been idle for {idle_minutes} mn")
             else:
-                logger.info(f"{self} has no kernel attached - killing")
+                logger.info(
+                    f"Killing (running and empty){self} "
+                    f"that has no kernel attached")
             # kill it
             self.container.kill()
+            # keep track or that removal in events.raw
+            Stats(self.course).record_kill_jupyter(self.student)
             # if that container does not run the expected image hash
             # it is because the course image was upgraded in the meanwhile
             # then we even remove the container so it will get re-created
             # next time with the right image this time
-            actual_hash = self.container.image.id
             if actual_hash != self.image_hash:
-                logger.info(f"removing container {self} - "
-                            f"has outdated hash {actual_hash[:15]} "
-                            f"instead of expected {self.image_hash[:15]}")
+                logger.info(
+                    f"Removing (just killed & outdated) {self} "
+                    f"that has outdated hash {actual_hash[:15]} "
+                    f"vs expected {self.image_hash[:15]}")
                 self.container.remove(v=True)
-            # this counts for one dead container
-            self.figures.count_container(False)
-            # keep track or that removal in events.raw
-            Stats(self.course).record_kill_jupyter(self.student)
+            else:
+                # this counts for one dead container
+                self.figures.count_container(False)
+
+
 
 class Monitor:
 
-    def __init__(self, grace, period, debug):
+    def __init__(self, period, idle, unused, debug):
         """
         All times in seconds
 
         Parameters:
-            grace: is how long an idle server is kept running
-            period: is how often the monitor runs
+          period: is how often the monitor runs
+          grace: is how long an idle container is kept running before
+            we kill its container (docker kill)
+          unused: is how long an unused container is kept on disk before
+            we remove it (docker rm)
+          debug(bool): turn on more logs
         """
-        self.grace = grace
         self.period = period
+        self.idle = idle
+        self.unused = unused
         if debug:
             logger.setLevel(logging.DEBUG)
 
-    def run_once(self):
 
-        # initialize all known courses - we want data on courses
+    def run_once(self):
+        # initialize all known courses - we want data on all courses
         # even if they don't run any container yet
         logger.debug("scanning courses")
         coursesdir = CoursesDir()
@@ -235,6 +296,7 @@ class Monitor:
             containers = proxy.containers.list(all=True)
             hash_by_course = {coursename : CourseDir(coursename).image_hash(proxy)
                               for coursename in coursenames}
+            low_level_api = docker.APIClient(base_url='unix://var/run/docker.sock')
         except Exception:
             logger.exception(
                 "Cannot gather containers list at the docker daemon - skipping")
@@ -253,9 +315,11 @@ class Monitor:
                 # may be None if s/t is misconfigured
                 image_hash = hash_by_course[coursename] \
                        or f"hash not found for course {coursename}"
-                monitored_jupyter = MonitoredJupyter(container, coursename,
-                                                     student, figures, image_hash)
-                futures.append(monitored_jupyter.co_run(self.grace))
+                monitored_jupyter = MonitoredJupyter(
+                    container, coursename, student,
+                    figures, image_hash, low_level_api)
+                futures.append(monitored_jupyter.co_run(
+                    self.idle, self.unused))
             # typically non-nbhosting containers
             except ValueError:
                 # ignore this container as we don't even know
