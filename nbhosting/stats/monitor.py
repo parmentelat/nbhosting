@@ -18,6 +18,7 @@ import re
 
 import asyncio
 import aiohttp
+from aiohttp import ClientConnectionError
 
 import docker
 
@@ -170,6 +171,7 @@ class MonitoredJupyter:
         if not port:
             return
         url = f"http://localhost:{port}/api/kernels?token={self.name}"
+        self.last_activity = None
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
@@ -183,9 +185,13 @@ class MonitoredJupyter:
             # if times is empty (no kernel): no activity
             self.last_activity = max(last_times, default=0)
 
+        # this somehow tends to happen a lot sometimes
+        # until we figure it out, let's make it less conspicuous
+        except ClientConnectionError as exc:
+            logger.log(f"{self.name}, url={url}, {type(exc)}: {exc}")
+
         except Exception:
             logger.exception(f"Cannot probe number of kernels with {self}")
-            self.last_activity = None
 
 
     async def co_run(self, idle, unused):
