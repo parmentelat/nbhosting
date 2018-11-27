@@ -33,8 +33,9 @@ urlpatterns = [
     url(r'^ipythonShare/(?P<course>[\w_.-]+)/(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
         nbhosting.edxfront.views.share_notebook
     ),
-    url(r'^nbh/login/$',                                        auth_views.login, name='login'),
-    url(r'^nbh/logout/$',                                       auth_views.logout, name='logout'),
+# https://docs.djangoproject.com/en/2.1/topics/auth/default/#module-django.contrib.auth.views
+    url(r'^nbh/login/$',                                      auth_views.LoginView.as_view(), name='login'),
+    url(r'^nbh/logout/$',                                     auth_views.LogoutView.as_view(), name='logout'),
     url(r'^nbh/admin/',                                         admin.site.urls),
     url('^nbh/accounts/',                                       include('django.contrib.auth.urls')),
     # our stuff
