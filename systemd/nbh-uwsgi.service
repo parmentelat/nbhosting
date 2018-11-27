@@ -1,6 +1,6 @@
 # this is meant to be installed under /etc/systemd/system
 [Unit]
-Description=the nbhosting django app as a uswgi instance
+Description=the nbhosting django app as a uwsgi instance
 
 # workaround for bug fedora27 f27
 # https://bugzilla.redhat.com/show_bug.cgi?id=1532287
