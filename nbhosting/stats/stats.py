@@ -32,7 +32,7 @@ class DailyFigures:
     """
     keep track of the activity during a given day, as compared
     to the previous day
-    in order to avoid useless expensive set copies, when moving to the next day, 
+    in order to avoid useless expensive set copies, when moving to the next day,
     caller must call the wrap() method that does accounting
     """
     def __init__(self, previous=None):
@@ -115,7 +115,7 @@ class TotalsAccumulator:
             return
         # otherwise : insert it
         self._insert(timestamp, nb_students, nb_notebooks)
-        
+
 
     def wrap(self):
         # nothing to remember
@@ -128,7 +128,7 @@ class TotalsAccumulator:
             pass
         # record it
         self._insert(self.last_t, self.last_s, self.last_n)
-        
+
 
 class Stats:
 
@@ -143,7 +143,7 @@ class Stats:
         return self.course_dir / "events.raw"
     def monitor_counts_path(self):
         return self.course_dir / "counts.raw"
-    
+
     ####################
     def _write_events_line(self, student, notebook, action, port):
         timestamp = time.strftime(time_format, time.gmtime())
@@ -161,7 +161,7 @@ class Stats:
         """
         add one line in the events file for that course
         action is one of the three actions returned by run-student-course-jupyter
-        port is the port number for that jupyter 
+        port is the port number for that jupyter
         """
         return self._write_events_line(student, notebook, action, port)
 
@@ -187,7 +187,7 @@ class Stats:
         'nbhosting_ds_percent', 'nbhosting_ds_free',
         'system_ds_percent', 'system_ds_free',
     ]
-    
+
     def record_monitor_known_counts_line(self):
         timestamp = time.strftime(time_format, time.gmtime())
         path = self.monitor_counts_path()
@@ -196,7 +196,7 @@ class Stats:
                 f.write("# " + " ".join(self.known_counts) + "\n")
         except Exception as e:
             logger.exception("Cannot store headers line into {}".format(path))
-        
+
     def record_monitor_counts(self, *args):
         timestamp = time.strftime(time_format, time.gmtime())
         path = self.monitor_counts_path()
@@ -208,22 +208,22 @@ class Stats:
                 f.write("{} {}\n".format(timestamp, " ".join(str(arg) for arg in args)))
         except Exception as e:
             logger.exception("Cannot store counts line into {}".format(path))
-        
+
     ####################
     def daily_metrics(self):
         """
         read the events file for that course and produce
         data arrays suitable for being composed under plotly
-        
+
         returns a dict with the following components
         * 'daily': { 'timestamps', 'new_students', 'new_notebooks',
                      'unique_students', 'unique_notebooks' }
           - all 5 same size
           (one per day, time is always 23:59:59)
-        * 'events': { 'timestamps', 'total_students', 'total_notebooks' } 
+        * 'events': { 'timestamps', 'total_students', 'total_notebooks' }
            - all 3 same size
         """
-        
+
         events_path = self.notebook_events_path()
         # a dictionary day -> figures
         figures_by_day = OrderedDict()
@@ -290,7 +290,7 @@ class Stats:
                      'events' : { 'timestamps' : accumulator.timestamps,
                                   'total_students' : accumulator.students,
                                   'total_notebooks' : accumulator.notebooks}}
-                
+
     def monitor_counts(self):
         """
         read the counts file for that course and produce
@@ -346,7 +346,7 @@ class Stats:
 
     def material_usage(self):
         """
-        read the events file and produce data about relations 
+        read the events file and produce data about relations
         between notebooks and students
         remember we cannot serialize a set, plus a sorted result is better
         'nbstudents' : how many students are considered (test students are removed..)
@@ -403,7 +403,7 @@ class Stats:
             nb_by_student = { student: len(s) for (student, s) in set_by_student.items() }
 
             nbstudents_per_notebook_animated = nbstudents_per_notebook_buckets.wrap(nbstudents_per_notebook)
-            
+
             # counting in the other direction is surprisingly tedious
             nbstudents_per_nbnotebooks = [
                 (number, iter_len(v))
@@ -415,7 +415,7 @@ class Stats:
             # a first attempt at showing the number of times a given notebook was open
             # by a given student resulted in poor outcome
             # problem being mostly with colorscale, we'd need to have '0' stick out
-            # as transparent or something, but OTOH sending None instead or 0 
+            # as transparent or something, but OTOH sending None instead or 0
             heatmap_z = [
                 [raw_counts.get( (notebook, student,), None) for notebook in heatmap_notebooks]
                 for student in heatmap_students
@@ -423,9 +423,11 @@ class Stats:
             # sort students on total number of opened notebooks
             heatmap_z.sort(key = lambda student_line: sum(x for x in student_line if x))
 
-            zmax = max( max(x for x in line if x) for line in heatmap_z )
-            zmin = min( min(x for x in line if x) for line in heatmap_z )
-                
+            zmax = max((max(x for x in line if x) for line in heatmap_z),
+                       default=0)
+            zmin = min((min(x for x in line if x) for line in heatmap_z),
+                       default=0)
+
             return {
                 'nbnotebooks' : len(set_by_notebook),
                 'nbstudents' : len(set_by_student),
