@@ -91,16 +91,16 @@ function -die() {
 function clear-docker-kill() {
     containers=$(docker ps --format '{{.Names}}')
     for c in $containers; do
-	echo "Killing $c"
-	docker kill $c
+        echo "Killing $c"
+        docker kill $c
     done
 }
 
 function clear-docker-rm() {
     containers=$(docker ps -a --format '{{.Names}}')
     for c in $containers; do
-	echo "Removing $c"
-	docker rm $c
+        echo "Removing $c"
+        docker rm $c
     done
 }
 
@@ -133,7 +133,7 @@ function list-tests() {
 
 function clear-tests() {
     for userdir in $(ls -d /nbhosting/students/student-* 2>/dev/null); do
-	user=$(basename $userdir)
+        user=$(basename $userdir)
         for coursedir in $(ls -d $userdir/* 2>/dev/null); do
             course=$(basename $coursedir)
             docker=${course}-x-${user}
@@ -142,8 +142,8 @@ function clear-tests() {
             echo removing $docker
             docker rm $docker >& /dev/null
         done
-	echo deleting user $user
-	del-student $user
+        echo deleting user $user
+        del-student $user
     done
 }
 
@@ -159,11 +159,11 @@ function -mkdir-for-file-as-student () {
 
     local dir=$(dirname $filename)
     [ -d $dir ] || {
-	-echo-stderr ID=$(id)
-	-echo-stderr Creating directory $dir for $filename
-	mkdir -p $dir
-	-echo-stderr Giving $dir to $login
-	chown $login $dir
+        -echo-stderr ID=$(id)
+        -echo-stderr Creating directory $dir for $filename
+        mkdir -p $dir
+        -echo-stderr Giving $dir to $login
+        chown $login $dir
     }
 }
 
@@ -275,14 +275,14 @@ function course-init() {
     local log=$COURSE_logs/000.log
 
     function -course-init() {
-	[ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
+        [ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
 
-	echo ==========  $(date): course-init from $giturl
-	local courses_git_parent=$(dirname $COURSE_git)
-	mkdir -p $courses_git_parent
-	cd $courses_git_parent
-	echo In $(pwd) : running git clone $giturl $course
-	git clone $giturl $course
+        echo ==========  $(date): course-init from $giturl
+        local courses_git_parent=$(dirname $COURSE_git)
+        mkdir -p $courses_git_parent
+        cd $courses_git_parent
+        echo In $(pwd) : running git clone $giturl $course
+        git clone $giturl $course
     }
 
     [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
@@ -319,12 +319,12 @@ function course-settings() {
     local statics=""
     local staff=""
     while getopts "i:s:a:" option; do
-  	case $option in
-	    i) image="$OPTARG" ;;
-	    s) statics="$statics $OPTARG" ;;
+        case $option in
+            i) image="$OPTARG" ;;
+            s) statics="$statics $OPTARG" ;;
             a) staff="$staff $OPTARG" ;;
-	    ?) -die "$USAGE" ;;
-	esac
+            ?) -die "$USAGE" ;;
+        esac
     done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
@@ -339,26 +339,26 @@ function course-settings() {
 
     # image name: redefine or create
     if [ -n "$image" ]; then
-	echo $image > $COURSE_imagefile
+        echo $image > $COURSE_imagefile
     elif [ ! -f $COURSE_imagefile ]; then
-	echo $course > $COURSE_imagefile
+        echo $course > $COURSE_imagefile
     fi
 
     # statics - augment or init
     if [ -n "$statics" ] ; then
-	# augment
-	local tmp=${COURSE_staticsfile}.tmp
-	mv -f $COURSE_staticsfile $tmp
-	for static in $statics; do
-	    echo $static >> $tmp
-	done
-	sort < $tmp | uniq > $COURSE_staticsfile
-	rm -f $tmp
+        # augment
+        local tmp=${COURSE_staticsfile}.tmp
+        mv -f $COURSE_staticsfile $tmp
+        for static in $statics; do
+            echo $static >> $tmp
+        done
+        sort < $tmp | uniq > $COURSE_staticsfile
+        rm -f $tmp
     elif [ ! -f $COURSE_staticsfile ]; then
-	# init
-	for static in $default_statics; do
-	    echo $static >> $COURSE_staticsfile
-	done
+        # init
+        for static in $default_statics; do
+            echo $static >> $COURSE_staticsfile
+        done
     fi
 
     # likewise for staff members
@@ -373,7 +373,7 @@ function course-settings() {
 
     # convenience: update .giturl
     if [ ! -f $COURSE_giturlfile ]; then
-	(cd $COURSE_git; git config --get remote.origin.url) > $COURSE_giturlfile
+        (cd $COURSE_git; git config --get remote.origin.url) > $COURSE_giturlfile
     fi
 
 }
@@ -403,50 +403,50 @@ function course-update-from-git() {
     [ -d $COURSE_git ] || -die "Cannot find git repo $COURSE_git"
     # initialize
     [ -d $COURSE_notebooks ] || {
-	echo Creating notebooks dir $COURSE_notebooks
-	mkdir -p $COURSE_notebooks
+        echo Creating notebooks dir $COURSE_notebooks
+        mkdir -p $COURSE_notebooks
     }
 
     rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 
     function -update-course() {
 
-	[ -d $COURSE_git ] || -die "$FUNCNAME: $course has not git repo in $COURSE_git - aborting"
+        [ -d $COURSE_git ] || -die "$FUNCNAME: $course has not git repo in $COURSE_git - aborting"
 
-	echo ==========  $(date): update-course
+        echo ==========  $(date): update-course
 
-	cd $COURSE_git
+        cd $COURSE_git
         echo "========== git pull"
-	git pull
+        git pull
         # this does not always show 3 commits
         # so let's be more vague about that
         echo "========== latest commits"
         git log --oneline "HEAD~~~..HEAD"
         echo "========== dealing with submodules"
-	# might not be exactly needed anymore if we use subtrees instead
-	git submodule init
-	git submodule update
+        # might not be exactly needed anymore if we use subtrees instead
+        git submodule init
+        git submodule update
 
         echo "========== housekeeping"
-	# create course dirs if needed
-	for dir in $COURSE_notebooks $COURSE_modules $COURSE_data $COURSE_media $COURSE_raw; do
-	    [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
-	done
+        # create course dirs if needed
+        for dir in $COURSE_notebooks $COURSE_modules $COURSE_data $COURSE_media $COURSE_raw; do
+            [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
+        done
 
-	# find out all immediate subdirs that contain at least one notebook
-	notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | sort -u)
-	[ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $COURSE_notebooks/
-	[ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
-	[ -d static ] && { $rsync static/ $COURSE_static; chmod -R g-w,o-w $COURSE_static; }
-	# for compat with previous git repo layout
-	for subdir in media data; do
-	    [ -d $subdir ] && $rsync $subdir $COURSE_static
-	    chmod -R g-w,o-w $COURSE_static
-	done
-	[ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
-	for file in jupyter_notebook_config.py custom.js custom.css; do
-	    [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
-	done
+        # find out all immediate subdirs that contain at least one notebook
+        notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | sort -u)
+        [ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $COURSE_notebooks/
+        [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
+        [ -d static ] && { $rsync static/ $COURSE_static; chmod -R g-w,o-w $COURSE_static; }
+        # for compat with previous git repo layout
+        for subdir in media data; do
+            [ -d $subdir ] && $rsync $subdir $COURSE_static
+            chmod -R g-w,o-w $COURSE_static
+        done
+        [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
+        for file in jupyter_notebook_config.py custom.js custom.css; do
+            [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
+        done
     }
 
     [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
@@ -535,11 +535,11 @@ function -check-course-jupyter() {
     # temporary : if we find a file named 'DETACHED' in /nbhosting/jupyter/course/
     # then we leave that alone; otherwise, keep that in sync with our sources
     if [ -f $COURSE_jupyter/DETACHED ]; then
-	-echo-stderr "Leaving jupyter material for $course intact (DETACHED found)"
+        -echo-stderr "Leaving jupyter material for $course intact (DETACHED found)"
     else
-	for file in jupyter_notebook_config.py custom.js custom.css; do
-	    rsync -tp $NBHROOT/jupyter/$file $COURSE_jupyter/
-	done
+        for file in jupyter_notebook_config.py custom.js custom.css; do
+            rsync -tp $NBHROOT/jupyter/$file $COURSE_jupyter/
+        done
     fi
 }
 
@@ -587,10 +587,10 @@ function add-student-in-course() {
 
     # check login existence
     getent passwd $student >& /dev/null || {
-	-echo-stderr Creating disabled login $student
-	useradd --user-group --no-create-home --home-dir $STUDENT_home $student
-	# disable login
-	usermod -L $student
+        -echo-stderr Creating disabled login $student
+        useradd --user-group --no-create-home --home-dir $STUDENT_home $student
+        # disable login
+        usermod -L $student
     }
 
     # always chown that homedir for safety
@@ -598,18 +598,18 @@ function add-student-in-course() {
 
     # add user to both groups docker and course
     for group in docker $course; do
-	# check group existence
-	getent group $group >& /dev/null || {
-	    -echo-stderr Creating group $group
-	    groupadd $group
-	}
-	-echo-stderr "Ensuring $student is in group $group"
-	groupmems -a $student -g $group &> /dev/null
-	# docker start would be way too intrusive !
-	if [ $? != 0 -a "$group" == "docker" ]; then
-	    -echo-stderr "reloading docker service after adding $student into docker"
-	    systemctl reload docker
-	fi
+        # check group existence
+        getent group $group >& /dev/null || {
+            -echo-stderr Creating group $group
+            groupadd $group
+        }
+        -echo-stderr "Ensuring $student is in group $group"
+        groupmems -a $student -g $group &> /dev/null
+        # docker start would be way too intrusive !
+        if [ $? != 0 -a "$group" == "docker" ]; then
+            -echo-stderr "reloading docker service after adding $student into docker"
+            systemctl reload docker
+        fi
     done
 
 }
@@ -636,10 +636,10 @@ function check-student-notebook-for-course() {
 
     local forcecopy=""
     while getopts "f" option; do
-  	case $option in
-	    f) forcecopy="-f" ;;
-	    ?) -die "$USAGE" ;;
-	esac
+        case $option in
+            f) forcecopy="-f" ;;
+            ?) -die "$USAGE" ;;
+        esac
     done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
@@ -661,15 +661,15 @@ function check-student-notebook-for-course() {
     -compute-student-globals-in-course $student $course
     # copy if student notebook is missing, or if force is requested
     if [ ! -f $student_notebook ] || [ -n "$forcecopy" ]; then
-	-mkdir-for-file-as-student $student_notebook $student
-	-echo-stderr "Cloning $student_notebook from $COURSE_notebook (forcecopy=$forcecopy)"
-	# use rsync for preserving creation time
-	sudo -u $student rsync -tp $course_notebook $student_notebook
-	for static in $COURSE_statics; do
-	    -create-symlink-at-file $student_notebook /home/jovyan/work/$static
-	done
+        -mkdir-for-file-as-student $student_notebook $student
+        -echo-stderr "Cloning $student_notebook from $COURSE_notebook (forcecopy=$forcecopy)"
+        # use rsync for preserving creation time
+        sudo -u $student rsync -tp $course_notebook $student_notebook
+        for static in $COURSE_statics; do
+            -create-symlink-at-file $student_notebook /home/jovyan/work/$static
+        done
     else
-	[ -n "$DEBUG" ] && -echo-stderr Student copy $student_notebook is fine
+        [ -n "$DEBUG" ] && -echo-stderr Student copy $student_notebook is fine
     fi
     # nothing else is required in the student's work area
     # the rest (modules for code, and media, data as specified in statics)
@@ -707,12 +707,12 @@ function docker-create-container-for-student-in-course() {
     [ -f $COURSE_notebook ] || -die master notebook not found in course $COURSE_notebook
     [ -d $COURSE_modules ] || -echo-stderr WARNING $COURSE_modules dir not found
     for static in $COURSE_statics; do
-	COURSE_static=$NBHROOT/static/$course/$static
-	[ -d $COURSE_static ] || -echo-stderr WARNING $COURSE_static dir not found
+        COURSE_static=$NBHROOT/static/$course/$static
+        [ -d $COURSE_static ] || -echo-stderr WARNING $COURSE_static dir not found
     done
 
     docker inspect --type image $COURSE_image >& /dev/null ||\
-	-die image $COURSE_image not known in docker
+        -die image $COURSE_image not known in docker
 
     [ -n "$DEBUG" ] && set -x
 
@@ -727,68 +727,68 @@ function docker-create-container-for-student-in-course() {
     local jupyter_token=$container
     # check if container container is already defined
     if docker inspect --format "{{.Name}}" $container >& /dev/null ; then
-	action="existing"
-	# this is the case where docker inspect was successful
+        action="existing"
+        # this is the case where docker inspect was successful
     else
-	action="created"
-	# this now is when docker inspect fails
-	-echo-stderr Creating docker container $container
-	# * map host free port to fixed 8888 in container
-	# * bind  mounts so that the user's data is on
-	#   the host filesystem
-	# * we mount the directory /home/jovyan/.jupyter as a whole
-	#   instead as mounting the 2 files custom.js and custom.css individually
-	#   this is an attempt to ease propagation of changes to any of these files
-	#   as otherwise a container restart is required for this to take effect
-	# * map jovyan uid to the student's
-	#   out of luck trying to use docker-stacks's native start.sh
-	#   that led to costly and useless chown's on /opt/conda; so instead we
-	#   * run the container as root
-	#   * in turn use our own script start-in-dir-as-uid.sh from ../docker/images
-	#     that does runuser to have jupyter run as the right uid
-	#   of course this means it is a requirement for the course images to contain that script
-	# * turn off this http header that otherwise would prevent embedding in a FUN iframe
-	#   Content-Security-Policy: frame-ancestors 'self'; report-uri /api/security/csp-report
-	#   so set the web server's settings to clear the Content-Security-Policy header
-	#   it is too tedious on the command line with quoting and all, so
-	#   we use jupyter's config file instead in jupyter/jupyter_notebook_config.py
-	# * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem
-	#   the default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
-	#   does not even make sense - $HOME is unset. Even if it was if would not
-	#   reside on the host filesystem.
-	#
-	# compute student uid
-	STUDENT_uid=$(id -u $student)
+        action="created"
+        # this now is when docker inspect fails
+        -echo-stderr Creating docker container $container
+        # * map host free port to fixed 8888 in container
+        # * bind  mounts so that the user's data is on
+        #   the host filesystem
+        # * we mount the directory /home/jovyan/.jupyter as a whole
+        #   instead as mounting the 2 files custom.js and custom.css individually
+        #   this is an attempt to ease propagation of changes to any of these files
+        #   as otherwise a container restart is required for this to take effect
+        # * map jovyan uid to the student's
+        #   out of luck trying to use docker-stacks's native start.sh
+        #   that led to costly and useless chown's on /opt/conda; so instead we
+        #   * run the container as root
+        #   * in turn use our own script start-in-dir-as-uid.sh from ../docker/images
+        #     that does runuser to have jupyter run as the right uid
+        #   of course this means it is a requirement for the course images to contain that script
+        # * turn off this http header that otherwise would prevent embedding in a FUN iframe
+        #   Content-Security-Policy: frame-ancestors 'self'; report-uri /api/security/csp-report
+        #   so set the web server's settings to clear the Content-Security-Policy header
+        #   it is too tedious on the command line with quoting and all, so
+        #   we use jupyter's config file instead in jupyter/jupyter_notebook_config.py
+        # * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem
+        #   the default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
+        #   does not even make sense - $HOME is unset. Even if it was if would not
+        #   reside on the host filesystem.
+        #
+        # compute student uid
+        STUDENT_uid=$(id -u $student)
 
-	command="docker create --name $container
-	         -p 8888
-	         --user root
-		 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
-	         -v $STUDENT_course:/home/jovyan/work
-	         -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
-	         -v $COURSE_jupyter:/home/jovyan/.jupyter/custom
+        command="docker create --name $container
+                 -p 8888
+                 --user root
+                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
+                 -v $STUDENT_course:/home/jovyan/work
+                 -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
+                 -v $COURSE_jupyter:/home/jovyan/.jupyter/custom
                  -v $COURSE_modules:/home/jovyan/modules
 "
-	for static in $COURSE_statics; do
-	    command="$command -v $NBHROOT/static/$course/$static:/home/jovyan/work/$static"
-	done
-	# see start-in-dir-as-uid.sh for a note on setting the directories
-	# below
-	command="$command
-	         -e PYTHONPATH=/home/jovyan/modules
-	         $COURSE_image
-	         start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
-	         jupyter notebook
-	         --no-browser
-		 --NotebookApp.notebook_dir=/home/jovyan/work
-	         --NotebookApp.token=$jupyter_token
+        for static in $COURSE_statics; do
+            command="$command -v $NBHROOT/static/$course/$static:/home/jovyan/work/$static"
+        done
+        # see start-in-dir-as-uid.sh for a note on setting the directories
+        # below
+        command="$command
+                 -e PYTHONPATH=/home/jovyan/modules
+                 $COURSE_image
+                 start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
+                 jupyter notebook
+                 --no-browser
+                 --NotebookApp.notebook_dir=/home/jovyan/work
+                 --NotebookApp.token=$jupyter_token
 
 "
-	[ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
-	# show command for manual debugging
-	-echo-stderr XXXXXXXXXX $command
-	# we need a clean stdout : redirect stdout to stderr
-	>&2 $command
+        [ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
+        # show command for manual debugging
+        -echo-stderr XXXXXXXXXX $command
+        # we need a clean stdout : redirect stdout to stderr
+        >&2 $command
     fi
 
     -echo-stderr $FUNCNAME writes action=$action
@@ -818,15 +818,15 @@ function -find-docker-port-number() {
     local extra=$1; shift
     local counter=1
     while [ $counter -le $ticks ]; do
-	-echo-stderr "Probing for port ($counter)"
-	docker_port=$(get-docker-container-port $container)
-	[ -n "$docker_port" ] && {
-	    sleep $extra
-	    echo $docker_port;
-	    return 0;
-	}
-	counter=$(( $counter + 1))
-	sleep $period
+        -echo-stderr "Probing for port ($counter)"
+        docker_port=$(get-docker-container-port $container)
+        [ -n "$docker_port" ] && {
+            sleep $extra
+            echo $docker_port;
+            return 0;
+        }
+        counter=$(( $counter + 1))
+        sleep $period
     done
     -echo-stderr "find-docker-port-number failed after $counter iterations"
     return 1
@@ -841,20 +841,20 @@ function -wait-for-http-on-port-token() {
     local extra=$1; shift
     local counter=1
     while [ $counter -le $ticks ]; do
-	-echo-stderr "Waiting for TCP ($counter) on port $port"
-	# first check if tcp port is up
-	if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null; then
-	    # if so, check that http is ready
-	    -echo-stderr "Checking for HTTP ($counter) on port $port"
-	    curl "http://localhost:$port/tree?token=$token" >& /dev/null && {
-		# sleep an extra .5 s to be safe
-		sleep $extra
-		-echo-stderr HTTP OK
-		return 0
-	    }
-	fi
-	counter=$(( $counter + 1))
-	sleep $period
+        -echo-stderr "Waiting for TCP ($counter) on port $port"
+        # first check if tcp port is up
+        if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null; then
+            # if so, check that http is ready
+            -echo-stderr "Checking for HTTP ($counter) on port $port"
+            curl "http://localhost:$port/tree?token=$token" >& /dev/null && {
+                # sleep an extra .5 s to be safe
+                sleep $extra
+                -echo-stderr HTTP OK
+                return 0
+            }
+        fi
+        counter=$(( $counter + 1))
+        sleep $period
     done
     -echo-stderr "timeout expired after $counter iterations"
     return 1
@@ -889,10 +889,10 @@ function docker-start-container() {
     local jupyter_token=$container
     # check if container container is already defined
     if ! docker inspect --format "{{.Name}}" $container >& /dev/null; then
-	-echo-stderr "INTERNAL error: cannot start non-existent container $container"
-	action="failed-unknown-container"
-	echo $action $container 0 none
-	return
+        -echo-stderr "INTERNAL error: cannot start non-existent container $container"
+        action="failed-unknown-container"
+        echo $action $container 0 none
+        return
     fi
 
     ### at that point the docker is created
@@ -904,9 +904,9 @@ function docker-start-container() {
 
     # actually restart if needed
     if [ "$running" != "true" ]; then
-	-echo-stderr Starting container $container
-	# prevent clobbering of stdout
-	>&2 docker start $container
+        -echo-stderr Starting container $container
+        # prevent clobbering of stdout
+        >&2 docker start $container
     fi
 
     # figure out on what port it runs; wait for a second (10 times .1)
@@ -915,13 +915,13 @@ function docker-start-container() {
     # wait until the service actually serves HTTP requests
     # we need to do this only if we have just started it
     if [ "$running" != "true" ]; then
-	-wait-for-http-on-port-token \
-	    $docker_port $jupyter_token $timeout_wait_for_http || {
-	    # show docker logs on stderr
-	    -echo-stderr "==================== dockers logs on that container over the last 2 minutes"
-	    >&2 docker logs -t --since +2m $container
-	    action="failed-timeout"
-	}
+        -wait-for-http-on-port-token \
+            $docker_port $jupyter_token $timeout_wait_for_http || {
+            # show docker logs on stderr
+            -echo-stderr "==================== dockers logs on that container over the last 2 minutes"
+            >&2 docker logs -t --since +2m $container
+            action="failed-timeout"
+        }
     fi
 
     # this is the only thing that goes on stdout
@@ -940,10 +940,10 @@ function docker-view-student-course-notebook() {
 
     local forcecopy=""
     while getopts "f" option; do
-  	case $option in
-	    f) forcecopy="-f" ;;
-	    ?) -die "$USAGE" ;;
-	esac
+        case $option in
+            f) forcecopy="-f" ;;
+            ?) -die "$USAGE" ;;
+        esac
     done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
@@ -979,13 +979,13 @@ function docker-view-student-course-notebook() {
     local token=$(cut -d' ' -f3 <<< $line2)
 
     case $action2 in
-	failed*)
-	    action=$action2;;
-	*)
-	    case $action1 in
-		created) action=$action1;;
-		*) action=$action2;;
-	    esac;;
+        failed*)
+            action=$action2;;
+        *)
+            case $action1 in
+                created) action=$action1;;
+                *) action=$action2;;
+            esac;;
     esac
     echo $action $container $port $token
 
@@ -1327,7 +1327,7 @@ function admin-free-uids() {
 #     cd $MACHINES
 #
 #     [ -d $reference ] || {
-# 	btrfs subvolume create $reference;
+#       btrfs subvolume create $reference;
 #     }
 #
 #     ##### stage1 : unwrap in a fresh repo
@@ -1386,24 +1386,24 @@ function admin-free-uids() {
 #    local token=$student
 #    # cannot use --ephemeral with --template
 #    local command="systemd-nspawn
-#    	  	     --template=${COURSE_ref}
-#		     --directory=${CONTAINER_nspawn_root}
-#		     --user=jovyan
-#		     --setenv=PATH=/opt/conda/bin
-#		     --bind=$STUDENT_course:/home/jovyan/work
-#		     --bind=$COURSE_modules:/home/jovyan/modules
-#		     --bind=$COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
-#		     --bind=$COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
-#		     --bind=$COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
+#                    --template=${COURSE_ref}
+#                    --directory=${CONTAINER_nspawn_root}
+#                    --user=jovyan
+#                    --setenv=PATH=/opt/conda/bin
+#                    --bind=$STUDENT_course:/home/jovyan/work
+#                    --bind=$COURSE_modules:/home/jovyan/modules
+#                    --bind=$COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
+#                    --bind=$COURSE_jupyter/custom.js:/home/jovyan/.jupyter/custom/custom.js
+#                    --bind=$COURSE_jupyter/custom.css:/home/jovyan/.jupyter/custom/custom.css"
 #    for static in $COURSE_statics; do
-#	command="$command
+#       command="$command
 #                     --bind=$NBHROOT/static/$course/$static:/home/jovyan/work/$static"
 #    done
 #    command="$command
-#		    /usr/local/bin/start-notebook.sh
-#		    --NotebookApp.port=${port}
-#		    --no-browser
-#		    --NotebookApp.token=${token}
+#                   /usr/local/bin/start-notebook.sh
+#                   --NotebookApp.port=${port}
+#                   --no-browser
+#                   --NotebookApp.token=${token}
 #"
 #
 #    echo $command
@@ -1458,7 +1458,7 @@ Available subcommands:
 
 function list-subcommands() {
     for s in $SUBCOMMANDS; do
-	echo $s
+        echo $s
     done | sort | sed -e 's,^, * ,'
 }
 
@@ -1469,14 +1469,14 @@ function usage() {
 function main() {
 
     while getopts "d:x" option; do
-	case $option in
-	    d) NBHROOT="$OPTARG"
-	       # make sure root is absolute
-	       NBHROOT=$(cd $NBHROOT; pwd -P)
-	       ;;
-	    x) DEBUG=true ;;
-	    ?) >&2 usage; exit 1;;
-	esac
+        case $option in
+            d) NBHROOT="$OPTARG"
+               # make sure root is absolute
+               NBHROOT=$(cd $NBHROOT; pwd -P)
+               ;;
+            x) DEBUG=true ;;
+            ?) >&2 usage; exit 1;;
+        esac
     done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
@@ -1488,16 +1488,16 @@ function main() {
         list-subcommands >& 2
         exit 1
     else
-	case $(type -t -- $fun) in
-	    function)
-		shift ;;
-	    *)
-		{ echo "$fun not a valid subcommand; pick among the following:"
-		  list-subcommands
-		  } >&2
-		exit 1
-		;;
-	esac
+        case $(type -t -- $fun) in
+            function)
+                shift ;;
+            *)
+                { echo "$fun not a valid subcommand; pick among the following:"
+                  list-subcommands
+                  } >&2
+                exit 1
+                ;;
+        esac
     fi
 
     # call subcommand
