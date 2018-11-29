@@ -1,0 +1,15 @@
+# this is meant to be installed under /etc/systemd/system
+[Unit]
+Description=the nbhosting django app as a uwsgi instance
+
+# workaround for bug fedora27 f27
+# https://bugzilla.redhat.com/show_bug.cgi?id=1532287
+# as of jan 9 2018,
+# this apparently is being worked as I write this
+# so hopefuly this PYTHONPATH thing can go away soon
+[Service]
+#ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/nbhosting.ini
+ExecStart=/usr/sbin/uwsgi --env PYTHONPATH=/usr/local/lib64/python3.6/site-packages:/usr/local/lib/python3.6/site-packages:/usr/local/lib/python3.6/site-packages/nbhosting-0.1.0-py3.6.egg --ini /etc/uwsgi.d/nbhosting.ini
+
+[Install]
+WantedBy=multi-user.target

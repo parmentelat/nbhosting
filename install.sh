@@ -2,7 +2,7 @@
 
 # can do installs or updates
 # expected to run in a repository that is git-updated
-# run as ./install.sh 
+# run as ./install.sh
 
 # where all the data lies; may provisions were made in the code to
 # have this configurable (in the django settings)
@@ -70,7 +70,7 @@ function update-images() {
 
 function update-nginx() {
 
-    # update both configs from the .in 
+    # update both configs from the .in
     local configs="nginx-https.conf nginx-http.conf"
     local config
     for config in $configs; do
@@ -88,7 +88,7 @@ function update-nginx() {
     fi
     rsync $rsopts nginx/$config /etc/nginx/nginx.conf
 }
-    
+
 function restart-services() {
     systemctl restart nbh-monitor
     systemctl restart nginx
@@ -96,7 +96,12 @@ function restart-services() {
 }
 
 function enable-services() {
-    rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
+    # patch for f27
+    if grep -q 'Fedora release 27' /etc/fedora-release; then
+        rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
+    else
+        rsync $rsopts systemd/nbh-uwsgi.service.f27 /etc/systemd/system/
+    fi
     rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
     systemctl daemon-reload
     systemctl enable docker
@@ -115,7 +120,7 @@ function default-main() {
     update-uwsgi
     update-assets
     update-images
-    
+
     update-nginx
     enable-services
     restart-services
