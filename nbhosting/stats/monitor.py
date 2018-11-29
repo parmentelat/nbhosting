@@ -306,6 +306,10 @@ class Monitor:
         futures = []
         for container in containers:
             try:
+                # refresh data from docker server, in case
+                # we've taken too long to reach here since
+                # the point when we issued proxy.containers.list()
+                container.reload()
                 name = container.name
                 # too much spam ven in debug mode
                 # logger.debug(f"dealing with container {container}")
