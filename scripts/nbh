@@ -761,7 +761,7 @@ function docker-create-container-for-student-in-course() {
         STUDENT_uid=$(id -u $student)
 
         command="docker create --name $container
-                 -p 8888
+                 --publish 8888
                  --user root
                  --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
                  -v $STUDENT_course:/home/jovyan/work
@@ -774,11 +774,15 @@ function docker-create-container-for-student-in-course() {
         done
         # see start-in-dir-as-uid.sh for a note on setting the directories
         # below
+        # note that setting the ip here is a workaround
+        # for a broken jupyter/docker-stacks version around late 2018
+        # probably not needed with more recent ones
         command="$command
                  -e PYTHONPATH=/home/jovyan/modules
                  $COURSE_image
                  start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
                  jupyter notebook
+                 --ip=0.0.0.0
                  --no-browser
                  --NotebookApp.notebook_dir=/home/jovyan/work
                  --NotebookApp.token=$jupyter_token
