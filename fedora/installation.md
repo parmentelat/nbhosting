@@ -85,7 +85,12 @@ Notes
 * `/etc/sysconfig/docker` is the place where we define `/nbhosting/dockers` as being `docker`'s workspace
 * we want to use a static `iptables` config, and ***not firewalld*** that will just screw it all up for us
 * likewise, we need to turn off SElinux
-* it is required that `sudo` allows non-tty apps to issue calls to `sudo`; by default on fedaora, it is the case, but it turns out our local IT has a policy in place that requires a terminal (see `requiretty` as a sudo configuration clause). To address this, `install.sh` will install
+* it is required that `sudo` allows non-tty apps to issue calls to `sudo`; by default on fedaora, it is the case, but it turns out our local IT has a policy in place that requires a terminal (see `requiretty` as a sudo configuration clause). To address this, consider creating the following file (*it puzzles me that `install.sh` does not do it, it might just not be needed any more...*)
+
+```
+# cat /etc/sudoers.d/99-nbhosting
+Defaults !requiretty
+```
 
 ## ssh
 After raw install of fedora, do the usual:
@@ -160,7 +165,7 @@ pip3 install aiohttp docker
 
 #### note on fedora upgrades
 
-If you upgrade to a more recent fedora, as always dnf will take care of the packages that it knows about, but won't automatically install the pip dependencies, that need to be reinstalled manually.
+If you upgrade to a more recent fedora, as always `dnf` will take care of the packages that it knows about, but **won't automatically install the `pip` dependencies, that need to be reinstalled manually**.
 
 ## SSL certificates
 
@@ -173,7 +178,8 @@ $ egrep 'server|ssl_cert' nbhosting/main/sitesettings.py
 server_mode = "https"
 server_name = "nbhosting.inria.fr"
 ssl_certificate = "/root/ssl-certificate/bundle.crt"
-ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"```
+ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
+```
 
 Make sure to take care of these settings and cryptographic material.
 
@@ -262,7 +268,7 @@ nbh course-update-from-git flotpython
 
 #### option1 : piggyback
 
-If you use an nbhosting instance that already hosts a course, say `flotpython3`, and you want to host course `flotbioinfo` with the same image as `flotpython3`, you can do This
+If you use an nbhosting instance that already hosts a course, say `flotpython3`, and you want to host course `flotbioinfo` with the same image as `flotpython3`, you can do this:
 
 ```
 nbh course-settings -i flotpython3 flotbioinfo
