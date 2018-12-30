@@ -114,7 +114,6 @@ function default-main() {
     check-subdirs
     ensure-uid-1000
 
-    update-python-libraries
     update-bins
     update-jupyter
     update-uwsgi
@@ -133,6 +132,10 @@ function default-main() {
 # otherwise one can invoke one or several steps
 # with e.g. install.sh update-uwsgi log-symlink
 function main() {
+    # sitesettings.py needs to be installed first,
+    # so that sitesettings.sh reflect any change
+    update-python-libraries
+
     # probe sitesettings.py
     nbhosting/manage.py list-siteconfig > nbhosting/main/sitesettings.sh
     source nbhosting/main/sitesettings.sh
