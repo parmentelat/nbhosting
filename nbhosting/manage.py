@@ -12,18 +12,19 @@ def list_siteconfig():
         steps.append(step)
         path = '.'.join(steps)
         settings = import_module(path)
-    for symbol in dir(settings.sitesettings) :
-        value = getattr(settings.sitesettings, symbol, 'undefined-in-sitesettings')
+    for symbol in dir(settings.sitesettings):
+        value = getattr(settings.sitesettings, symbol,
+                        'undefined-in-sitesettings')
         if '__' in symbol or 'SECRET' in symbol:
             continue
         if isinstance(value, str):
-            print("{}='{}'".format(symbol, value))
+            print(f"{symbol}='{value}'")
         elif isinstance(value, list) and all(isinstance(v, str) for v in value):
             # expose list of strings as a bash array
-            between_quote = lambda x: "'{}'".format(x)
+            between_quote = lambda x: f"'{x}'"
             bash_repr = " ".join(between_quote(v) for v in value)
-            print("{}=({})".format(symbol, bash_repr))
-    
+            print(f"{symbol}=({bash_repr})")
+
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)
     try:

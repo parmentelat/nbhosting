@@ -12,7 +12,7 @@ nbhroot=/nbhosting
 
 function check-subdirs() {
     for subdir in jupyter courses-git logs raw; do
-	[ -d $root/$subdir ] || mkdir -p $root/$subdir
+        [ -d $root/$subdir ] || mkdir -p $root/$subdir
     done
 }
 
@@ -22,7 +22,7 @@ function check-subdirs() {
 # this way we avoid confusion since jovyan has uid 1000 in the jupyter images
 function ensure-uid-1000() {
     id 1000 >& /dev/null || {
-	useradd nbhjovyan --uid 1000 --home /home/nbhjovyan
+        useradd nbhjovyan --uid 1000 --home /home/nbhjovyan
     }
 }
 
@@ -87,6 +87,7 @@ function update-nginx() {
         config="nginx-http.conf"
     fi
     rsync $rsopts nginx/$config /etc/nginx/nginx.conf
+
 }
 
 function restart-services() {
@@ -141,10 +142,11 @@ function main() {
     source nbhosting/main/sitesettings.sh
 
     if [[ -z "$@" ]]; then
-	default-main
+        default-main
     else
-	for command in "$@"; do $command; done
+        for command in "$@"; do $command; done
     fi
+
 }
 
 main "$@"
