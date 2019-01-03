@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 
 #
-# aliases : developer helper functions to inspect various logs 
+# aliases : developer helper functions to inspect various logs
 #
 
 ##########
@@ -79,14 +79,29 @@ function logs-jup() {
 
 BTRFS=/nbhosting/dockers
 
-alias r="source /tmp/aliases"
-alias cdm="cd /homefs/btrfs/machines"
-
 ########## btrfs
 alias b=btrfs
 alias bv="btrfs subvolume"
 alias bvd="btrfs subvolume delete"
 alias bvl="btrfs subvolume list $BTRFS"
+
+
+SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor"
+function migrate-status() {
+    for service in $SERVICES; do
+        echo ===== $service =====
+        systemctl is-active $service
+        systemctl is-enabled $service
+    done
+}
+
+function migrate-counts() {
+    echo -n "Running containers "
+    docker ps --format '{{.Names}}' | wc -l
+    echo -n "Total containers "
+    docker ps -a --format '{{.Names}}' | wc -l
+}
+
 
 ## hybrid
 #alias bs="d status-btrfs"
@@ -102,4 +117,3 @@ alias bvl="btrfs subvolume list $BTRFS"
 #
 #alias m=machinectl
 #alias mk="machinectl kill"
-
