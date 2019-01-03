@@ -271,7 +271,7 @@ class MonitoredJupyter:
                     f"Removing (just killed & outdated) {self} "
                     f"that has outdated hash {actual_hash[:15]} "
                     f"vs expected {self.image_hash[:15]}")
-                self.remove_container())
+                self.remove_container()
             else:
                 # this counts for one dead container
                 self.figures.count_container(False)
