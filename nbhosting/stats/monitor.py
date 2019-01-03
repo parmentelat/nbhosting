@@ -194,6 +194,18 @@ class MonitoredJupyter:
             logger.exception(f"Cannot probe number of kernels with {self}")
 
 
+    def remove_container(self):
+        """
+        just do docker rm, but protects against anything unexpected
+        so that rare errors like e.g. btrfs mishaps won't contaminate
+        the rest of the monitor logic
+        """
+        try:
+            self.container.remove(v=True)
+        except Exception:
+            logger.log_exc(f"docker failed to remove {self}")
+
+
     async def co_run(self, idle, unused):
         """
         both timeouts in seconds
@@ -207,7 +219,7 @@ class MonitoredJupyter:
                     f"Removing (stopped & outdated) {self} "
                     f"that has outdated hash {actual_hash[:15]} "
                     f"vs expected {self.image_hash[:15]}")
-                self.container.remove(v=True)
+                self.remove_container()
             else:
                 exited_time = self.exited_time()
                 unused_days = (int)((now - exited_time) // (24 * 3600))
@@ -217,7 +229,7 @@ class MonitoredJupyter:
                         f"Removing (stopped & unused) {self} "
                         f"that has been unused for {unused_days} days "
                         f"{unused_hours} hours")
-                    self.container.remove(v=True)
+                    self.remove_container()
                 else:
                     logger.debug(
                         f"Ignoring stopped {self} that "
@@ -253,13 +265,13 @@ class MonitoredJupyter:
             # if that container does not run the expected image hash
             # it is because the course image was upgraded in the meanwhile
             # then we even remove the container so it will get re-created
-            # next time with the right image this time
+            # next time with the right image
             if actual_hash != self.image_hash:
                 logger.info(
                     f"Removing (just killed & outdated) {self} "
                     f"that has outdated hash {actual_hash[:15]} "
                     f"vs expected {self.image_hash[:15]}")
-                self.container.remove(v=True)
+                self.remove_container())
             else:
                 # this counts for one dead container
                 self.figures.count_container(False)
@@ -335,6 +347,11 @@ class Monitor:
                 # ignore this container as we don't even know
                 # in what course it belongs
                 logger.info(f"ignoring non-nbhosting {container}")
+            except KeyError:
+                # typically hash_by_course[coursename] is failing
+                # this may happen when a course gets outdated
+                logger.info(f"ignoring container {container} - "
+                            f"can't find image hash for {coursename}")
             except Exception:
                 logger.exception(f"monitor has to ignore {container}")
         # ds stands for disk_space
