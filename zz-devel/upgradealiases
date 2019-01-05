@@ -1,0 +1,64 @@
+# -*- shell-script -*-
+
+#
+# helper functions to help migrations and upgrades
+#
+#
+# Typical workflow:
+#
+# when upgrading from, say, fedora 27 to fedora29, here's how we tackle it:
+#
+# * we start with thurst = nbhosting.inria.fr
+
+
+SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor"
+
+function upgrade-status() {
+    for service in $SERVICES; do
+        echo ===== $service =====
+        systemctl is-active $service
+        systemctl is-enabled $service
+    done
+}
+
+# could become nbh counts
+function upgrade-counts() {
+    echo -n "Running containers "
+    docker ps --format '{{.Names}}' | wc -l
+    echo -n "Total containers "
+    docker ps -a --format '{{.Names}}' | wc -l
+}
+
+# just do
+# rsync -a -i --delete
+# from local /nbhosting/students and /nbhosting/raw
+# to the other box
+function other() {
+    case $(hostname) in
+        *thermals*) echo thurst.inria.fr ;;
+        *thurst*) echo thermals.inria.fr ;;
+        *) echo cant-find-other-box ;;
+    esac
+}
+
+function upgrade-push-user-data() {
+    local remote=$(other)
+    command="rsync -a -i --delete /nbhosting/raw /nbhosting/students $remote:/nbhosting"
+    echo "You are about to run the following command"
+    echo $command
+    echo -n "OK (control-C to abort) ? "
+    read answer
+    case $answer in
+        n*|N*) echo skipped ;;
+        *) $command ;;
+    esac
+}
+
+########## btrfs
+
+BTRFS=/nbhosting/dockers
+
+alias b=btrfs
+alias bv="btrfs subvolume"
+alias bvd="btrfs subvolume delete"
+alias bvl="btrfs subvolume list $BTRFS"

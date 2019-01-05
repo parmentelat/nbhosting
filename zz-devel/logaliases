@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 
 #
-# aliases : developer helper functions to inspect various logs
+# developer helper functions to inspect various logs
 #
 
 ##########
@@ -77,35 +77,6 @@ function logs-jup() {
 ########################################
 [ $(type -t ls 2> /dev/null) == alias ] && unalias ls
 
-BTRFS=/nbhosting/dockers
-
-########## btrfs
-alias b=btrfs
-alias bv="btrfs subvolume"
-alias bvd="btrfs subvolume delete"
-alias bvl="btrfs subvolume list $BTRFS"
-
-
-SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor"
-function migrate-status() {
-    for service in $SERVICES; do
-        echo ===== $service =====
-        systemctl is-active $service
-        systemctl is-enabled $service
-    done
-}
-
-function migrate-counts() {
-    echo -n "Running containers "
-    docker ps --format '{{.Names}}' | wc -l
-    echo -n "Total containers "
-    docker ps -a --format '{{.Names}}' | wc -l
-}
-
-
-## hybrid
-#alias bs="d status-btrfs"
-
 ########## testing the systemd-nspawn thingy
 #alias d=/tmp/nbh
 #alias ducm="d update-course-machine"
@@ -114,6 +85,5 @@ function migrate-counts() {
 
 ########## spawn
 #alias syp=systemd-nspawn
-#
 #alias m=machinectl
 #alias mk="machinectl kill"
