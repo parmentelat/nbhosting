@@ -74,6 +74,8 @@ function logs-jup() {
     docker logs -f ${course}-x-${student};
 }
 
+alias counts="nbh docker-counts"
+
 ########################################
 [ $(type -t ls 2> /dev/null) == alias ] && unalias ls
 

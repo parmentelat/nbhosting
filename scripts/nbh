@@ -1176,6 +1176,14 @@ function list-courses() {
 }
 
 
+@declare-subcommand docker-counts
+function docker-counts() {
+    echo -n "Running containers "
+    docker ps --format '{{.Names}}' | wc -l
+    echo -n "Total containers "
+    docker ps -a --format '{{.Names}}' | wc -l
+}
+
 ####################
 function -rename-dir() {
     local oldname=$1; shift
