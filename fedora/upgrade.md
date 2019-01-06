@@ -27,15 +27,25 @@ source ~/nbhosting/zz-devel/upgradealiases
 upgrade-status
 ```
 
+
+
+
 ## convenience
 
-See file `zz-devel/upgradealiases` for a few convenience tools that can ease the various steps in this workflow. In particular
+There are currently 2 pieces that can come in handy, they need to be reconciled:
+
+* file `zz-devel/upgradealiases` for a few convenience tools that can ease the various steps in this workflow. In particular
 
 | command                   |  purpose  |
 |---------------------------|-----------|
 | `upgrade-status`          | show which services are running and enabled |
 | `upgrade-push-user-data`  | rsync user data prior to handover; as the name suggests, |
 |                           | always **run from the current production box** |
+| `upgrade-sizes`           | show sizes of data parts under `/nbhosting`  |
+
+
+* see also file `zz-devel/upgrade-swap.sh` that has older code (used to upgrade from f25 to f27 apparently) and that should be useful too
+
 
 ## workflow
 

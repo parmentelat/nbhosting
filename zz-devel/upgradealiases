@@ -11,7 +11,7 @@
 # * we start with thurst = nbhosting.inria.fr
 
 
-SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor"
+SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor docker"
 CONFIG=$HOME/nbhosting/nbhosting/main/sitesettings.py
 
 function upgrade-status() {
