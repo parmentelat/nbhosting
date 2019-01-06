@@ -12,6 +12,7 @@
 
 
 SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor"
+CONFIG=$HOME/nbhosting/nbhosting/main/sitesettings.py
 
 function upgrade-status() {
     for service in $SERVICES; do
@@ -19,15 +20,19 @@ function upgrade-status() {
         systemctl is-active $service
         systemctl is-enabled $service
     done
+    echo '===== configuration ====='
+    egrep '^(server_name|ssl_certificate)' $CONFIG
+    echo '===== data space ====='
+    ls -ld /nbhosting/{students,raw}*
 }
 
-# could become nbh counts
-function upgrade-counts() {
-    echo -n "Running containers "
-    docker ps --format '{{.Names}}' | wc -l
-    echo -n "Total containers "
-    docker ps -a --format '{{.Names}}' | wc -l
+function upgrade-sizes() {
+    for dataspace in /nbhosting/{students,raw}*; do
+        echo "===== size of $dataspace ====="
+        du -hs $dataspace
+    done
 }
+
 
 # just do
 # rsync -a -i --delete

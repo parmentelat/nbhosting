@@ -27,13 +27,23 @@ source ~/nbhosting/zz-devel/upgradealiases
 upgrade-status
 ```
 
+## convenience
+
+See file `zz-devel/upgradealiases` for a few convenience tools that can ease the various steps in this workflow. In particular
+
+| command                   |  purpose  |
+|---------------------------|-----------|
+| `upgrade-status`          | show which services are running and enabled |
+| `upgrade-push-user-data`  | rsync user data prior to handover; as the name suggests, |
+|                           | always **run from the current production box** |
+
 ## workflow
 
 Before moving to a newer fedora, (or a newer django for that matter) it is of
 course necessary to validate code. So the overall workflow is all about swapping the 2 boxes, like this:
 
 
-### started
+### starting point
 
 | box                 | function    | fedora release |
 |---------------------|-------------|----------------|
@@ -87,7 +97,17 @@ we can now
 | `thurst.inria.fr`   | production  | f29            |
 | `thermals.inria.fr` | none        | f29            |
 
-At that point the usual devel box can be reconfigured to work as a devel box.
+### epilogue
+
+At that point:
+* the usual devel box can be reconfigured to work as a devel box
+* to this end, double check `upgrade-status` on both boxes
+* also, in `/nbhosting` we do the following renamings:
+  * `mv students students.prod`
+  * `mv raw raw.prod`
+
+This is optional, it's a way to keep a backup, and to hopefully minimize the
+amount of time needed next time.
 
 ## pitfalls
 
@@ -106,13 +126,6 @@ The way we build our images - based on the latest scipy stack image - means that
 
 ### btrfs volumes
 
-Once a box *loses* its development function, a lot of btrfs volumes are left over that need to be cleaned up; removing all docker containers and images is one way to do that, it might take some time though.
-
-## convenience
-
-See file `zz-devel/upgradealiases` for a few convenience tools that can ease the various steps in this workflow. In particular
-
-| command                   |  purpose  |
-|---------------------------|-----------|
-| `upgrade-status`          | show which services are running and enabled |
-| `upgrade-push-user-data`  | rsync user data prior to handover           |
+Once a box *loses* its development function, a lot of btrfs volumes are left
+over that may need to be cleaned up; removing all docker containers and images
+is one way to do that, it might take some time though.
