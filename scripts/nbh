@@ -163,7 +163,7 @@ function -mkdir-for-file-as-student () {
         -echo-stderr Creating directory $dir for $filename
         mkdir -p $dir
         -echo-stderr Giving $dir to $login
-        chown $login $dir
+        chown $login:$login $dir
     }
 }
 
@@ -588,7 +588,10 @@ function add-student-in-course() {
     # check login existence
     getent passwd $student >& /dev/null || {
         -echo-stderr Creating disabled login $student
-        useradd --user-group --no-create-home --home-dir $STUDENT_home $student
+        useradd --user-group --no-create-home --home-dir $STUDENT_home $student || {
+            -echo-stderr Failed to create login $student - aborting;
+            return 1
+        }
         # disable login
         usermod -L $student
     }
@@ -611,6 +614,8 @@ function add-student-in-course() {
             systemctl reload docker
         fi
     done
+
+    return 0
 
 }
 
@@ -658,7 +663,6 @@ function check-student-notebook-for-course() {
     local course_notebook=$COURSE_notebooks/$notebook
     local student_notebook=$STUDENT_course/$notebook
 
-    -compute-student-globals-in-course $student $course
     # copy if student notebook is missing, or if force is requested
     if [ ! -f $student_notebook ] || [ -n "$forcecopy" ]; then
         -mkdir-for-file-as-student $student_notebook $student
@@ -964,7 +968,11 @@ function docker-view-student-course-notebook() {
     -check-course-jupyter $course
 
     ## in case the student is not known yet
-    add-student-in-course $student $course
+    add-student-in-course $student $course || {
+        # something wrong happened, typically /etc/login.defs misconfigured
+        echo failed none none none
+        return 1
+    }
 
     ## create the student notebook if not there yet
     check-student-notebook-for-course $forcecopy $student $notebook $course
