@@ -24,7 +24,7 @@ def log_completed_process(completed_process, subcommand):
     logger.info("{} returned ==> {}".format(header, completed_process.returncode))
     for field in ('stdout', 'stderr'):
         text = getattr(completed_process, field, 'undef')
-        # nothing to show 
+        # nothing to show
         if not text:
             continue
         # implement policy for stderr
@@ -70,7 +70,7 @@ def authorized(request):
         explanation = "REMOTE_ADDR = {}, allowed_devel_ips = {}"\
                       .format(incoming_ip, allowed_devel_ips)
         return result, explanation
-    
+
     # inside an iframe ?
     if 'HTTP_REFERER' in request.META:
         result, explanation = authorize_refered_request(request)
@@ -93,14 +93,14 @@ def edx_request(request, course, student, notebook):
 
     if not authorized(request):
         return HttpResponseForbidden()
-    
+
     # the ipynb extension is removed from the notebook name in urls.py
     notebook_withext = notebook + ".ipynb"
     # have we received a request to force the copy (for reset_from_origin)
     forcecopy = request.GET.get('forcecopy', False)
 
     subcommand = 'docker-view-student-course-notebook'
-    
+
     # build command
     command = ['nbh', '-d', sitesettings.nbhroot]
     if DEBUG:
@@ -142,7 +142,7 @@ def edx_request(request, course, student, notebook):
 
         # remember that in events file for statistics
         Stats(course).record_open_notebook(student, notebook, action, actual_port)
-        # redirect with same proto (http or https) as incoming 
+        # redirect with same proto (http or https) as incoming
         scheme = request.scheme
         # get the host part of the incoming URL
         host = request.get_host()
@@ -158,7 +158,7 @@ def edx_request(request, course, student, notebook):
                       course=course, student=student)
         logger.info("edxfront: redirecting to {}".format(url))
 #        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
-        return HttpResponseRedirect(url)           
+        return HttpResponseRedirect(url)
 
     except Exception as e:
         message = "exception when parsing output of nbh {}\n{}\n{}"\

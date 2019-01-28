@@ -34,10 +34,3 @@ class Course:
             return full_path
         except IOError as e:
             return False
-            
-
-        
-    
-
-        
-        
