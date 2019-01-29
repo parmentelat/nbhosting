@@ -256,7 +256,7 @@ class MonitoredJupyter:
                     f"that has been idle for {idle_minutes} mn")
             else:
                 logger.info(
-                    f"Killing (running and empty){self} "
+                    f"Killing (running and empty) {self} "
                     f"that has no kernel attached")
             # kill it
             self.container.kill()
