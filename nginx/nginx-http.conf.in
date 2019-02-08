@@ -47,17 +47,17 @@ http {
     # #c.NotebookApp.base_url = '/port-number/'
     # rough attempts at getting rid of them failed miserably though
     # so, more work seems to be needed...
-    
+
     # from http://nginx.org/en/docs/http/websocket.html
     map $http_upgrade $connection_upgrade {
         default Upgrade;
         ''      Close;
-    }       
+    }
 
     # the upstream component nginx needs to connect to
     upstream django {
         # a file socket to reach the upstream django app
-        server unix:/run/nbhosting.sock; 
+        server unix:/run/nbhosting.sock;
     }
 
     # configuration of the server
@@ -67,7 +67,7 @@ http {
         listen 80;
 
         # the domain name it will serve for
-        server_name @server_name@; 
+        server_name @server_name@;
         charset     utf-8;
 
         ########## SSL config
@@ -125,7 +125,7 @@ http {
         # so that e.g. / -> /nbh/ and /stats -> /nbh/stats
         location / {
             return 301 $scheme://$host/nbh$request_uri;
-        }      
+        }
 
 
         # edxfront.views.edx_request will redirect to a URL
