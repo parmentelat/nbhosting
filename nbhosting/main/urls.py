@@ -68,7 +68,7 @@ urlpatterns = [                                         # pylint: disable=c0103
                                 nbhosting.stats.views.send_material_usage),
     url(r'^nbh/stats/(?P<course>[\w_.-]+)',
                                 nbhosting.stats.views.show_stats),
-    url(r'^nbh',
+    url(r'^',
                                 RedirectView.as_view(
                                     url='/nbh/courses', permanent=True),
                                 name='index'),
