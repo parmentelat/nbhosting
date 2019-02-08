@@ -20,8 +20,9 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.views.generic.base import RedirectView
 
-import nbhosting.main.views
+# import nbhosting.main.views
 import nbhosting.edxfront.views
 import nbhosting.courses.views
 import nbhosting.stats.views
@@ -68,5 +69,7 @@ urlpatterns = [                                         # pylint: disable=c0103
     url(r'^nbh/stats/(?P<course>[\w_.-]+)',
                                 nbhosting.stats.views.show_stats),
     url(r'^nbh',
-                                nbhosting.main.views.welcome),
+                                RedirectView.as_view(
+                                    url='/nbh/courses', permanent=True),
+                                name='index'),
 ]
