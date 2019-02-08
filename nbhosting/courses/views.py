@@ -1,31 +1,17 @@
-from pathlib import Path
-import subprocess
+# we keep on exposing local variables to a template
+# using locals(); hence disable w0641 - unused variable
+# pylint: disable=c0111, w0641
+#from pathlib import Path
+#import subprocess
 
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+#from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 
 from nbhosting.courses.models import CoursesDir, CourseDir
 
 # Create your views here.
-
-
-#def stdout_html(message, stdout):
-#    html = ""
-#    if stdout:
-#        html += "<p class='stdout'>OUTPUT {message}</p>".format(
-#            message=message)
-#        html += "<pre>\n{stdout}</pre>".format(stdout=stdout)
-#    return html
-#
-#
-#def stderr_html(message, stderr):
-#    html = ""
-#    if stderr:
-#        html += "<p class='stderr'>ERROR {message}</p>".format(message=message)
-#        html += "<pre>\n{stderr}</pre>".format(stderr=stderr)
-#    return html
 
 
 @login_required
@@ -41,6 +27,7 @@ def list_courses(request):
 def list_course(request, course):
     course_dir = CourseDir(course)
     notebooks = course_dir.notebooks()
+    # this is used indeed by locals() below
     notebook_cols = [
         notebooks[::2],
         notebooks[1::2],
