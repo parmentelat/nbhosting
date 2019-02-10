@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-from nbhosting.courses.models import CoursesDir, CourseDir
+from nbhosting.courses import CoursesDir, CourseDir
 
 
 ######### auditor
@@ -26,27 +26,29 @@ def auditor_list_courses(request):
 #@login_required
 @csrf_protect
 def auditor_show_course(request, course):
-    print("PING")
     course_dir = CourseDir(course)
-    notebooks = course_dir.notebooks()
-    # this is used indeed by locals() below
-    notebook_cols = [
-        notebooks[::2],
-        notebooks[1::2],
+    course_notebooks = set(course_dir.notebooks())
+    my_notebooks = set(
+        course_dir.probe_student_notebooks(request.user.username))
+
+    all_notebooks = course_notebooks | my_notebooks
+
+    notebook_details = [
+        dict(path=notebook,
+             in_course=(notebook in course_notebooks),
+             in_student=(notebook in my_notebooks))
+        for notebook in all_notebooks
     ]
 
-    # shorten staff hashes
+    notebook_details.sort(
+        key=lambda d: d['path']
+    )
 
-    shorten_staff = [hash[:7] for hash in course_dir.staff]
-
-    env = {
-        'how_many': len(notebooks),
-        'image': course_dir.image,
-        'statics': course_dir.statics,
-        'staff': shorten_staff,
-        'giturl': course_dir.giturl,
-    }
-    env.update(locals())
+    env = dict(
+        course=course,
+        notebook_details=notebook_details,
+        how_many=len(notebook_details),
+    )
     return render(request, "auditor-course.html", env)
 
 
@@ -56,8 +58,12 @@ def auditor_show_course(request, course):
 @csrf_protect
 def staff_list_courses(request):
     courses_dir = CoursesDir()
+    course_details = [
+        dict(name=name, homedirs=CourseDir(name).student_homes())
+        for name in courses_dir.coursenames()
+        ]
     return render(request, "staff-courses.html",
-                  {'courses': courses_dir.coursenames()})
+                  {'course_details': course_details})
 
 @staff_member_required
 @csrf_protect

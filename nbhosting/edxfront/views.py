@@ -71,15 +71,16 @@ def authorized(request):
                       .format(incoming_ip, allowed_devel_ips)
         return result, explanation
 
+
+    # our result is always of the form
+    # authorized, explanation
+    # where explanation is relevant when authorized is False
+
     # inside an iframe ?
     if 'HTTP_REFERER' in request.META:
-        result, explanation = authorize_refered_request(request)
+        return authorize_refered_request(request)
     else:
         result, explanation = authorize_devel_request(request)
-    if not result:
-        logger.warn("ACCESS REFUSED - check your sitesettings"
-                    "explanation = {}".format(explanation))
-    return result
 
 def edx_request(request, course, student, notebook):
 
@@ -91,8 +92,11 @@ def edx_request(request, course, student, notebook):
     and then returns a http redirect to /port/<notebook_path>
     """
 
-    if not authorized(request):
-        return HttpResponseForbidden()
+    ok, explanation = authorized(request)
+
+    if not ok:
+        return HttpResponseForbidden(
+            f"Access denied: {explanation}")
 
     # the ipynb extension is removed from the notebook name in urls.py
     notebook_withext = notebook + ".ipynb"

@@ -10,45 +10,59 @@
 
 
 {% block content %}
+<style>
+.course-box {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+.notebook {
+    font-size: 60%;
+    border: 0.1px solid #888;
+    border-radius: 5px;
+    padding: 4px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 2px
+}
+.in-course {
+    background-color: #faa;
+}
+.in-student {
+    background-color: #aaf;
+}
+.in-course.in-student {
+    background-color: #afa;
+}
+</style>
+
 <ol class="breadcrumb">
-  <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
-  <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
-  <li class="breadcrumb-item active">{{course}}</li>
+    <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
+    <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
+    <li class="breadcrumb-item active">{{course}}</li>
 </ol>
 
 <!------------------------------>
 <div class="container">
- <div class="row">
-
-<!------------------------------>
-  <div class="col-12">
-
-   <div class="card">
-    <div class="card-block m-3">
-     <h2 class="card-title">Notebooks</h2>
-     <div class="row">
-     {% for notebook_col in notebook_cols %}
-      <div class="col-6">
-       <ul class="list-group list-group-flush">
-        {% for notebook in notebook_col %}
-         <li class="list-group-item" style='padding:3px;'>
-          <a class='card-link' style='font-size:60%;'
-           href='/ipythonExercice/{{course}}/{{notebook}}/{{user.get_username}}'
-          >{{notebook}}
-          </a>
-         </li>
-        {% endfor %}
-       </ul>
-      </div> <!-- col-6-->
-     {% endfor %}
-     </div> <!-- row -->
-    </div> <!-- card-block-->
-   </div> <!-- card-->
-  </div> <!-- col-8-->
-
-
-<!------------------------------>
-</div> <!-- row-->
-</div> <!-- container-->
+    <div class="row">
+        <div class="col-12">
+            <div class="card-block m-3">
+                <h2 class="card-title">Notebooks</h2>
+            </div>
+            <div class="course-box m-3">
+                {% for detail in notebook_details %}
+<a class='notebook
+{% if detail.in_course %} in-course {% endif %}
+{% if detail.in_student %} in-student {% endif %}
+'
+href='/ipythonExercice/{{course}}/{{detail.path}}/{{user.get_username}}'
+>{{detail.path}}
+</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

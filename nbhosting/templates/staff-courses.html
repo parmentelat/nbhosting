@@ -11,14 +11,16 @@ Known courses
   <li class="breadcrumb-item active">courses</li>
 </ol>
 
-{% for course in courses %}
+{% for course_detail in course_details %}
 <div class="card text-center">
 <div class="card-block m-4">
-<h1 class="card-title">{{course}}</h1>
-  <a class='btn btn-warning btn-lg card-link mr-5'
-     href='/staff/course/{{course}}'>notebooks</a>
-  <a class='btn btn-info btn-lg card-link ml-5'
-     href='/staff/stats/{{course}}'>statistics</a>
+<h1 class="card-title mb-4">{{course_detail.name}}</h1>
+  <a class='btn btn-lg btn-warning  card-link mr-4'
+     href='/staff/course/{{course_detail.name}}'>notebooks</a>
+  <a class='btn btn-lg btn-info card-link mr-4 ml-4'
+     href='/staff/stats/{{course_detail.name}}'>statistics</a>
+  <span class="btn btn-lg btn-secondary card-link ml-4">
+      {{course_detail.homedirs}} student homes</span>
 </div>
 </div>
 {% endfor %}
