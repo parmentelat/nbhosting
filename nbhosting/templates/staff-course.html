@@ -11,10 +11,10 @@
 
 {% block content %}
 <ol class="breadcrumb">
-  <li class="breadcrumb-item"><a href='/nbh/'>home</a></li>
-  <li class="breadcrumb-item"><a href='/nbh/courses'>courses</a></li>
+  <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
   <li class="breadcrumb-item active">{{course}}</li>
-  <li class="breadcrumb-item"><a href="/nbh/stats/{{course}}">stats</a></li>
+  <li class="breadcrumb-item"><a href="/staff/stats/{{course}}">stats</a></li>
 </ol>
 
 <!------------------------------>
@@ -24,7 +24,7 @@
 <!------------------------------>
   <div class="col-8">
    <div class='section'>
-    <a href='/nbh/courses/update-from-git/{{course}}' class='btn btn-info btn-lg btn-block'>
+    <a href='/staff/courses/update-from-git/{{course}}' class='btn btn-info btn-lg btn-block'>
     Update {{course}} using git pull from <br/>{{giturl}}
     </a>
    </div> <!--section-->
@@ -55,11 +55,11 @@
   <div class="col">
 
    <div class='section'>
-    <a href='/nbh/courses/build-image/{{course}}'
+    <a href='/staff/courses/build-image/{{course}}'
       class='btn btn-info btn-lg btn-block'>
      Rebuild image
     </a>
-    <a href='/nbh/courses/clear-staff/{{course}}' class='btn btn-info btn-lg btn-block'>
+    <a href='/staff/courses/clear-staff/{{course}}' class='btn btn-info btn-lg btn-block'>
       Clear staff files
     </a>
    </div>

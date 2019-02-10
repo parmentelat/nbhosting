@@ -10,21 +10,24 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+# pylint: disable=c0103
+
 import os
 import logging
 from pathlib import Path
 
-from .loggers import init_loggers
-
 ########## load sitesettings.py module that is **NOT** managed under git
 # see sitesettings.py.example for a template
-import nbhosting.main.sitesettings as sitesettings
+import nbhosting.main.sitesettings as sitesettings      # pylint: disable=c0414
 
-from .sitesettings import (
+from .sitesettings import (                             # pylint: disable=w0611
     SECRET_KEY,
     ALLOWED_HOSTS,
     DEBUG,
 )
+
+from .loggers import init_loggers
+
 
 ########## production vs devel
 if os.getuid() == 0:
@@ -86,7 +89,9 @@ ROOT_URLCONF = 'nbhosting.main.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ './templates' ],
+        'DIRS': [
+            './templates'
+            ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -153,6 +158,6 @@ USE_TZ = True
 
 STATIC_URL = '/assets/'
 
-#################### additions for our /nbh/ protection against nginx
-LOGIN_REDIRECT_URL = '/nbh/accounts/profile/'
-LOGIN_URL =          '/nbh/accounts/login/'
+#################### back to django defaults, no longer a /nbh/ barrier
+LOGIN_REDIRECT_URL = '/welcome/'
+LOGIN_URL =          '/accounts/login/'

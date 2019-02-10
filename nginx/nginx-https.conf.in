@@ -109,31 +109,21 @@ http {
         client_max_body_size 50M;   # adjust to taste
 
 
-        # the URLS that go to django
-        # this is (1) in the architecture diagram
-        location /ipythonExercice/ {
-            uwsgi_pass  django;
-            include uwsgi_params; # the uwsgi_params file you installed
-        }
-
-        # this is used to implement the 'share static version' feature
-        location /ipythonShare/ {
+        # the URLS that go right to django, as-is
+        # ipythonExercice: this is (1) in the architecture diagram
+        # ipythonShare: to expose read-only snapshots
+        # auditor: pages for people who log in directly
+        # staff: admin stuff
+        location ~ /(ipythonExercice|ipythonShare|admin|accounts|staff|auditor)/ {
             uwsgi_pass  django;
             include     uwsgi_params; # the uwsgi_params file you installed
         }
 
-        # this is the entry point to nbh internal views for managing
-        # courses and stats and similar
-        location /nbh/ {
-            uwsgi_pass  django;
-            include     uwsgi_params; # the uwsgi_params file you installed
-        }
-
-        # redirect non-matching urls right under /nbh/
-        # so that e.g. / -> /nbh/ and /stats -> /nbh/stats
+        # redirect non-matching urls right under /auditor/
+        # so that e.g. / -> /some/other/stuff -> /auditor/some/other/stuff
         location / {
-            return 301 $scheme://$host/nbh$request_uri;
-        }      
+            return 301 $scheme://$host/auditor$request_uri;
+        }
 
 
         # edxfront.views.edx_request will redirect to a URL
@@ -156,8 +146,7 @@ http {
             proxy_set_header Connection $connection_upgrade;
             proxy_http_version 1.1;
             proxy_buffering off;
-            proxy_read_timeout 300;
-        }
+            proxy_read_timeout 300;        }
 
         # this is (7) in the architecture diagram
         location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs)(.*) {

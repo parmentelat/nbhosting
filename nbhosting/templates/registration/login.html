@@ -1,19 +1,21 @@
 {% extends "nbhosting.html" %}
 
+{% block head_title %}
+nbhosting login
+{% endblock %}
+
 {% block content %}
 
 <style>
+div.left-side {
+
+}
 .login-error {
     text-align: center;
     color: red;
     background-color: #ddd;
     padding: 20px;
 }
-
-a#lost-password {
-    text-align: center;
-}
-
 </style>
 
 <script>
@@ -51,10 +53,39 @@ $(function() {
     </div>
 {% endif %}
 
-
+{% comment %}
+this works like a charm
+{% if user.is_authenticated %}
+    {% if user.is_staff %}
+        <p>Welcome, superuser {{ user.get_username }}.</p>
+    {% else %}
+        <p>Welcome, {{ user.get_username }}. Thanks for logging in.</p>
+    {% endif %}
+{% else %}
+    <p>Welcome, new user. Please log in.</p>
+{% endif %}
+{% endcomment %}
 
 <div class="row">
-    <div class="offset-md-3 col-md-6">
+
+    <div class="col-md-4 left-side">
+        <ul>
+            {% if user.is_authenticated %}
+                <li>Welcome, {{user.get_username}}</li>
+                {% if user.is_staff %}
+                    <li>Courses overview (admin)</li>
+                    <li>Django (user-)admin pages</li>
+                {% else %}
+                    <li>All courses</li>
+                    <li>My courses</li>
+                {% endif %}
+            {% else %}
+                <li>All courses (anon)</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <div class="col-md-6">
         <form class="form-signin" method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <div class="login-box">
@@ -67,11 +98,13 @@ $(function() {
                     type="submit">Sign in</button>
                 {# propagate next if set #}
                 <input type="hidden" name="next" value="" />
+                {% comment %}
                 {# Assumes you setup the password_reset view in your URLconf #}
                 <h5 class="mt-4">
                    <a id='lost-password'
                       href="{% url 'password_reset' %}">Lost password?
                </h5>
+               {% endcomment %}
             </div>
         </form>
     </div>

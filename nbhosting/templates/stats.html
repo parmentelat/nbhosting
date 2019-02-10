@@ -12,10 +12,10 @@ Stats for course {{course}}
 
 {% block content %}
 <ol class="breadcrumb">
-  <li class="breadcrumb-item"><a href='/nbh/'>home</a></li>
-  <li class="breadcrumb-item"><a href='/nbh/courses'>courses</a></li>
+  <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
   <li class="breadcrumb-item active">{{course}}</li>
-  <li class="breadcrumb-item"><a href="/nbh/course/{{course}}">notebooks</a></li>
+  <li class="breadcrumb-item"><a href="/staff/course/{{course}}">notebooks</a></li>
 </ol>
 
 <div class="card">
@@ -27,7 +27,7 @@ Stats for course {{course}}
 </div>
 
 <!-- avoid the symlink in production
-  -- but quite useful for adopting the latest one 
+  -- but quite useful for adopting the latest one
   -- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>-->
 <script src="https://cdn.plot.ly/plotly-1.25.2.min.js"></script>
 
@@ -96,7 +96,7 @@ let layout = {
     showlegend : true,
     legend : legend_layout,
 };
-              
+
 function tick(bucket_key){
     return bucket_key
         .replace(/T/, '@')
@@ -104,7 +104,7 @@ function tick(bucket_key){
     ;
 }
 //////////////////////////////////////////////////
-let url_metrics="/nbh/stats/daily_metrics/{{course}}";
+let url_metrics="/staff/stats/daily_metrics/{{course}}";
 d3.request(url_metrics, function (error, response) {
     let incoming = JSON.parse(response.response);
     console.log(`from daily_metrics ${url_metrics}`);
@@ -142,7 +142,7 @@ d3.request(url_metrics, function (error, response) {
 		   layout);
 });
 //////////////////////////////////////////////////
-let url_counts="/nbh/stats/monitor_counts/{{course}}";
+let url_counts="/staff/stats/monitor_counts/{{course}}";
 d3.request(url_counts, function (error, response) {
     let incoming = JSON.parse(response.response);
     console.log(`from monitor counts ${url_counts}`);
@@ -180,7 +180,7 @@ d3.request(url_counts, function (error, response) {
     turn_off_clock('plotly-containers-kernels');
     Plotly.newPlot('plotly-containers-kernels',
 		  [running_containers_data, total_containers_data, running_kernels_data],
-  	          layout);	
+  	          layout);
 
 
     let docker_ds_percents_data = {
@@ -201,7 +201,7 @@ d3.request(url_counts, function (error, response) {
     Plotly.newPlot('plotly-ds-percent',
                    [docker_ds_percents_data, nbhosting_ds_percents_data, system_ds_percents_data],
 		   layout_100);
-    
+
 
     let docker_ds_frees_data = {
         x: timestamps, y: docker_ds_frees,
@@ -219,7 +219,7 @@ d3.request(url_counts, function (error, response) {
     Plotly.newPlot('plotly-ds-free',
                    [docker_ds_frees_data, nbhosting_ds_frees_data, system_ds_frees_data],
 		   layout);
-    
+
     let load1s_data = {
         x: timestamps, y: load1s,
         name : '100 x load past 1 minute',
@@ -236,10 +236,10 @@ d3.request(url_counts, function (error, response) {
     Plotly.newPlot('plotly-cpu-load',
                    [load1s_data, load5s_data, load15s_data],
 		   layout);
-    
+
 });
 //////////////////////////////////////////////////
-let url_usage="/nbh/stats/material_usage/{{course}}";
+let url_usage="/staff/stats/material_usage/{{course}}";
 d3.request(url_usage, function(error, response) {
     let incoming = JSON.parse(response.response);
     console.log(`from material usage ${url_usage}`);
@@ -253,7 +253,7 @@ d3.request(url_usage, function(error, response) {
         showlegend : true,
         legend : legend_layout,
     }
-    
+
     ////////// nb students per notebook - static version
     //
     // raw incoming is a list of couples
@@ -316,16 +316,16 @@ d3.request(url_usage, function(error, response) {
     let heatmap = incoming.heatmap;
 
     let heatmap_data = {
-        type : 'heatmap', 
+        type : 'heatmap',
         x : heatmap.x, y : heatmap.y, z : heatmap.z,
         zmin : 1, zmax : heatmap.zmax,
         hoverinfo : 'x+z',
         colorscale : [
-            [0.0, 'rgb(69,117,180)'], 
-            [0.2, 'rgb(171,217,233)'], 
-            [0.4, 'rgb(224,243,248)'], 
+            [0.0, 'rgb(69,117,180)'],
+            [0.2, 'rgb(171,217,233)'],
+            [0.4, 'rgb(224,243,248)'],
             [0.6, 'rgb(254,224,144)'],
-            [0.8, 'rgb(253,174,97)'], 
+            [0.8, 'rgb(253,174,97)'],
             [1.0, 'rgb(215,48,39)'],
         ],
         colorbar : {
@@ -335,7 +335,7 @@ d3.request(url_usage, function(error, response) {
             len :     400,
             thickness : 50,
             xpad : 50,
-        }         
+        }
     }
 
     // default sizes for each rectangle notebook x student
@@ -360,7 +360,7 @@ d3.request(url_usage, function(error, response) {
     Plotly.newPlot('plotly-heatmap',
                    [heatmap_data],
                    heatmap_layout);
-        
+
 });
 
 //////////////////// a d3 version for that animation thingy
@@ -374,7 +374,7 @@ function d3_animated_barchart(div_id, multibar_data) {
         margin = { top: 80, right: 20, bottom: 20, left: 50},
         width = total_width - margin.left - margin.right,
         height = total_height - margin.top - margin.bottom;
-    
+
     // compute list of timestamps
     let timestamps = [];
     // and preserve data attached to last timestamp as last_bucket
@@ -393,22 +393,22 @@ function d3_animated_barchart(div_id, multibar_data) {
     for (let tuple of last_bucket) {
         notebooks.push(tuple[0]);
     }
-    
+
     // create top svg
     let svg = d3.select(`#${div_id}`)
         .append("svg:svg")
         .attr("width", total_width)
         .attr("height", total_height);
-    
+
     let sliderScale = d3.scaleLinear()
         .domain([0, timestamps.length - 1])
         .range([0, width])
         .clamp(true);
-    
+
     let slider = svg.append("g")
         .attr('class', 'slider')
         .attr("transform", `translate(${margin.left}, ${margin.top / 3})`);
-    
+
     slider.append("line")
         .attr('class', 'track')
         .attr('x1', sliderScale.range()[0])
@@ -422,7 +422,7 @@ function d3_animated_barchart(div_id, multibar_data) {
               .on("start drag", function() {move_slider(sliderScale.invert(d3.event.x));})
              )
     ;
-      
+
     // the slider button
     let handle = slider.insert("circle", ".track-overlay")
         .attr("class", "handle")
@@ -432,7 +432,7 @@ function d3_animated_barchart(div_id, multibar_data) {
     let legend = slider.insert('g')
         .attr('class', 'legend')
         .attr('transform', `translate(${0}, ${margin.top / 2})`);
-    
+
     // the buttons to navigate
     let navbox = legend.insert("text").attr("x", 5).attr("class", "navbox");
     function add_navbox_button(display) {
@@ -442,9 +442,9 @@ function d3_animated_barchart(div_id, multibar_data) {
     add_navbox_button("|<").on("click", first_step);
     add_navbox_button("<<").attr("class", "navbox-continuous")
         .on("mouseover", auto_backward).on("mouseout", stop_auto);
-    add_navbox_button("<").on("click", prev_step); 
+    add_navbox_button("<").on("click", prev_step);
     let step_text = add_navbox_button("__________", undefined);
-    add_navbox_button(">").on("click", next_step); 
+    add_navbox_button(">").on("click", next_step);
     add_navbox_button(">>").attr("class", "navbox-continuous")
         .on("mouseover", auto_forward).on("mouseout", stop_auto);
     add_navbox_button(">|").on("click", last_step);
@@ -454,7 +454,7 @@ function d3_animated_barchart(div_id, multibar_data) {
         slider_step = step;
         step_text.text(`${step+1}/${timestamps.length}`);
     }
-        
+
     function first_step() {move_slider(0); }
     function next_step() {return move_slider(slider_step+1); }
     function prev_step() {return move_slider(slider_step-1); }
@@ -478,8 +478,8 @@ function d3_animated_barchart(div_id, multibar_data) {
     function stop_auto() {
         autorun = false;
     }
-        
-        
+
+
     // other detail areas
     let time_text  = legend.insert("text").attr("x", width * .4);
     let details_text  = legend.insert("text").attr("x", width * .75);
@@ -507,7 +507,7 @@ function d3_animated_barchart(div_id, multibar_data) {
         update_bars(data);
         return true;
     }
-    
+
     let x = d3.scaleBand()
         .domain(notebooks)
         .range([0, width]).padding(0.1);
@@ -569,7 +569,7 @@ function d3_animated_barchart(div_id, multibar_data) {
         // to retrieve related data later on
             .attr("value", function(d) {return d[1];})
             .attr("name", function(d) {return d[0];})
-        
+
         bars
           .exit()
             .transition()
@@ -578,7 +578,7 @@ function d3_animated_barchart(div_id, multibar_data) {
             .remove()
         ;
         update_bar_details('', '');
-        
+
     }
 
     move_slider(0);
@@ -586,7 +586,7 @@ function d3_animated_barchart(div_id, multibar_data) {
     return;
 }
 </script>
-    
+
 <style>
 .track,
 .track-inset,

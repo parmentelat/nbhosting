@@ -10,9 +10,28 @@ Welcome to nbhosting
 </ol>
 
 <div class="card">
-<div class="card-block">
-For now nbhosting has
-<a href="/nbh/courses">a unique entry point page to courses</a>.
+<div class="card-block m-5">
+
+<p>
+
+nbhosting was originally designed for hosting notebooks
+as a silent companion to edx-hosted courses.
+
+</p><p>
+
+It now has an additional feature to be used in the classroom.
+{% if user.is_authenticated %}
+ {% if user.is_staff %}
+</p><p>
+   As a super-user, <a href="/staff/courses/">You can manage the site here.</a>
+</p><p>
+ {% endif %}
+You can <a href="/auditor/courses/">see your courses here</a>.
+{% else %}
+For using it under
+this mode you will need to ask your teacher for an account, and then <a
+href="/accounts/login/"> log into the system</a>.
+{% endif %}
 </div>
 </div>
 

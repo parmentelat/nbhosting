@@ -349,9 +349,9 @@ Additional logs go into
 
 ## visual stats
 
-* https://nbhosting.inria.fr/nbh/ is the - very rough - front-end for the django app
+* https://nbhosting.inria.fr/staff/ is the - very rough - front-end for the django app
 * it targets only the admin of course, and the login/passwd for the admin user was created above (see `manage.py createsuperuser`)
-* main page is `https://nbhosting.inria.fr/nbh/courses`; each course comes with its stats page; probably subject to changes, so you'd better see for yourself, but as of now:
+* main page is `https://nbhosting.inria.fr/staff/courses`; each course comes with its stats page; probably subject to changes, so you'd better see for yourself, but as of now:
   * number of registered students
   * number of students per notebook, over time
   * number of notebooks read

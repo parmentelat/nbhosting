@@ -1,0 +1,40 @@
+{% extends "nbhosting.html" %}
+
+{% block head_title %}
+nbhosting courses
+{% endblock %}
+
+{% block title %}
+Known courses
+{% endblock %}
+
+{% block content %}
+
+<style>
+.courses-box {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+.course {
+    border: 1px solid blue;
+    border-radius: 10px;
+}
+</style>
+
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href='/'>home</a></li>
+    <li class="breadcrumb-item active">courses</li>
+</ol>
+
+<div class="courses-box m-3">
+{% for course in courses %}
+    <span class="course p-3"> course:
+         <a class='btn btn-primary btn-lg'
+         href='/auditor/course/{{course}}'>{{course}}
+        </a>
+    </span>
+{% endfor %}
+</div>
+{% endblock %}

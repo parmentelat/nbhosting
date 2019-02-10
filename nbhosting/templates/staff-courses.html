@@ -7,7 +7,7 @@ Known courses
 
 {% block content %}
 <ol class="breadcrumb">
-  <li class="breadcrumb-item"><a href='/nbh/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
   <li class="breadcrumb-item active">courses</li>
 </ol>
 
@@ -15,10 +15,10 @@ Known courses
 <div class="card text-center">
 <div class="card-block m-4">
 <h1 class="card-title">{{course}}</h1>
-  <a class='btn btn-primary btn-lg' href='/nbh/course/{{course}}' class="card-link">notebooks</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a class='btn btn-info btn-lg' href='/nbh/stats/{{course}}' class="card-link">statistics</a>
+  <a class='btn btn-warning btn-lg card-link mr-5'
+     href='/staff/course/{{course}}'>notebooks</a>
+  <a class='btn btn-info btn-lg card-link ml-5'
+     href='/staff/stats/{{course}}'>statistics</a>
 </div>
 </div>
 {% endfor %}
