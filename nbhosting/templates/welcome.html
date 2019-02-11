@@ -10,29 +10,26 @@ Welcome to nbhosting
 </ol>
 
 <div class="card">
-<div class="card-block m-5">
+    <div class="card-block m-5">
+        <p>
+        <code>nbhosting</code> was originally designed for hosting notebooks
+        as a silent companion to edx-hosted courses.
+        It now has an additional feature to be used in the classroom.
 
-<p>
-
-nbhosting was originally designed for hosting notebooks
-as a silent companion to edx-hosted courses.
-
-</p><p>
-
-It now has an additional feature to be used in the classroom.
-{% if user.is_authenticated %}
- {% if user.is_staff %}
-</p><p>
-   As a super-user, <a href="/staff/courses/">you can manage the courses here.</a>, and <a href="/admin/">the django app here</a>.
-</p><p>
- {% endif %}
-You can <a href="/auditor/courses/">see your courses here</a>.
-{% else %}
-For using it under
-this mode you will need to ask your teacher for an account, and then <a
-href="/accounts/login/"> log into the system</a>.
-{% endif %}
-</div>
+        </p><p>
+        {% if not user.is_authenticated %}
+            For using it under this mode, you will need to ask your teacher
+            for an account, and then
+            <a href="/accounts/login/">log into the system</a>.
+        {% else %}
+            {% if user.is_staff %}
+            As a super-user, <a href="/staff/courses/">you can manage the courses
+            here</a>, and <a href="/admin/">find the django admin app here</a>.
+            </p><p>
+            {% endif %}
+            You can <a href="/auditor/courses/">see the list of courses here</a>.
+        {% endif %}
+    </div>
 </div>
 
 {% endblock %}
