@@ -156,7 +156,7 @@ dnf -y install uwsgi uwsgi-plugin-python3
 
 ```
 pip3 install --upgrade pip setuptools
-pip3 install --upgrade Django
+pip3 install --upgrade Django django-extensions
 # for nbh-monitor
 pip3 install aiohttp docker
 
