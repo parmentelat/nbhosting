@@ -12,7 +12,7 @@ nbhroot=/nbhosting
 
 function check-subdirs() {
     for subdir in jupyter courses-git logs raw; do
-        [ -d $root/$subdir ] || mkdir -p $root/$subdir
+        [ -d $nbhroot/$subdir ] || mkdir -p $nbhroot/$subdir
     done
 }
 
@@ -32,7 +32,7 @@ rsopts=-rltpv
 # create the /var/log/nbhosting symlink
 function log-symlink() {
     local varlink=/var/log/nbhosting
-    [ -h $varlink ] || ln -sf $root/logs $varlink
+    [ -h $varlink ] || ln -sf $nbhroot/logs $varlink
 }
 
 function update-python-libraries() {
@@ -47,8 +47,8 @@ function update-jupyter() {
     # expand frame_ancestors
     sed -e "s,@frame_ancestors@,$frame_ancestors," \
         jupyter/jupyter_notebook_config.py.in > jupyter/jupyter_notebook_config.py
-    mkdir -p $root/jupyter
-    rsync $rsopts jupyter/ $root/jupyter/
+    mkdir -p $nbhroot/jupyter
+    rsync $rsopts jupyter/ $nbhroot/jupyter/
 }
 
 function update-uwsgi() {
