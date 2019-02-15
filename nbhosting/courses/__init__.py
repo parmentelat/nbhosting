@@ -1,2 +1,2 @@
-from nbhosting.courses.model_course import CourseDir
-from nbhosting.courses.model_courses import CoursesDir
+from .model_course import CourseDir
+from .model_courses import CoursesDir

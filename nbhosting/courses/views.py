@@ -58,10 +58,11 @@ def auditor_show_notebook(request, course, notebook, student):
     return render(
         request, "auditor-notebook.html",
         dict(
+            course=course,
             notebook=notebook,
             iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
             course_url=f"/auditor/course/{course}",
-            title=f"notebook blabla",
+            head_title=f"{course}",
         ))
 
 
@@ -72,7 +73,8 @@ def auditor_show_notebook(request, course, notebook, student):
 def staff_list_courses(request):
     courses_dir = CoursesDir()
     course_details = [
-        dict(name=name, homedirs=CourseDir(name).student_homes())
+        dict(name=name,
+             homedirs=CourseDir(name).student_homes())
         for name in courses_dir.coursenames()
         ]
     return render(request, "staff-courses.html",
