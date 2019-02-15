@@ -1,8 +1,32 @@
 #!/usr/bin/env python3
+
+# pylint: disable=c0111, r1705
+
 import os
 import sys
 
 settings_path = "nbhosting.main.settings"
+
+# called by install.sh to produce sitesettings.sh
+
+# we have to consider a special case for the frame_ancestors variable
+# because the ultimate output is to read
+# 'Content-Security-Policy': "frame-ancestors 'self' https://*.fun-mooc.fr ;",
+# so quoting gets kinda tricky
+def shell_escape(value):
+    if "'" in value:
+        return f'"{value}"'
+    else:
+        return f"'{value}'"
+
+def expose_var_value(symbol, value):
+    print(f"{symbol}={shell_escape(value)}")
+
+def expose_var_values(symbol, values):
+    # expose list of strings as a bash array
+    bash_repr = " ".join(shell_escape(v) for v in values)
+    print(f"{symbol}=({bash_repr})")
+
 
 def list_siteconfig():
     from importlib import import_module
@@ -15,15 +39,13 @@ def list_siteconfig():
     for symbol in dir(settings.sitesettings):
         value = getattr(settings.sitesettings, symbol,
                         'undefined-in-sitesettings')
+        # don't expose everything
         if '__' in symbol or 'SECRET' in symbol:
             continue
         if isinstance(value, str):
-            print(f"{symbol}='{value}'")
+            expose_var_value(symbol, value)
         elif isinstance(value, list) and all(isinstance(v, str) for v in value):
-            # expose list of strings as a bash array
-            between_quote = lambda x: f"'{x}'"
-            bash_repr = " ".join(between_quote(v) for v in value)
-            print(f"{symbol}=({bash_repr})")
+            expose_var_values(symbol, value)
 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)

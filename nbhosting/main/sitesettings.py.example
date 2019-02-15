@@ -11,17 +11,21 @@
 # note that fun-mooc.fr for example can be reached only over https
 # and will thus refuse to fetch the nbhoting iframe over http
 server_mode = "https"
-    
+
 # for the nginx config
 server_name = "nbhosting.inria.fr"
 ssl_certificate = "/root/ssl-certificate/bundle.crt"
 ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 
 
-# the domains that we accept being a sub iframe of
-# typically *.fun-mooc.fr
+# the domains that we accept being a sub iframe of, typically
+# 'self' (with the single quotes)
+#    that allows nbhosting to work in classroom mode
+#    where local pages include notebooks
+# *.fun-mooc.fr
+#    would allow to run as a companion to FUN
 # see jupyter/jupyter_notebook_config.py.in
-frame_ancestors = "https://*.fun-mooc.fr"
+frame_ancestors = ["'self'", "https://*.fun-mooc.fr"]
 
 
 # describes how to log stderr from sub processes
@@ -36,12 +40,12 @@ log_subprocess_stderr = False
 # the location used by the application
 # typically where you have a big fat btrfs filesystem
 nbhroot = '/nbhosting'
-    
+
 # the location where the application is installed
 # i.e. the place where you have git clone'd it before
 # running ./install.sh
 srcroot = '/root/nbhosting'
-    
+
 # the domains that are trusted
 # typically the edx platform, as well as your own
 # SSL-exposed domain name
@@ -51,8 +55,8 @@ allowed_referer_domains = [
     # 'share_static_version' feature can work properly
     server_name,
 ]
-    
-# the IPs of devel boxes 
+
+# the IPs of devel boxes
 # these will be able to send /ipythonExercice/ urls directly
 allowed_devel_ips = [
     # home
@@ -75,7 +79,7 @@ ALLOWED_HOSTS = [
     'nbhosting-dev.inria.fr',           #
     'thermals.pl.sophia.inria.fr',      #
     '138.96.19.2',                      # nbhosting
-    'nbhosting.inria.fr',               # 
-    'nbhosting.pl.sophia.inria.fr',     # 
+    'nbhosting.inria.fr',               #
+    'nbhosting.pl.sophia.inria.fr',     #
     'localhost',                        # for devel
 ]
