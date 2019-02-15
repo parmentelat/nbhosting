@@ -45,7 +45,9 @@ function update-bins() {
 
 function update-jupyter() {
     # expand frame_ancestors
-    sed -e "s,@frame_ancestors@,${frame_ancestors[@]}," \
+    # need to go through a file script; sigh
+    echo "s|@frame_ancestors@|${frame_ancestors[@]}|" > jupyter/ancestors.sed
+    sed -f jupyter/ancestors.sed \
         jupyter/jupyter_notebook_config.py.in > jupyter/jupyter_notebook_config.py
     mkdir -p $nbhroot/jupyter
     rsync $rsopts jupyter/ $nbhroot/jupyter/
