@@ -28,12 +28,12 @@ div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
 /* Widgets submenu
    as opposed to the ones above, this entry cannot be hidden from custom.js
    because the extension fires afterwards
-   needless to say, this is a little brittle 
-   xxx especially if ipywidgets is not available ! 
+   needless to say, this is a little brittle
+   xxx especially if ipywidgets is not available !
 */
 div#menus>div>div>ul.nav>li:nth-last-child(2)		{ display: none; }
 
-/* Help submenu - sounds more robust already 
+/* Help submenu - sounds more robust already
    xxx would it make sense to preserve submenu
    and filter out individual entries, like for File above ?
 */
@@ -41,7 +41,7 @@ div#menus>div>div>ul.nav>li:nth-last-child(1)		{ display: none; }
 
 /* ---------- other pieces in the UI */
 /* third horizontal area (toolbar) */
-#move_up_down, 
+#move_up_down,
 #cut_copy_paste,
 select#cell_type,
 #notification_trusted,
@@ -174,7 +174,7 @@ div.text_cell.rendered.selected>div.inner_cell>div.text_cell_render {
     background-color: #f2f2f2;
 }
 div.text_cell.rendered.unselected>div.inner_cell>div.text_cell_render {
-    background-color: #f8f8f8; 
+    background-color: #f8f8f8;
 }
 
 /* ***** code cells ***** */
@@ -195,4 +195,13 @@ div.title-slide {
     justify-content: space-between;
     flex-direction: row;            /* default value; can be omitted */
     flex-wrap: nowrap;              /* default value; can be omitted */
+}
+
+/* for licence cells */
+div.licence {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
 }
