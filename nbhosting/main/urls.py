@@ -19,11 +19,11 @@ urlpatterns = [
     # tweaking greedy and non greedy so that the .ipynb suffix
     # will go away if there's one or even two
     re_path(r'^ipythonExercice/(?P<course>[\w_.-]+)/'
-         r'(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
+            r'(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
                         nbhosting.edxfront.views.edx_request
     ),
     re_path(r'^ipythonShare/(?P<course>[\w_.-]+)/'
-         r'(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
+            r'(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
                         nbhosting.edxfront.views.share_notebook
     ),
 
@@ -32,6 +32,9 @@ urlpatterns = [
                         nbhosting.courses.views.auditor_list_courses),
     re_path(r'^auditor/course/(?P<course>[\w_.-]+)$',
                         nbhosting.courses.views.auditor_show_course),
+    re_path(r'^auditor/notebook/(?P<course>[\w_.-]+)/'
+            r'(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',
+                        nbhosting.courses.views.auditor_show_notebook),
     re_path(r'^auditor.*',
                         nbhosting.main.views.welcome),
 

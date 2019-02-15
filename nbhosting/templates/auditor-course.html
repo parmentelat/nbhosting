@@ -56,7 +56,7 @@
 {% if detail.in_course %} in-course {% endif %}
 {% if detail.in_student %} in-student {% endif %}
 '
-href='/ipythonExercice/{{course}}/{{detail.path}}/{{user.get_username}}'
+href='/auditor/notebook/{{course}}/{{detail.path}}/{{user.get_username}}'
 >{{detail.path}}
 </a>
                 {% endfor %}

@@ -1,0 +1,55 @@
+{% extends "nbhosting.html" %}
+
+{% block head_title %}
+{{title}}
+{% endblock %}
+
+{% block title %}
+{{notebook}}
+{% endblock %}
+
+
+{% block content %}
+<style>
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+div.iframe-side {
+    position: absolute;
+    top: 130px;
+    bottom: 0px;
+    left: 0px;
+    right: 13%;
+    padding: 10px;
+}
+
+div.iframe-container {
+    position: absolute;
+    top: 130px;
+    bottom: 0px;
+    left: 17%;
+    right: 0px;
+}
+
+iframe {
+    height: 100%;
+}
+</style>
+
+<!------------------------------>
+<div class="container" height="100%">
+    <div class="iframe-side">
+        <a href="{{course_url}}">Back to course</a>
+    </div>
+    <div class="iframe-container">
+        <iframe
+            height="100%"
+            width="100%"
+            src="{{iframe}}">
+        </iframe>
+    </div>
+</div>
+
+{% endblock %}

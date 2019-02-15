@@ -23,20 +23,20 @@ def auditor_list_courses(request):
                   {'courses': courses_dir.coursenames()})
 
 
-#@login_required
+@login_required
 @csrf_protect
 def auditor_show_course(request, course):
     course_dir = CourseDir(course)
     course_notebooks = set(course_dir.notebooks())
-    my_notebooks = set(
+    read_notebooks = set(
         course_dir.probe_student_notebooks(request.user.username))
 
-    all_notebooks = course_notebooks | my_notebooks
+    all_notebooks = course_notebooks | read_notebooks
 
     notebook_details = [
         dict(path=notebook,
              in_course=(notebook in course_notebooks),
-             in_student=(notebook in my_notebooks))
+             in_student=(notebook in read_notebooks))
         for notebook in all_notebooks
     ]
 
@@ -50,6 +50,19 @@ def auditor_show_course(request, course):
         how_many=len(notebook_details),
     )
     return render(request, "auditor-course.html", env)
+
+
+@login_required
+@csrf_protect
+def auditor_show_notebook(request, course, notebook, student):
+    return render(
+        request, "auditor-notebook.html",
+        dict(
+            notebook=notebook,
+            iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
+            course_url=f"/auditor/course/{course}",
+            title=f"notebook blabla",
+        ))
 
 
 ######### staff
@@ -91,7 +104,7 @@ def staff_show_course(request, course):
     return render(request, "staff-course.html", env)
 
 
-def nbh_manage(request, course, verb, managed):
+def nbh_manage(request, course, verb, _managed):
     course_dir = CourseDir(course)
     if verb == 'update-from-git':
         completed = course_dir.update_from_git()
