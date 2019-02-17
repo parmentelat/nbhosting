@@ -106,7 +106,7 @@ http {
         # ipythonShare: to expose read-only snapshots
         # auditor: pages for people who log in directly
         # staff: admin stuff
-        location ~ /(ipythonExercice|ipythonShare|admin|accounts|staff|auditor)/ {
+        location ~ ^/(ipythonExercice|ipythonShare|admin|accounts|staff|auditor)/ {
             uwsgi_pass  django;
             include     uwsgi_params; # the uwsgi_params file you installed
         }
