@@ -1,11 +1,12 @@
+# pylint: disable=c0111, r1705, w1203
+
 from pathlib import Path
 import subprocess
-import pprint
 import hashlib
 import re
 
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseForbidden
+from django.shortcuts import render
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidden
 
 from nbhosting.main.settings import sitesettings
 from nbhosting.main.settings import logger, DEBUG
@@ -15,13 +16,15 @@ from nbhosting.stats.stats import Stats
 
 
 def error_page(request, course, student, notebook, message=None):
-    env = locals()
-    return render(request, "error.html", locals())
+    return render(
+        request, "error.html", dict(
+            course=course, student=student,
+            notebook=notebook, message=message))
 
 
 def log_completed_process(completed_process, subcommand):
-    header = "{} {}".format(10 * '=', subcommand)
-    logger.info("{} returned ==> {}".format(header, completed_process.returncode))
+    header = f"{10 * '='} {subcommand}"
+    logger.info(f"{header} returned ==> {completed_process.returncode}")
     for field in ('stdout', 'stderr'):
         text = getattr(completed_process, field, 'undef')
         # nothing to show
@@ -36,7 +39,7 @@ def log_completed_process(completed_process, subcommand):
             if sitesettings.log_subprocess_stderr is False \
                and completed_process.returncode == 0:
                 continue
-        logger.info("{} - {}".format(header, field))
+        logger.info(f"{header} - {field}")
         logger.info(text)
 
 
@@ -45,7 +48,6 @@ def log_completed_process(completed_process, subcommand):
 # otherwise, performs check of META.REMOTE_ADDR against 'allowed_devel_ips'
 def authorized(request):
 
-    explanation = ""
     # check HTTP_REFERER against allowed_referer_domains
     def authorize_refered_request(request):
         # actual referer
@@ -80,9 +82,9 @@ def authorized(request):
     if 'HTTP_REFERER' in request.META:
         return authorize_refered_request(request)
     else:
-        result, explanation = authorize_devel_request(request)
+        return authorize_devel_request(request)
 
-def edx_request(request, course, student, notebook):
+def edx_request(request, course, student, notebook):    # pylint: disable=r0914
 
     """
     the main edxfront entry point; it
@@ -115,8 +117,8 @@ def edx_request(request, course, student, notebook):
         command.append('-f')
 
     # add arguments to the subcommand
-    command += [ student, course, notebook_withext ]
-    logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
+    command += [student, course, notebook_withext]
+    logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -131,7 +133,7 @@ def edx_request(request, course, student, notebook):
             request, course, student, notebook, message)
 
     try:
-        action, docker_name, actual_port, jupyter_token = completed_process.stdout.split()
+        action, _docker_name, actual_port, jupyter_token = completed_process.stdout.split()
 
         if action.startswith("failed"):
             message = ("failed to spawn notebook container\n"
@@ -156,17 +158,18 @@ def edx_request(request, course, student, notebook):
         ########## forge a URL that nginx will intercept
         # port depends on scheme - we do not specify it
         # passing along course and student is for 'reset_from_origin'
-        url = "{scheme}://{host}/{port}/notebooks/{path}?token={token}&course={course}&student={student}"\
-              .format(scheme=scheme, host=host, port=actual_port,
-                      path=notebook_withext, token=jupyter_token,
-                      course=course, student=student)
-        logger.info("edxfront: redirecting to {}".format(url))
+        url = (f"{scheme}://{host}/{actual_port}/notebooks/"
+               f"{notebook_withext}?token={jupyter_token}&"
+               f"course={course}&student={student}")
+        logger.info(f"edxfront: redirecting to {url}")
 #        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
         return HttpResponseRedirect(url)
 
-    except Exception as e:
-        message = "exception when parsing output of nbh {}\n{}\n{}"\
-                  .format(subcommand, completed_process.stdout, e)
+    except Exception as exc:
+        message = (f"exception when parsing output of nbh {subcommand}\n"
+                   f"{completed_process.stdout}\n"
+                   f"{type(exc): exc}")
+        # logger.exception(message)
         return error_page(
             request, course, student, notebook, message)
 
@@ -198,9 +201,10 @@ def share_notebook(request, course, student, notebook):
         command.append('-x')
     command.append(subcommand)
 
-    command += [ student, course, notebook_withext, hash]
+    command += [student, course, notebook_withext, hash]
 
-    logger.info("In {}\n-> Running command {}".format(Path.cwd(), " ".join(command)))
+    logger.info(f"In {Path.cwd()}\n"
+                f"-> Running command {' '.join(command)}")
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -215,8 +219,7 @@ def share_notebook(request, course, student, notebook):
 
     # expect docker-share-student-course-notebook to write a url_path on its stdout
     url_path = completed_process.stdout.strip()
-    logger.info("reading url_path={}".format(url_path))
+    logger.info(f"reading url_path={url_path}")
     # rebuild a full URL with proto and hostname,
-    url = "{scheme}://{hostname}{path}"\
-          .format(scheme=request.scheme, hostname=request.get_host(), path=url_path)
+    url = f"{request.scheme}://{request.get_host()}{url_path}"
     return JsonResponse(dict(url_path=url_path, url=url))
