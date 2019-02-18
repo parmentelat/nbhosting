@@ -2,8 +2,13 @@
 
 from pathlib import Path
 import subprocess
+from importlib.util import (
+    spec_from_file_location, module_from_spec)
 
 from nbhosting.main.settings import sitesettings, logger
+
+from .sectioning import Section, generic_sectioning
+
 
 NBHROOT = Path(sitesettings.nbhroot)
 
@@ -15,6 +20,7 @@ class CourseDir:
         self.notebooks_dir = NBHROOT / "courses" / self.coursename
         self._probe_settings()
         self._notebooks = None
+
 
     def notebooks(self):
         if self._notebooks is None:
@@ -36,9 +42,73 @@ class CourseDir:
             self._probe_notebooks_in_dir(self.notebooks_dir)
         )
 
+
     def probe_student_notebooks(self, student):
         root = NBHROOT / "students" / student / self.coursename
         return self._probe_notebooks_in_dir(root)
+
+
+
+    def student_homes(self):
+        """
+        return the number of students who have that course in their home dir
+        """
+        student_course_dirs = (
+            NBHROOT / "students").glob(f"*/{self.coursename}")
+        # can't use len() on a generator
+        return sum((1 for _ in student_course_dirs), 0)
+
+
+    def sections(self, viewpoint="course"):
+        """
+        return a list of relevant notebooks
+        arranged in sections
+
+        there's a default sectioning code that will group
+        notebooks per subdir
+
+        objective is to make this customizable so that some
+        notebooks in the repo can be ignored
+        and the others organized along different view points
+
+        this can be done through a python module named
+        nbhosting/sectioning.py
+        that should expose a function named
+        sections(root, viewpoint)
+        viewpoint being for now 'course' but could be used
+        to define other subsets (e.g. exercises, videos, ...)
+        that function is expected to return a list of
+        * either Section objects
+        * or of dicts like
+         { 'name': str,
+           'notebooks': <a list of notebook paths>}
+        """
+        course_root = (NBHROOT / "courses" / self.coursename).absolute()
+        course_viewpoints = course_root / "nbhosting/viewpoints.py"
+        if course_viewpoints.exists():
+            modulename = (f"{self.coursename}_viewpoints"
+                          .replace("-", "_"))
+            try:
+                logger.error(f"loading {course_viewpoints}")
+                spec = spec_from_file_location(
+                    modulename,
+                    course_viewpoints,
+                )
+                module = module_from_spec(spec)
+                spec.loader.exec_module(module)
+                sections_fun = module.sections
+                return sections_fun(course_root, viewpoint)
+            except Exception as exc:
+                # no luck with custom code
+                # use generic one
+                print(f"could not use custom sectioning for {self.coursename}\n"
+                      f"{type(exc)} {exc}")
+                logger.exception(f"could not do custom sectioning"
+                                 f" course={self.coursename}"
+                                 f" viewpoint={viewpoint}")
+
+                return generic_sectioning(course_root)
+
 
     def _probe_settings(self):
         notebooks_dir = self.notebooks_dir
@@ -102,18 +172,3 @@ class CourseDir:
         return self._run_nbh("course-build-image", encoding="utf-8")
     def clear_staff(self):
         return self._run_nbh("course-clear-staff", encoding="utf-8")
-
-    def student_homes(self):
-        """
-        return the number of students who have that course in their home dir
-        """
-        student_course_dirs = (
-            NBHROOT / "students").glob("*/{}".format(self.coursename))
-        # can't use len() on a generator
-        return sum((1 for _ in student_course_dirs), 0)
-
-    def student_home(self, student):
-        """
-        Returns a list of dicts like
-          notebook, in_course, in_student
-        """
