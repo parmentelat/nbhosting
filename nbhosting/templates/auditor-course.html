@@ -26,14 +26,23 @@
     margin-right: 3px;
     margin-top: 2px
 }
+/* only in-course means it's not yet been copied */
 .in-course {
-    background-color: #faa;
+    background-color: #ccc;
 }
-.in-student {
-    background-color: #aaf;
-}
+/* both means it exists and it's been copied */
 .in-course.in-student {
     background-color: #afa;
+}
+/* only in-student means somehow it's obsolete */
+.in-student {
+    background-color: #faa;
+}
+a.notebook {
+    color: black;
+}
+a.notebook:hover {
+    color: purple;
 }
 </style>
 
@@ -48,7 +57,7 @@
     <div class="row">
         <div class="col-12">
             <div class="card-block m-3">
-                <h2 class="card-title">Notebooks</h2>
+                <h2 class="card-title">{{how_many}} notebooks</h2>
             </div>
             <div class="course-box m-3">
                 {% for detail in notebook_details %}

@@ -84,25 +84,21 @@ def staff_list_courses(request):
 @csrf_protect
 def staff_show_course(request, course):
     course_dir = CourseDir(course)
-    notebooks = course_dir.notebooks()
-    # this is used indeed by locals() below
-    notebook_cols = [
-        notebooks[::2],
-        notebooks[1::2],
-    ]
-
+    notebooks = list(course_dir.notebooks())
+    notebooks.sort()
     # shorten staff hashes
 
     shorten_staff = [hash[:7] for hash in course_dir.staff]
 
-    env = {
-        'how_many': len(notebooks),
-        'image': course_dir.image,
-        'statics': course_dir.statics,
-        'staff': shorten_staff,
-        'giturl': course_dir.giturl,
-    }
-    env.update(locals())
+    env = dict(
+        course=course,
+        notebooks=notebooks,
+        how_many=len(notebooks),
+        image=course_dir.image,
+        statics=course_dir.statics,
+        staff=shorten_staff,
+        giturl=course_dir.giturl,
+    )
     return render(request, "staff-course.html", env)
 
 
