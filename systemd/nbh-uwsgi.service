@@ -8,6 +8,11 @@ Description=the nbhosting django app as a uwsgi instance
 
 [Service]
 ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/nbhosting.ini
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+Restart=always
+StandardError=syslog
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target

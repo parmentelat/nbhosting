@@ -102,12 +102,7 @@ function restart-services() {
 }
 
 function enable-services() {
-    # patch for f27
-    if grep -q 'Fedora release 27' /etc/fedora-release; then
-        rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
-    else
-        rsync $rsopts systemd/nbh-uwsgi.service.f27 /etc/systemd/system/
-    fi
+    rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
     systemctl daemon-reload
     systemctl enable docker
