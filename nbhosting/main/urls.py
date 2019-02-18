@@ -40,40 +40,42 @@ urlpatterns = [
 
 
     # super user
-    re_path(r'staff/courses/update-from-git/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/courses/update-from-git/(?P<course>[\w_.-]+)$',
                         nbhosting.courses.views.update_from_git),
-    re_path(r'staff/courses/build-image/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/courses/build-image/(?P<course>[\w_.-]+)$',
                         nbhosting.courses.views.build_image),
-    re_path(r'staff/courses/clear-staff/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/courses/clear-staff/(?P<course>[\w_.-]+)$',
                         nbhosting.courses.views.clear_staff),
-    re_path(r'staff/courses/.*',
+    re_path(r'^staff/courses/.*',
                         nbhosting.courses.views.staff_list_courses),
-    re_path(r'staff/course/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/course/(?P<course>[\w_.-]+)$',
                         nbhosting.courses.views.staff_show_course),
-    re_path(r'staff/stats/daily_metrics/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/stats/daily_metrics/(?P<course>[\w_.-]+)$',
                         nbhosting.stats.views.send_daily_metrics),
-    re_path(r'staff/stats/monitor_counts/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/stats/monitor_counts/(?P<course>[\w_.-]+)$',
                         nbhosting.stats.views.send_monitor_counts),
-    re_path(r'staff/stats/material_usage/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/stats/material_usage/(?P<course>[\w_.-]+)$',
                         nbhosting.stats.views.send_material_usage),
-    re_path(r'staff/stats/(?P<course>[\w_.-]+)$',
+    re_path(r'^staff/stats/(?P<course>[\w_.-]+)$',
                         nbhosting.stats.views.show_stats),
-    re_path(r'staff.*',
+    re_path(r'^staff.*',
                         nbhosting.main.views.welcome),
     # this one is not reachable through nginx, mostly for devel
     re_path(r'^welcome.*',
                         nbhosting.main.views.welcome),
 
     # various redirects and other django-provided pages
-    path(r'admin/',
+    re_path(r'^admin/',
                         admin.site.urls),
-    path(r'accounts/login/',
+    re_path(r'^accounts/login/',
                         auth_views.LoginView.as_view(), name='login'),
-    path(r'accounts/logout/',
+    re_path(r'^accounts/logout/',
                         auth_views.LogoutView.as_view(), name='logout'),
     # path(r'accounts/',          include('django.contrib.auth.urls')),
-    re_path(r'.*',
-                        RedirectView.as_view(
-                            url='welcome/', permanent=True),
-                            name='welcome'),
+    # this seems to create a lot of issues, like bottomless recursions
+    # probably better to handle this in nginx
+    #re_path(r'.*',
+    #                    RedirectView.as_view(
+    #                        url='welcome/', permanent=True),
+    #                        name='welcome'),
 ]
