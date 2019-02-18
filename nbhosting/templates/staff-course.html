@@ -28,8 +28,8 @@
     margin-top: 2px
 }
 /* only in-course means it's not yet been copied */
-.in-course {
-    background-color: #ccc;
+.in-course.staff {
+    background-color: #fef;
 }
 a.notebook {
     color: black;
@@ -62,7 +62,7 @@ a.notebook:hover {
             </div>
             <div class="course-box m-3">
                 {% for notebook in notebooks %}
-<a class='notebook in-course'
+<a class='notebook in-course staff'
 href='/auditor/notebook/{{course}}/{{notbeook}}/anonymous'
 >{{notebook}}
 </a>

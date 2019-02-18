@@ -7,7 +7,7 @@ from importlib.util import (
 
 from nbhosting.main.settings import sitesettings, logger
 
-from .sectioning import Section, generic_sectioning
+from .sectioning import Sections, Section, default_sectioning
 
 
 NBHROOT = Path(sitesettings.nbhroot)
@@ -21,6 +21,16 @@ class CourseDir:
         self._probe_settings()
         self._notebooks = None
 
+
+    def __repr__(self):
+        return self.coursename
+
+    def __len__(self):
+        return len(self.notebooks())
+
+    # for templating
+    def length(self):
+        return len(self)
 
     def notebooks(self):
         if self._notebooks is None:
@@ -74,7 +84,7 @@ class CourseDir:
         this can be done through a python module named
         nbhosting/sectioning.py
         that should expose a function named
-        sections(root, viewpoint)
+        sections(coursedir, viewpoint)
         viewpoint being for now 'course' but could be used
         to define other subsets (e.g. exercises, videos, ...)
         that function is expected to return a list of
@@ -83,8 +93,9 @@ class CourseDir:
          { 'name': str,
            'notebooks': <a list of notebook paths>}
         """
-        course_root = (NBHROOT / "courses" / self.coursename).absolute()
+        course_root = (self.notebooks_dir).absolute()
         course_viewpoints = course_root / "nbhosting/viewpoints.py"
+
         if course_viewpoints.exists():
             modulename = (f"{self.coursename}_viewpoints"
                           .replace("-", "_"))
@@ -97,7 +108,7 @@ class CourseDir:
                 module = module_from_spec(spec)
                 spec.loader.exec_module(module)
                 sections_fun = module.sections
-                return sections_fun(course_root, viewpoint)
+                return sections_fun(self, viewpoint)
             except Exception as exc:
                 # no luck with custom code
                 # use generic one
@@ -106,8 +117,9 @@ class CourseDir:
                 logger.exception(f"could not do custom sectioning"
                                  f" course={self.coursename}"
                                  f" viewpoint={viewpoint}")
-
-                return generic_sectioning(course_root)
+        else:
+            print(f"no nbhosting hook found for course {self}")
+        return default_sectioning(self)
 
 
     def _probe_settings(self):

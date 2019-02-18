@@ -38,7 +38,7 @@ if os.getuid() == 0:
 else:
     # just a convenience for devel boxes
     # e.g. /users/tparment/git/nbhosting/nbhosting
-    django_root = Path(__file__).parents[2]
+    django_root = Path(__file__).parents[1]
     sitesettings.nbhroot = str(django_root / 'fake-root')
     # some provisions for devel mode
     LOGS_DIR = Path.cwd()

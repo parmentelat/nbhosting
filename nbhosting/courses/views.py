@@ -10,8 +10,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-from nbhosting.courses import CoursesDir, CourseDir
-
+from nbhosting.courses import CoursesDir, CourseDir, Notebook
 
 ######### auditor
 
@@ -27,27 +26,35 @@ def auditor_list_courses(request):
 @csrf_protect
 def auditor_show_course(request, course):
     course_dir = CourseDir(course)
-    course_notebooks = set(course_dir.notebooks())
-    read_notebooks = set(
+    # xxx need a way to set viewpoint somewhere on the URL
+    # like .e.g. 'exos'
+    sections = course_dir.sections()
+    for section in sections:
+        for notebook in section.notebooks:
+            notebook.in_course = True
+
+    # read student dir
+    read_notebook_paths = set(
         course_dir.probe_student_notebooks(request.user.username))
 
-    all_notebooks = course_notebooks | read_notebooks
+    # mark corresponding notebook instances as read
+    for read_path in read_notebook_paths:
+        for section in sections:
+            spotted = section.spot_notebook(read_path)
+            if spotted:
+                spotted.in_student = True
+                break
+        # existing in the student tree, but not in the
+        # course / viewpoint
+        odd_notebook = Notebook(course_dir, read_path)
+        odd_notebook.in_student = True
+        sections.add_unknown(odd_notebook)
 
-    notebook_details = [
-        dict(path=notebook,
-             in_course=(notebook in course_notebooks),
-             in_student=(notebook in read_notebooks))
-        for notebook in all_notebooks
-    ]
-
-    notebook_details.sort(
-        key=lambda d: d['path']
-    )
 
     env = dict(
         course=course,
-        notebook_details=notebook_details,
-        how_many=len(notebook_details),
+        sections=sections,
+        how_many=len(course_dir),
     )
     return render(request, "auditor-course.html", env)
 

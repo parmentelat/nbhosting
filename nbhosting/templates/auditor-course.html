@@ -44,6 +44,9 @@ a.notebook {
 a.notebook:hover {
     color: purple;
 }
+span.section-details {
+    font-size:  50%;
+}
 </style>
 
 <ol class="breadcrumb">
@@ -54,24 +57,28 @@ a.notebook:hover {
 
 <!------------------------------>
 <div class="container">
+    {% for section in sections %}
     <div class="row">
         <div class="col-12">
             <div class="card-block m-3">
-                <h2 class="card-title">{{how_many}} notebooks</h2>
+                <h2 class="card-title">{{section.name}}
+                <span class="section-details">
+                ({{section.length}} notebooks)</span></h2>
             </div>
             <div class="course-box m-3">
-                {% for detail in notebook_details %}
+                {% for notebook in section.notebooks %}
 <a class='notebook
-{% if detail.in_course %} in-course {% endif %}
-{% if detail.in_student %} in-student {% endif %}
+{% if notebook.in_course %} in-course {% endif %}
+{% if notebook.in_student %} in-student {% endif %}
 '
-href='/auditor/notebook/{{course}}/{{detail.path}}/{{user.get_username}}'
->{{detail.path}}
+href='/auditor/notebook/{{course}}/{{notebook.clean_path}}/{{user.get_username}}'
+>{{notebook.notebookname}}
 </a>
                 {% endfor %}
             </div>
         </div>
     </div>
+    {% endfor %}
 </div>
 
 {% endblock %}

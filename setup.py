@@ -18,10 +18,11 @@ setup(
     packages = find_packages(),
     url = "https://github.com/parmentelat/nbhosting",
     license = "See LICENSE",
-    description = "An infrastructure for hosting notebooks behind an open-edX MOOC platform",
+    description = "An infrastructure for hosting notebooks behind an open-edX MOOC platform, or for registered students like in a classroom",
     long_description = long_description,
     install_requires = [
         'Django',
+        'nbformat',
     ],
     setup_requires = [],
     tests_require = [],
@@ -29,6 +30,7 @@ setup(
     # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers = [
         'Development Status :: 3 - Alpha',
-        'Programming Language :: Python :: 3.5', 
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 )
