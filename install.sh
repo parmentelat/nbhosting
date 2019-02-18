@@ -60,10 +60,13 @@ function update-uwsgi() {
 }
 
 function update-assets() {
-    local assets_root=/var/nginx/nbhosting
-    mkdir -p $assets_root
-    rsync $rsopts nbhosting/assets/ $assets_root/assets/
-    chown -R nginx:nginx $assets_root/snapshots
+    local static_root=/var/nginx/nbhosting
+    mkdir -p $static_root
+    rsync $rsopts nbhosting/assets/ $static_root/assets/
+    mkdir -p $static_root/snapshots
+    chown -R nginx:nginx $static_root/snapshots
+
+    (cd nbhosting; manage.py collectstatic --noinput)
 }
 
 function update-images() {
