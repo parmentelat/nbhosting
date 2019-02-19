@@ -78,13 +78,14 @@ class CourseDir:
 
 
 
-    def sections(self, viewpoint="course"):
+    def sections(self, viewpoint=None):
         """
         Search in cache first because opening all notebooks to
         retrieve their notebookname is quite slow
 
         cache should be cleaned up each time a course is updated from git
         """
+        viewpoint = viewpoint if viewpoint is not None else "course"
         storage = self.notebooks_dir / ".viewpoints" / (viewpoint + ".json")
         storage.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -105,7 +106,7 @@ class CourseDir:
         return sections
 
 
-    def _sections(self, viewpoint="course"):
+    def _sections(self, viewpoint):
         """
         return a list of relevant notebooks
         arranged in sections
@@ -137,7 +138,7 @@ class CourseDir:
                           .replace("-", "_"))
             try:
                 logger.debug(
-                    f"loading module {course_viewpoints}")
+                    f"{self}:{viewpoint} loading module {course_viewpoints}")
                 spec = spec_from_file_location(
                     modulename,
                     course_viewpoints,
@@ -148,14 +149,20 @@ class CourseDir:
                 logger.debug(
                     f"triggerring {sections_fun.__qualname__}"
                 )
-                return sections_fun(self, viewpoint)
+                sections = sections_fun(self, viewpoint)
+                if sections and isinstance(sections, Sections):
+                    return sections
+                else:
+                    logger.warn(
+                        f"{self}:{viewpoint} discarding custom result")
             except Exception as exc:
-                logger.exception(f"could not do custom sectioning"
-                                 f" course={self.coursename}"
-                                 f" viewpoint={viewpoint}")
+                logger.exception(
+                    f"{self}:{viewpoint} could not do custom sectioning")
         else:
-            logger.info(f"no nbhosting hook found for course {self}\n"
-                        f"expected in {course_viewpoints}")
+            logger.info(
+                f"{self}:{viewpoint} no nbhosting hook found\n"
+                f"expected in {course_viewpoints}")
+        logger.debug(f"{self}:{viewpoint} resorting to default sectioning")
         return default_sectioning(self)
 
 

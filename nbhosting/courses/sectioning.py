@@ -10,17 +10,15 @@ from nbhosting.main.settings import logger, DEBUG
 
 class Sections(list):
 
-    def __init__(self, sections):
+    def __init__(self, coursedir, sections):
+        self.coursedir = coursedir
         super().__init__(sections)
+        #
         self.unknown_section = None
+        self._marked = False
 
     def add_unknown(self, notebook):
-        # we need at least one section instance
-        # to figure the coursedir
-        if not self:
-            logger.error("need at least one section to call Sections.add_unknown")
-            return
-        coursedir = self[0].coursedir
+        coursedir = self.coursedir
         if not self.unknown_section:
             self.unknown_section = Section(coursedir, "Unknown", [])
             self.append(self.unknown_section)
@@ -32,6 +30,40 @@ class Sections(list):
         if self:
             result += f" on {self[0].coursedir}"
         return result
+
+    def spot_notebook(self, path):
+        # may be a Path instance
+        path = str(path)
+        for section in self:
+            spotted = section.spot_notebook(path)
+            if spotted:
+                return spotted
+        return None
+
+    def mark_notebooks(self, student):
+        if self._marked:
+            return
+        coursedir = self.coursedir
+        for section in self:
+            for notebook in section.notebooks:
+                notebook.in_course = True
+
+        # read student dir
+        read_notebook_paths = set(
+            coursedir.probe_student_notebooks(student))
+
+        # mark corresponding notebook instances as read
+        for read_path in read_notebook_paths:
+            spotted = self.spot_notebook(read_path)
+            if spotted:
+                spotted.in_student = True
+                break
+            # existing in the student tree, but not in the viewpoint
+            odd_notebook = Notebook(coursedir, read_path)
+            odd_notebook.in_student = True
+            self.add_unknown(odd_notebook)
+        self._marked = True
+
 
     def dumps(self):
         """
@@ -45,7 +77,7 @@ class Sections(list):
     @staticmethod
     def loads(coursedir, d: dict):
         sections = [Section.loads(coursedir, s) for s in d['sections']]
-        return Sections(sections)
+        return Sections(coursedir, sections)
 
 
 class Section:                                          # pylint: disable=r0903
@@ -70,11 +102,10 @@ class Section:                                          # pylint: disable=r0903
         return len(self)
 
     def spot_notebook(self, path):
-        # may be a Path instance
-        path = str(path)
         for notebook in self.notebooks:
             if notebook.clean_path() == path:
                 return notebook
+        return None
 
     def dumps(self):
         return dict(
@@ -140,6 +171,13 @@ class Notebook:                                         # pylint: disable=r0903
         clean = str(self.path).replace(".ipynb", "")
         return clean
 
+    def classes(self):
+        classes = []
+        if self.in_course:
+            classes.append('in-course')
+        if self.in_student:
+            classes.append('in-student')
+        return " ".join(classes)
 
     def _read_embedded(self):
         try:
@@ -213,7 +251,7 @@ def sections_by_directory(coursedir, notebooks):
     result.sort(key=lambda s: s.name)
     for section in result:
         section.notebooks.sort(key=lambda n: n.path)
-    return Sections(result)
+    return Sections(coursedir, result)
 
 def default_sectioning(coursedir):
     """

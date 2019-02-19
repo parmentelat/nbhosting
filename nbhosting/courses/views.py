@@ -27,53 +27,42 @@ def auditor_list_courses(request):
 @csrf_protect
 def auditor_show_course(request, course, viewpoint):
     viewpoint = viewpoint or "course"
-    course_dir = CourseDir(course)
+    coursedir = CourseDir(course)
     # xxx need a way to set viewpoint somewhere on the URL
     # like .e.g. 'exos'
-    sections = course_dir.sections(viewpoint)
-    for section in sections:
-        for notebook in section.notebooks:
-            notebook.in_course = True
+    sections = coursedir.sections(viewpoint)
+    sections.mark_notebooks(request.user.username)
 
-    # read student dir
-    read_notebook_paths = set(
-        course_dir.probe_student_notebooks(request.user.username))
-
-    # mark corresponding notebook instances as read
-    for read_path in read_notebook_paths:
-        spotted = None
-        for section in sections:
-            spotted = section.spot_notebook(read_path)
-            if spotted:
-                spotted.in_student = True
-                break
-
-        if not spotted:
-            # existing in the student tree, but not in the viewpoint
-            odd_notebook = Notebook(course_dir, read_path)
-            odd_notebook.in_student = True
-            sections.add_unknown(odd_notebook)
-
+    notebook = sections[0].notebooks[0]
+    logger.debug(f"after mark {notebook.__dict__}")
+    logger.debug(f"classes => {notebook.classes()}")
 
     env = dict(
         course=course,
         viewpoint=viewpoint,
         sections=sections,
-        how_many=len(course_dir),
+        how_many=len(coursedir),
     )
     return render(request, "auditor-course.html", env)
 
 
 @login_required
 @csrf_protect
-def auditor_show_notebook(request, course, notebook, student):
+def auditor_show_notebook(request, course, viewpoint, notebook, student):
+    logger.info(locals())
+    course_viewpoint = course if not viewpoint else f"{course}:{viewpoint}"
+    coursedir = CourseDir(course)
+    sections = coursedir.sections(viewpoint)
+    sections.mark_notebooks(request.user.username)
     return render(
         request, "auditor-notebook.html",
         dict(
             course=course,
+            viewpoint=viewpoint,
+            sections=sections,
             notebook=notebook,
             iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
-            course_url=f"/auditor/course/{course}",
+            course_url=f"/auditor/course/{course_viewpoint}",
             head_title=f"{course}",
         ))
 
@@ -95,33 +84,33 @@ def staff_list_courses(request):
 @staff_member_required
 @csrf_protect
 def staff_show_course(request, course):
-    course_dir = CourseDir(course)
-    notebooks = list(course_dir.notebooks())
+    coursedir = CourseDir(course)
+    notebooks = list(coursedir.notebooks())
     notebooks.sort()
     # shorten staff hashes
 
-    shorten_staff = [hash[:7] for hash in course_dir.staff]
+    shorten_staff = [hash[:7] for hash in coursedir.staff]
 
     env = dict(
         course=course,
         notebooks=notebooks,
         how_many=len(notebooks),
-        image=course_dir.image,
-        statics=course_dir.statics,
+        image=coursedir.image,
+        statics=coursedir.statics,
         staff=shorten_staff,
-        giturl=course_dir.giturl,
+        giturl=coursedir.giturl,
     )
     return render(request, "staff-course.html", env)
 
 
 def nbh_manage(request, course, verb, _managed):
-    course_dir = CourseDir(course)
+    coursedir = CourseDir(course)
     if verb == 'update-from-git':
-        completed = course_dir.update_from_git()
+        completed = coursedir.update_from_git()
     elif verb == 'build-image':
-        completed = course_dir.build_image()
+        completed = coursedir.build_image()
     elif verb == 'clear-staff':
-        completed = course_dir.clear_staff()
+        completed = coursedir.clear_staff()
     command = " ".join(completed.args)
     message = "when updating {course}".format(course=course)
     # expose most locals, + the attributes of completed
@@ -129,7 +118,7 @@ def nbh_manage(request, course, verb, _managed):
     env = vars(completed)
     env.update(locals())
     # this is an instance and so would not serialize
-    del env['course_dir']
+    del env['coursedir']
     # the html title
     template = "course-managed.html"
     return render(request, template, env)

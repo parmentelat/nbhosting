@@ -54,7 +54,7 @@ span.section-details {
         <a href='/auditor/'>home</a></li>
     <li class="breadcrumb-item">
         <a href='/auditor/courses'>courses</a></li>
-{% if viewpoint == "course"%}
+{% if viewpoint == "course" %}
     <li class="breadcrumb-item active">{{course}}</li>
 {% else %}
     <li class="breadcrumb-item">
@@ -75,10 +75,7 @@ span.section-details {
             </div>
             <div class="course-box m-3">
                 {% for notebook in section.notebooks %}
-<a class='notebook
-{% if notebook.in_course %} in-course {% endif %}
-{% if notebook.in_student %} in-student {% endif %}
-'
+<a class='notebook {{notebook.classes}}'
 href='/auditor/notebook/{{course}}/{{notebook.clean_path}}/{{user.get_username}}'
 >{{notebook.notebookname}}
 </a>
