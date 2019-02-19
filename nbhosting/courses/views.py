@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
 from nbhosting.courses import CoursesDir, CourseDir, Notebook
+from nbhosting.main.settings import logger
 
 ######### auditor
 
@@ -40,16 +41,18 @@ def auditor_show_course(request, course, viewpoint):
 
     # mark corresponding notebook instances as read
     for read_path in read_notebook_paths:
+        spotted = None
         for section in sections:
             spotted = section.spot_notebook(read_path)
             if spotted:
                 spotted.in_student = True
                 break
-        # existing in the student tree, but not in the
-        # course / viewpoint
-        odd_notebook = Notebook(course_dir, read_path)
-        odd_notebook.in_student = True
-        sections.add_unknown(odd_notebook)
+
+        if not spotted:
+            # existing in the student tree, but not in the viewpoint
+            odd_notebook = Notebook(course_dir, read_path)
+            odd_notebook.in_student = True
+            sections.add_unknown(odd_notebook)
 
 
     env = dict(

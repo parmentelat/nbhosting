@@ -32,6 +32,12 @@ class Sections(list):
             result += f" on {self[0].coursedir}xs"
         return result
 
+    def dump(self, logger):
+        for section in self:
+            logger.info(f"Section {section} has {len(section)} nbs")
+            for notebook in section.notebooks:
+                logger.info(f"{section} → {notebook}")
+
 
 class Section:                                          # pylint: disable=r0903
 
@@ -55,8 +61,10 @@ class Section:                                          # pylint: disable=r0903
         return len(self)
 
     def spot_notebook(self, path):
+        # may be a Path instance
+        path = str(path)
         for notebook in self.notebooks:
-            if notebook.path == path:
+            if notebook.clean_path() == path:
                 return notebook
 
 
@@ -111,7 +119,7 @@ class Notebook:                                         # pylint: disable=r0903
                 self._notebookname = nb['metadata']['notebookname']
                 self._version = nb['metadata']['version']
         except:
-            self._notebookname = "n/a"
+            self._notebookname = self.path
             self._version = "n/a"
 
 
@@ -122,6 +130,8 @@ def notebooks_by_pattern(coursedir, pattern):
     return a sorted list of all notebooks (relative paths)
     matching some pattern from coursedir
     """
+    logger.debug(
+        f"notebooks_by_pattern in {coursedir} with {pattern}")
     root = Path(coursedir.notebooks_dir).absolute()
     absolutes = root.glob(pattern)
     probed = [path.relative_to(root) for path in absolutes]
@@ -135,6 +145,7 @@ def sections_by_directory(coursedir, notebooks):
     from a list of relative paths, returns a list of
     Section objects corresponing to directories
     """
+    logger.debug(f"sections_by_directory in {coursedir}")
     root = coursedir.notebooks_dir
 
     hash_per_dir = defaultdict(list)

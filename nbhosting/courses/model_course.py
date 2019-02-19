@@ -17,16 +17,23 @@ class CourseDir:
 
     def __init__(self, coursename):
         self.coursename = coursename
-        self.notebooks_dir = NBHROOT / "courses" / self.coursename
         self._probe_settings()
         self._notebooks = None
-
 
     def __repr__(self):
         return self.coursename
 
     def __len__(self):
         return len(self.notebooks())
+
+    def _notebooks_dir(self):
+        return NBHROOT / "courses" / self.coursename
+    notebooks_dir = property(_notebooks_dir)
+
+    def _git_dir(self):
+        return NBHROOT / "courses-git" / self.coursename
+    git_dir = property(_git_dir)
+
 
     # for templating
     def length(self):
@@ -93,14 +100,15 @@ class CourseDir:
          { 'name': str,
            'notebooks': <a list of notebook paths>}
         """
-        course_root = (self.notebooks_dir).absolute()
+        course_root = (self.git_dir).absolute()
         course_viewpoints = course_root / "nbhosting/viewpoints.py"
 
         if course_viewpoints.exists():
             modulename = (f"{self.coursename}_viewpoints"
                           .replace("-", "_"))
             try:
-                logger.error(f"loading {course_viewpoints}")
+                logger.debug(
+                    f"loading module {course_viewpoints}")
                 spec = spec_from_file_location(
                     modulename,
                     course_viewpoints,
@@ -108,17 +116,17 @@ class CourseDir:
                 module = module_from_spec(spec)
                 spec.loader.exec_module(module)
                 sections_fun = module.sections
+                logger.debug(
+                    f"triggerring {sections_fun.__qualname__}"
+                )
                 return sections_fun(self, viewpoint)
             except Exception as exc:
-                # no luck with custom code
-                # use generic one
-                print(f"could not use custom sectioning for {self.coursename}\n"
-                      f"{type(exc)} {exc}")
                 logger.exception(f"could not do custom sectioning"
                                  f" course={self.coursename}"
                                  f" viewpoint={viewpoint}")
         else:
-            print(f"no nbhosting hook found for course {self}")
+            logger.info(f"no nbhosting hook found for course {self}\n"
+                        f"expected in {course_viewpoints}")
         return default_sectioning(self)
 
 

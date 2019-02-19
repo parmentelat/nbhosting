@@ -52,7 +52,7 @@ else:
     DEVEL = True
 
 # this will create <root>/logs - and thus <root> - if needed
-init_loggers(LOGS_DIR)
+init_loggers(LOGS_DIR, DEBUG)
 logger = logging.getLogger('nbhosting')
 monitor_logger = logging.getLogger('monitor')
 
