@@ -79,3 +79,8 @@ urlpatterns = [
     #                        url='welcome/', permanent=True),
     #                        name='welcome'),
 ]
+
+from .settings import DEVEL
+if DEVEL:
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+    urlpatterns += staticfiles_urlpatterns()

@@ -30,6 +30,7 @@ from .loggers import init_loggers
 
 
 ########## production vs devel
+DEVEL = False
 if os.getuid() == 0:
     # typically /nbhosting/logs
     LOGS_DIR = Path(sitesettings.nbhroot) / 'logs'
@@ -45,6 +46,10 @@ else:
     # .parents[0] is dirname(f)
     # .parents[1] is dirname(dirname(f))
     BASE_DIR = Path(__file__).parents[1]
+
+    # have the static files served in devel mode
+    STATICFILES_DIRS = (str(BASE_DIR / "assets"), )
+    DEVEL = True
 
 # this will create <root>/logs - and thus <root> - if needed
 init_loggers(LOGS_DIR)
