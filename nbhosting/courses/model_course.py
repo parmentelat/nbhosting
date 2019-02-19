@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import subprocess
+import json
 from importlib.util import (
     spec_from_file_location, module_from_spec)
 
@@ -76,7 +77,35 @@ class CourseDir:
         return sum((1 for _ in student_course_dirs), 0)
 
 
+
     def sections(self, viewpoint="course"):
+        """
+        Search in cache first because opening all notebooks to
+        retrieve their notebookname is quite slow
+
+        cache should be cleaned up each time a course is updated from git
+        """
+        storage = self.notebooks_dir / ".viewpoints" / (viewpoint + ".json")
+        storage.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with storage.open() as reader:
+                dictionary = json.loads(reader.read())
+                sections = Sections.loads(self, dictionary)
+                logger.debug(f"{self} using cached sections for {viewpoint}")
+                return sections
+        except FileNotFoundError:
+            pass
+        except Exception as exc:
+            logger.exception('')
+        logger.info(f"{self}: re-reading sections for viewpoint {viewpoint}")
+        sections = self._sections(viewpoint)
+        with storage.open('w') as writer:
+            dictionary = sections.dumps()
+            writer.write(json.dumps(dictionary))
+        return sections
+
+
+    def _sections(self, viewpoint="course"):
         """
         return a list of relevant notebooks
         arranged in sections
@@ -159,6 +188,7 @@ class CourseDir:
         except Exception as exc:
             self.giturl = f"-- undefined -- {exc}"
 
+
     def image_hash(self, docker_proxy):
         """
         the hash of the image that should be used for containers
@@ -170,6 +200,7 @@ class CourseDir:
         except:
             logger.exception("Can't figure image hash")
             return
+
 
     def _run_nbh(self, subcommand, *args, **run_args):
         """

@@ -28,15 +28,24 @@ class Sections(list):
 
     def __repr__(self):
         result = f"{len(self)} sections"
+        # self is a list, this tests if we have at least one son
         if self:
-            result += f" on {self[0].coursedir}xs"
+            result += f" on {self[0].coursedir}"
         return result
 
-    def dump(self, logger):
-        for section in self:
-            logger.info(f"Section {section} has {len(section)} nbs")
-            for notebook in section.notebooks:
-                logger.info(f"{section} → {notebook}")
+    def dumps(self):
+        """
+        return a pure python object that can be json-stored,
+        and that contain enough to rebuild the structure entirely
+        """
+        return dict(
+            sections=[section.dumps() for section in self],
+            )
+
+    @staticmethod
+    def loads(coursedir, d: dict):
+        sections = [Section.loads(coursedir, s) for s in d['sections']]
+        return Sections(sections)
 
 
 class Section:                                          # pylint: disable=r0903
@@ -67,6 +76,22 @@ class Section:                                          # pylint: disable=r0903
             if notebook.clean_path() == path:
                 return notebook
 
+    def dumps(self):
+        return dict(
+            name=str(self.name),
+            notebooks=[notebook.dumps() for notebook in self.notebooks]
+            )
+
+    @staticmethod
+    def loads(coursedir, d: dict):
+        restored = Section(
+            name=d['name'],
+            coursedir=coursedir,
+            notebooks=[])
+        restored.notebooks = [
+            Notebook.loads(coursedir, n) for n in d['notebooks']
+        ]
+        return restored
 
 
 class Notebook:                                         # pylint: disable=r0903
@@ -93,23 +118,27 @@ class Notebook:                                         # pylint: disable=r0903
         return result
 
 
+    def _get_notebookname(self):
+        if self._notebookname is None:
+            self._read_embedded()
+        return self._notebookname
+    notebookname = property(_get_notebookname)
+
+    def _get_version(self):
+        if self._version is None:
+            self._read_embedded()
+        return self._version
+    version = property(_get_version)
+
+
     def absolute(self):
         return (self.coursedir.notebooks_dir / self.path).absolute()
-
 
     # a Path instance does not seem
     # to please the templating engine
     def clean_path(self):
         clean = str(self.path).replace(".ipynb", "")
         return clean
-
-
-    def _get_notebookname(self):
-        if self._notebookname is None:
-            self._read_embedded()
-        return self._notebookname
-
-    notebookname = property(_get_notebookname)
 
 
     def _read_embedded(self):
@@ -121,6 +150,26 @@ class Notebook:                                         # pylint: disable=r0903
         except:
             self._notebookname = self.path
             self._version = "n/a"
+
+
+    def dumps(self):
+        return dict(
+            path=str(self.path),
+            in_course=self.in_course,
+            notebookname=self.notebookname,
+            version=self.version
+        )
+
+    @staticmethod
+    def loads(coursedir, d: dict):
+        restored = Notebook(
+            coursedir=coursedir,
+            path=d['path'])
+        if d['notebookname']:
+            restored._notebookname = d['notebookname']
+        if d['version']:
+            restored._version = d['version']
+        return restored
 
 
 
