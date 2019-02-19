@@ -30,7 +30,7 @@ urlpatterns = [
     # regular users who log in
     re_path(r'^auditor/courses.*$',
                         nbhosting.courses.views.auditor_list_courses),
-    re_path(r'^auditor/course/(?P<course>[\w_.-]+)$',
+    re_path(r'^auditor/course/(?P<course>[\w_.-]+)(/(?P<viewpoint>[\w_.-]*))?$',
                         nbhosting.courses.views.auditor_show_course),
     re_path(r'^auditor/notebook/(?P<course>[\w_.-]+)/'
             r'(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}/(?P<student>[\w_.-]+)$',

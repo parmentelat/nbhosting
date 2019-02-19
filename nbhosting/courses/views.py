@@ -24,11 +24,12 @@ def auditor_list_courses(request):
 
 @login_required
 @csrf_protect
-def auditor_show_course(request, course):
+def auditor_show_course(request, course, viewpoint):
+    viewpoint = viewpoint or "course"
     course_dir = CourseDir(course)
     # xxx need a way to set viewpoint somewhere on the URL
     # like .e.g. 'exos'
-    sections = course_dir.sections()
+    sections = course_dir.sections(viewpoint)
     for section in sections:
         for notebook in section.notebooks:
             notebook.in_course = True
