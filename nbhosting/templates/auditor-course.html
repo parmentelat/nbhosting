@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block title %}
-{{how_many}} notebooks in course {{course}}
+{{how_many}} notebooks in {{course}}
 {% endblock %}
 
 
@@ -50,9 +50,17 @@ span.section-details {
 </style>
 
 <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
-    <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
+    <li class="breadcrumb-item">
+        <a href='/auditor/'>home</a></li>
+    <li class="breadcrumb-item">
+        <a href='/auditor/courses'>courses</a></li>
+{% if viewpoint == "course"%}
     <li class="breadcrumb-item active">{{course}}</li>
+{% else %}
+    <li class="breadcrumb-item">
+        <a href="/auditor/course/{{course}}">{{course}}</a></li>
+    <li class="breadcrumb-item active">{{viewpoint}}</li>
+{% endif %}
 </ol>
 
 <!------------------------------>
@@ -60,7 +68,7 @@ span.section-details {
     {% for section in sections %}
     <div class="row">
         <div class="col-12">
-            <div class="card-block m-3">
+            <div class="card-block m-2">
                 <h2 class="card-title">{{section.name}}
                 <span class="section-details">
                 ({{section.length}} notebooks)</span></h2>

@@ -54,6 +54,7 @@ def auditor_show_course(request, course, viewpoint):
 
     env = dict(
         course=course,
+        viewpoint=viewpoint,
         sections=sections,
         how_many=len(course_dir),
     )
