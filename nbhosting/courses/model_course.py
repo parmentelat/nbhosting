@@ -86,7 +86,7 @@ class CourseDir:
         cache should be cleaned up each time a course is updated from git
         """
         viewpoint = viewpoint if viewpoint is not None else "course"
-        storage = self.notebooks_dir / ".viewpoints" / (viewpoint + ".json")
+        storage = self.notebooks_dir / ".sections" / (viewpoint + ".json")
         storage.parent.mkdir(parents=True, exist_ok=True)
         try:
             with storage.open() as reader:
@@ -119,7 +119,7 @@ class CourseDir:
         and the others organized along different view points
 
         this can be done through a python module named
-        nbhosting/sectioning.py
+        nbhosting/sections.py
         that should expose a function named
         sections(coursedir, viewpoint)
         viewpoint being for now 'course' but could be used
@@ -131,17 +131,17 @@ class CourseDir:
            'notebooks': <a list of notebook paths>}
         """
         course_root = (self.git_dir).absolute()
-        course_viewpoints = course_root / "nbhosting/viewpoints.py"
+        course_sections = course_root / "nbhosting/sections.py"
 
-        if course_viewpoints.exists():
+        if course_sections.exists():
             modulename = (f"{self.coursename}_viewpoints"
                           .replace("-", "_"))
             try:
                 logger.debug(
-                    f"{self}:{viewpoint} loading module {course_viewpoints}")
+                    f"{self}:{viewpoint} loading module {course_sections}")
                 spec = spec_from_file_location(
                     modulename,
-                    course_viewpoints,
+                    course_sections,
                 )
                 module = module_from_spec(spec)
                 spec.loader.exec_module(module)
@@ -161,7 +161,7 @@ class CourseDir:
         else:
             logger.info(
                 f"{self}:{viewpoint} no nbhosting hook found\n"
-                f"expected in {course_viewpoints}")
+                f"expected in {course_sections}")
         logger.debug(f"{self}:{viewpoint} resorting to default sectioning")
         return default_sectioning(self)
 
