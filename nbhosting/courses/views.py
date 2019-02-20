@@ -50,6 +50,7 @@ def auditor_show_course(request, course, track=None):
 def auditor_show_notebook(request, course, notebook, track=None):
     student = request.user.username
     course_track = course if not track else f"{course}:{track}"
+    track = track if track is not None else "course"
     coursedir = CourseDir(course)
     sections = coursedir.sections(track)
     sections.mark_notebooks(request.user.username)
@@ -61,7 +62,7 @@ def auditor_show_notebook(request, course, notebook, track=None):
             sections=sections,
             notebook=notebook,
             iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
-            course_url=f"/auditor/course/{course_track}",
+            course_track=course_track,
             head_title=f"{course}",
         ))
 

@@ -41,6 +41,7 @@ iframe {
 button.back {
     margin-top: 10px;
     margin-left: 10px;
+    margin-bottom: 15px;
 }
 
 button.back>a {
@@ -52,20 +53,23 @@ div.section {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-flex-start;
+    padding-left: 20px;
+    padding-right: 10px;
+    padding-top: 0px;
 }
-span.section-head {
+.section-head {
     width: 100%;
+    margin-bottom: 10px;
+    font-size: 75%;
 }
-span.notebook {
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
-    margin-bottom: 5px;
+.notebook {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 0.5px solid #888;
+    margin: 1px;
 }
 
-.notebook {
-    background-color: #bbb;
-}
 .in-course {
     background-color: #ccc;
 }
@@ -89,19 +93,37 @@ $(function () {
 <!------------------------------>
 <div class="container" height="100%">
     <div class="iframe-side">
+        <ol class="breadcrumb">
+<!--            <li class="breadcrumb-item">
+                <a href='/auditor/'>home</a></li> -->
+            <li class="breadcrumb-item">
+                <a href='/auditor/courses'>courses</a></li>
+        {% if track == "course" %}
+            <li class="breadcrumb-item active">
+                <a href="/auditor/course/{{course_track}}">{{course}}</a>
+            </li>
+        {% else %}
+            <li class="breadcrumb-item">
+                <a href="/auditor/course/{{course}}">{{course}}</a></li>
+            <li class="breadcrumb-item active">
+                <a href="/auditor/course/{{course_track}}">{{track}}</a>
+            </li>
+        {% endif %}
+        </ol>
         <button type="button" class="btn btn-info back">
             <a href="{{course_url}}">back to {{course}}</a>
         </button>
         {% for section in sections %}
         <div class="section">
-            <span class="section-head">{{section.name}}</span>
+            <button type="button"
+                class="btn btn-outline-primary section-head">
+                {{section.name}}
+            </button>
             {% for notebook in section.notebooks %}
             <a href="/auditor/notebook/{{course}}/{{notebook.clean_path}}"
-               class="{{notebook.classes}}"
                data-toggle="tooltip" data-html="true"
                title="{{notebook.notebookname}}">
-                <span class="notebook">x
-                </span>
+                <div class="notebook {{notebook.classes}}"></div>
             </a>
             {% endfor %}
         </div>
