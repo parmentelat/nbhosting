@@ -78,35 +78,35 @@ class CourseDir:
 
 
 
-    def sections(self, viewpoint=None):
+    def sections(self, track=None):
         """
         Search in cache first because opening all notebooks to
         retrieve their notebookname is quite slow
 
         cache should be cleaned up each time a course is updated from git
         """
-        viewpoint = viewpoint if viewpoint is not None else "course"
-        storage = self.notebooks_dir / ".sections" / (viewpoint + ".json")
+        track = track if track is not None else "course"
+        storage = self.notebooks_dir / ".sections" / (track + ".json")
         storage.parent.mkdir(parents=True, exist_ok=True)
         try:
             with storage.open() as reader:
                 dictionary = json.loads(reader.read())
                 sections = Sections.loads(self, dictionary)
-                logger.debug(f"{self} using cached sections for {viewpoint}")
+                logger.debug(f"{self} using cached sections for {track}")
                 return sections
         except FileNotFoundError:
             pass
         except Exception as exc:
             logger.exception('')
-        logger.info(f"{self}: re-reading sections for viewpoint {viewpoint}")
-        sections = self._sections(viewpoint)
+        logger.info(f"{self}: re-reading sections for track {track}")
+        sections = self._sections(track)
         with storage.open('w') as writer:
             dictionary = sections.dumps()
             writer.write(json.dumps(dictionary))
         return sections
 
 
-    def _sections(self, viewpoint):
+    def _sections(self, track):
         """
         return a list of relevant notebooks
         arranged in sections
@@ -121,8 +121,8 @@ class CourseDir:
         this can be done through a python module named
         nbhosting/sections.py
         that should expose a function named
-        sections(coursedir, viewpoint)
-        viewpoint being for now 'course' but could be used
+        sections(coursedir, track)
+        track being for now 'course' but could be used
         to define other subsets (e.g. exercises, videos, ...)
         that function is expected to return a list of
         * either Section objects
@@ -134,11 +134,11 @@ class CourseDir:
         course_sections = course_root / "nbhosting/sections.py"
 
         if course_sections.exists():
-            modulename = (f"{self.coursename}_viewpoints"
+            modulename = (f"{self.coursename}_sections"
                           .replace("-", "_"))
             try:
                 logger.debug(
-                    f"{self}:{viewpoint} loading module {course_sections}")
+                    f"{self}:{track} loading module {course_sections}")
                 spec = spec_from_file_location(
                     modulename,
                     course_sections,
@@ -149,20 +149,20 @@ class CourseDir:
                 logger.debug(
                     f"triggerring {sections_fun.__qualname__}"
                 )
-                sections = sections_fun(self, viewpoint)
+                sections = sections_fun(self, track)
                 if sections and isinstance(sections, Sections):
                     return sections
                 else:
                     logger.warn(
-                        f"{self}:{viewpoint} discarding custom result")
+                        f"{self}:{track} discarding custom result")
             except Exception as exc:
                 logger.exception(
-                    f"{self}:{viewpoint} could not do custom sectioning")
+                    f"{self}:{track} could not do custom sectioning")
         else:
             logger.info(
-                f"{self}:{viewpoint} no nbhosting hook found\n"
+                f"{self}:{track} no nbhosting hook found\n"
                 f"expected in {course_sections}")
-        logger.debug(f"{self}:{viewpoint} resorting to default sectioning")
+        logger.debug(f"{self}:{track} resorting to default sectioning")
         return default_sectioning(self)
 
 

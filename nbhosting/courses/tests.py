@@ -15,9 +15,9 @@ class Tests(TestCase):
         self.assertIsInstance(sections, Sections)
 
 
-    def _test_custom(self, coursename, expected, viewpoint="course"):
+    def _test_custom(self, coursename, expected, track="course"):
         course = CourseDir(coursename)
-        sections = course.sections(viewpoint)
+        sections = course.sections(track)
         self.assertEqual(len(sections), expected)
         self.assertIsInstance(sections, Sections)
 

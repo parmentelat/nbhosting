@@ -433,8 +433,8 @@ function course-update-from-git() {
             [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
         done
 
-        # clear content caches
-        rm -rf $COURSE_notebooks/.viewpoints/*.json
+        # clear sections caches
+        rm -rf $COURSE_notebooks/.sections/*.json
 
         # find out all immediate subdirs that contain at least one notebook
         notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | sort -u)

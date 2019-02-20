@@ -1,4 +1,4 @@
-{% extends "nbhosting.html" %}
+track{% extends "nbhosting.html" %}
 
 {% block head_title %}
 {{course}} - {{how_many}} notebooks
@@ -54,12 +54,12 @@ span.section-details {
         <a href='/auditor/'>home</a></li>
     <li class="breadcrumb-item">
         <a href='/auditor/courses'>courses</a></li>
-{% if viewpoint == "course" %}
+{% if track == "course" %}
     <li class="breadcrumb-item active">{{course}}</li>
 {% else %}
     <li class="breadcrumb-item">
         <a href="/auditor/course/{{course}}">{{course}}</a></li>
-    <li class="breadcrumb-item active">{{viewpoint}}</li>
+    <li class="breadcrumb-item active">{{track}}</li>
 {% endif %}
 </ol>
 

@@ -25,13 +25,12 @@ def auditor_list_courses(request):
 
 @login_required
 @csrf_protect
-def auditor_show_course(request, course, viewpoint):
-    viewpoint = viewpoint or "course"
+def auditor_show_course(request, course, track=None):
+    track = track or "course"
     coursedir = CourseDir(course)
-    # xxx need a way to set viewpoint somewhere on the URL
-    # like .e.g. 'exos'
-    sections = coursedir.sections(viewpoint)
-    sections.mark_notebooks(request.user.username)
+    sections = coursedir.sections(track)
+    student = request.user.username
+    sections.mark_notebooks(student)
 
     notebook = sections[0].notebooks[0]
     logger.debug(f"after mark {notebook.__dict__}")
@@ -39,7 +38,7 @@ def auditor_show_course(request, course, viewpoint):
 
     env = dict(
         course=course,
-        viewpoint=viewpoint,
+        track=track,
         sections=sections,
         how_many=len(coursedir),
     )
@@ -48,21 +47,21 @@ def auditor_show_course(request, course, viewpoint):
 
 @login_required
 @csrf_protect
-def auditor_show_notebook(request, course, viewpoint, notebook, student):
-    logger.info(locals())
-    course_viewpoint = course if not viewpoint else f"{course}:{viewpoint}"
+def auditor_show_notebook(request, course, notebook, track=None):
+    student = request.user.username
+    course_track = course if not track else f"{course}:{track}"
     coursedir = CourseDir(course)
-    sections = coursedir.sections(viewpoint)
+    sections = coursedir.sections(track)
     sections.mark_notebooks(request.user.username)
     return render(
         request, "auditor-notebook.html",
         dict(
             course=course,
-            viewpoint=viewpoint,
+            track=track,
             sections=sections,
             notebook=notebook,
             iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
-            course_url=f"/auditor/course/{course_viewpoint}",
+            course_url=f"/auditor/course/{course_track}",
             head_title=f"{course}",
         ))
 

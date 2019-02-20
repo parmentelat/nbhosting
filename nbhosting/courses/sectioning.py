@@ -58,7 +58,7 @@ class Sections(list):
             if spotted:
                 spotted.in_student = True
                 break
-            # existing in the student tree, but not in the viewpoint
+            # existing in the student tree, but not in the track
             odd_notebook = Notebook(coursedir, read_path)
             odd_notebook.in_student = True
             self.add_unknown(odd_notebook)
