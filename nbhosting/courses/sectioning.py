@@ -186,7 +186,7 @@ class Notebook:                                         # pylint: disable=r0903
                 self._notebookname = nb['metadata']['notebookname']
                 self._version = nb['metadata']['version']
         except:
-            self._notebookname = self.path
+            self._notebookname = str(self.path)
             self._version = "n/a"
 
 

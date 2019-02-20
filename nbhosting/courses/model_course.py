@@ -92,17 +92,20 @@ class CourseDir:
             with storage.open() as reader:
                 dictionary = json.loads(reader.read())
                 sections = Sections.loads(self, dictionary)
-                logger.debug(f"{self} using cached sections for {track}")
+                logger.debug(f"{self}:{track} using cached sections")
                 return sections
         except FileNotFoundError:
             pass
         except Exception as exc:
-            logger.exception('')
+            logger.exception('{self}:{track} found but unloadable json')
         logger.info(f"{self}: re-reading sections for track {track}")
         sections = self._sections(track)
-        with storage.open('w') as writer:
-            dictionary = sections.dumps()
-            writer.write(json.dumps(dictionary))
+        try:
+            with storage.open('w') as writer:
+                dictionary = sections.dumps()
+                writer.write(json.dumps(dictionary))
+        except Exception as exc:
+            logger.exception(f"{self}:{track} failed to save json")
         return sections
 
 

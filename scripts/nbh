@@ -462,7 +462,8 @@ function course-update-from-git() {
 function course-build-image() {
     local USAGE="Usage: $COMMAND $FUNCNAME [-f] course
 this command will
-. locate a dockerfile, either in the course git repo, or under images/ in nbhosting
+. locate a dockerfile, either in the course git repo,
+  or under images/ in nbhosting
 . (re)build the course docker image based on that
 
 With the -f option, rebuild will be forced; that is to say, docker build
