@@ -94,7 +94,8 @@ $(function () {
 <div class="container" height="100%">
     <div class="iframe-side">
         <ol class="breadcrumb">
-<!--            <li class="breadcrumb-item">
+<!-- not enough space
+            <li class="breadcrumb-item">
                 <a href='/auditor/'>home</a></li> -->
             <li class="breadcrumb-item">
                 <a href='/auditor/courses'>courses</a></li>
@@ -120,7 +121,7 @@ $(function () {
                 {{section.name}}
             </button>
             {% for notebook in section.notebooks %}
-            <a href="/auditor/notebook/{{course}}/{{notebook.clean_path}}"
+            <a href="/auditor/notebook/{{course_track}}/{{notebook.clean_path}}"
                data-toggle="tooltip" data-html="true"
                title="{{notebook.notebookname}}">
                 <div class="notebook {{notebook.classes}}"></div>
