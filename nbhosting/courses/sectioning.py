@@ -17,7 +17,13 @@ class Sections(list):
         self.unknown_section = None
         self._marked = False
 
+    # initial intention here was to be able to show student
+    # notebooks that were not in the course
+    # it needs more work obviously, so let's turn it off for now
     def add_unknown(self, notebook):
+        logger.error("Sections.add_unknown needs more work - ignoring")
+        return
+
         coursedir = self.coursedir
         if not self.unknown_section:
             self.unknown_section = Section(coursedir, "Unknown", [])
@@ -57,11 +63,12 @@ class Sections(list):
             spotted = self.spot_notebook(read_path)
             if spotted:
                 spotted.in_student = True
-                break
-            # existing in the student tree, but not in the track
-            odd_notebook = Notebook(coursedir, read_path)
-            odd_notebook.in_student = True
-            self.add_unknown(odd_notebook)
+            else:
+                # existing in the student tree, but not in the track
+                odd_notebook = Notebook(coursedir, read_path)
+                odd_notebook.in_student = True
+                # turn this off for now
+                # self.add_unknown(odd_notebook)
         self._marked = True
 
 
