@@ -105,8 +105,7 @@ function tick(bucket_key){
 }
 //////////////////////////////////////////////////
 let url_metrics="/staff/stats/daily_metrics/{{course}}";
-d3.request(url_metrics, function (error, response) {
-    let incoming = JSON.parse(response.response);
+d3.json(url_metrics).then(function (incoming) {
     console.log(`from daily_metrics ${url_metrics}`);
     console.log(incoming);
     // incoming parts
@@ -143,8 +142,7 @@ d3.request(url_metrics, function (error, response) {
 });
 //////////////////////////////////////////////////
 let url_counts="/staff/stats/monitor_counts/{{course}}";
-d3.request(url_counts, function (error, response) {
-    let incoming = JSON.parse(response.response);
+d3.json(url_counts).then(function (incoming) {
     console.log(`from monitor counts ${url_counts}`);
     console.log(incoming);
 
@@ -240,8 +238,7 @@ d3.request(url_counts, function (error, response) {
 });
 //////////////////////////////////////////////////
 let url_usage="/staff/stats/material_usage/{{course}}";
-d3.request(url_usage, function(error, response) {
-    let incoming = JSON.parse(response.response);
+d3.json(url_usage, function(incoming) {
     console.log(`from material usage ${url_usage}`);
     console.log(incoming);
 
