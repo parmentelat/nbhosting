@@ -11,10 +11,10 @@ Course {{course}} {{managed}}
 {% block content %}
 
 <div class='section'>
-<button type="button"
-  class="btn btn-lg btn-block btn-{%if returncode == 0%}success{%else%}warning{%endif%}">
- <a href='/staff/course/{{course}}'>Back to {{course}}</a>
-</button>
+    <a
+        class="btn btn-lg btn-block btn-{%if returncode == 0%}success{%else%}warning{%endif%}"
+        href='/staff/course/{{course}}'>Back to {{course}}
+    </a>
 </div>
 
 
