@@ -69,20 +69,12 @@ this works like a charm
 <div class="row">
 
     <div class="col-md-4 left-side">
-        <ul>
-            {% if user.is_authenticated %}
-                <li>Welcome, {{user.get_username}}</li>
-                {% if user.is_staff %}
-                    <li>Courses overview (admin)</li>
-                    <li>Django (user-)admin pages</li>
-                {% else %}
-                    <li>All courses</li>
-                    <li>My courses</li>
-                {% endif %}
-            {% else %}
-                <li>All courses (anon)</li>
-            {% endif %}
-        </ul>
+        <div class="card">
+            <div class="card-body">
+                There's no online registration yet, please ask
+                your teacher for an account.
+            </div>
+        </div>
     </div>
 
     <div class="col-md-6">

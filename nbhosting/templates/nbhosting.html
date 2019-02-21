@@ -44,7 +44,11 @@ div.code-ko {
             <h1>{% block title %}<a href="/">nbhosting</a>{% endblock %}</h1>
         </div>
         <div class="col-3" style="text-align:right;">
-            <a style="height:100%;vertical-align:middle;"
+            <a class="btn
+                {% if user.is_authenticated %} btn-outline-danger
+                {% else %} btn-outline-secondary
+                {% endif %}
+                "
                 {% if user.is_authenticated %}
                 href="/accounts/logout/">logout, {{ user.get_username }}
                 {% else %}
