@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block title %}
-{{notebook}}
+{{title}}
 {% endblock %}
 
 
@@ -69,6 +69,9 @@ div.section {
     border: 0.5px solid #888;
     margin: 1px;
 }
+.current {
+    border-width: 10px;
+}
 
 .in-course {
     background-color: #ccc;
@@ -117,11 +120,13 @@ $(function () {
                 class="btn btn-outline-primary section-head">
                 {{section.name}}
             </button>
-            {% for notebook in section.notebooks %}
-            <a href="/auditor/notebook/{{course_track}}/{{notebook.clean_path}}"
+            {% for notebook_obj in section.notebooks %}
+            <a href="/auditor/notebook/{{course_track}}/{{notebook_obj.clean_path}}"
                data-toggle="tooltip" data-html="true"
-               title="{{notebook.notebookname}}">
-                <div class="notebook {{notebook.classes}}"></div>
+               title="{{notebook_obj.notebookname}}">
+                <div class="notebook {{notebook_obj.classes}}
+                {% if notebook_obj.clean_path == notebook %}current{% endif %}
+                "></div>
             </a>
             {% endfor %}
         </div>

@@ -54,16 +54,20 @@ def auditor_show_notebook(request, course, notebook, track=None):
     coursedir = CourseDir(course)
     sections = coursedir.sections(track)
     sections.mark_notebooks(request.user.username)
+    # compute title as notebookname if found in sections
+    notebook_obj = sections.spot_notebook(notebook)
+    title = notebook_obj.notebookname if notebook_obj else notebook
     return render(
         request, "auditor-notebook.html",
         dict(
             course=course,
             track=track,
-            sections=sections,
             notebook=notebook,
-            iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
             course_track=course_track,
-            head_title=f"{course}",
+            sections=sections,
+            iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
+            head_title=f"nbh:{course}",
+            title=title,
         ))
 
 
