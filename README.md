@@ -2,10 +2,11 @@
 
 This git repo contains a collection of utilities, that together make up the architecture behind `nbhosting.inria.fr` that is designed as a notebook-serving infrastructure.
 
-First use case is for hosting notebooks in the context of MOOCs. See e.g.
+First use case is for hosting notebooks in the context of MOOCs. See e.g. on fun-mooc.fr:
 
-* [Python : des fondamentaux à l'utilisation du langage on fun-mooc.fr](https://www.fun-mooc.fr/courses/inria/41001S03/session03/about)
-* [Bioinformatique : algorithmes et génomes on fun-mooc.fr](https://www.fun-mooc.fr/courses/inria/41003S02/session02/about)
+* [Python : des fondamentaux à l'utilisation du langage](https://www.fun-mooc.fr/courses/inria/41001S03/session03/about)
+* [Bioinformatique : algorithmes et génomes](https://www.fun-mooc.fr/courses/inria/41003S02/session02/about)
+* [Physique : préparation à l'entrée dans l'enseignement supérieur](https://www.fun-mooc.fr/courses/course-v1:Polytechnique+03009+session01/about)
 
 ******
 
