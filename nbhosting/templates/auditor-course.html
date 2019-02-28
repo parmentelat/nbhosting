@@ -76,7 +76,7 @@ span.section-details {
             <div class="course-box m-3">
                 {% for notebook in section.notebooks %}
 <a class='notebook {{notebook.classes}}'
-href='/auditor/notebook/{{course}}/{{notebook.clean_path}}'
+href='/auditor/notebook/{{course}}:{{track}}/{{notebook.clean_path}}'
 >{{notebook.notebookname}}
 </a>
                 {% endfor %}
