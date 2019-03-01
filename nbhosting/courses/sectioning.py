@@ -1,4 +1,4 @@
-# pylint: disable=c0111
+# pylint: disable=c0111, w1203
 
 from pathlib import Path
 from collections import defaultdict
@@ -6,6 +6,9 @@ from collections import defaultdict
 import nbformat
 
 from nbhosting.main.settings import logger, DEBUG
+
+
+DEFAULT_TRACK = "course"
 
 
 class Sections(list):
@@ -234,11 +237,22 @@ def notebooks_by_pattern(coursedir, pattern):
     return notebooks
 
 
-def sections_by_directory(coursedir, notebooks):
+def sections_by_directory(coursedir, notebooks,
+                          *, dir_labels=None):
     """
     from a list of relative paths, returns a list of
     Section objects corresponing to directories
+
+    optional dir_labels allows to provide a mapping
+    "dirname" -> "displayed name"
     """
+
+    def mapped_name(dirname):
+        dirname = str(dirname)
+        if not dir_labels:
+            return dirname
+        return dir_labels.get(dirname, dirname)
+
     logger.debug(f"sections_by_directory in {coursedir}")
     root = coursedir.notebooks_dir
 
@@ -255,8 +269,10 @@ def sections_by_directory(coursedir, notebooks):
                     coursedir=coursedir,
                     notebooks=notebooks_per_dir))
 
+    # sort *before* applying the name mapping
     result.sort(key=lambda s: s.name)
     for section in result:
+        section.name = mapped_name(section.name)
         section.notebooks.sort(key=lambda n: n.path)
     return Sections(coursedir, result)
 

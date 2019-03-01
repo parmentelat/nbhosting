@@ -33,8 +33,6 @@ def auditor_show_course(request, course, track=None):
     sections.mark_notebooks(student)
 
     notebook = sections[0].notebooks[0]
-    logger.debug(f"after mark {notebook.__dict__}")
-    logger.debug(f"classes => {notebook.classes()}")
 
     env = dict(
         course=course,

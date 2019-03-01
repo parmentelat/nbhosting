@@ -1,4 +1,4 @@
-# pylint: disable=c0111
+# pylint: disable=c0111, w1203
 
 from pathlib import Path
 import subprocess
@@ -8,7 +8,12 @@ from importlib.util import (
 
 from nbhosting.main.settings import sitesettings, logger
 
-from .sectioning import Sections, Section, default_sectioning
+from .sectioning import Sections, default_sectioning, DEFAULT_TRACK
+
+from typing import Dict
+
+# this is what we expect to find in a course custom tracks.py
+CourseTracks = Dict[str, Sections]
 
 
 NBHROOT = Path(sitesettings.nbhroot)
@@ -77,16 +82,110 @@ class CourseDir:
         return sum((1 for _ in student_course_dirs), 0)
 
 
+    # check course-provided tracks and provide reasonable defaults
+    # returns a Sections object for a given track
+    def _check_tracks(self, tracks: CourseTracks):
+        type_ok = True
+        if not isinstance(tracks, dict):
+            type_ok = False
+        elif not all(isinstance(v, Sections) for v in tracks.values()):
+            type_ok = False
+        if not type_ok:
+            logger.error("{self}: misformed tracks()")
+        return type_ok
 
-    def sections(self, track=None):
+
+    # locate a Sections corresponding to trackaname in tracks
+    def _locate_sections(self, tracks: CourseTracks, trackname) -> Sections:
+        # is the track present ?
+        if trackname in tracks:
+            return tracks[trackname]
+        # find some default
+        logger.warning(
+            f"tracks for {self.coursename} has no {trackname} track")
+        if DEFAULT_TRACK in tracks:
+            return tracks[DEFAULT_TRACK]
+        # still not found, return the first one
+        logger.warning(
+            f"no {DEFAULT_TRACK} track, returning the first one")
+        for value in tracks.values:
+            return value
+
+    # actually call tracks() if customized for course
+    # return default strategy if missing or unable to run
+    def _fetch_course_custom_tracks(self):
         """
-        Search in cache first because opening all notebooks to
+        locate and load <course>/nbhosting/tracks.py
+
+        objective is to make this customizable so that some
+        notebooks in the repo can be ignored
+        and the others organized along different view points
+
+        the tracks() function will receive self as its single parameter
+        it is expected to return a dictionary
+           track_name -> Sections instance
+        see flotpython/courses/nbhosting/tracks.py for a realistic example
+
+        the keys in this dictionary are used in the web interface
+        to propose the list of available tracks
+
+        absence of tracks.py, or inability to run it, triggers
+        the default policy (per directory) implemented in sectioning.py
+        """
+        course_root = (self.git_dir).absolute()
+        course_tracks = course_root / "nbhosting/tracks.py"
+
+        if course_tracks.exists():
+            modulename = (f"{self.coursename}_tracks"
+                          .replace("-", "_"))
+            try:
+                logger.debug(
+                    f"{self} loading module {course_tracks}")
+                spec = spec_from_file_location(
+                    modulename,
+                    course_tracks,
+                )
+                module = module_from_spec(spec)
+                spec.loader.exec_module(module)
+                tracks_fun = module.tracks
+                logger.debug(
+                    f"triggerring {tracks_fun.__qualname__}()"
+                )
+                tracks = tracks_fun(self)
+                if self._check_tracks(tracks):
+                    return tracks
+            except Exception:                           # pylint: disable=w0703
+                logger.exception(
+                    f"{self} could not do load custom tracks")
+        else:
+            logger.info(
+                f"{self} no nbhosting hook found\n"
+                f"expected in {course_tracks}")
+        logger.warning(f"{self} resorting to default sectioning")
+        return {DEFAULT_TRACK: default_sectioning(self)}
+
+
+    def tracks(self):
+        """
+        returns the list of supported track names
+        """
+        return list(self._fetch_course_custom_tracks().keys())
+
+
+    def sections(self, track=DEFAULT_TRACK):
+        """
+        returns a Sections object that describe the contents
+        of that track
+
+        implement caching in courses/<coursename>/.tracks/<track>.json
+        this is important because opening all notebooks to
         retrieve their notebookname is quite slow
 
-        cache should be cleaned up each time a course is updated from git
+        cache needs to be cleaned up each time a course is updated from git
+        and the nbh shell script does so
         """
-        track = track if track is not None else "course"
-        storage = self.notebooks_dir / ".sections" / (track + ".json")
+        track = track if track is not None else DEFAULT_TRACK
+        storage = self.notebooks_dir / ".tracks" / (track + ".json")
         storage.parent.mkdir(parents=True, exist_ok=True)
         try:
             with storage.open() as reader:
@@ -99,7 +198,10 @@ class CourseDir:
         except Exception as exc:
             logger.exception('{self}:{track} found but unloadable json')
         logger.info(f"{self}: re-reading sections for track {track}")
-        sections = self._sections(track)
+        tracks = self._fetch_course_custom_tracks()
+        if not self._check_tracks(tracks):
+            return default_sectioning(self)
+        sections = self._locate_sections(tracks, track)
         try:
             with storage.open('w') as writer:
                 dictionary = sections.dumps()
@@ -107,66 +209,6 @@ class CourseDir:
         except Exception as exc:
             logger.exception(f"{self}:{track} failed to save json")
         return sections
-
-
-    def _sections(self, track):
-        """
-        return a list of relevant notebooks
-        arranged in sections
-
-        there's a default sectioning code that will group
-        notebooks per subdir
-
-        objective is to make this customizable so that some
-        notebooks in the repo can be ignored
-        and the others organized along different view points
-
-        this can be done through a python module named
-        nbhosting/sections.py
-        that should expose a function named
-        sections(coursedir, track)
-        track being for now 'course' but could be used
-        to define other subsets (e.g. exercises, videos, ...)
-        that function is expected to return a list of
-        * either Section objects
-        * or of dicts like
-         { 'name': str,
-           'notebooks': <a list of notebook paths>}
-        """
-        course_root = (self.git_dir).absolute()
-        course_sections = course_root / "nbhosting/sections.py"
-
-        if course_sections.exists():
-            modulename = (f"{self.coursename}_sections"
-                          .replace("-", "_"))
-            try:
-                logger.debug(
-                    f"{self}:{track} loading module {course_sections}")
-                spec = spec_from_file_location(
-                    modulename,
-                    course_sections,
-                )
-                module = module_from_spec(spec)
-                spec.loader.exec_module(module)
-                sections_fun = module.sections
-                logger.debug(
-                    f"triggerring {sections_fun.__qualname__}"
-                )
-                sections = sections_fun(self, track)
-                if sections and isinstance(sections, Sections):
-                    return sections
-                else:
-                    logger.warn(
-                        f"{self}:{track} discarding custom result")
-            except Exception as exc:
-                logger.exception(
-                    f"{self}:{track} could not do custom sectioning")
-        else:
-            logger.info(
-                f"{self}:{track} no nbhosting hook found\n"
-                f"expected in {course_sections}")
-        logger.debug(f"{self}:{track} resorting to default sectioning")
-        return default_sectioning(self)
 
 
     def _probe_settings(self):
