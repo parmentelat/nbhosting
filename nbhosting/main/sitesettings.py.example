@@ -18,16 +18,6 @@ ssl_certificate = "/root/ssl-certificate/bundle.crt"
 ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 
 
-# the domains that we accept being a sub iframe of, typically
-# 'self' (with the single quotes)
-#    that allows nbhosting to work in classroom mode
-#    where local pages include notebooks
-# *.fun-mooc.fr
-#    would allow to run as a companion to FUN
-# see jupyter/jupyter_notebook_config.py.in
-frame_ancestors = ["'self'", "https://*.fun-mooc.fr"]
-
-
 # describes how to log stderr from sub processes
 # depending on its returncode
 # can be either:
@@ -46,14 +36,33 @@ nbhroot = '/nbhosting'
 # running ./install.sh
 srcroot = '/root/nbhosting'
 
+
+### upstream portals
+#
+# trusting an upstream portal needs both next settings
+# first is for django, second for jupyter
+#
+# the domains that we accept being a sub iframe of, typically
+# 'self' (with the single quotes)
+#    that allows nbhosting to work in classroom mode
+#    where local pages include notebooks
+# *.fun-mooc.fr
+#    would allow to run as a companion to FUN
+# see jupyter/jupyter_notebook_config.py.in
+frame_ancestors = [
+    # if you plan on using nbhosting in classroom mode, this is required
+    "'self'",
+    "https://*.fun-mooc.fr",
+]
+
 # the domains that are trusted
 # typically the edx platform, as well as your own
 # SSL-exposed domain name
 allowed_referer_domains = [
-    'fun-mooc.fr',
     # add yourself here so the 'revert_to_original' and
     # 'share_static_version' feature can work properly
     server_name,
+    'fun-mooc.fr',
 ]
 
 # the IPs of devel boxes
