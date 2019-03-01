@@ -6,18 +6,23 @@
 {{course}}*{{server_name}} - stats
 {% endblock %}
 
+
 {% block title %}
 Stats for course {{course}}
 {% endblock %}
 
-{% block content %}
+
+{% block breadcrumb %}
 <ol class="breadcrumb">
   <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
   <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
   <li class="breadcrumb-item active">{{course}}</li>
   <li class="breadcrumb-item"><a href="/staff/course/{{course}}">notebooks</a></li>
 </ol>
+{% endblock %}
 
+
+{% block content %}
 <div class="card">
 <div class="card-block">
 <button type="button" class="btn btn-outline-danger">Warning: all times are UTC</button>

@@ -1,11 +1,23 @@
 {% extends "nbhosting.html" %}
 
+
 {% block head_title %}
 {{course}} - {{how_many}} notebooks
 {% endblock %}
 
+
 {% block title %}
 {{how_many}} notebooks in course {{course}}
+{% endblock %}
+
+
+{% block breadcrumb %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
+    <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
+    <li class="breadcrumb-item active">{{course}}</li>
+    <li class="breadcrumb-item"><a href="/staff/stats/{{course}}">stats</a></li>
+</ol>
 {% endblock %}
 
 
@@ -38,13 +50,6 @@ a.notebook:hover {
     color: purple;
 }
 </style>
-
-<ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
-    <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
-    <li class="breadcrumb-item active">{{course}}</li>
-    <li class="breadcrumb-item"><a href="/staff/stats/{{course}}">stats</a></li>
-</ol>
 
 <!------------------------------>
 <div class="container">
@@ -131,8 +136,7 @@ href='/auditor/notebook/{{course}}/{{notebook}}/staff'
             </div> <!-- card-block-->
         </div> <!-- card-->
 
-<!------------------------------>
-</div> <!-- row-->
+    </div> <!-- row-->
 </div> <!-- container-->
 
 {% endblock %}

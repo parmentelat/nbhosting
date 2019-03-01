@@ -28,6 +28,7 @@ def auditor_list_courses(request):
 def auditor_show_course(request, course, track=None):
     track = track or "course"
     coursedir = CourseDir(course)
+    tracks = coursedir.tracks()
     sections = coursedir.sections(track)
     student = request.user.username
     sections.mark_notebooks(student)
@@ -37,6 +38,7 @@ def auditor_show_course(request, course, track=None):
     env = dict(
         course=course,
         track=track,
+        tracks=tracks,
         sections=sections,
         how_many=len(coursedir),
     )

@@ -5,12 +5,15 @@ Known courses
 {% endblock %}
 
 
-{% block content %}
+{% block breadcrumb %}
 <ol class="breadcrumb">
   <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
   <li class="breadcrumb-item active">courses</li>
 </ol>
+{% endblock %}
 
+
+{% block content %}
 {% for course_detail in course_details %}
 <div class="card text-center">
 <div class="card-block m-4">

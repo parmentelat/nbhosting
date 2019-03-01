@@ -4,8 +4,26 @@
 {{course}} - {{how_many}} notebooks
 {% endblock %}
 
+
 {% block title %}
 {{how_many}} notebooks in {{course}}
+{% endblock %}
+
+
+{% block breadcrumb %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href='/auditor/'>home</a></li>
+    <li class="breadcrumb-item">
+        <a href='/auditor/courses'>courses</a></li>
+{% if track == "course" %}
+    <li class="breadcrumb-item active">{{course}}</li>
+{% else %}
+    <li class="breadcrumb-item">
+        <a href="/auditor/course/{{course}}">{{course}}</a></li>
+    <li class="breadcrumb-item active">{{track}}</li>
+{% endif %}
+</ol>
 {% endblock %}
 
 
@@ -49,20 +67,6 @@ span.section-details {
 }
 </style>
 
-<ol class="breadcrumb">
-    <li class="breadcrumb-item">
-        <a href='/auditor/'>home</a></li>
-    <li class="breadcrumb-item">
-        <a href='/auditor/courses'>courses</a></li>
-{% if track == "course" %}
-    <li class="breadcrumb-item active">{{course}}</li>
-{% else %}
-    <li class="breadcrumb-item">
-        <a href="/auditor/course/{{course}}">{{course}}</a></li>
-    <li class="breadcrumb-item active">{{track}}</li>
-{% endif %}
-</ol>
-
 <!------------------------------>
 <div class="container">
     {% for section in sections %}
@@ -85,5 +89,4 @@ href='/auditor/notebook/{{course}}:{{track}}/{{notebook.clean_path}}'
     </div>
     {% endfor %}
 </div>
-
 {% endblock %}

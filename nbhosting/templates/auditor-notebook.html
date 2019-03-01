@@ -8,6 +8,26 @@
 {{title}}
 {% endblock %}
 
+{% block breadcrumb %}
+<ol class="breadcrumb">
+<!-- not enough space
+    <li class="breadcrumb-item">
+        <a href='/auditor/'>home</a></li> -->
+    <li class="breadcrumb-item">
+        <a href='/auditor/courses'>courses</a></li>
+{% if track == "course" %}
+    <li class="breadcrumb-item active">
+        <a href="/auditor/course/{{course_track}}">{{course}}</a>
+    </li>
+{% else %}
+    <li class="breadcrumb-item">
+        <a href="/auditor/course/{{course}}">{{course}}</a></li>
+    <li class="breadcrumb-item active">
+        <a href="/auditor/course/{{course_track}}">{{track}}</a>
+    </li>
+{% endif %}
+</ol>
+{% endblock %}
 
 {% block content %}
 <style>
@@ -96,24 +116,6 @@ $(function () {
 <!------------------------------>
 <div class="container" height="100%">
     <div class="iframe-side">
-        <ol class="breadcrumb">
-<!-- not enough space
-            <li class="breadcrumb-item">
-                <a href='/auditor/'>home</a></li> -->
-            <li class="breadcrumb-item">
-                <a href='/auditor/courses'>courses</a></li>
-        {% if track == "course" %}
-            <li class="breadcrumb-item active">
-                <a href="/auditor/course/{{course_track}}">{{course}}</a>
-            </li>
-        {% else %}
-            <li class="breadcrumb-item">
-                <a href="/auditor/course/{{course}}">{{course}}</a></li>
-            <li class="breadcrumb-item active">
-                <a href="/auditor/course/{{course_track}}">{{track}}</a>
-            </li>
-        {% endif %}
-        </ol>
         {% for section in sections %}
         <div class="section">
             <button type="button"
