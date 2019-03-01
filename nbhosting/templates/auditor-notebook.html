@@ -86,11 +86,12 @@ div.section {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    border: 0.5px solid #888;
+    border: 0.5px solid #666;
     margin: 1px;
 }
-.current {
-    border-width: 10px;
+.notebook.current {
+    background-color: #208060;
+    border: 0.5px solid black;
 }
 
 .in-course {
@@ -103,6 +104,9 @@ div.section {
 /* only in-student means somehow it's obsolete */
 .in-student {
     background-color: #faa;
+}
+.notebook_path{
+    font-size: 60%;
 }
 </style>
 
@@ -125,7 +129,7 @@ $(function () {
             {% for notebook_obj in section.notebooks %}
             <a href="/auditor/notebook/{{course_track}}/{{notebook_obj.clean_path}}"
                data-toggle="tooltip" data-html="true"
-               title="{{notebook_obj.notebookname}}">
+               title="{{notebook_obj.notebookname}}</br><span class='notebook_path'>{{notebook_obj.clean_path}}</span>">
                 <div class="notebook {{notebook_obj.classes}}
                 {% if notebook_obj.clean_path == notebook %}current{% endif %}
                 "></div>
