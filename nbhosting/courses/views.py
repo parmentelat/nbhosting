@@ -19,8 +19,10 @@ from nbhosting.main.settings import logger
 @csrf_protect
 def auditor_list_courses(request):
     courses_dir = CoursesDir()
+    course_dirs = [
+        CourseDir(coursename) for coursename in courses_dir.coursenames()]
     return render(request, "auditor-courses.html",
-                  {'courses': courses_dir.coursenames()})
+        dict(course_dirs = course_dirs))
 
 
 @login_required
