@@ -10,23 +10,27 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+# pylint: disable=c0103
+
 import os
 import logging
 from pathlib import Path
 
-from .loggers import init_loggers
-
 ########## load sitesettings.py module that is **NOT** managed under git
 # see sitesettings.py.example for a template
-import nbhosting.main.sitesettings as sitesettings
+import nbhosting.main.sitesettings as sitesettings      # pylint: disable=c0414
 
-from .sitesettings import (
+from .sitesettings import (                             # pylint: disable=w0611
     SECRET_KEY,
     ALLOWED_HOSTS,
     DEBUG,
 )
 
+from .loggers import init_loggers
+
+
 ########## production vs devel
+DEVEL = False
 if os.getuid() == 0:
     # typically /nbhosting/logs
     LOGS_DIR = Path(sitesettings.nbhroot) / 'logs'
@@ -35,7 +39,7 @@ if os.getuid() == 0:
 else:
     # just a convenience for devel boxes
     # e.g. /users/tparment/git/nbhosting/nbhosting
-    django_root = Path(__file__).parents[2]
+    django_root = Path(__file__).parents[1]
     sitesettings.nbhroot = str(django_root / 'fake-root')
     # some provisions for devel mode
     LOGS_DIR = Path.cwd()
@@ -43,8 +47,12 @@ else:
     # .parents[1] is dirname(dirname(f))
     BASE_DIR = Path(__file__).parents[1]
 
+    # have the static files served in devel mode
+    STATICFILES_DIRS = (str(BASE_DIR / "assets"), )
+    DEVEL = True
+
 # this will create <root>/logs - and thus <root> - if needed
-init_loggers(LOGS_DIR)
+init_loggers(LOGS_DIR, DEBUG)
 logger = logging.getLogger('nbhosting')
 monitor_logger = logging.getLogger('monitor')
 
@@ -67,6 +75,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -86,7 +95,9 @@ ROOT_URLCONF = 'nbhosting.main.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ './templates' ],
+        'DIRS': [
+            './templates'
+            ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -152,7 +163,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/assets/'
+STATIC_ROOT = '/var/nginx/nbhosting/assets/'
 
-#################### additions for our /nbh/ protection against nginx
-LOGIN_REDIRECT_URL = '/nbh/accounts/profile/'
-LOGIN_URL =          '/nbh/accounts/login/'
+#################### back to django defaults, no longer a /nbh/ barrier
+LOGIN_REDIRECT_URL = '/welcome/'
+LOGIN_URL =          '/accounts/login/'

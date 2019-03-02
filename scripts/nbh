@@ -433,6 +433,9 @@ function course-update-from-git() {
             [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
         done
 
+        # clear sections caches
+        rm -rf $COURSE_notebooks/.tracks/*.json
+
         # find out all immediate subdirs that contain at least one notebook
         notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | sort -u)
         [ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $COURSE_notebooks/
@@ -459,7 +462,8 @@ function course-update-from-git() {
 function course-build-image() {
     local USAGE="Usage: $COMMAND $FUNCNAME [-f] course
 this command will
-. locate a dockerfile, either in the course git repo, or under images/ in nbhosting
+. locate a dockerfile, either in the course git repo,
+  or under images/ in nbhosting
 . (re)build the course docker image based on that
 
 With the -f option, rebuild will be forced; that is to say, docker build
@@ -748,16 +752,20 @@ function docker-create-container-for-student-in-course() {
         #   out of luck trying to use docker-stacks's native start.sh
         #   that led to costly and useless chown's on /opt/conda; so instead we
         #   * run the container as root
-        #   * in turn use our own script start-in-dir-as-uid.sh from ../docker/images
-        #     that does runuser to have jupyter run as the right uid
-        #   of course this means it is a requirement for the course images to contain that script
-        # * turn off this http header that otherwise would prevent embedding in a FUN iframe
-        #   Content-Security-Policy: frame-ancestors 'self'; report-uri /api/security/csp-report
-        #   so set the web server's settings to clear the Content-Security-Policy header
-        #   it is too tedious on the command line with quoting and all, so
-        #   we use jupyter's config file instead in jupyter/jupyter_notebook_config.py
-        # * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem
-        #   the default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
+        #   * in turn use our own script start-in-dir-as-uid.sh
+        #     from ../docker/images that does runuser to have jupyter
+        #     run as the right uid; of course this means it is a requirement
+        #     for the course images to contain that script
+        # * turn off this http header that otherwise would prevent
+        #   embedding in a FUN iframe
+        #   Content-Security-Policy: frame-ancestors 'self';
+        #        ... report-uri /api/security/csp-report
+        #   so set the web server's settings to clear the
+        #   Content-Security-Policy header it is too tedious on the command line
+        #   with quoting and all, so we use jupyter's config file instead in
+        #   jupyter/jupyter_notebook_config.py
+        # * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem the
+        #   default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
         #   does not even make sense - $HOME is unset. Even if it was if would not
         #   reside on the host filesystem.
         #

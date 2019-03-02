@@ -1,0 +1,92 @@
+{% extends "nbhosting.html" %}
+
+{% block head_title %}
+{{course}} - {{how_many}} notebooks
+{% endblock %}
+
+
+{% block title %}
+{{how_many}} notebooks in {{course}}
+{% endblock %}
+
+
+{% block breadcrumb %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href='/auditor/'>home</a></li>
+    <li class="breadcrumb-item">
+        <a href='/auditor/courses'>courses</a></li>
+{% if track == "course" %}
+    <li class="breadcrumb-item active">{{course}}</li>
+{% else %}
+    <li class="breadcrumb-item">
+        <a href="/auditor/course/{{course}}">{{course}}</a></li>
+    <li class="breadcrumb-item active">{{track}}</li>
+{% endif %}
+</ol>
+{% endblock %}
+
+
+{% block content %}
+<style>
+.course-box {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+.notebook {
+    font-size: 60%;
+    border: 0.1px solid #888;
+    border-radius: 5px;
+    padding: 4px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 2px
+}
+/* only in-course means it's not yet been copied */
+.in-course {
+    background-color: #ccc;
+}
+/* both means it exists and it's been copied */
+.in-course.in-student {
+    background-color: #afa;
+}
+/* only in-student means somehow it's obsolete */
+.in-student {
+    background-color: #faa;
+}
+a.notebook {
+    color: black;
+}
+a.notebook:hover {
+    color: purple;
+}
+span.section-details {
+    font-size:  50%;
+}
+</style>
+
+<!------------------------------>
+<div class="container">
+    {% for section in sections %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card-block m-2">
+                <h2 class="card-title">{{section.name}}
+                <span class="section-details">
+                ({{section.length}} notebooks)</span></h2>
+            </div>
+            <div class="course-box m-3">
+                {% for notebook in section.notebooks %}
+<a class='notebook {{notebook.classes}}'
+href='/auditor/notebook/{{course}}:{{track}}/{{notebook.clean_path}}'
+>{{notebook.notebookname}}
+</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

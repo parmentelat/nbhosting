@@ -3,13 +3,12 @@ import json
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth.decorators import login_required
-
+from django.contrib.admin.views.decorators import staff_member_required
 from nbhosting.stats.stats import Stats
 
 # Create your views here.
 
-@login_required
+@staff_member_required
 @csrf_protect
 def show_stats(request, course):
 

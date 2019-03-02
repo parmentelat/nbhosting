@@ -1,0 +1,30 @@
+{% extends "nbhosting.html" %}
+
+{% block title %}
+Known courses
+{% endblock %}
+
+
+{% block breadcrumb %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
+  <li class="breadcrumb-item active">courses</li>
+</ol>
+{% endblock %}
+
+
+{% block content %}
+{% for course_detail in course_details %}
+<div class="card text-center">
+<div class="card-block m-4">
+<h1 class="card-title mb-4">{{course_detail.name}}</h1>
+  <a class='btn btn-lg btn-warning  card-link mr-4'
+     href='/staff/course/{{course_detail.name}}'>notebooks</a>
+  <a class='btn btn-lg btn-info card-link mr-4 ml-4'
+     href='/staff/stats/{{course_detail.name}}'>statistics</a>
+  <span class="btn btn-lg btn-secondary card-link ml-4">
+      {{course_detail.homedirs}} student homes</span>
+</div>
+</div>
+{% endfor %}
+{% endblock %}

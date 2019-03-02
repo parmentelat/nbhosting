@@ -25,7 +25,7 @@ import docker
 from nbhosting.main.settings import sitesettings
 # redirect into monitor.log
 from nbhosting.main.settings import monitor_logger as logger
-from nbhosting.courses.models import CourseDir, CoursesDir
+from nbhosting.courses import CourseDir, CoursesDir
 from nbhosting.stats.stats import Stats
 
 """

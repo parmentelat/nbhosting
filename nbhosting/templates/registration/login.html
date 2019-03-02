@@ -1,39 +1,105 @@
 {% extends "nbhosting.html" %}
 
+{% block head_title %}
+nbhosting login
+{% endblock %}
+
 {% block content %}
 
+<style>
+div.left-side {
+
+}
+.login-error {
+    text-align: center;
+    color: red;
+    background-color: #ddd;
+    padding: 20px;
+}
+</style>
+
+<script>
+$(function() {
+    $(".login-box>label").addClass("sr-only");
+    $(".login-box>input").addClass("form-control");
+    $("input#id_username")
+        .attr("placeholder", "Login");
+    $("input#id_password")
+        .attr("placeholder", "Password")
+})
+</script>
 {% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
+<div class="row">
+    <div class="offset-md-2 col-md-8">
+        <p class="login-error">
+            Your username and password didn't match. Please try again.
+        </p>
+    </div>
+</div>
 {% endif %}
 
 {% if next %}
-    {% if user.is_authenticated %}
-    <p>Your account doesn't have access to this page. To proceed,
-    please login with an account that has access.</p>
-    {% else %}
-    <p>Please login to see this page.</p>
-    {% endif %}
+    <div class="row">
+        <div class="offset-md-2 col-md-8">
+            <p class="login-error">
+                {% if user.is_authenticated %}
+                    Your account doesn't have access to this page.
+                    To proceed, please login with an account that has access.
+                {% else %}
+                    Please login to see this page.
+                {% endif %}
+            </p>
+        </div>
+    </div>
 {% endif %}
 
-<form method="post" action="{% url 'login' %}">
-{% csrf_token %}
+{% comment %}
+this works like a charm
+{% if user.is_authenticated %}
+    {% if user.is_staff %}
+        <p>Welcome, superuser {{ user.get_username }}.</p>
+    {% else %}
+        <p>Welcome, {{ user.get_username }}. Thanks for logging in.</p>
+    {% endif %}
+{% else %}
+    <p>Welcome, new user. Please log in.</p>
+{% endif %}
+{% endcomment %}
 
-<div>
-  <td>{{ form.username.label_tag }}</td>
-  <td>{{ form.username }}</td>
-</div>
-<div>
-  <td>{{ form.password.label_tag }}</td>
-  <td>{{ form.password }}</td>
-</div>
+<div class="row">
 
-<div>
-  <input type="submit" value="login" />
-  <input type="hidden" name="next" value="" />
-</div>
-</form>
+    <div class="col-md-4 left-side">
+        <div class="card">
+            <div class="card-body">
+                There's no online registration yet, please ask
+                your teacher for an account.
+            </div>
+        </div>
+    </div>
 
-{# Assumes you setup the password_reset view in your URLconf #}
-<p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+    <div class="col-md-6">
+        <form class="form-signin" method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="login-box">
+                <h1 class="h3 mb-4 mt-2">Welcome to nbhosting</h1>
+                {{ form.username.label_tag }}
+                {{ form.username }}
+                {{ form.password.label_tag }}
+                {{ form.password }}
+                <button id='submit' class="btn btn-lg btn-primary btn-block mt-5"
+                    type="submit">Sign in</button>
+                {# propagate next if set #}
+                <input type="hidden" name="next" value="" />
+                {% comment %}
+                {# Assumes you setup the password_reset view in your URLconf #}
+                <h5 class="mt-4">
+                   <a id='lost-password'
+                      href="{% url 'password_reset' %}">Lost password?
+               </h5>
+               {% endcomment %}
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}

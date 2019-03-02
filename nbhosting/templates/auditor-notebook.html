@@ -1,0 +1,158 @@
+{% extends "nbhosting.html" %}
+
+{% block head_title %}
+{{head_title}}
+{% endblock %}
+
+{% block title %}
+{{title}}
+{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb">
+<!-- not enough space
+    <li class="breadcrumb-item">
+        <a href='/auditor/'>home</a></li> -->
+    <li class="breadcrumb-item">
+        <a href='/auditor/courses'>courses</a></li>
+{% if track == "course" %}
+    <li class="breadcrumb-item active">
+        <a href="/auditor/course/{{course_track}}">{{course}}</a>
+    </li>
+{% else %}
+    <li class="breadcrumb-item">
+        <a href="/auditor/course/{{course}}">{{course}}</a></li>
+    <li class="breadcrumb-item active">
+        <a href="/auditor/course/{{course_track}}">{{track}}</a>
+    </li>
+{% endif %}
+</ol>
+{% endblock %}
+
+{% block content %}
+<style>
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+div.iframe-side {
+    position: absolute;
+    top: 130px;
+    bottom: 0px;
+    left: 0px;
+    right: 83%;
+    padding: 0px;
+}
+
+div.iframe-container {
+    position: absolute;
+    top: 130px;
+    bottom: 0px;
+    left: 17%;
+    right: 0px;
+}
+
+iframe {
+    height: 100%;
+}
+
+/* left hand side */
+button.back {
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-bottom: 15px;
+}
+
+button.back>a {
+    color: #eed;
+}
+
+div.section {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-flex-start;
+    padding-left: 20px;
+    padding-right: 10px;
+    padding-top: 0px;
+}
+.section-head {
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 75%;
+}
+.notebook {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 0.5px solid #666;
+    margin: 1px;
+}
+.notebook.in-course.current {
+    background-color: #208060;
+    border: 0.5px solid black;
+}
+
+.in-course {
+    background-color: #ccc;
+}
+/* both means it exists and it's been copied */
+.in-course.in-student {
+    background-color: #afa;
+}
+/* only in-student means somehow it's obsolete */
+.in-student {
+    background-color: #faa;
+}
+.notebook_path{
+    font-size: 60%;
+}
+
+iframe {
+  background-image: url("/assets/img/loading.png");
+  background-repeat: no-repeat;
+  background-position: center;
+ }
+
+
+</style>
+
+<script>
+$(function () {
+    let tooltips = $('[data-toggle="tooltip"]');
+    tooltips.tooltip();
+})
+</script>
+
+<!------------------------------>
+<div class="container" height="100%">
+    <div class="iframe-side">
+        {% for section in sections %}
+        <div class="section">
+            <button type="button"
+                class="btn btn-outline-primary section-head">
+                {{section.name}}
+            </button>
+            {% for notebook_obj in section.notebooks %}
+            <a href="/auditor/notebook/{{course_track}}/{{notebook_obj.clean_path}}"
+               data-toggle="tooltip" data-html="true"
+               title="{{notebook_obj.notebookname}}</br><span class='notebook_path'>{{notebook_obj.clean_path}}</span>">
+                <div class="notebook {{notebook_obj.classes}}
+                {% if notebook_obj.clean_path == notebook %}current{% endif %}
+                "></div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="iframe-container">
+        <iframe
+            height="100%"
+            width="100%"
+            src="{{iframe}}">
+        </iframe>
+    </div>
+</div>
+
+{% endblock %}

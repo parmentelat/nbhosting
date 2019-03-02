@@ -12,7 +12,7 @@ nbhroot=/nbhosting
 
 function check-subdirs() {
     for subdir in jupyter courses-git logs raw; do
-        [ -d $root/$subdir ] || mkdir -p $root/$subdir
+        [ -d $nbhroot/$subdir ] || mkdir -p $nbhroot/$subdir
     done
 }
 
@@ -32,7 +32,7 @@ rsopts=-rltpv
 # create the /var/log/nbhosting symlink
 function log-symlink() {
     local varlink=/var/log/nbhosting
-    [ -h $varlink ] || ln -sf $root/logs $varlink
+    [ -h $varlink ] || ln -sf $nbhroot/logs $varlink
 }
 
 function update-python-libraries() {
@@ -45,10 +45,12 @@ function update-bins() {
 
 function update-jupyter() {
     # expand frame_ancestors
-    sed -e "s,@frame_ancestors@,$frame_ancestors," \
+    # need to go through a file script; sigh
+    echo "s|@frame_ancestors@|${frame_ancestors[@]}|" > jupyter/ancestors.sed
+    sed -f jupyter/ancestors.sed \
         jupyter/jupyter_notebook_config.py.in > jupyter/jupyter_notebook_config.py
-    mkdir -p $root/jupyter
-    rsync $rsopts jupyter/ $root/jupyter/
+    mkdir -p $nbhroot/jupyter
+    rsync $rsopts jupyter/ $nbhroot/jupyter/
 }
 
 function update-uwsgi() {
@@ -58,10 +60,13 @@ function update-uwsgi() {
 }
 
 function update-assets() {
-    local assets_root=/var/nginx/nbhosting
-    mkdir -p $assets_root
-    rsync $rsopts nbhosting/assets/ $assets_root/assets/
-    chown -R nginx:nginx $assets_root/snapshots
+    local static_root=/var/nginx/nbhosting
+    mkdir -p $static_root
+    rsync $rsopts nbhosting/assets/ $static_root/assets/
+    mkdir -p $static_root/snapshots
+    chown -R nginx:nginx $static_root/snapshots
+
+    (cd nbhosting; manage.py collectstatic --noinput)
 }
 
 function update-images() {
@@ -97,12 +102,7 @@ function restart-services() {
 }
 
 function enable-services() {
-    # patch for f27
-    if grep -q 'Fedora release 27' /etc/fedora-release; then
-        rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
-    else
-        rsync $rsopts systemd/nbh-uwsgi.service.f27 /etc/systemd/system/
-    fi
+    rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
     systemctl daemon-reload
     systemctl enable docker

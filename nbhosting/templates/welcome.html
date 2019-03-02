@@ -1,19 +1,69 @@
 {% extends "nbhosting.html" %}
 
+{% block head_title %}
+welcome
+{% endblock %}
+
+
 {% block title %}
 Welcome to nbhosting
 {% endblock %}
 
-{% block content %}
+
+{% block breadcrumb %}
 <ol class="breadcrumb">
   <li class="breadcrumb-item active">home</li>
 </ol>
+{% endblock %}
 
-<div class="card">
-<div class="card-block">
-For now nbhosting has
-<a href="/nbh/courses">a unique entry point page to courses</a>.
-</div>
+
+{% block content %}
+<style>
+div.center {
+    display: flex;
+    justify-content: center;
+}
+</style>
+
+<div class="alert alert-success m-5
+    {% if not user.is_authenticated %} alert-secondary
+    {% elif not user.is_staff %} alert-primary
+    {% else %} alert-warning
+    {% endif %}
+    ">
+    <div class="center">
+        <h4 class="alert-heading m-5">What's this ?</h4></div>
+
+        <p>
+            <code>nbhosting</code> was originally designed for
+            hosting notebooks as a silent companion to edx-hosted courses.
+            It now has an additional feature to be used in the classroom.
+        </p>
+
+        {% if not user.is_authenticated %}
+            <p>
+                For using it under this mode, you will need to ask your
+                teacher for an account, and then
+                <div class="center">
+                <a href="/accounts/login/" class="btn btn-outline-secondary mt-3">
+                    log into the system</a>
+                </div>
+            </p>
+        {% else %}
+            <div class="center">
+                <a href="/auditor/courses/" class="btn btn-outline-info m-3">
+                    see available courses</a>
+            </div>
+            {% if user.is_staff %}
+                <div class="center mt-3">
+                    <a href="/staff/courses/" class="btn btn-outline-danger mr-4">
+                        manage courses & stats</a>
+                    <a href="/admin/" class="btn btn-outline-danger ml-4">
+                        django admin app</a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
 </div>
 
 {% endblock %}
