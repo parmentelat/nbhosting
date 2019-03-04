@@ -1,0 +1,10 @@
+# in its simplest form the input for mass-register.py is a list of email addresses
+# in case of conflicts it's possible to give specific values to otherwise defaulted params
+# like username and first_name
+# run mass-register.py --help for details
+jean.dupont@mines-paristech.fr
+jeanne.durand@mines-paristech.fr
+jean-pierr.perrier@mines-paristech.fr
+joseph.fourier@mines-paristech.fr
+# passwords are generated 
+valerie.roy@mines-paristech.fr username=vr password=her-favorite-password

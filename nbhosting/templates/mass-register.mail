@@ -1,0 +1,10 @@
+Subject: account created at {{web_address}}
+
+You have just been registered in a nbhosting deployment at {{web_address}}
+
+You can login using the following credentials (without quotes)
+
+username: "{{username}}"
+password: "{{password}}"
+
+See you there - enjoy
