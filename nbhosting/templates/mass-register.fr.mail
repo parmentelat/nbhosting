@@ -2,7 +2,7 @@ Subject: création de votre compte sur {{web_address}}
 
 Un compte vient d'être créé pour vous sur l'instance nbhosting sur {{web_address}}
 
-Vous pouvez l'utilisez avec les information confidentielles suivantes
+Vous pouvez l'utiliser avec les informations confidentielles suivantes:
 
 username: {{username}}
 password: {{password}}

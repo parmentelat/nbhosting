@@ -96,7 +96,9 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            './templates'
+            './templates',
+            # mostly for mass-register.py
+            '.',
             ],
         'APP_DIRS': True,
         'OPTIONS': {
