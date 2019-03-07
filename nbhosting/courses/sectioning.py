@@ -241,7 +241,7 @@ def sections_by_directory(coursedir, notebooks,
                           *, dir_labels=None):
     """
     from a list of relative paths, returns a list of
-    Section objects corresponing to directories
+    Section objects corresponding to directories
 
     optional dir_labels allows to provide a mapping
     "dirname" -> "displayed name"
