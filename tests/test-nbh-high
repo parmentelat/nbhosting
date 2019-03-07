@@ -90,7 +90,11 @@ for student in $students; do
 	    curl --silent -L $url >& logs/$student.html &
 	    ;;
 	low)
+        # xxx this needs to be updated
+        # nbh-run-student-course-jupyter was dead code and has gone
+        # see commit ba12932 for its last appearance
 	    nbh-enroll-student-in-course $root $student $course
+        # xxx this one seems even older
 	    nbh-run-student-course-jupyter $root $student $course $notebook $course >& logs/$student.log &
 	    ;;
     esac

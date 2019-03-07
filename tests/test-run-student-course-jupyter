@@ -1,5 +1,10 @@
 #!/bin/bash -x
 
+# xxx this needs to be updated
+# nbh-run-student-course-jupyter was dead code and has gone
+# see commit ba12932 for its last appearance
+
+
 function init() {
 
     docker stop flotbioinfo-x-john
@@ -13,18 +18,18 @@ function run() {
     run_line=$(../nbh-run-student-course-jupyter /nbhosting john flotbioinfo w1/en-w1-e1-compute-gc-at.ipynb flotbioinfo)
 
     echo line returned by run-student-course-jupyter : $run_line
-    
+
     action=$(cut -d' ' -f1 <<< $run_line)
     name=$(cut -d' ' -f2 <<< $run_line)
     port=$(cut -d' ' -f3 <<< $run_line)
     token=$(cut -d' ' -f4 <<< $run_line)
-    
+
     echo ++++++++++++++++++++ returned port $port
     echo ++++++++++++++++++++ returned token $token
-    
+
     echo ++++++++++++++++++++ docker ps -a
     docker ps -a
-    
+
     echo ++++++++++++++++++++ http
     curl -k http://localhost:$port/?token=$token
 }
@@ -32,6 +37,3 @@ function run() {
 # force clean/init phase with the --init arg
 [ "$1" == "init" ] && init
 run
-
-
-
