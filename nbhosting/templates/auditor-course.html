@@ -12,10 +12,11 @@
 
 {% block breadcrumb %}
 <ol class="breadcrumb">
-    <li class="breadcrumb-item">
-        <a href='/auditor/'>home</a></li>
-    <li class="breadcrumb-item">
-        <a href='/auditor/courses'>courses</a></li>
+{% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
+{% endif %}
+    <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
+    <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
 {% if track == "course" %}
     <li class="breadcrumb-item active">{{course}}</li>
 {% else %}

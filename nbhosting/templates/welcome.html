@@ -12,6 +12,9 @@ Welcome to nbhosting
 
 {% block breadcrumb %}
 <ol class="breadcrumb">
+{% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item staff"><a href="/staff/courses/">staff</a></li>
+{% endif %}
   <li class="breadcrumb-item active">home</li>
 </ol>
 {% endblock %}
