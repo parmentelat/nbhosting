@@ -474,7 +474,7 @@ With the -f option, rebuild will be forced; that is to say, docker build
     echo "Building image ${COURSE_image} in ${COURSE_build} ${force_tag}"
 
     ########## locate dockerfile
-    c1="$COURSE_git/docker-image/nbhosting.Dockerfile"
+    c1="$COURSE_git/nbhosting/Dockerfile"
     c2="$NBHROOT/images/$course.Dockerfile"
     dockerfile=""
     for c in $c2 $c1; do
