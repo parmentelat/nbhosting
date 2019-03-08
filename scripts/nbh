@@ -42,7 +42,7 @@
 COMMAND=$0
 
 # the default values for a few globals
-NBHROOT=/nbhosting
+NBHROOT=${NBHROOT:-/nbhosting}
 DEBUG=
 
 # miss options to tweak these - which relate to systemd-nspawn
