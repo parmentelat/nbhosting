@@ -229,7 +229,9 @@ class CourseDir:
                     if mapping:
                         self.static_mappings.append(mapping)
         except FileNotFoundError:
-            logger.info(f"mappings file not found {path}")
+            # unfortunately this goes to stdout and
+            # screws up the expose-static-* business
+            #logger.info(f"mappings file not found {path}")
             self.static_mappings = StaticMapping.defaults()
         except Exception as exc:
             logger.exception(f"could not load static-mappings for {self}")
