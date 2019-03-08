@@ -422,13 +422,18 @@ function course-update-from-git() {
         # clear sections caches
         rm -rf $COURSE_notebooks/.tracks/*.json
 
-        # find out all immediate subdirs that contain at least one notebook
-        notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | sort -u)
-        [ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $COURSE_notebooks/
+        ##### notebooks
+        # temporary; making sure we do clean stuff up properly
+        rm -rf $COURSE_notebooks/*
+        $rsync --prune-empty-dirs --include='*.ipynb' --include='*/' --exclude='*' \
+        $COURSE_git/ $COURSE_notebooks/
+        ##### modules
         [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
+        ##### static
         for toplevel in $COURSE_static_toplevels; do
             $rsync $toplevel $COURSE_static; chmod -R g-w,o-w $COURSE_static;
         done
+        ##### jupyter
         [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
         for file in jupyter_notebook_config.py custom.js custom.css; do
             [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
