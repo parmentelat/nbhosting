@@ -7,7 +7,18 @@ import sys
 
 settings_path = "nbhosting.main.settings"
 
+# our home-cooked manage.py exposes more commands
+# that are invoked from various shell scripts
+# mostly to retrieve configuration options
+
+# in particular
 # called by install.sh to produce sitesettings.sh
+
+our_custom_subcommands = {}
+def custom_subcommand(command):
+    shell_name = command.__name__.replace('_', '-')
+    our_custom_subcommands[shell_name] = command
+    return command
 
 # we have to consider a special case for the frame_ancestors variable
 # because the ultimate output is to read
@@ -28,6 +39,7 @@ def expose_var_values(symbol, values):
     print(f"{symbol}=({bash_repr})")
 
 
+@custom_subcommand
 def list_siteconfig():
     from importlib import import_module
     # importing the settings module manually
@@ -47,8 +59,31 @@ def list_siteconfig():
         elif isinstance(value, list) and all(isinstance(v, str) for v in value):
             expose_var_values(symbol, value)
 
+@custom_subcommand
+def expose_static_mappings(coursename):
+    from nbhosting.courses.model_course import CourseDir
+    coursedir = CourseDir(coursename)
+    for static_mapping in coursedir.static_mappings:
+        print(static_mapping.expose(coursedir))
+
+@custom_subcommand
+def expose_static_toplevels(coursename):
+    from nbhosting.courses.model_course import CourseDir
+    from nbhosting.courses.model_mapping import StaticMapping
+    coursedir = CourseDir(coursename)
+    toplevels = StaticMapping.static_toplevels(
+        coursedir.static_mappings
+    )
+    for toplevel in toplevels:
+        print(toplevel)
+
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)
+    subcommand = sys.argv[1]
+    if subcommand in our_custom_subcommands:
+        args = sys.argv[2:]
+        our_custom_subcommands[subcommand](*args)
+        exit(0)
     try:
         from django.core.management import execute_from_command_line
     except ImportError:
@@ -67,13 +102,4 @@ def main():
     execute_from_command_line(sys.argv)
 
 if __name__ == "__main__":
-    try:
-        if sys.argv[1] == "list-siteconfig":
-            list_siteconfig()
-            exit(0)
-        else:
-            main()
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        main()
+    main()

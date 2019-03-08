@@ -49,9 +49,6 @@ DEBUG=
 #IMAGES=/homefs/btrfs/btrfs
 #MACHINES=/homefs/btrfs/machines
 
-# what to use as static areas if not specified
-default_statics="media data"
-
 ### various timeouts
 # how long to wait for the port number to show up after a start
 # this is 10 times .1s so 1s - proceed immediately
@@ -83,6 +80,28 @@ function -die() {
     exit 1
 }
 
+
+########################################
+# layer cake style: call python to get config details
+# this static business is derived from nbhosting/static-mappings
+########################################
+function -call-django-manage() {
+    local function=$1; shift
+    local coursename=$1; shift
+    python3 << EOF
+import nbhosting.manage as manage
+manage.$function("$coursename")
+EOF
+}
+
+function expose-static-mappings() {
+    local coursename=$1; shift
+    -call-django-manage expose_static_mappings $coursename
+}
+function expose-static-toplevels() {
+    local coursename=$1; shift
+    -call-django-manage expose_static_toplevels $coursename
+}
 
 ########################################
 # devel/tests/-oriented
@@ -169,19 +188,19 @@ function -mkdir-for-file-as-student () {
 
 # create symlink right where the notebook is, not only at the top
 function -create-symlink-at-file () {
-    [ "$#" -eq 2 ] || -die $FUNCNAME requires 2 args
+    [ "$#" -eq 3 ] || -die $FUNCNAME requires 3 args
     local filename=$1; shift
+    local localname=$1; shift
     local destination=$1; shift
 
     local dir=$(dirname $filename)
-    local destname=$(basename $destination)
     # the symlink should
     # be in dir/ (like filename)
-    # be named destname
+    # be named localname
     # and point at destination
-    local source=$dir/$destname
+    local source=$dir/$localname
     [ -h $destination ] || -echo-stderr creating static symlink $destination
-    ln -sf $destination $dir/$destname
+    ln -sf $destination $source
 }
 
 
@@ -235,12 +254,11 @@ function -compute-course-globals() {
 
     COURSE_notebooks=$NBHROOT/courses/$course
     COURSE_imagefile=$COURSE_notebooks/.image
-    COURSE_staticsfile=$COURSE_notebooks/.statics
     COURSE_stafffile=$COURSE_notebooks/.staff
     COURSE_giturlfile=$COURSE_notebooks/.giturl
     COURSE_modules=$NBHROOT/modules/$course
-    COURSE_static=$NBHROOT/static/$course
     COURSE_jupyter=$NBHROOT/jupyter/$course
+    COURSE_static=$NBHROOT/static/$course
     COURSE_raw=$NBHROOT/raw/$course
 
     COURSE_logs=$NBHROOT/logs/$course
@@ -248,12 +266,11 @@ function -compute-course-globals() {
 #    # for systemd-nspawn
 #    COURSE_ref=$MACHINES/$course.ref
 
-    COURSE_data=$NBHROOT/static/$course/data
-    COURSE_media=$NBHROOT/static/$course/media
     COURSE_build=$NBHROOT/images/$course
 
     # read settings files
-    COURSE_statics=$(cat $COURSE_staticsfile 2> /dev/null)
+    COURSE_static_mappings=$(expose-static-mappings $course 2> /dev/null)
+    COURSE_static_toplevels=$(expose-static-toplevels $course 2> /dev/null)
     COURSE_image=$(cat $COURSE_imagefile 2> /dev/null)
     COURSE_giturl=$(cat $COURSE_giturlfile 2> /dev/null)
 }
@@ -296,32 +313,19 @@ function course-init() {
 ##########
 # CLI to set course attributes/settings
 ###
-# -s : define a 'static' area - typically
-# we use media and data as static areas
-# for example -s data means a subdir 'data' is created
-# and linked to the toplevel git subdir 'data'
-# this link is likely to be created in each student directory
-# where at least one notebook is present
-###
-# -i : the (docker) image to use for that course
-# this way we can set up several courses fp1 fp2 fp3
-# that all are bound to the same image
 
 @declare-subcommand course-settings
 function course-settings() {
-    local USAGE="Usage: $COMMAND $FUNCNAME  [-i image] [-s static-subdir] [-a staff-hash] course
+    local USAGE="Usage: $COMMAND $FUNCNAME  [-i image] [-a staff-hash] course
       -i : specify the docker image to use for that course
-      -s : (cumulative) add a static dir - defaults to ${default_statics}
       -a : (cumulative) add staff hash - staff members are ignored in stats
 "
 
     local image=""
-    local statics=""
     local staff=""
-    while getopts "i:s:a:" option; do
+    while getopts "i:a:" option; do
         case $option in
             i) image="$OPTARG" ;;
-            s) statics="$statics $OPTARG" ;;
             a) staff="$staff $OPTARG" ;;
             ?) -die "$USAGE" ;;
         esac
@@ -344,24 +348,7 @@ function course-settings() {
         echo $course > $COURSE_imagefile
     fi
 
-    # statics - augment or init
-    if [ -n "$statics" ] ; then
-        # augment
-        local tmp=${COURSE_staticsfile}.tmp
-        mv -f $COURSE_staticsfile $tmp
-        for static in $statics; do
-            echo $static >> $tmp
-        done
-        sort < $tmp | uniq > $COURSE_staticsfile
-        rm -f $tmp
-    elif [ ! -f $COURSE_staticsfile ]; then
-        # init
-        for static in $default_statics; do
-            echo $static >> $COURSE_staticsfile
-        done
-    fi
-
-    # likewise for staff members
+    # augment or init -  for staff members
     if [ -n "$staff" ]; then
         for hash in $staff; do
             echo $hash >> $COURSE_stafffile
@@ -369,7 +356,6 @@ function course-settings() {
     elif [ ! -f $COURSE_stafffile ]; then
         touch $COURSE_stafffile
     fi
-
 
     # convenience: update .giturl
     if [ ! -f $COURSE_giturlfile ]; then
@@ -429,7 +415,7 @@ function course-update-from-git() {
 
         echo "========== housekeeping"
         # create course dirs if needed
-        for dir in $COURSE_notebooks $COURSE_modules $COURSE_data $COURSE_media $COURSE_raw; do
+        for dir in $COURSE_notebooks $COURSE_modules $COURSE_static $COURSE_raw; do
             [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
         done
 
@@ -440,11 +426,8 @@ function course-update-from-git() {
         notebook_subdirs=$(find . -name '*.ipynb' | sed -e "s,^\./,," -e "s,/.*,," | sort -u)
         [ -n "$notebook_subdirs" ] && $rsync $notebook_subdirs $COURSE_notebooks/
         [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
-        [ -d static ] && { $rsync static/ $COURSE_static; chmod -R g-w,o-w $COURSE_static; }
-        # for compat with previous git repo layout
-        for subdir in media data; do
-            [ -d $subdir ] && $rsync $subdir $COURSE_static
-            chmod -R g-w,o-w $COURSE_static
+        for toplevel in $COURSE_static_toplevels; do
+            $rsync $toplevel $COURSE_static; chmod -R g-w,o-w $COURSE_static;
         done
         [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
         for file in jupyter_notebook_config.py custom.js custom.css; do
@@ -673,14 +656,20 @@ function check-student-notebook-for-course() {
         -echo-stderr "Cloning $student_notebook from $COURSE_notebook (forcecopy=$forcecopy)"
         # use rsync for preserving creation time
         sudo -u $student rsync -tp $course_notebook $student_notebook
-        for static in $COURSE_statics; do
-            -create-symlink-at-file $student_notebook /home/jovyan/work/$static
-        done
     else
         [ -n "$DEBUG" ] && -echo-stderr Student copy $student_notebook is fine
     fi
+
+    # do this no matter what for easier deployment
+    for mapping in $COURSE_static_mappings; do
+        # expose() uses :: to separate
+        local from_top=$(sed -e 's,::.*,,' <<< $mapping)
+        local    local=$(sed -e 's,.*::,,' <<< $mapping)
+        -create-symlink-at-file $student_notebook $local /home/jovyan/static/$from_top
+    done
+
     # nothing else is required in the student's work area
-    # the rest (modules for code, and media, data as specified in statics)
+    # the rest (modules/ for code, and static/)
     # will be bind-mounted in the docker container
 }
 
@@ -714,13 +703,13 @@ function docker-create-container-for-student-in-course() {
     [ -d $COURSE_nbroot ] || -die course notebooks dir not found $COURSE_nbroot
     [ -f $COURSE_notebook ] || -die master notebook not found in course $COURSE_notebook
     [ -d $COURSE_modules ] || -echo-stderr WARNING $COURSE_modules dir not found
-    for static in $COURSE_statics; do
-        COURSE_static=$NBHROOT/static/$course/$static
-        [ -d $COURSE_static ] || -echo-stderr WARNING $COURSE_static dir not found
+    for toplevel in $COURSE_toplevels; do
+        local static_toplevel=$NBHROOT/static/$course/$toplevel
+        [ -d $static_toplevel ] || -echo-stderr WARNING $static_toplevel dir not found
     done
 
     docker inspect --type image $COURSE_image >& /dev/null ||\
-        -die image $COURSE_image not known in docker
+        -die image $COURSE_image not known to docker
 
     [ -n "$DEBUG" ] && set -x
 
@@ -777,13 +766,11 @@ function docker-create-container-for-student-in-course() {
                  --user root
                  --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
                  -v $STUDENT_course:/home/jovyan/work
-                 -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py
-                 -v $COURSE_jupyter:/home/jovyan/.jupyter/custom
-                 -v $COURSE_modules:/home/jovyan/modules
+                 -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
+                 -v $COURSE_jupyter:/home/jovyan/.jupyter/custom:ro
+                 -v $COURSE_modules:/home/jovyan/modules:ro
+                 -v $COURSE_static:/home/jovyan/static:ro
 "
-        for static in $COURSE_statics; do
-            command="$command -v $NBHROOT/static/$course/$static:/home/jovyan/work/$static"
-        done
         # see start-in-dir-as-uid.sh for a note on setting the directories
         # below
         # note that setting the ip here is a workaround

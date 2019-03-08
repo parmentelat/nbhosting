@@ -294,6 +294,8 @@ You can trigger steps 2 (update from git) and 3 (rebuild image) from the web UI 
 
 ## settings (optional)
 
+**WARNING** this aspect of the system is undergoing quite substantial changes **WARNING**
+
 ### what ?
 
 There are a few settings available for a course; as of this writing:

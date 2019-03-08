@@ -14,7 +14,7 @@
 {% block breadcrumb %}
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
-    <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
+    <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
     <li class="breadcrumb-item active">{{course}}</li>
     <li class="breadcrumb-item"><a href="/staff/stats/{{course}}">stats</a></li>
 </ol>
@@ -49,16 +49,43 @@ a.notebook {
 a.notebook:hover {
     color: purple;
 }
+span.mapping {
+    font-family: Andale Mono, monospace;
+    font-size: 80%
+}
+span.mapping.from {
+    color: blue;
+}
+span.mapping.to::before {
+    content: " → $coursedir/";
+    color: green;
+}
+span.mapping.to {
+    color: red;
+}
+.smaller {
+    font-size: 75%;
+}
 </style>
 
+<script>
+$(function () {
+    let tooltips = $('[data-toggle="tooltip"]');
+    tooltips.tooltip();
+})
+</script>
+
 <!------------------------------>
-<div class="container">
+<div class="container-fluid">
     <div class="row">
 
         <div class="col-8">
             <div class='section'>
-                <a href='/staff/courses/update-from-git/{{course}}' class='btn btn-info btn-lg btn-block'>
-                    Update {{course}} using git pull from <br/>{{giturl}}
+                <a href='/staff/courses/update-from-git/{{course}}'
+                 class='btn btn-info btn-lg btn-block' data-toggle="tooltip"
+                 data-html="true" title="<span class='smaller'>
+                    update course <code>{{course}}</code> <br/>using git pull from <br/><code>{{giturl}}</code> </span>">
+                    git pull contents for {{course}}
                 </a>
             </div> <!--section-->
 
@@ -81,28 +108,34 @@ href='/auditor/notebook/{{course}}/{{notebook}}/staff'
             <div class='section'>
                 <a href='/staff/courses/build-image/{{course}}'
                 class='btn btn-info btn-lg btn-block'>
-                Rebuild image
+                rebuild image
             </a>
-            <a href='/staff/courses/clear-staff/{{course}}' class='btn btn-info btn-lg btn-block'>
-                Clear staff files
+            <a href='/staff/courses/clear-staff/{{course}}'
+             class='btn btn-info btn-lg btn-block'
+             data-toggle="tooltip"
+             data-html="true"
+             title="<span class='smaller'>remove all working copies for all people declared as staff</span>"
+             >
+                clear staff files
             </a>
         </div>
 
         <div class="card">
+            <div class="card-block m-3">
+                <h1 class="card-title">settings</h1>
+            </div> <!-- card-block-->
             <div class="card-header">
                 <p class="card-text">
-                    Use <code>nbh course-settings {{name}}</code> to tweak.
+                    use <code>nbh course-settings {{name}}</code> to tweak
                 </p>
             </div> <!-- card-header-->
-            <div class="card-block m-3">
-                <h2 class="card-title">Settings</h2>
-            </div> <!-- card-block-->
         </div> <!-- card-->
 
 
         <div class="card">
             <div class="card-block m-3">
-                <h3 class="card-title">Image</h3>
+                <h3 class="card-title" data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>default is to use the course name<br/>in that case please provide <code>nbhosting/Dockerfile</code></span>">image</h3>
                 <p class='card-text'> name: {{image}} </p>
             </div> <!-- card-block-->
         </div> <!-- card-->
@@ -110,12 +143,12 @@ href='/auditor/notebook/{{course}}/{{notebook}}/staff'
 
         <div class="card">
             <div class="card-block m-3">
-                <h3 class="card-title"
-                 title="Subdirectories listed as statics are created as symlinks in all subdirs containing at least one notebook">Statics</h3>
+                <h3 class="card-title" data-toggle="tooltip" data-html="true"
+                 title="static mappings are symlinks created in all working subdirs<br/> defined in <code>nbhosting/static-mappings</code>">static mappings</h3>
                  <ul class="list-group list-group-flush">
-                    {% for static in statics %}
+                    {% for static_mapping in static_mappings %}
                     <li class="list-group-item">
-                        <p class='card-text'> {{static}} </p>
+                        <p class='card-text'> {{static_mapping.html|safe|escape}} </p>
                     </li>
                     {% endfor %}
                 </ul>
@@ -125,7 +158,8 @@ href='/auditor/notebook/{{course}}/{{notebook}}/staff'
 
         <div class="card">
             <div class="card-block m-3">
-                <h3 class="card-title" title="Students listed as staff are ignored when gathering usage statistics">Staff</h3>
+                <h3 class="card-title" data-toggle="tooltip"
+                title="students listed as staff are ignored when gathering usage statistics">staff</h3>
                 <ul class="list-group list-group-flush">
                     {% for hash in staff %}
                     <li class="list-group-item">

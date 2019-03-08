@@ -102,7 +102,7 @@ def staff_show_course(request, course):
         notebooks=notebooks,
         how_many=len(notebooks),
         image=coursedir.image,
-        statics=coursedir.statics,
+        static_mappings=coursedir.static_mappings,
         staff=shorten_staff,
         giturl=coursedir.giturl,
     )

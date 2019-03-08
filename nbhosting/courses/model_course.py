@@ -9,6 +9,7 @@ from importlib.util import (
 from nbhosting.main.settings import sitesettings, logger
 
 from .sectioning import Sections, default_sectioning, DEFAULT_TRACK
+from .model_mapping import StaticMapping
 
 from typing import Dict
 
@@ -39,6 +40,10 @@ class CourseDir:
     def _git_dir(self):
         return NBHROOT / "courses-git" / self.coursename
     git_dir = property(_git_dir)
+
+    def _static_dir(self):
+        return NBHROOT / "static" / self.coursename
+    static_dir = property(_static_dir)
 
 
     # for templating
@@ -214,12 +219,21 @@ class CourseDir:
     def _probe_settings(self):
         notebooks_dir = self.notebooks_dir
 
+        self.static_mappings = []
+        path = (self.git_dir /
+                "nbhosting" / "static-mappings")
         try:
-            with (notebooks_dir / ".statics").open() as storage:
-                self.statics = {
-                    line.strip() for line in storage if line}
+            with path.open() as storage:
+                for line in storage:
+                    mapping = StaticMapping(line)
+                    if mapping:
+                        self.static_mappings.append(mapping)
+        except FileNotFoundError:
+            logger.info(f"mappings file not found {path}")
+            self.static_mappings = StaticMapping.defaults()
         except Exception as exc:
-            self.statics = {f"-- undefined -- {exc}"}
+            logger.exception(f"could not load static-mappings for {self}")
+            self.static_mappings = StaticMapping.defaults()
 
         try:
             with (notebooks_dir / ".image").open() as storage:
