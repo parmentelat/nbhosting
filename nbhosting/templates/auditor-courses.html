@@ -40,30 +40,37 @@ Known courses
 .course>span:nth-child(2) {
     padding-top: 10px;
 }
+
+div.course>span.course>a::before {
+    content: "course : "
+}
+div.course>span.track>a::before {
+    content: "track : "
+}
 </style>
 
 
 <div class="courses-box m-3">
 {% for course_dir in course_dirs %}
     <div class="course p-3">
-        <span>
+        <span class="course">
             <a class='btn btn-primary btn-lg'
             href='/auditor/course/{{course_dir.coursename}}'
             data-toggle="tooltip"
             data-html="true"
-            title="main track for {{course_dir.coursename}}"
+            title="main track for course '{{course_dir.coursename}}'"
             >
             {{course_dir.coursename}}
             </a>
         </span>
         {% for track in course_dir.tracks %}
             {% if track != "course" %}
-                <span>
+                <span class="track">
                     <a
                     class='btn btn-outline-secondary btn-sm'
                     data-toggle="tooltip"
                     data-html="true"
-                    title="alternate track {{track}}"
+                    title="alternate track '{{track}}'"
                     href="/auditor/course/{{course_dir.coursename}}:{{track}}">
                     {{ track }}
                     </a>
