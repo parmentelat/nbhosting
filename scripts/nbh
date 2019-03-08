@@ -316,17 +316,17 @@ function course-init() {
 
 @declare-subcommand course-settings
 function course-settings() {
-    local USAGE="Usage: $COMMAND $FUNCNAME  [-i image] [-a staff-hash] course
+    local USAGE="Usage: $COMMAND $FUNCNAME  [-i image] [-s staff-hash] course
       -i : specify the docker image to use for that course
-      -a : (cumulative) add staff hash - staff members are ignored in stats
+      -s : (cumulative) add staff hash - staff members are ignored in stats
 "
 
     local image=""
     local staff=""
-    while getopts "i:a:" option; do
+    while getopts "i:s:" option; do
         case $option in
             i) image="$OPTARG" ;;
-            a) staff="$staff $OPTARG" ;;
+            s) staff="$staff $OPTARG" ;;
             ?) -die "$USAGE" ;;
         esac
     done
@@ -473,7 +473,7 @@ With the -f option, rebuild will be forced; that is to say, docker build
     cd $COURSE_build
     echo "Building image ${COURSE_image} in ${COURSE_build} ${force_tag}"
 
-    ########## locate dockerfile
+    ########## locate
     c1="$COURSE_git/nbhosting/Dockerfile"
     c2="$NBHROOT/images/$course.Dockerfile"
     dockerfile=""
