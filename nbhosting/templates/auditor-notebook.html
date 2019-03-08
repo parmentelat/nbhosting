@@ -128,21 +128,21 @@ $(function () {
 <div class="container" height="100%">
     <div class="iframe-side">
         {% for section in sections %}
-        <div class="section">
-            <button type="button"
-                class="btn btn-outline-primary section-head">
-                {{section.name}}
-            </button>
-            {% for notebook_obj in section.notebooks %}
-            <a href="/auditor/notebook/{{course_track}}/{{notebook_obj.clean_path}}"
-               data-toggle="tooltip" data-html="true"
-               title="{{notebook_obj.notebookname}}</br><span class='notebook_path'>{{notebook_obj.clean_path}}</span>">
-                <div class="notebook {{notebook_obj.classes}}
-                {% if notebook_obj.clean_path == notebook %}current{% endif %}
-                "></div>
-            </a>
-            {% endfor %}
-        </div>
+            <div class="section">
+                <a href="/auditor/notebook/{{course_track}}/{{section.notebooks.0.clean_path}}"
+                    class="btn btn-outline-primary section-head">
+                    {{section.name}}
+                </button>
+                {% for notebook_obj in section.notebooks %}
+                <a href="/auditor/notebook/{{course_track}}/{{notebook_obj.clean_path}}"
+                   data-toggle="tooltip" data-html="true"
+                   title="{{notebook_obj.notebookname}}</br><span class='notebook_path'>{{notebook_obj.clean_path}}</span>">
+                    <div class="notebook {{notebook_obj.classes}}
+                    {% if notebook_obj.clean_path == notebook %}current{% endif %}
+                    "></div>
+                </a>
+                {% endfor %}
+            </div>
         {% endfor %}
     </div>
     <div class="iframe-container">
