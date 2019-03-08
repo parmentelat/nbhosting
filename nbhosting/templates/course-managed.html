@@ -1,12 +1,24 @@
 {% extends "nbhosting.html" %}
 
+
 {% block head_title %}
 {{course}} - {{managed}}
 {% endblock %}
 
+
 {% block title %}
 Course {{course}} {{managed}}
 {% endblock %}
+
+
+{% block breadcrumb %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href='/staff/'>home</a></li>
+    <li class="breadcrumb-item"><a href='/auditor/courses/'>courses</a></li>
+    <li class="breadcrumb-item"><a href='/auditor/course/{{course}}'>{{course}}</li>
+</ol>
+{% endblock %}
+
 
 {% block content %}
 
