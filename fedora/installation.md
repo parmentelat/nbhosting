@@ -285,7 +285,7 @@ nbh course-build-image flotpython
 
 * this assumes a dockerfile has been created for that course; this can be either
 
-  * in the course git repo, under `docker-image/nbhosting.Dockerfile`
+  * in the course git repo, under `nbhosting/Dockerfile`
   * or in `nbhosting`'s git repo itself, under `images`/*coursename*`.Dockerfile`
 
 ## UI
@@ -300,28 +300,75 @@ You can trigger steps 2 (update from git) and 3 (rebuild image) from the web UI 
 
 There are a few settings available for a course; as of this writing:
 
-* docker image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however you could also create flotpython-session1 that uses image `flotpython`
+* docker image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however images are big and tedious to build, so you could want to share another course's image
+* students that are considered *staff*; corresponding hashes will be ignored when building usage statistics
 
-* list of hashes for students that are considered *staff*; thoses hashes will be ignored when building usage statistics.
+* list of static mappings; see below
+* sectioning and tracks; see below
 
-* list of static dirs; the default here is `media` and `data` which are the conventions hard-wired in the previous notebook hosting system; when trying to deploy 'Data Science Handbook' it appeared that this should be configurable
+By experience, the first two settings seem to make more sense on a nbhosting
+deployment basis; the dev and prod boxes will not necessarily align on these.
+The last ones on the other hand seem to depend on the git repo structure only,
+and so are defined from files in the course repo.
 
 ### how ?
 
-These settings are stored in e.g.
+##### image and staff
 
-* `/nbhosting/courses/flotpython/.statics`
+The 2 first settings are stored in text files, e.g.
+
+* `/nbhosting/courses/flotpython/.staff`
 * `/nbhosting/courses/flotpython/.image`
 
-that can be edited directly, or be changed with `nbh course-settings --help`
+that can be edited directly, or be changed with `nbh course-settings`; run with `--help` for more details
+
+##### static mappings
+static mappings allow you to define symlinks that work from anywhere in the notebooks tree; for example, if you define the following 2 mappings
+
+```
+data -> data
+rise.css -> media/rise.css
+```
+
+then in every student work dir (i.e. every directory that contains at least one student notebook), the platform will create symbolic links named `data` and `rise.css`, that point at **read-only** snapshots of `data` and `media/rise.css`, from the git repo toplevel.
+
+The default static mappings are defined as
+```
+data -> data
+media -> media
+```
+
+but can be redefined in each course git repo in `nbhosting/static-mappings`
+
+##### sectioning and tracks
+
+when run in classroom mode, we have no MOOC structure to guide our students, so
+the following mechanism allows to define some structuration. This is done through the notion of **tracks**.
+
+A track has a name, and defines essentially sections of notebooks. Each course
+is expected to expose at least one default track; unless redefined, this default
+track is built from the filesystem structure: one section per directory, with a
+name that matches the directory name.
+
+A course can expose several tracks; it could be for example an easy track and a deeper track; or a course track and an exercices track; or whatever other standpoints that can be built from the course raw material.
+
+A course can define his own tracks, by writing a Python module in
+`nbhosting/tracks.py`; see [an example for flotpython/slides](https://github.com/flotpython/slides/blob/master/nbhosting/tracks.py).
+The ` tracks()` function is expected to return a dictionary, whose keys are taken as the names for all available tracks.
+
 
 ### when ?
 
-The settings are used at **container-creation** time; meaning that if a student has come at least once, her container exists and the course settings will be mostly ignored.
+Beware that some settings are used at **container-creation** time; meaning that if a student has come at least once, her container exists and the course settings will be mostly ignored.
 
-Same goes of course if a chnge is made to the course image (like, adding a python library).
+Same goes of course if a change is made to the course image (like, adding a python library).
 
-This being said, a stopped container can be safely removed manually, causing it to be re-created the next time a student shows up. But tearing down thousands of containers can be time-consuming and create a big load on the box.
+This being said, a stopped container can be safely removed manually, causing it
+to be re-created the next time a student shows up. But tearing down thousands of
+containers can be time-consuming and create a big load on the box. To alleviate
+for that, the monitor is instructed to remove containers that have not been used
+in a fixed amount of time - typically a couple weeks. It also removes containers
+that rely on an older version if the image.
 
 
 ****
