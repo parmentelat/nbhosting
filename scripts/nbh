@@ -85,22 +85,38 @@ function -die() {
 # layer cake style: call python to get config details
 # this static business is derived from nbhosting/static-mappings
 ########################################
-function -call-django-manage() {
+function -call-django-command() {
     local function=$1; shift
     local coursename=$1; shift
     python3 << EOF
-import nbhosting.manage as manage
-manage.$function("$coursename")
+import os
+import django
+from nbhosting.manage import settings_path
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)
+django.setup()
+from django.core.management import call_command
+call_command('$function', '$coursename')
 EOF
 }
 
 function expose-static-mappings() {
+    local USAGE="Usage: $COMMAND $FUNCNAME course
+displays static mappings attached to a course, one per line
+from_top and local parts are separated by a double colon ::"
+
+    [ "$#" -eq 1 ] || -die $USAGE
     local coursename=$1; shift
-    -call-django-manage course_static_mappings $coursename
+    -call-django-command course_static_mappings $coursename
 }
 function expose-static-toplevels() {
+    local USAGE="Usage: $COMMAND $FUNCNAME course
+displays all toplevel directories related to at least
+one static mapping defined for that course
+display is one per line"
+
+    [ "$#" -eq 1 ] || -die $USAGE
     local coursename=$1; shift
-    -call-django-manage course_static_toplevels $coursename
+    -call-django-command course_static_toplevels $coursename
 }
 
 ########################################
@@ -501,6 +517,18 @@ With the -f option, rebuild will be forced; that is to say, docker build
     cp $NBHROOT/images/start-in-dir-as-uid.sh ${COURSE_build}
     docker build ${force_tag} -f nbhosting.Dockerfile -t $COURSE_image .
 
+}
+
+####################
+@declare-subcommand course-show-tracks
+function course-show-tracks() {
+    local USAGE="Usage: $COMMAND $FUNCNAME course
+recomputes and displays tracks for a given course
+mostly for debugging course-dependant tracks code"
+
+    [ "$#" -eq 1 ] || -die $USAGE
+    local coursename=$1; shift
+    -call-django-command course_show_tracks $coursename
 }
 
 ####################

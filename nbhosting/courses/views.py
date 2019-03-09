@@ -114,6 +114,8 @@ def nbh_manage(request, course, verb, _managed):
         completed = coursedir.build_image()
     elif verb == 'clear-staff':
         completed = coursedir.clear_staff()
+    elif verb == 'show-tracks':
+        completed = coursedir.show_tracks()
     command = " ".join(completed.args)
     message = "when updating {course}".format(course=course)
     # expose most locals, + the attributes of completed
@@ -143,3 +145,8 @@ def build_image(request, course):
 @csrf_protect
 def clear_staff(request, course):
     return nbh_manage(request, course, 'clear-staff', 'staff cleared')
+
+@staff_member_required
+@csrf_protect
+def show_tracks(request, course):
+    return nbh_manage(request, course, 'show-tracks', 'tracks recomputed')

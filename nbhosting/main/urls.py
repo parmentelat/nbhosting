@@ -50,6 +50,8 @@ urlpatterns = [
                         nbhosting.courses.views.build_image),
     re_path(rf'^staff/courses/clear-staff/{COURSE}$',
                         nbhosting.courses.views.clear_staff),
+    re_path(rf'^staff/courses/show-tracks/{COURSE}$',
+                        nbhosting.courses.views.show_tracks),
     re_path(rf'^staff/courses/.*',
                         nbhosting.courses.views.staff_list_courses),
     re_path(rf'^staff/course/{COURSE}$',

@@ -291,3 +291,5 @@ class CourseDir:
         return self._run_nbh("course-build-image", encoding="utf-8")
     def clear_staff(self):
         return self._run_nbh("course-clear-staff", encoding="utf-8")
+    def show_tracks(self):
+        return self._run_nbh("course-show-tracks", encoding="utf-8")
