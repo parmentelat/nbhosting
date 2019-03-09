@@ -138,7 +138,7 @@ function main() {
     update-python-libraries
 
     # probe sitesettings.py
-    nbhosting/manage.py list-siteconfig > nbhosting/main/sitesettings.sh
+    nbhosting/manage.py shell_siteconfig > nbhosting/main/sitesettings.sh
     source nbhosting/main/sitesettings.sh
 
     if [[ -z "$@" ]]; then

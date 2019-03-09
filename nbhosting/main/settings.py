@@ -69,6 +69,7 @@ monitor_logger = logging.getLogger('monitor')
 # Application definition
 
 INSTALLED_APPS = [
+    'nbhosting.main.apps.MainConfig',
     'nbhosting.courses.apps.CoursesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
