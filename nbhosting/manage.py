@@ -59,24 +59,6 @@ def list_siteconfig():
         elif isinstance(value, list) and all(isinstance(v, str) for v in value):
             expose_var_values(symbol, value)
 
-@custom_subcommand
-def expose_static_mappings(coursename):
-    from nbhosting.courses.model_course import CourseDir
-    coursedir = CourseDir(coursename)
-    for static_mapping in coursedir.static_mappings:
-        print(static_mapping.expose(coursedir))
-
-@custom_subcommand
-def expose_static_toplevels(coursename):
-    from nbhosting.courses.model_course import CourseDir
-    from nbhosting.courses.model_mapping import StaticMapping
-    coursedir = CourseDir(coursename)
-    toplevels = StaticMapping.static_toplevels(
-        coursedir.static_mappings
-    )
-    for toplevel in toplevels:
-        print(toplevel)
-
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)
     subcommand = sys.argv[1]

@@ -96,11 +96,11 @@ EOF
 
 function expose-static-mappings() {
     local coursename=$1; shift
-    -call-django-manage expose_static_mappings $coursename
+    -call-django-manage course_static_mappings $coursename
 }
 function expose-static-toplevels() {
     local coursename=$1; shift
-    -call-django-manage expose_static_toplevels $coursename
+    -call-django-manage course_static_toplevels $coursename
 }
 
 ########################################
