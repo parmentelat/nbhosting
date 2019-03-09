@@ -1,12 +1,12 @@
 {% extends "nbhosting.html" %}
 
 {% block head_title %}
-{{course}} - {{how_many}} notebooks
+{{course}} - {{track_obj.number_notebooks}} notebooks
 {% endblock %}
 
 
 {% block title %}
-{{how_many}} notebooks in {{course}}
+{{track_obj}}:{{track}}
 {% endblock %}
 
 
@@ -70,7 +70,7 @@ span.section-details {
 
 <!------------------------------>
 <div class="container">
-    {% for section in sections %}
+    {% for section in track_obj %}
     <div class="row">
         <div class="col-12">
             <div class="card-block m-2">

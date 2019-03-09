@@ -419,7 +419,7 @@ function course-update-from-git() {
             [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
         done
 
-        # clear sections caches
+        # clear track caches
         rm -rf $COURSE_notebooks/.tracks/*.json
 
         ##### notebooks

@@ -340,7 +340,7 @@ media -> media
 
 but can be redefined in each course git repo in `nbhosting/static-mappings`
 
-##### sectioning and tracks
+##### tracks
 
 when run in classroom mode, we have no MOOC structure to guide our students, so
 the following mechanism allows to define some structuration. This is done through the notion of **tracks**.
@@ -350,11 +350,16 @@ is expected to expose at least one default track; unless redefined, this default
 track is built from the filesystem structure: one section per directory, with a
 name that matches the directory name.
 
-A course can expose several tracks; it could be for example an easy track and a deeper track; or a course track and an exercices track; or whatever other standpoints that can be built from the course raw material.
+A course can expose several tracks; it could be for example an easy
+track and a deeper track; or a course track and an exercices track; or
+a french and an english track; or whatever other standpoints that can
+be built from the course raw material.
 
 A course can define his own tracks, by writing a Python module in
-`nbhosting/tracks.py`; see [an example for flotpython/slides](https://github.com/flotpython/slides/blob/master/nbhosting/tracks.py).
-The ` tracks()` function is expected to return a dictionary, whose keys are taken as the names for all available tracks.
+`nbhosting/tracks.py`; see [an example for
+flotpython/slides](https://github.com/flotpython/slides/blob/master/nbhosting/tracks.py).
+The ` tracks()` function is expected to return a dictionary, whose
+keys are taken as the names for all available tracks.
 
 
 ### when ?

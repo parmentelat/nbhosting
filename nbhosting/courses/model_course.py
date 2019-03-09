@@ -8,13 +8,13 @@ from importlib.util import (
 
 from nbhosting.main.settings import sitesettings, logger
 
-from .sectioning import Sections, default_sectioning, DEFAULT_TRACK
+from .model_track import Track, default_track, DEFAULT_TRACK
 from .model_mapping import StaticMapping
 
 from typing import Dict
 
 # this is what we expect to find in a course custom tracks.py
-CourseTracks = Dict[str, Sections]
+CourseTracks = Dict[str, Track]
 
 
 NBHROOT = Path(sitesettings.nbhroot)
@@ -88,20 +88,20 @@ class CourseDir:
 
 
     # check course-provided tracks and provide reasonable defaults
-    # returns a Sections object for a given track
+    # returns a Track object for a given track
     def _check_tracks(self, tracks: CourseTracks):
         type_ok = True
         if not isinstance(tracks, dict):
             type_ok = False
-        elif not all(isinstance(v, Sections) for v in tracks.values()):
+        elif not all(isinstance(v, Track) for v in tracks.values()):
             type_ok = False
         if not type_ok:
             logger.error("{self}: misformed tracks()")
         return type_ok
 
 
-    # locate a Sections corresponding to trackaname in tracks
-    def _locate_sections(self, tracks: CourseTracks, trackname) -> Sections:
+    # locate a Track corresponding to trackaname in tracks
+    def _locate_track(self, tracks: CourseTracks, trackname) -> Track:
         # is the track present ?
         if trackname in tracks:
             return tracks[trackname]
@@ -128,14 +128,14 @@ class CourseDir:
 
         the tracks() function will receive self as its single parameter
         it is expected to return a dictionary
-           track_name -> Sections instance
+           track_name -> Track instance
         see flotpython/courses/nbhosting/tracks.py for a realistic example
 
         the keys in this dictionary are used in the web interface
         to propose the list of available tracks
 
         absence of tracks.py, or inability to run it, triggers
-        the default policy (per directory) implemented in sectioning.py
+        the default policy (per directory) implemented in model_track.py
         """
         course_root = (self.git_dir).absolute()
         course_tracks = course_root / "nbhosting/tracks.py"
@@ -166,8 +166,8 @@ class CourseDir:
             logger.info(
                 f"{self} no nbhosting hook found\n"
                 f"expected in {course_tracks}")
-        logger.warning(f"{self} resorting to default sectioning")
-        return {DEFAULT_TRACK: default_sectioning(self)}
+        logger.warning(f"{self} resorting to default filesystem-based track")
+        return {DEFAULT_TRACK: default_track(self)}
 
 
     def tracks(self):
@@ -177,9 +177,9 @@ class CourseDir:
         return list(self._fetch_course_custom_tracks().keys())
 
 
-    def sections(self, track=DEFAULT_TRACK):
+    def track(self, track=DEFAULT_TRACK):
         """
-        returns a Sections object that describe the contents
+        returns a Track object that describe the contents
         of that track
 
         implement caching in courses/<coursename>/.tracks/<track>.json
@@ -195,25 +195,25 @@ class CourseDir:
         try:
             with storage.open() as reader:
                 dictionary = json.loads(reader.read())
-                sections = Sections.loads(self, dictionary)
-                logger.debug(f"{self}:{track} using cached sections")
-                return sections
+                track = Track.loads(self, dictionary)
+                logger.debug(f"{self}:{track} using cached track")
+                return track
         except FileNotFoundError:
             pass
         except Exception as exc:
             logger.exception('{self}:{track} found but unloadable json')
-        logger.info(f"{self}: re-reading sections for track {track}")
+        logger.info(f"{self}: re-reading track {track}")
         tracks = self._fetch_course_custom_tracks()
         if not self._check_tracks(tracks):
-            return default_sectioning(self)
-        sections = self._locate_sections(tracks, track)
+            return default_track(self)
+        track = self._locate_track(tracks, track)
         try:
             with storage.open('w') as writer:
-                dictionary = sections.dumps()
+                dictionary = track.dumps()
                 writer.write(json.dumps(dictionary))
         except Exception as exc:
             logger.exception(f"{self}:{track} failed to save json")
-        return sections
+        return track
 
 
     def _probe_settings(self):

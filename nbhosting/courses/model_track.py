@@ -7,13 +7,15 @@ import nbformat
 
 from nbhosting.main.settings import logger, DEBUG
 
+from typing import List
+
 
 DEFAULT_TRACK = "course"
 
 
-class Sections(list):
+class Track(list):
 
-    def __init__(self, coursedir, sections):
+    def __init__(self, coursedir, sections: List['Section']):
         self.coursedir = coursedir
         super().__init__(sections)
         #
@@ -21,10 +23,10 @@ class Sections(list):
         self._marked = False
 
     # initial intention here was to be able to show student
-    # notebooks that were not in the course
+    # notebooks that were not (e.g. no longer) in the course
     # it needs more work obviously, so let's turn it off for now
     def add_unknown(self, notebook):
-        logger.error("Sections.add_unknown needs more work - ignoring")
+        logger.error("Track.add_unknown needs more work - ignoring")
         return
 
         coursedir = self.coursedir
@@ -34,11 +36,12 @@ class Sections(list):
         self.unknown_section.notebooks.append(notebook)
 
     def __repr__(self):
-        result = f"{len(self)} sections"
-        # self is a list, this tests if we have at least one son
-        if self:
-            result += f" on {self[0].coursedir}"
+        result = f"{len(self)} sections, {self.number_notebooks()} notebooks"
+        result += f" in course {self.coursedir}"
         return result
+
+    def number_notebooks(self):
+        return sum((len(section) for section in self), 0)
 
     def spot_notebook(self, path):
         # may be a Path instance
@@ -87,7 +90,7 @@ class Sections(list):
     @staticmethod
     def loads(coursedir, d: dict):
         sections = [Section.loads(coursedir, s) for s in d['sections']]
-        return Sections(coursedir, sections)
+        return Track(coursedir, sections)
 
 
 class Section:                                          # pylint: disable=r0903
@@ -221,7 +224,7 @@ class Notebook:                                         # pylint: disable=r0903
 
 
 
-##### helpers to build manual sectioning
+##### helpers to build a track manually
 def notebooks_by_pattern(coursedir, pattern):
     """
     return a sorted list of all notebooks (relative paths)
@@ -237,8 +240,7 @@ def notebooks_by_pattern(coursedir, pattern):
     return notebooks
 
 
-def sections_by_directory(coursedir, notebooks,
-                          *, dir_labels=None):
+def track_by_directory(coursedir, notebooks, *, dir_labels=None):
     """
     from a list of relative paths, returns a list of
     Section objects corresponding to directories
@@ -253,7 +255,7 @@ def sections_by_directory(coursedir, notebooks,
             return dirname
         return dir_labels.get(dirname, dirname)
 
-    logger.debug(f"sections_by_directory in {coursedir}")
+    logger.debug(f"track_by_directory in {coursedir}")
     root = coursedir.notebooks_dir
 
     hash_per_dir = defaultdict(list)
@@ -274,17 +276,17 @@ def sections_by_directory(coursedir, notebooks,
     for section in result:
         section.name = mapped_name(section.name)
         section.notebooks.sort(key=lambda n: n.path)
-    return Sections(coursedir, result)
+    return Track(coursedir, result)
 
-def default_sectioning(coursedir):
+def default_track(coursedir):
     """
     From a toplevel directory, this function scans for all subdirs that
-    have at least one notebook; this is used to create a generic sectioning
+    have at least one notebook; this is used to create a generic track
 
     result will contain one Section instance per such directory,
     ordered alphabetically. similarly the notebooks in a Section instance
     are sorted alphabetically
     """
-    return sections_by_directory(
+    return track_by_directory(
         coursedir,
         notebooks_by_pattern(coursedir, "**/*.ipynb"))

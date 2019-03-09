@@ -31,18 +31,15 @@ def auditor_show_course(request, course, track=None):
     track = track or "course"
     coursedir = CourseDir(course)
     tracks = coursedir.tracks()
-    sections = coursedir.sections(track)
+    track_obj = coursedir.track(track)
     student = request.user.username
-    sections.mark_notebooks(student)
-
-    notebook = sections[0].notebooks[0]
+    track_obj.mark_notebooks(student)
 
     env = dict(
         course=course,
         track=track,
         tracks=tracks,
-        sections=sections,
-        how_many=len(coursedir),
+        track_obj=track_obj,
     )
     return render(request, "auditor-course.html", env)
 
@@ -54,10 +51,10 @@ def auditor_show_notebook(request, course, notebook, track=None):
     course_track = course if not track else f"{course}:{track}"
     track = track if track is not None else "course"
     coursedir = CourseDir(course)
-    sections = coursedir.sections(track)
-    sections.mark_notebooks(request.user.username)
+    track_obj = coursedir.track(track)
+    track_obj.mark_notebooks(request.user.username)
     # compute title as notebookname if found in sections
-    notebook_obj = sections.spot_notebook(notebook)
+    notebook_obj = track_obj.spot_notebook(notebook)
     title = notebook_obj.notebookname if notebook_obj else notebook
     return render(
         request, "auditor-notebook.html",
@@ -66,7 +63,7 @@ def auditor_show_notebook(request, course, notebook, track=None):
             track=track,
             notebook=notebook,
             course_track=course_track,
-            sections=sections,
+            track_obj=track_obj,
             iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
             head_title=f"nbh:{course}",
             title=title,

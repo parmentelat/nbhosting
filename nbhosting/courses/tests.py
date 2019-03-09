@@ -2,24 +2,24 @@
 
 from django.test import TestCase
 
-from nbhosting.courses import CourseDir, default_sectioning
+from nbhosting.courses import CourseDir, default_track
 
-from nbhosting.courses import Sections, Section, Notebook
+from nbhosting.courses import Track, Section, Notebook
 
 class Tests(TestCase):
 
     def test_generic(self):
-        sections = default_sectioning(
+        track = default_track(
             CourseDir("python3-s2"))
-        self.assertEqual(len(sections), 10)
-        self.assertIsInstance(sections, Sections)
+        self.assertEqual(len(track), 10)
+        self.assertIsInstance(track, Track)
 
 
     def _test_custom(self, coursename, expected, track="course"):
         course = CourseDir(coursename)
-        sections = course.sections(track)
-        self.assertEqual(len(sections), expected)
-        self.assertIsInstance(sections, Sections)
+        track = course.track(track)
+        self.assertEqual(len(track), expected)
+        self.assertIsInstance(track, Track)
 
     def test_py_regular(self):
         self._test_custom("python3-s2", 9)
