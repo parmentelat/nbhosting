@@ -109,7 +109,7 @@ def staff_show_course(request, course):
     return render(request, "staff-course.html", env)
 
 
-def nbh_manage(request, course, verb, _managed):
+def nbh_manage(request, course, verb, managed):
     coursedir = CourseDir(course)
     if verb == 'update-from-git':
         completed = coursedir.update_from_git()
@@ -120,13 +120,16 @@ def nbh_manage(request, course, verb, _managed):
     elif verb == 'show-tracks':
         completed = coursedir.show_tracks()
     command = " ".join(completed.args)
-    message = "when updating {course}".format(course=course)
     # expose most locals, + the attributes of completed
     # like stdout and stderr
-    env = vars(completed)
-    env.update(locals())
-    # this is an instance and so would not serialize
-    del env['coursedir']
+    env = dict(
+        course=course,
+        managed=managed,
+        command=command,
+        returncode=completed.returncode,
+        stdout=completed.stdout,
+        stderr=completed.stderr
+    )
     # the html title
     template = "course-managed.html"
     return render(request, template, env)
