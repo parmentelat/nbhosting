@@ -49,16 +49,16 @@ div.course>span.track>a::before {
 }
 </style>
 
-
 <div class="courses-box m-3">
 {% for course_dir in course_dirs %}
+  {% with course_dir.tracks.0.name as main_trackname %}
     <div class="course p-3">
         <span class="course">
             <a class='btn btn-primary btn-lg'
-            href='/auditor/course/{{course_dir.coursename}}'
+            href='/auditor/course/{{course_dir.coursename}}:{{main_trackname}}'
             data-toggle="tooltip"
             data-html="true"
-            title="main track for course '{{course_dir.coursename}}'"
+            title="track '{{main_trackname}}' for course '{{course_dir.coursename}}'"
             >
             {{course_dir.coursename}}
             </a>
@@ -76,6 +76,7 @@ div.course>span.track>a::before {
             </span>
         {% endfor %}
     </div>
+  {% endwith %}
 {% endfor %}
 </div>
 {% endblock %}
