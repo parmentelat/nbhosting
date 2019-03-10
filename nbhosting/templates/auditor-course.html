@@ -1,12 +1,12 @@
 {% extends "nbhosting.html" %}
 
 {% block head_title %}
-{{course}} - {{track_obj.number_notebooks}} notebooks
+{{course}} - {{track.number_notebooks}} notebooks
 {% endblock %}
 
 
 {% block title %}
-{{track_obj}}:{{track}}
+{{track}}:{{track.name}}
 {% endblock %}
 
 
@@ -17,13 +17,9 @@
 {% endif %}
     <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
     <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
-{% if track == "course" %}
-    <li class="breadcrumb-item active">{{course}}</li>
-{% else %}
     <li class="breadcrumb-item">
         <a href="/auditor/course/{{course}}">{{course}}</a></li>
-    <li class="breadcrumb-item active">{{track}}</li>
-{% endif %}
+    <li class="breadcrumb-item active">{{track.name}}</li>
 </ol>
 {% endblock %}
 
@@ -70,7 +66,7 @@ span.section-details {
 
 <!------------------------------>
 <div class="container">
-    {% for section in track_obj %}
+    {% for section in track.sections %}
     <div class="row">
         <div class="col-12">
             <div class="card-block m-2">
@@ -81,7 +77,7 @@ span.section-details {
             <div class="course-box m-3">
                 {% for notebook in section.notebooks %}
 <a class='notebook {{notebook.classes}}'
-href='/auditor/notebook/{{course}}:{{track}}/{{notebook.clean_path}}'
+href='/auditor/notebook/{{course}}:{{track.name}}/{{notebook.clean_path}}'
 >{{notebook.notebookname}}
 </a>
                 {% endfor %}

@@ -2,51 +2,50 @@
 
 from pathlib import Path
 from collections import defaultdict
-
-import nbformat
-
-from nbhosting.main.settings import logger, DEBUG
-
 from typing import List
 
+import jsonpickle
+import nbformat
 
-DEFAULT_TRACK = "course"
+from nbhosting.main.settings import logger
 
 
-class Track(list):
+class Track:
 
-    def __init__(self, coursedir, sections: List['Section']):
+    def __init__(self, coursedir, sections: List['Section'],
+                 *, name="default", description="no description"):
         self.coursedir = coursedir
-        super().__init__(sections)
+        self.sections = sections
+        self.name = name
+        self.description = description
         #
-        self.unknown_section = None
         self._marked = False
 
-    # initial intention here was to be able to show student
-    # notebooks that were not (e.g. no longer) in the course
-    # it needs more work obviously, so let's turn it off for now
-    def add_unknown(self, notebook):
-        logger.error("Track.add_unknown needs more work - ignoring")
-        return
 
-        coursedir = self.coursedir
-        if not self.unknown_section:
-            self.unknown_section = Section(coursedir, "Unknown", [])
-            self.append(self.unknown_section)
-        self.unknown_section.notebooks.append(notebook)
+    # customize jsonpickle output
+    def __getstate__(self):
+        return dict(sections=self.sections,
+                    name=self.name,
+                    description=self.description)
+
+    # coursedir restored by read_tracks
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._marked = False
+
 
     def __repr__(self):
-        result = f"{len(self)} sections, {self.number_notebooks()} notebooks"
+        result = f"{len(self.sections)} sections, {self.number_notebooks()} notebooks"
         result += f" in course {self.coursedir}"
         return result
 
     def number_notebooks(self):
-        return sum((len(section) for section in self), 0)
+        return sum((len(section) for section in self.sections), 0)
 
     def spot_notebook(self, path):
         # may be a Path instance
         path = str(path)
-        for section in self:
+        for section in self.sections:
             spotted = section.spot_notebook(path)
             if spotted:
                 return spotted
@@ -56,7 +55,7 @@ class Track(list):
         if self._marked:
             return
         coursedir = self.coursedir
-        for section in self:
+        for section in self.sections:
             for notebook in section.notebooks:
                 notebook.in_course = True
 
@@ -78,21 +77,6 @@ class Track(list):
         self._marked = True
 
 
-    def dumps(self):
-        """
-        return a pure python object that can be json-stored,
-        and that contain enough to rebuild the structure entirely
-        """
-        return dict(
-            sections=[section.dumps() for section in self],
-            )
-
-    @staticmethod
-    def loads(coursedir, d: dict):
-        sections = [Section.loads(coursedir, s) for s in d['sections']]
-        return Track(coursedir, sections)
-
-
 class Section:                                          # pylint: disable=r0903
 
     def __init__(self, name, coursedir, notebooks):
@@ -110,6 +94,15 @@ class Section:                                          # pylint: disable=r0903
     def __len__(self):
         return len(self.notebooks)
 
+    # customize jsonpickle output
+    def __getstate__(self):
+        return dict(notebooks=self.notebooks,
+                    name=self.name)
+
+    # coursedir restored by read_tracks
+    # so no need for setstate
+
+
     # for templating
     def length(self):
         return len(self)
@@ -119,23 +112,6 @@ class Section:                                          # pylint: disable=r0903
             if notebook.clean_path() == path:
                 return notebook
         return None
-
-    def dumps(self):
-        return dict(
-            name=str(self.name),
-            notebooks=[notebook.dumps() for notebook in self.notebooks]
-            )
-
-    @staticmethod
-    def loads(coursedir, d: dict):
-        restored = Section(
-            name=d['name'],
-            coursedir=coursedir,
-            notebooks=[])
-        restored.notebooks = [
-            Notebook.loads(coursedir, n) for n in d['notebooks']
-        ]
-        return restored
 
 
 class Notebook:                                         # pylint: disable=r0903
@@ -160,6 +136,20 @@ class Notebook:                                         # pylint: disable=r0903
         if self._version:
             result += f" [self.version]"
         return result
+
+
+    # customize jsonpickle output
+    def __getstate__(self):
+        return dict(path=self.path,
+                    _notebookname=self._notebookname,
+                    _version=self._version)
+
+    # coursedir restored by read_tracks
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        # if it's saved it means it's in the course
+        self.in_course = True
+        self.in_student = None
 
 
     def _get_notebookname(self):
@@ -195,32 +185,14 @@ class Notebook:                                         # pylint: disable=r0903
     def _read_embedded(self):
         try:
             with self.absolute().open() as feed:
-                nb = nbformat.read(feed, nbformat.NO_CONVERT)
-                self._notebookname = nb['metadata']['notebookname']
-                self._version = nb['metadata']['version']
+                nbo = nbformat.read(feed, nbformat.NO_CONVERT)
+                self._notebookname = nbo['metadata']['notebookname']
+                self._version = nbo['metadata']['version']
         except:
+            logger.exception(
+                f"failed to extract notebook metadata {self.clean_path()} ")
             self._notebookname = self.clean_path()
             self._version = "n/a"
-
-
-    def dumps(self):
-        return dict(
-            path=str(self.path),
-            in_course=self.in_course,
-            notebookname=self.notebookname,
-            version=self.version
-        )
-
-    @staticmethod
-    def loads(coursedir, d: dict):
-        restored = Notebook(
-            coursedir=coursedir,
-            path=d['path'])
-        if d['notebookname']:
-            restored._notebookname = d['notebookname']
-        if d['version']:
-            restored._version = d['version']
-        return restored
 
 
 
@@ -240,20 +212,22 @@ def notebooks_by_pattern(coursedir, pattern):
     return notebooks
 
 
-def track_by_directory(coursedir, notebooks, *, dir_labels=None):
+def track_by_directory(coursedir, *,
+                       name="", description,
+                       notebooks, directory_labels=None):
     """
     from a list of relative paths, returns a list of
     Section objects corresponding to directories
 
-    optional dir_labels allows to provide a mapping
+    optional directory_labels allows to provide a mapping
     "dirname" -> "displayed name"
     """
 
     def mapped_name(dirname):
         dirname = str(dirname)
-        if not dir_labels:
+        if not directory_labels:
             return dirname
-        return dir_labels.get(dirname, dirname)
+        return directory_labels.get(dirname, dirname)
 
     logger.debug(f"track_by_directory in {coursedir}")
     root = coursedir.notebooks_dir
@@ -276,9 +250,9 @@ def track_by_directory(coursedir, notebooks, *, dir_labels=None):
     for section in result:
         section.name = mapped_name(section.name)
         section.notebooks.sort(key=lambda n: n.path)
-    return Track(coursedir, result)
+    return Track(coursedir, result, name=name, description=description)
 
-def default_track(coursedir):
+def generic_track(coursedir):
     """
     From a toplevel directory, this function scans for all subdirs that
     have at least one notebook; this is used to create a generic track
@@ -289,4 +263,25 @@ def default_track(coursedir):
     """
     return track_by_directory(
         coursedir,
-        notebooks_by_pattern(coursedir, "**/*.ipynb"))
+        name="generic",
+        description="automatically generated track from full repo contents",
+        notebooks=notebooks_by_pattern(coursedir, "**/*.ipynb"))
+
+
+# storage for caching
+def write_tracks(tracks:List[Track], output_path: Path):
+    with output_path.open('w') as output_file:
+        output_file.write(jsonpickle.encode(tracks))
+
+
+def read_tracks(coursedir, input_path: Path) -> List[Track]:
+    with input_path.open() as input_file:
+        tracks = jsonpickle.decode(input_file.read())
+    for track in tracks:
+        track.coursedir = coursedir
+        for section in track.sections:
+            section.coursedir = coursedir
+            for notebook in section.notebooks:
+                notebook.coursedir = coursedir
+                notebook.in_course = True
+    return tracks

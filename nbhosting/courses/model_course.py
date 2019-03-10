@@ -2,19 +2,19 @@
 
 from pathlib import Path
 import subprocess
-import json
+
 from importlib.util import (
     spec_from_file_location, module_from_spec)
 
 from nbhosting.main.settings import sitesettings, logger
 
-from .model_track import Track, default_track, DEFAULT_TRACK
+from .model_track import Track, generic_track
+from .model_track import write_tracks, read_tracks
 from .model_mapping import StaticMapping
 
-from typing import Dict
-
 # this is what we expect to find in a course custom tracks.py
-CourseTracks = Dict[str, Track]
+from typing import List
+CourseTracks = List[Track]
 
 
 NBHROOT = Path(sitesettings.nbhroot)
@@ -26,6 +26,7 @@ class CourseDir:
         self.coursename = coursename
         self._probe_settings()
         self._notebooks = None
+        self._tracks = None
 
     def __repr__(self):
         return self.coursename
@@ -48,9 +49,15 @@ class CourseDir:
 
     # for templating
     def length(self):
+        """
+        number of sections
+        """
         return len(self)
 
     def notebooks(self):
+        """
+        sorted list of notebook paths
+        """
         if self._notebooks is None:
             self._notebooks = self._probe_sorted_notebooks()
         return self._notebooks
@@ -91,9 +98,9 @@ class CourseDir:
     # returns a Track object for a given track
     def _check_tracks(self, tracks: CourseTracks):
         type_ok = True
-        if not isinstance(tracks, dict):
+        if not isinstance(tracks, list):
             type_ok = False
-        elif not all(isinstance(v, Track) for v in tracks.values()):
+        elif not all(isinstance(v, Track) for v in tracks):
             type_ok = False
         if not type_ok:
             logger.error("{self}: misformed tracks()")
@@ -102,21 +109,18 @@ class CourseDir:
 
     # locate a Track corresponding to trackaname in tracks
     def _locate_track(self, tracks: CourseTracks, trackname) -> Track:
-        # is the track present ?
-        if trackname in tracks:
-            return tracks[trackname]
+        for item in tracks:
+            if item.name == trackname:
+                return item
         # find some default
-        logger.warning(
-            f"tracks for {self.coursename} has no {trackname} track")
-        if DEFAULT_TRACK in tracks:
-            return tracks[DEFAULT_TRACK]
-        # still not found, return the first one
-        logger.warning(
-            f"no {DEFAULT_TRACK} track, returning the first one")
-        for value in tracks.values:
-            return value
+        if tracks:
+            logger.warning(f"{self} has no {trackname} track - returning first track")
+            return tracks[0]
+        logger.warning("{self} has no track, returning generic")
+        return generic_track(self)
 
-    # actually call tracks() if customized for course
+
+    # actually call course-specific tracks()
     # return default strategy if missing or unable to run
     def _fetch_course_custom_tracks(self):
         """
@@ -167,53 +171,47 @@ class CourseDir:
                 f"{self} no nbhosting hook found\n"
                 f"expected in {course_tracks}")
         logger.warning(f"{self} resorting to default filesystem-based track")
-        return {DEFAULT_TRACK: default_track(self)}
+        return [generic_track(self)]
 
 
     def tracks(self):
         """
+        returns a list of known tracks
+
+        does this optimally, first use memory cache,
+        disk cache in courses/<coursename>/.tracks.json
+        and only then triggers course-specific tracks.py if provided
+        """
+        # in memory ?
+        if self._tracks is not None:
+            return self._tracks
+        # in cache ?
+        tracks_path = self.notebooks_dir / ".tracks.json"
+        if tracks_path.exists():
+            logger.debug(f"{tracks_path} found")
+            tracks = read_tracks(self, tracks_path)
+            self._tracks = tracks
+            return tracks
+        # compute from course
+        logger.debug(f"{tracks_path} not found - recomputing")
+        tracks = self._fetch_course_custom_tracks()
+        self._tracks = tracks
+        write_tracks(tracks, tracks_path)
+        return tracks
+
+
+    def tracknames(self):
+        """
         returns the list of supported track names
         """
-        return list(self._fetch_course_custom_tracks().keys())
+        return [track.name for track in self.tracks()]
 
 
-    def track(self, track=DEFAULT_TRACK):
+    def track(self, trackname):
         """
-        returns a Track object that describe the contents
-        of that track
-
-        implement caching in courses/<coursename>/.tracks/<track>.json
-        this is important because opening all notebooks to
-        retrieve their notebookname is quite slow
-
-        cache needs to be cleaned up each time a course is updated from git
-        and the nbh shell script does so
+        returns a Track object that maps that trackname
         """
-        track = track if track is not None else DEFAULT_TRACK
-        storage = self.notebooks_dir / ".tracks" / (track + ".json")
-        storage.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            with storage.open() as reader:
-                dictionary = json.loads(reader.read())
-                track = Track.loads(self, dictionary)
-                logger.debug(f"{self}:{track} using cached track")
-                return track
-        except FileNotFoundError:
-            pass
-        except Exception as exc:
-            logger.exception('{self}:{track} found but unloadable json')
-        logger.info(f"{self}: re-reading track {track}")
-        tracks = self._fetch_course_custom_tracks()
-        if not self._check_tracks(tracks):
-            return default_track(self)
-        track = self._locate_track(tracks, track)
-        try:
-            with storage.open('w') as writer:
-                dictionary = track.dumps()
-                writer.write(json.dumps(dictionary))
-        except Exception as exc:
-            logger.exception(f"{self}:{track} failed to save json")
-        return track
+        return self._locate_track(self.tracks(), trackname)
 
 
     def _probe_settings(self):

@@ -28,18 +28,20 @@ def auditor_list_courses(request):
 @login_required
 @csrf_protect
 def auditor_show_course(request, course, track=None):
-    track = track or "course"
+    # don't want to mess with the urls
+    trackname = track
     coursedir = CourseDir(course)
     tracks = coursedir.tracks()
-    track_obj = coursedir.track(track)
+    if trackname is None:
+        trackname = coursedir.tracknames()[0]
+    track = coursedir.track(trackname)
     student = request.user.username
-    track_obj.mark_notebooks(student)
+    track.mark_notebooks(student)
 
     env = dict(
         course=course,
-        track=track,
         tracks=tracks,
-        track_obj=track_obj,
+        track=track,
     )
     return render(request, "auditor-course.html", env)
 
@@ -47,23 +49,24 @@ def auditor_show_course(request, course, track=None):
 @login_required
 @csrf_protect
 def auditor_show_notebook(request, course, notebook, track=None):
-    student = request.user.username
-    course_track = course if not track else f"{course}:{track}"
-    track = track if track is not None else "course"
+    # don't want to mess with the urls
+    trackname = track
     coursedir = CourseDir(course)
-    track_obj = coursedir.track(track)
-    track_obj.mark_notebooks(request.user.username)
+    if trackname is None:
+        trackname = coursedir.tracknames()[0]
+    track = coursedir.track(trackname)
+    student = request.user.username
+    track.mark_notebooks(student)
     # compute title as notebookname if found in sections
-    notebook_obj = track_obj.spot_notebook(notebook)
+    notebook_obj = track.spot_notebook(notebook)
     title = notebook_obj.notebookname if notebook_obj else notebook
     return render(
         request, "auditor-notebook.html",
         dict(
             course=course,
+            coursedir=coursedir,
             track=track,
             notebook=notebook,
-            course_track=course_track,
-            track_obj=track_obj,
             iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
             head_title=f"nbh:{course}",
             title=title,

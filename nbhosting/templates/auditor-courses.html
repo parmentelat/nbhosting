@@ -64,18 +64,16 @@ div.course>span.track>a::before {
             </a>
         </span>
         {% for track in course_dir.tracks %}
-            {% if track != "course" %}
-                <span class="track">
-                    <a
-                    class='btn btn-outline-secondary btn-sm'
-                    data-toggle="tooltip"
-                    data-html="true"
-                    title="alternate track '{{track}}'"
-                    href="/auditor/course/{{course_dir.coursename}}:{{track}}">
-                    {{ track }}
-                    </a>
-                </span>
-            {% endif %}
+            <span class="track">
+                <a
+                class='btn btn-outline-secondary btn-sm'
+                data-toggle="tooltip"
+                data-html="true"
+                title="{{track.description}}"
+                href="/auditor/course/{{course_dir.coursename}}:{{track.name}}">
+                {{ track.name }}
+                </a>
+            </span>
         {% endfor %}
     </div>
 {% endfor %}

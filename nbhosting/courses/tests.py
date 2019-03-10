@@ -2,14 +2,14 @@
 
 from django.test import TestCase
 
-from nbhosting.courses import CourseDir, default_track
+from nbhosting.courses import CourseDir, generic_track
 
 from nbhosting.courses import Track, Section, Notebook
 
 class Tests(TestCase):
 
     def test_generic(self):
-        track = default_track(
+        track = generic_track(
             CourseDir("python3-s2"))
         self.assertEqual(len(track), 10)
         self.assertIsInstance(track, Track)

@@ -15,14 +15,10 @@
 {% endif %}
     <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
     <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
-{% if track == "course" %}
-    <li class="breadcrumb-item active"><a href="/auditor/course/{{course_track}}">{{course}}</a>
-    </li>
-{% else %}
     <li class="breadcrumb-item"><a href="/auditor/course/{{course}}">{{course}}</a></li>
-    <li class="breadcrumb-item active"><a href="/auditor/course/{{course_track}}">{{track}}</a>
+    <li class="breadcrumb-item active">
+        <a href="/auditor/course/{{course}}:{{track.name}}">{{track.name}}</a>
     </li>
-{% endif %}
 </ol>
 {% endblock %}
 
@@ -118,9 +114,9 @@ iframe {
 <!------------------------------>
 <div class="container" height="100%">
     <div class="iframe-side">
-        {% for section in track_obj %}
+        {% for section in track.sections %}
             <div class="section">
-                <a href="/auditor/notebook/{{course_track}}/{{section.notebooks.0.clean_path}}"
+                <a href="/auditor/notebook/{{course}}:{{track.name}}/{{section.notebooks.0.clean_path}}"
                     class="btn btn-outline-primary section-head">
                     {{section.name}}
                 </button>
