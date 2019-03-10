@@ -151,7 +151,7 @@ d3.json(url_metrics).then(function (incoming) {
 //////////////////////////////////////////////////
 let url_counts="/staff/stats/monitor_counts/{{course}}";
 d3.json(url_counts).then(function (incoming) {
-    console.log(`from monitor counts ${url_counts}`);
+    console.log(`from monitor_counts ${url_counts}`);
     console.log(incoming);
 
     // incoming parts
@@ -246,8 +246,8 @@ d3.json(url_counts).then(function (incoming) {
 });
 //////////////////////////////////////////////////
 let url_usage="/staff/stats/material_usage/{{course}}";
-d3.json(url_usage, function(incoming) {
-    console.log(`from material usage ${url_usage}`);
+d3.json(url_usage).then(function(incoming) {
+    console.log(`from material_usage ${url_usage}`);
     console.log(incoming);
 
     /* WARNING: using the same layout object as above here
