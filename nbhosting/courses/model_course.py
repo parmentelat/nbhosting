@@ -170,7 +170,7 @@ class CourseDir:
             logger.info(
                 f"{self} no nbhosting hook found\n"
                 f"expected in {course_tracks}")
-        logger.warning(f"{self} resorting to default filesystem-based track")
+        logger.warning(f"{self} resorting to generic filesystem-based track")
         return [generic_track(self)]
 
 
