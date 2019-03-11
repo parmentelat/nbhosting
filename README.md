@@ -69,10 +69,10 @@ Workflow is entirely based on git : a course is defined from a git repo, typical
 ## Docker image
 
 Each course is deployed based on a specific docker image; for customization,
-create a file named `docker-image/nbhosting.Dockerfile` in your course repo.
+create a file named `nbhosting/Dockerfile` in your course repo.
 Note that some magic recipes need to be applied in your image for proper
 deployment, you should copy the beginning of [the code for our Python
-course](https://github.com/parmentelat/flotpython/blob/master/docker-image/nbhosting.Dockerfile),
+course](https://github.com/flotpython/course/blob/master/nbhosting/Dockerfile),
 although it is often desirable to select a fixed version for the bottom image.
 
 That image can then be rebuilt from the website. New image will be deployed
