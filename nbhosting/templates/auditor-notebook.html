@@ -121,7 +121,7 @@ iframe {
                     {{section.name}}
                 </button>
                 {% for notebook_obj in section.notebooks %}
-                <a href="/auditor/notebook/{{course_track}}/{{notebook_obj.clean_path}}"
+                <a href="/auditor/notebook/{{course}}:{{track.name}}/{{notebook_obj.clean_path}}"
                    data-toggle="tooltip" data-html="true"
                    title="{{notebook_obj.notebookname}}</br><span class='notebook_path'>{{notebook_obj.clean_path}}</span>">
                     <div class="notebook {{notebook_obj.classes}}
