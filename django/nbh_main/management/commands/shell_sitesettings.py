@@ -4,6 +4,15 @@ from django.core.management.base import BaseCommand
 
 # pylint: disable=c0111, r1705
 
+"""
+this management command is used by the installation script
+
+it extracts information store in sitesettings.py and exposes it in
+a shell source-able format, so that these values are available to a shell script
+"""
+
+
+
 # we have to consider a special case for the frame_ancestors variable
 # because the ultimate output is to read
 # 'Content-Security-Policy': "frame-ancestors 'self' https://*.fun-mooc.fr ;",

@@ -175,7 +175,7 @@ The application can in theory run under simply `http`, but for any real deployme
 The default config has it that the SSL certificate used by the main entry point (in our case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`, and more specifically
 
 ```
-$ egrep 'server|ssl_cert' nbhosting/main/sitesettings.py
+$ egrep 'server|ssl_cert' django/nbh_main/sitesettings.py
 server_mode = "https"
 server_name = "nbhosting.inria.fr"
 ssl_certificate = "/root/ssl-certificate/bundle.crt"
@@ -197,7 +197,7 @@ We do not expose any packaging; instead overall the workflow is to
 ```
 cd /root
 git clone https://github.com/parmentelat/nbhosting.git
-cd /root/nbhosting/nbhosting/main
+cd /root/nbhosting/django/nbh_main
 cp sitesettings.py.example sitesettings.py
 ```
 

@@ -7,7 +7,7 @@ As of Nov. 24 2017, and commit 5ad16ea, configuring nbhosting has become substan
 * after obtaining the code through `git clone` do this
 
 ```
-cd nbhosting/main
+cd django/nbh_main
 cp sitesettings.py.example sitesettings.py
 ```
 

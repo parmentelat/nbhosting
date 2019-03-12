@@ -6,9 +6,9 @@
 # in general we have
 # thurst on nbhosting        - it's the big one - and
 # thermals on nbhosting-dev  - a more modest setup, although quite decent
-# 
-# the purpose of this script is to automate swapping these roles 
-# 
+#
+# the purpose of this script is to automate swapping these roles
+#
 # we need this initially so that we can upgrade thurst from f25 to f27
 #
 ####################
@@ -66,8 +66,8 @@ function swap-ssl() {
 
     [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
 
-    cd /root/nbhosting/nbhosting/main
-    
+    cd /root/nbhosting/django/nbh_main
+
     if [ "$mode" == "become-production" ]; then
         sed -i.swapped \
             -e 's,^server_name *=.*,server_name = "nbhosting.inria.fr",' \
@@ -105,23 +105,23 @@ function pull-students() {
 }
 
 
-### 
+###
 ### function orchestrate() {
 ###     local usage="Usage: $FUNCNAME current-official new-official
 ###  Example:
 ###   $FULLPATH thurst.inria.fr thermals.inria.fr
 ### "
-### 
+###
 ###     current=$1; shift
 ###     new=$1; shift
-### 
+###
 ###     # copy this script over in /tmp on both boxes
 ###     for h in $current $new; do
 ###         -echo-stderr "Pushing $FULLPATH onto $h in /tmp"
 ###         rsync -ai $FULLPATH root@$h:/tmp
 ###     done
 ###     ssh root@${current} /tmp/$COMMAND xxx etc...
-### 
+###
 
 # very rough for now; run all stages individually and manually
 

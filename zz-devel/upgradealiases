@@ -12,7 +12,7 @@
 
 
 SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor docker"
-CONFIG=$HOME/nbhosting/nbhosting/main/sitesettings.py
+CONFIG=$HOME/nbhosting/django/nbh_main/sitesettings.py
 
 function upgrade-status() {
     for service in $SERVICES; do
