@@ -2,7 +2,10 @@
 
 from setuptools import setup, find_packages
 
-from nbhosting import __version__
+# to allow for relative import in an entry point
+__package__ = 'nbhosting'
+from .version import __version__
+
 
 try:
     with open("README.md") as readme:
@@ -23,6 +26,7 @@ setup(
     install_requires = [
         'Django',
         'nbformat',
+        'jsonpickle',
     ],
     setup_requires = [],
     tests_require = [],

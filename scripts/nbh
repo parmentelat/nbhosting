@@ -90,9 +90,8 @@ function -call-django-command() {
     local coursename=$1; shift
     python3 << EOF
 import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nbh_main.settings")
 import django
-from nbhosting.manage import settings_path
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)
 django.setup()
 from django.core.management import call_command
 call_command('$function', '$coursename')

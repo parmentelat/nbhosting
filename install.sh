@@ -35,8 +35,17 @@ function log-symlink() {
     [ -h $varlink ] || ln -sf $nbhroot/logs $varlink
 }
 
+function check-sitesettings() {
+    local sitesettings="django/nbh_main/sitesettings.py"
+    if [ ! -f $sitesettings ]; then
+        echo "You need to write you site settings file $sitesettings"
+        exit 1
+    fi
+}
+
 function update-python-libraries() {
-    ./setup.py install
+    # find_packages() requires to run in the right dir
+    (cd django; ./setup.py install)
 }
 
 function update-bins() {
@@ -62,11 +71,11 @@ function update-uwsgi() {
 function update-assets() {
     local static_root=/var/nginx/nbhosting
     mkdir -p $static_root
-    rsync $rsopts nbhosting/assets/ $static_root/assets/
+    rsync $rsopts django/assets/ $static_root/assets/
     mkdir -p $static_root/snapshots
     chown -R nginx:nginx $static_root/snapshots
 
-    (cd nbhosting; manage.py collectstatic --noinput)
+    (cd django; manage.py collectstatic --noinput)
 }
 
 function update-images() {
@@ -133,13 +142,15 @@ function default-main() {
 # otherwise one can invoke one or several steps
 # with e.g. install.sh update-uwsgi log-symlink
 function main() {
+    # the very first time we need sitesettings.py to exist
+    check-sitesettings
     # sitesettings.py needs to be installed first,
     # so that sitesettings.sh reflect any change
     update-python-libraries
 
     # probe sitesettings.py
-    nbhosting/manage.py shell_siteconfig > nbhosting/main/sitesettings.sh
-    source nbhosting/main/sitesettings.sh
+    django/manage.py shell_siteconfig > django/nbh_main/sitesettings.sh
+    source django/nbh_main/sitesettings.sh
 
     if [[ -z "$@" ]]; then
         default-main

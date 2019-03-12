@@ -8,10 +8,10 @@
 
 [uwsgi]
 projectname = nbhosting
-chdir = @srcroot@/nbhosting
+chdir = @srcroot@/django
 
 # link with python
-module = nbhosting.main.wsgi:application
+module = nbh_main.wsgi:application
 plugins = python3
 
 # runtime - link with nginx
@@ -30,21 +30,9 @@ listen.owner = root
 listen.group = root
 
 # operation mode:
-# we run in master mode, even though it makes
-# 'systemctl restart nbh-uwsgi' **very slow**
-# this can be an impediment in devel mode
-# however
 # this page below makes it very clear that it's a bad idea
 # not to run in master mode
 # https://uwsgi-docs.readthedocs.io/en/latest/Glossary.html?highlight=master
-# it kind of makes sense, when graceful loading is desired, that
-# a complete reload takes time, since there is a lot of
-# "waiting for the current jobs to finish" involved in such
-# graceful reload approaches
-# plus
-# running without that master mode was probably also
-# the reason behind our first outages, when uwsgi just stopped working
-# after a fixed number of requests
 master = True
 
 # dimensioning
@@ -57,7 +45,7 @@ max-requests = 100000
 
 # stats
 # thanks to this setting, it is possible to monitor
-# the processes using 
+# the processes using
 # uwsgitop /tmp/uwsgi-stats.socket
 # install with
 # pip uwsgitop
