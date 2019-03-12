@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # pylint: disable = c0111, w1203
 
 """
@@ -10,24 +8,17 @@ input file format:
 
 import random
 import string
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import logging
 
 # keep it simple, we expect a localhost sendmail service
 import smtplib
 
-# set and export django settings module
-import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nbhosting.main.settings")
-
-import django
-django.setup()
-
+from django.core.management.base import BaseCommand
 
 from django.contrib.auth.models import User
 from django.template.loader import get_template, TemplateDoesNotExist
 
-from nbhosting.main.sitesettings import server_name, server_mode
+from nbh_main.sitesettings import server_name, server_mode
 
 
 logging.basicConfig(level=logging.INFO)
@@ -58,6 +49,16 @@ def default_first_name(email):
     return _default_name(email, 0, "unknown-first-name")
 def default_last_name(email):
     return _default_name(email, 1, "unknown-last-name")
+
+
+#we're not yet parsing lines with quotes, so..
+#def sanitize(string):
+#    if len(string) <= 1:
+#        return string
+#    for quote in ("'", '"'):
+#        if string[0] == quote and string[-1] == quote:
+#            return string[1:-1]
+#    return string
 
 
 def parse(input_filename):
@@ -182,8 +183,8 @@ def open_and_check_template(template_filename):
     try:
         template = get_template(template_filename)
     except TemplateDoesNotExist as exc:
-        logging.exception(f"could not load template template_filename")
-        logging.info(exc.tried)
+        logging.error(f"could not load template {template_filename}")
+        logging.error(f"tried these: {exc.tried}")
         exit(1)
     # check for the Subject line
     void = template.render({})
@@ -221,53 +222,54 @@ def mass_register(input_filename, template_filename, dry_run):
         logging.info(f"{len(done)} accounts NOT CREATED (dry-run)")
 
 
-USAGE = """%(prog)s : performs users mass registration
+class Command(BaseCommand):
 
-----
-main input is a text file with one line per user
+    help = """%(prog)s : performs users mass registration
 
-* comments are supported when line starts with a #
-* non-comment lines:
-  * must provide an email-address
-  * and my specify any of the following, that
+    ----
+    main input is a text file with one line per user
+
+    * comments are supported when line starts with a #
+    * non-comment lines:
+      * must provide an email-address
+      * and my specify any of the following,
+        that is otherwise computed from the mail address
+
+        * username
+        * password
+        * first_name
+        * last_name
+
+    e.g.
+    jean.dupont@free.fr username=jean_dupont
+
+    ----
+    template file is used to write the email that all newly created users
+    will receive
+    it should be located like other django template files
+
+    available in mail template (between {{}}):
 
     * username
     * password
+    * email
     * first_name
     * last_name
+    * server_name
+    * web_address
 
-e.g.
-jean.dupont@free.fr username=jean_dupont
+    """
 
-----
-template file is used to write the email that all newly created users
-will receive
-it should be located like other django template files
+    def add_arguments(self, parser):
+        parser.add_argument("-n", "--dry-run", default=False, action='store_true',
+                            help="just pretends")
+        parser.add_argument("-t", "--template", default="mass-register.mail",
+                            help="filename for mail body template - **searched** "
+                                 "together with regular django templates")
+        parser.add_argument("filename", nargs='?', default="mass-register.input",
+                            help="input file name")
 
-available in mail template (between {{}}):
-
-* username
-* password
-* email
-* first_name
-* last_name
-* server_name
-* web_address
-
-"""
-
-def main():
-    parser = ArgumentParser(usage=USAGE,
-                            formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-n", "--dry-run", default=False, action='store_true',
-                        help="just pretends")
-    parser.add_argument("-t", "--template", default="mass-register.mail",
-                        help="filename for mail body template - **searched** "
-                             "together with regular django templates")
-    parser.add_argument("filename", nargs='?', default="mass-register.input",
-                        help="input file name")
-    args = parser.parse_args()
-    mass_register(args.filename, args.template, args.dry_run)
-
-
-main()
+    def handle(self, *args, **kwargs):
+        mass_register(kwargs['filename'],
+                      kwargs['template'],
+                      kwargs['dry_run'])
