@@ -22,6 +22,9 @@ def main():
                 "forget to activate a virtual environment?"
             )
         raise
+    # allow to use subcommands with dashes
+    if len(sys.argv) >= 2:
+        sys.argv[1] = sys.argv[1].replace('-', '_')
     execute_from_command_line(sys.argv)
 
 if __name__ == "__main__":
