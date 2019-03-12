@@ -41,6 +41,8 @@
 # sometimes we need to probe for data that is in the python world
 # for this we use django management commands, that are accessible from
 # the shell as /usr/bin/nbh-manage, which is a simple copy of django/manage.py
+# although eventually for static definitions we've gone for good old files
+# for a quicker and safer mechanism, logger was clobbering output
 ########################################
 
 
@@ -253,8 +255,8 @@ function -compute-course-globals() {
     COURSE_build=$NBHROOT/images/$course
 
     # read settings files
-    COURSE_static_mappings=$(nbh-manage course_static_mappings $course 2> /dev/null)
-    COURSE_static_toplevels=$(nbh-manage course_static_toplevels $course 2> /dev/null)
+    COURSE_static_mappings=$(cat $COURSE_notebooks/.static-mappings 2> /dev/null)
+    COURSE_static_toplevels=$(cat $COURSE_notebooks/.static-toplevels 2> /dev/null)
     COURSE_image=$(cat $COURSE_imagefile 2> /dev/null)
     COURSE_giturl=$(cat $COURSE_giturlfile 2> /dev/null)
 }

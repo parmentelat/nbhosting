@@ -260,11 +260,25 @@ class CourseDir:
                 logger.exception(f"could not load static-mappings for {self}")
                 self.static_mappings = StaticMapping.defaults()
 
+        # store in raw format for nbh script
+        with (self.notebooks_dir / ".static-mappings").open('w') as raw:
+            for static_mapping in self.static_mappings:
+                print(static_mapping.expose(self),
+                      file=raw)
+        toplevels = StaticMapping.static_toplevels(
+            self.static_mappings
+        )
+        with (self.notebooks_dir / ".static-toplevels").open('w') as raw:
+            for toplevel in toplevels:
+                print(toplevel, file=raw)
+
+
         try:
             with (notebooks_dir / ".image").open() as storage:
                 self.image = storage.read().strip()
         except Exception as exc:
             self.image = f"-- undefined -- {exc}"
+
 
         try:
             with (notebooks_dir / ".staff").open() as storage:
@@ -272,6 +286,7 @@ class CourseDir:
                     line.strip() for line in storage if line}
         except Exception:
             self.staff = set()
+
 
         try:
             with (notebooks_dir / ".giturl").open() as storage:
