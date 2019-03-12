@@ -189,8 +189,10 @@ class Notebook:                                         # pylint: disable=r0903
         try:
             with self.absolute().open() as feed:
                 nbo = nbformat.read(feed, nbformat.NO_CONVERT)
-                self._notebookname = nbo['metadata']['notebookname']
-                self._version = nbo['metadata']['version']
+                self._notebookname = (
+                    nbo['metadata'].get('notebookname', self.clean_path()))
+                self._version = (
+                    nbo['metadata'].get('version', '0.1'))
         except:
             logger.exception(
                 f"failed to extract notebook metadata {self.clean_path()} ")

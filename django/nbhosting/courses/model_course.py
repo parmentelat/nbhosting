@@ -63,6 +63,8 @@ class CourseDir:
         c1 = NBHROOT / "local" / self.coursename / filename
         c2 = self.git_dir / "nbhosting" / filename
 
+        logger.debug(f"{self}.customized({filename}):\n{c1}\n{c2}")
+
         for c in (c1, c2):
             if c.exists():
                 return c
@@ -163,18 +165,18 @@ class CourseDir:
         absence of tracks.py, or inability to run it, triggers
         the default policy (per directory) implemented in model_track.py
         """
-        course_root = (self.git_dir).absolute()
-        course_tracks = course_root / "nbhosting/tracks.py"
 
-        if course_tracks.exists():
+        course_tracks_py = self.customized("tracks.py")
+
+        if course_tracks_py:
             modulename = (f"{self.coursename}_tracks"
                           .replace("-", "_"))
             try:
                 logger.debug(
-                    f"{self} loading module {course_tracks}")
+                    f"{self} loading module {course_tracks_py}")
                 spec = spec_from_file_location(
                     modulename,
-                    course_tracks,
+                    course_tracks_py,
                 )
                 module = module_from_spec(spec)
                 spec.loader.exec_module(module)
@@ -190,8 +192,7 @@ class CourseDir:
                     f"{self} could not do load custom tracks")
         else:
             logger.info(
-                f"{self} no nbhosting hook found\n"
-                f"expected in {course_tracks}")
+                f"{self} no tracks.py hook found")
         logger.warning(f"{self} resorting to generic filesystem-based track")
         return [generic_track(self)]
 
@@ -240,22 +241,24 @@ class CourseDir:
         notebooks_dir = self.notebooks_dir
 
         self.static_mappings = []
-        path = (self.git_dir /
-                "nbhosting" / "static-mappings")
-        try:
-            with path.open() as storage:
-                for line in storage:
-                    mapping = StaticMapping(line)
-                    if mapping:
-                        self.static_mappings.append(mapping)
-        except FileNotFoundError:
-            # unfortunately this goes to stdout and
-            # screws up the expose-static-* business
-            #logger.info(f"mappings file not found {path}")
+        custom_static_mappings = self.customized("static-mappings")
+        if not custom_static_mappings:
             self.static_mappings = StaticMapping.defaults()
-        except Exception as exc:
-            logger.exception(f"could not load static-mappings for {self}")
-            self.static_mappings = StaticMapping.defaults()
+        else:
+            try:
+                with custom_static_mappings.open() as storage:
+                    for line in storage:
+                        mapping = StaticMapping(line)
+                        if mapping:
+                            self.static_mappings.append(mapping)
+            except FileNotFoundError:
+                # unfortunately this goes to stdout and
+                # screws up the expose-static-* business
+                #logger.info(f"mappings file not found {path}")
+                self.static_mappings = StaticMapping.defaults()
+            except Exception as exc:
+                logger.exception(f"could not load static-mappings for {self}")
+                self.static_mappings = StaticMapping.defaults()
 
         try:
             with (notebooks_dir / ".image").open() as storage:
@@ -291,7 +294,7 @@ class CourseDir:
 
 
     def _run_nbh_manage(self, subcommand, *args, **run_args):
-        return self._run(subcommand, *args, manage=True, **run_args)
+        return self._run_nbh(subcommand, *args, manage=True, **run_args)
 
     def _run_nbh(self, subcommand, *args, manage=False, **run_args):
         """
@@ -305,7 +308,8 @@ class CourseDir:
             *encoding="utf-8"* is useful when text output is expected
 
         """
-        command = ['nbh', subcommand, self.coursename] + list(args)
+        main = "nbh" if not manage else "nbh-manage"
+        command = [main, subcommand, self.coursename] + list(args)
         return subprocess.run(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             **run_args)

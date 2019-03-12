@@ -51,7 +51,7 @@ else:
     STATICFILES_DIRS = (str(BASE_DIR / "assets"), )
     DEVEL = True
 
-NBHROOT = Path(sitesettings.nbhroot)
+NBHROOT = Path(sitesettings.nbhroot).resolve()
 
 # this will create <root>/logs - and thus <root> - if needed
 init_loggers(LOGS_DIR, DEBUG)
