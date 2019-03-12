@@ -268,11 +268,13 @@ class CourseDir:
             return
 
 
-    def _run_nbh(self, subcommand, *args, **run_args):
+    def _run_nbh(self, subcommand, *args, manage=False, **run_args):
         """
         return an instance of subprocess.CompletedProcess
 
         Parameters:
+          manage: the default is to call pain nbh; when manage is set to True,
+            the `nbh-manage` command is used instead
           args: additional arguments to subcommand
           run_args: additional arguments to subprocess.run(); typically
             *encoding="utf-8"* is useful when text output is expected
@@ -289,5 +291,6 @@ class CourseDir:
         return self._run_nbh("course-build-image", encoding="utf-8")
     def clear_staff(self):
         return self._run_nbh("course-clear-staff", encoding="utf-8")
+    # because nbh-manage is django's manage.py we must use underscores
     def show_tracks(self):
-        return self._run_nbh("course-show-tracks", encoding="utf-8")
+        return self._run_nbh("course_show_tracks", manage=True, encoding="utf-8")
