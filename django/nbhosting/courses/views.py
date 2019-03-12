@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
 from nbhosting.courses import CoursesDir, CourseDir, Notebook
-from nbhosting.main.settings import logger
+from nbh_main.settings import logger
 
 ######### auditor
 

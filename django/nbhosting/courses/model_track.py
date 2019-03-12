@@ -7,7 +7,7 @@ from typing import List
 import jsonpickle
 import nbformat
 
-from nbhosting.main.settings import logger
+from nbh_main.settings import logger
 
 
 class Track:

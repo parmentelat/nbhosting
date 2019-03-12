@@ -8,8 +8,8 @@ import re
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidden
 
-from nbhosting.main.settings import sitesettings
-from nbhosting.main.settings import logger, DEBUG
+from nbh_main.settings import sitesettings
+from nbh_main.settings import logger, DEBUG
 from nbhosting.stats.stats import Stats
 
 # Create your views here.

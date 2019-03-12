@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from nbhosting.courses.model_course import CourseDir
 
-from nbhosting.main.settings import logger
+from nbh_main.settings import logger
 
 class Command(BaseCommand):
     help = 'Display static mappings for a course'

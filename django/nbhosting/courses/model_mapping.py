@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from nbhosting.main.settings import logger
+from nbh_main.settings import logger
 
 class StaticMapping:
     """

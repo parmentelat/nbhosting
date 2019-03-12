@@ -22,9 +22,9 @@ from aiohttp import ClientConnectionError
 
 import docker
 
-from nbhosting.main.settings import sitesettings
+from nbh_main.settings import sitesettings
 # redirect into monitor.log
-from nbhosting.main.settings import monitor_logger as logger
+from nbh_main.settings import monitor_logger as logger
 from nbhosting.courses import CourseDir, CoursesDir
 from nbhosting.stats.stats import Stats
 

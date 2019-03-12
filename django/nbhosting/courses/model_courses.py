@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 
-from nbhosting.main.settings import sitesettings
+from nbh_main.settings import sitesettings
 
 NBHROOT = Path(sitesettings.nbhroot)
 

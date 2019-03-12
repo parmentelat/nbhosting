@@ -9,11 +9,10 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic.base import RedirectView
 
-# import nbhosting.main.views
 import nbhosting.edxfront.views
 import nbhosting.courses.views
 import nbhosting.stats.views
-import nbhosting.main.views
+import nbh_main.views
 
 TRACK =     r'(?P<track>[\w_.-]*)'
 COURSE =    r'(?P<course>[\w_.-]+)'
@@ -40,7 +39,7 @@ urlpatterns = [
     re_path(rf'^auditor/notebook/{COURSE_TRACK}/{NOTEBOOK}$',
                         nbhosting.courses.views.auditor_show_notebook),
     re_path(rf'^auditor.*',
-                        nbhosting.main.views.welcome),
+                        nbh_main.views.welcome),
 
 
     # super user
@@ -65,10 +64,10 @@ urlpatterns = [
     re_path(rf'^staff/stats/{COURSE}$',
                         nbhosting.stats.views.show_stats),
     re_path(rf'^staff.*',
-                        nbhosting.main.views.welcome),
+                        nbh_main.views.welcome),
     # this one is not reachable through nginx, mostly for devel
     re_path(rf'^welcome.*',
-                        nbhosting.main.views.welcome),
+                        nbh_main.views.welcome),
 
     # various redirects and other django-provided pages
     re_path(rf'^admin/',

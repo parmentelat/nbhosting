@@ -3,7 +3,7 @@
 import os
 import sys
 
-settings_path = "nbhosting.main.settings"
+settings_path = "nbh_main.settings"
 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_path)

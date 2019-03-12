@@ -6,7 +6,7 @@ import subprocess
 from importlib.util import (
     spec_from_file_location, module_from_spec)
 
-from nbhosting.main.settings import sitesettings, logger
+from nbh_main.settings import sitesettings, logger
 
 from .model_track import Track, generic_track
 from .model_track import write_tracks, read_tracks

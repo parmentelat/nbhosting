@@ -18,7 +18,7 @@ from pathlib import Path
 
 ########## load sitesettings.py module that is **NOT** managed under git
 # see sitesettings.py.example for a template
-import nbhosting.main.sitesettings as sitesettings      # pylint: disable=c0414
+import nbh_main.sitesettings as sitesettings      # pylint: disable=c0414
 
 from .sitesettings import (                             # pylint: disable=w0611
     SECRET_KEY,
@@ -69,7 +69,7 @@ monitor_logger = logging.getLogger('monitor')
 # Application definition
 
 INSTALLED_APPS = [
-    'nbhosting.main.apps.MainConfig',
+    'nbh_main.apps.MainConfig',
     'nbhosting.courses.apps.CoursesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -92,7 +92,7 @@ MIDDLEWARE = [
 
 X_FRAME_OPTIONS = 'ALLOWALL'
 
-ROOT_URLCONF = 'nbhosting.main.urls'
+ROOT_URLCONF = 'nbh_main.urls'
 
 TEMPLATES = [
     {
@@ -114,7 +114,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'main.wsgi.application'
+WSGI_APPLICATION = 'nbh_main.wsgi.application'
 
 
 # Database
