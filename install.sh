@@ -149,7 +149,7 @@ function main() {
     update-python-libraries
 
     # probe sitesettings.py
-    django/manage.py shell_siteconfig > django/nbh_main/sitesettings.sh
+    django/manage.py shell_sitesettings > django/nbh_main/sitesettings.sh
     source django/nbh_main/sitesettings.sh
 
     if [[ -z "$@" ]]; then
