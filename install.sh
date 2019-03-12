@@ -50,7 +50,7 @@ function update-python-libraries() {
 
 function update-bins() {
     rsync $rsopts django/manage.py /usr/bin/nbh-manage
-    rsync $rsopts scripts/nbh scripts/nbh-monitor /usr/bin
+    rsync $rsopts scripts/nbh /usr/bin
 }
 
 function update-jupyter() {
