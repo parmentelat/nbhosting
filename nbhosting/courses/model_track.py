@@ -39,6 +39,9 @@ class Track:
         result += f" in course {self.coursedir}"
         return result
 
+    def number_sections(self):
+        return len(self.sections)
+
     def number_notebooks(self):
         return sum((len(section) for section in self.sections), 0)
 
