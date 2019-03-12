@@ -11,7 +11,7 @@
 nbhroot=/nbhosting
 
 function check-subdirs() {
-    for subdir in jupyter courses-git logs raw; do
+    for subdir in jupyter courses-git logs raw local; do
         [ -d $nbhroot/$subdir ] || mkdir -p $nbhroot/$subdir
     done
 }

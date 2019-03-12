@@ -6,7 +6,7 @@ import subprocess
 from importlib.util import (
     spec_from_file_location, module_from_spec)
 
-from nbh_main.settings import sitesettings, logger
+from nbh_main.settings import NBHROOT, logger
 
 from .model_track import Track, generic_track
 from .model_track import write_tracks, read_tracks
@@ -17,9 +17,6 @@ from typing import List
 CourseTracks = List[Track]
 
 
-NBHROOT = Path(sitesettings.nbhroot)
-
-
 class CourseDir:
 
     def __init__(self, coursename):
@@ -28,11 +25,15 @@ class CourseDir:
         self._notebooks = None
         self._tracks = None
 
+
+    def is_valid(self):
+        return self.git_dir.exists() and self.git_dir.is_dir()
     def __repr__(self):
         return self.coursename
 
     def __len__(self):
         return len(self.notebooks())
+
 
     def _notebooks_dir(self):
         return NBHROOT / "courses" / self.coursename
@@ -45,6 +46,27 @@ class CourseDir:
     def _static_dir(self):
         return NBHROOT / "static" / self.coursename
     static_dir = property(_static_dir)
+
+    def _build_dir(self):
+        return NBHROOT / "images" / self.coursename
+    build_dir = property(_build_dir)
+
+
+    def customized(self, filename):
+        """
+        given a filename, search this:
+        * first in nbhroot/local/coursename/<filename>
+        * second in nbhroot/courses-git/coursename/nbhosting/<filename>
+
+        returns a Path instance, or None
+        """
+        c1 = NBHROOT / "local" / self.coursename / filename
+        c2 = self.git_dir / "nbhosting" / filename
+
+        for c in (c1, c2):
+            if c.exists():
+                return c
+        return None
 
 
     # for templating
@@ -268,6 +290,9 @@ class CourseDir:
             return
 
 
+    def _run_nbh_manage(self, subcommand, *args, **run_args):
+        return self._run(subcommand, *args, manage=True, **run_args)
+
     def _run_nbh(self, subcommand, *args, manage=False, **run_args):
         """
         return an instance of subprocess.CompletedProcess
@@ -288,9 +313,9 @@ class CourseDir:
     def update_from_git(self):
         return self._run_nbh("course-update-from-git", encoding="utf-8")
     def build_image(self):
-        return self._run_nbh("course-build-image", encoding="utf-8")
+        return self._run_nbh_manage("course_build_image", encoding="utf-8")
     def clear_staff(self):
         return self._run_nbh("course-clear-staff", encoding="utf-8")
     # because nbh-manage is django's manage.py we must use underscores
     def show_tracks(self):
-        return self._run_nbh("course_show_tracks", manage=True, encoding="utf-8")
+        return self._run_nbh_manage("course_show_tracks", encoding="utf-8")

@@ -248,11 +248,11 @@ nbh --help
 ## initialisation (step 1 : pull from git)
 
 ```
-nbh course-init flotpython https://github.com/parmentelat/flotpython.git
+nbh course-init python3-s2 https://github.com/flotpython/course.git
 ```
 
 * this creates a course (the git repo in fact)
-* that fyi goes in `/nbhosting/courses-git/flotpython/`
+* that fyi goes in `/nbhosting/courses-git/python3-s2/`
 
 ## updates (step 2 : update from git)
 
@@ -269,19 +269,19 @@ nbh course-update-from-git flotpython
 
 #### option1 : piggyback
 
-If you use an nbhosting instance that already hosts a course, say `flotpython3`, and you want to host course `flotbioinfo` with the same image as `flotpython3`, you can do this:
+If you use an nbhosting instance that already hosts a course, say `python3-s2`, and you want to host course `bioinfo` with the same image as `python3-s2`, you can do this:
 
 ```
-nbh course-settings -i flotpython3 flotbioinfo
+nbh course-settings -i python3-s2 bioinfo
 ```
 
-and check that your setting is properly displayed on the course page for `flotbioinfo`.
+and check that your setting is properly displayed on the course page for `bioinfo`.
 
 
 #### option2 : your own image
 
 ```
-nbh course-build-image flotpython
+nbh-manage course_build_image python3-s2
 ```
 
 * this assumes a dockerfile has been created for that course; this can be either
