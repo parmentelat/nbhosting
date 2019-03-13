@@ -1,7 +1,7 @@
 {% extends "nbhosting.html" %}
 
 {% block title %}
-Known courses
+Management of known courses
 {% endblock %}
 
 
@@ -10,24 +10,36 @@ Known courses
 {% if user.is_authenticated and user.is_staff %}
   <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
 {% endif %}
-    <li class="breadcrumb-item"><a href='/staff/'>staff</a></li>
-    <li class="breadcrumb-item active">courses</li>
+    <li class="breadcrumb-item"><a href='/'>home</a></li>
+    <li class="breadcrumb-item active"><a href="/staff/courses">courses</a></li>
 </ol>
 {% endblock %}
 
 
 {% block content %}
+<style>
+div.staff-course {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: no-wrap;
+    justify-content: space-around;
+}
+div.staff-course>h2:first-child {
+    width: 35%;
+}
+</style>
+
 {% for course_detail in course_details %}
 <div class="card text-center">
-<div class="card-block m-4">
-<h1 class="card-title mb-4">{{course_detail.name}}</h1>
-  <a class='btn btn-lg btn-warning  card-link mr-4'
-     href='/staff/course/{{course_detail.name}}'>notebooks</a>
-  <a class='btn btn-lg btn-info card-link mr-4 ml-4'
-     href='/staff/stats/{{course_detail.name}}'>statistics</a>
-  <span class="btn btn-lg btn-secondary card-link ml-4">
-      {{course_detail.homedirs}} student homes</span>
-</div>
+    <div class="staff-course m-4">
+        <h2 class="card-title">{{course_detail.name}}</h2>
+        <a class='btn btn-lg btn-outline-primary'
+            href='/staff/course/{{course_detail.name}}'>manage</a>
+        <a class='btn btn-lg btn-outline-info'
+            href='/staff/stats/{{course_detail.name}}'>statistics</a>
+        <span class="btn btn-lg btn-secondary">
+            {{course_detail.homedirs}} student homes</span>
+    </div>
 </div>
 {% endfor %}
 {% endblock %}

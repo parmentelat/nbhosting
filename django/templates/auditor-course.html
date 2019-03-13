@@ -19,7 +19,8 @@
     <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
     <li class="breadcrumb-item">
         <a href="/auditor/course/{{course}}">{{course}}</a></li>
-    <li class="breadcrumb-item active">{{track.name}}</li>
+    <li class="breadcrumb-item active">
+        <a href="/auditor/course/{{course}}:{{track.name}}">{{track.name}}</a></li>
 </ol>
 {% endblock %}
 

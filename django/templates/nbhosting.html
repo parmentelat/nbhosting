@@ -15,12 +15,16 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 <style>
 div.nbh-banner {
-  padding: 1rem 2rem;
-  margin-bottom: 5px;
+    padding: 1rem 2rem;
+    margin-bottom: 5px;
+}
+div.nbh-title>h2{
+    padding-bottom: 8px;
 }
 .nbh-breadcrumb ol.breadcrumb {
     padding: 0px;
     margin: 0px;
+    font-size: 80%;
 }
 .nbh-user, .nbh-logo {
     display: flex;
@@ -52,12 +56,19 @@ ol.breadcrumb>li>a, ol.breadcrumb.staff>li.auditor>a {
 ol.breadcrumb.staff>li>a, ol.breadcrumb>li.staff>a {
     color: red;
 }
-ol.breadcrumb a:not(.active) {
-    background-color: #ccc;
+ol.breadcrumb li:not(.active)>a {
+    background-color: #ddd;
     padding: 4px;
     border-radius: 4px;
-    border: solid 1px black;
+    border: solid 1px #888;
 }
+ol.breadcrumb li.active>a {
+    background-color: #fff;
+    padding: 5px;
+    border-radius: 6px;
+    border: solid 2px #888;
+}
+
 </style>
 </head>
 
