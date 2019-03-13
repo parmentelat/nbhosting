@@ -7,7 +7,7 @@ all courses
 
 
 {% block title %}
-courses
+all courses
 {% endblock %}
 
 
@@ -30,7 +30,7 @@ courses
     flex-wrap: wrap;
     justify-content: space-evenly;
 }
-.course {
+div.course {
     border: 1px solid blue;
     border-radius: 10px;
     display: flex;
@@ -43,7 +43,7 @@ courses
 }
 
 div.course>span.course>a::before {
-    content: "course : "
+/*    content: "course : " */
 }
 div.course>span.track>a::before {
     content: "track : "
@@ -53,7 +53,7 @@ div.course>span.track>a::before {
 <div class="courses-box m-3">
 {% for course_dir in course_dirs %}
   {% with course_dir.tracks.0.name as main_trackname %}
-    <div class="course p-3">
+    <div class="course p-3 m-3">
         <span class="course">
             <a class='btn btn-primary btn-lg'
             href='/auditor/course/{{course_dir.coursename}}:{{main_trackname}}'
