@@ -506,8 +506,14 @@ function add-student-in-course() {
 
     # check login existence
     getent passwd $student >& /dev/null || {
+        # default strategy is to create corresponding group
+        local group_creation_option="--user-group"
+        # in some rare conditions that group may already exist, use it then
+        if getent group $student >& /dev/null; then
+            group_creation_option="-g $student"
+        fi
         -echo-stderr Creating disabled login $student
-        useradd --user-group --no-create-home --home-dir $STUDENT_home $student || {
+        useradd $group_creation_option --no-create-home --home-dir $STUDENT_home $student || {
             -echo-stderr Failed to create login $student - aborting;
             return 1
         }
