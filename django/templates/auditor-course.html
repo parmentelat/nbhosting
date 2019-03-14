@@ -1,7 +1,7 @@
 {% extends "nbhosting.html" %}
 
 {% block head_title %}
-{{course}} - {{track.number_notebooks}} notebooks
+{{coursename}} - {{track.number_notebooks}} notebooks
 {% endblock %}
 
 
@@ -18,9 +18,9 @@
     <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
     <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
     <li class="breadcrumb-item">
-        <a href="/auditor/course/{{course}}">{{course}}</a></li>
+        <a href="/auditor/course/{{course}}">{{coursename}}</a></li>
     <li class="breadcrumb-item active">
-        <a href="/auditor/course/{{course}}:{{track.name}}">{{track.name}}</a></li>
+        <a href="/auditor/course/{{coursename}}:{{track.name}}">{{track.name}}</a></li>
 </ol>
 {% endblock %}
 
@@ -63,13 +63,58 @@ a.notebook:hover {
 span.section-details {
     font-size:  50%;
 }
+a.track {
+    background-color: #ddd;
+    padding: 4px;
+    border-radius: 4px;
+    border: solid 1px #888;
+    color:green;
+}
+a.track:link {
+    text-decoration: none;
+}
+a.track.main {
+    font-weight: bold;
+}
+a.track.active {
+    background-color: #fff;
+}
 </style>
 
 <!------------------------------>
-<div class="container">
-    {% for section in track.sections %}
+<div class="container-fluid">
     <div class="row">
-        <div class="col-12">
+        <div class="col-3">
+            <div class="card-block m-3">
+                <h1>Tracks</h1>
+            </div>
+            {% for ntrack in tracks %}
+                <div class="card-block m-2">
+                    <a href="/auditor/course/{{coursename}}:{{ntrack.name}}"
+                     data-toggle="tooltip"
+                     data-html="true"
+                     title="{{ntrack.description}}
+                     {%if ntrack.name == main_trackname%}<br/>(main track){%endif%}
+                     {%if ntrack.name == track.name%}<br/>(current track){%endif%}
+                     "
+                       class="track
+                       {% if ntrack.name == main_trackname %}
+                       main
+                       {% endif %}
+                       {% if ntrack.name == track.name %}
+                       active
+                       {% endif %}
+                       ">
+                    {{ ntrack.name }}
+                </a>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="col-9">
+            <div class="card-block m-3">
+                <h1>Sections for track {{track.name}}</h1>
+            </div>
+            {% for section in track.sections %}
             <div class="card-block m-2">
                 <h2 class="card-title">{{section.name}}
                 <span class="section-details">
@@ -78,13 +123,13 @@ span.section-details {
             <div class="course-box m-3">
                 {% for notebook in section.notebooks %}
 <a class='notebook {{notebook.classes}}'
-href='/auditor/notebook/{{course}}:{{track.name}}/{{notebook.clean_path}}'
+href='/auditor/notebook/{{coursename}}:{{track.name}}/{{notebook.clean_path}}'
 >{{notebook.notebookname}}
 </a>
                 {% endfor %}
             </div>
+            {% endfor %}
         </div>
     </div>
-    {% endfor %}
 </div>
 {% endblock %}

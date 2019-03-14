@@ -39,9 +39,11 @@ def auditor_show_course(request, course, track=None):
     track.mark_notebooks(student)
 
     env = dict(
-        course=course,
+        coursedir=coursedir,
+        coursename=course,
         tracks=tracks,
         track=track,
+        main_trackname=tracks[0].name,
     )
     return render(request, "auditor-course.html", env)
 
