@@ -124,31 +124,14 @@ href='/auditor/notebook/{{course}}/{{notebook}}/staff'
             </a>
         </div>
 
-        <div class="card">
-            <div class="card-block m-3">
-                <h1 class="card-title">settings</h1>
-            </div> <!-- card-block-->
-            <div class="card-header">
-                <p class="card-text">
-                    use <code>nbh course-settings {{name}}</code> to tweak
-                </p>
-            </div> <!-- card-header-->
-        </div> <!-- card-->
-
 
         <div class="card">
             <div class="card-block m-3">
                 <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                title="<span class='smaller'>default is to use the course name<br/>in that case please provide <code>nbhosting/Dockerfile</code></span>">image</h3>
-                <p class='card-text'> name: {{image}} </p>
-            </div> <!-- card-block-->
-        </div> <!-- card-->
-
-
-        <div class="card">
-            <div class="card-block m-3">
-                <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                 title="static mappings are symlinks created in all working subdirs<br/> defined in <code>nbhosting/static-mappings</code>">static mappings</h3>
+                 title="<span class='smaller'>
+                     static mappings are symlinks created in all working subdirs<br/>
+                 you can define them for your course in
+                 <code>nbhosting/static-mappings</code></span>">static mappings</h3>
                  <ul class="list-group list-group-flush">
                     {% for static_mapping in static_mappings %}
                     <li class="list-group-item">
@@ -162,8 +145,25 @@ href='/auditor/notebook/{{course}}/{{notebook}}/staff'
 
         <div class="card">
             <div class="card-block m-3">
-                <h3 class="card-title" data-toggle="tooltip"
-                title="students listed as staff are ignored when gathering usage statistics">staff</h3>
+                <h3 class="card-title" data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>set with <code>nbh course-settings -i</code>
+                </br>default is to use the course name<br/>in that case please provide <code>nbhosting/Dockerfile</code></span>">image</h3>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <p class='card-text'> {{image}} </p>
+                    </li>
+                </ul>
+            </div> <!-- card-block-->
+        </div> <!-- card-->
+
+
+
+
+        <div class="card">
+            <div class="card-block m-3">
+                <h3 class="card-title" data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>set with <code>nbh course-settings -s</code>
+                </br>students listed as staff are ignored when gathering usage statistics">staff</h3>
                 <ul class="list-group list-group-flush">
                     {% for hash in staff %}
                     <li class="list-group-item">
