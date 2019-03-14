@@ -24,16 +24,17 @@ In particular, instead of starting the container through `start.sh` as provided 
 
 ### nbhosting-derived images
 
-For convenience we provide one base image
+For convenience we provide 2 base images
 
 | nbhosting name | based on |
 |----------------|----------|
 | nbhosting/scipy-notebook | jupyter/scipy-notebook |
+| nbhosting/minimal-notebook | jupyter/minimal-notebook |
 
-This image has the docker-stacks images prepared for nbhosting.
-Using it is not mandatory, but again having `start-in-dir-as-uid.sh` installed in `/usr/local/bin` is a **strong requirement**, if only for performance reasons.
+These images have the docker-stacks images prepared for nbhosting.
+Using them is not mandatory, but again having `start-in-dir-as-uid.sh` installed in `/usr/local/bin` is a **strong requirement**, if only for performance reasons.
 
-These nbhosting image is **not** published on dockerhub, instead it is meant to be redone locally before rebuilding course images; to this end, do
+These nbhosting images are **not** published on dockerhub, instead they are meant to be redone locally before rebuilding course images; to this end, do
 
 ```bash
 nbh-manage build-core-images
