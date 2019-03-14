@@ -190,6 +190,12 @@ class CourseDir:
             except Exception:                           # pylint: disable=w0703
                 logger.exception(
                     f"{self} could not do load custom tracks")
+            finally:
+                # make sure to reload the python code next time
+                # we will need it, in case the course has published an update
+                import sys
+                if modulename in sys.modules:
+                    del sys.modules[modulename]
         else:
             logger.info(
                 f"{self} no tracks.py hook found")
