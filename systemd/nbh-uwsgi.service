@@ -7,6 +7,7 @@ Description=the nbhosting django app as a uwsgi instance
 # in file nbh-uwsgi.service.f27
 
 [Service]
+ExecStartPre=/bin/rm -rf /nbhosting/course/*/.tracks.json
 ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/nbhosting.ini
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
