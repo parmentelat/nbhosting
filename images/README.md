@@ -52,19 +52,28 @@ nbh course-settings -i imagename coursename
 
 A course has two options:
 
-* either is uses some other image (when its imagename does not match the course name); the image name needs to match an image named to docker, and it is advised to use the name of another course in this case
-* or it wants to describe its own image (when its imagename matches its own name); in that case, a `Dockerfile` is searched in 2 locations:
+* either is uses some other image (that is to say, its imagename **does not
+* match** the course name); the image name needs to match an image known to
+* docker, and it is advised to use the name of another course in this case;
+* trying to rebuild the image for a course that falls into this first category
+* will result in an error.
+
+* or it wants to describe its own image (when its imagename **does match** its own name); in that case, a `Dockerfile` is searched in 2 locations:
   * first in
    `/nbhosting/local/<coursename>/Dockerfile`
   * then in the course repo itself, that is in
   `/nbhosting/courses-git/<coursename>/nbhosting/Dockerfile`
 
-Rebuilding a course's image is thus generally done through the following steps:
+In that second case, rebuilding a course's image is thus generally done either
+
+* through the web UI: update from git, then rebuild image
+* from the shell, through the following steps:
 
 ```bash
 nbh course-pull-from-git mycourse
 nbh-manage course-build-image mycourse
 ```
+
 
 # deployment logic
 
