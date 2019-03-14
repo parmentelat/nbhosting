@@ -1,29 +1,76 @@
 # docker images
 
-Here is how to deal with docker images for the various courses hosted in a `nbhosting` instance.
+This document describes how to manage the docker image built for each course.
 
 # the `docker-stacks` images
 
-So far we have been using only images based on one of the `docker-stacks` images - see https://github.com/jupyter/docker-stacks - and mostly on `scipy-notebook`
+So far we have been using images based on one of the `docker-stacks` images - see https://github.com/jupyter/docker-stacks  - and mostly on `scipy-notebook`
 
-See also [`dockers-stacks.md`](docker-stacks.md) in the current directory for additional notes on the various images.
+To select an image, see https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html, and remember these relationships
 
-# nbhosting, docker, et uids
+![](inherit-diagram.png)
 
-In order to get each user-created notebook properly stored in the host, i.e. with the right uid, there currently (dec. 2017) is a need to patch the images as provided by docker-stacks.
+
+This being said, as of March 2019, the scipy-notebook image is lingering behind with still Python-3.6 which is a nuisance.
+
+See also [`docker-stacks.md`](docker-stacks.md) in the current directory for additional notes on the various images.
+
+# nbhosting, docker, and uids
+
+In order to get each user-created notebook properly stored in the host, i.e. with the right uid, there currently (dec. 2017) is a need to tweak the images as provided by docker-stacks.
 
 In particular, instead of starting the container through `start.sh` as provided by docker-stacks, we use our own starter script named `start-in-dir-as-uid.sh` (source code in the current directory as well).
 
 
-# how should each course describe its notebook environment
+### nbhosting-derived images
 
-The paradigm used in `nbhosting` is simply that each course uses a specific image; this way all students have a container based on the same image.
+For convenience we provide one base image
 
-The logic implemented at this point has 2 aspects, whether it is at runtime, or at image-building time.
+| nbhosting name | based on |
+|----------------|----------|
+| nbhosting/scipy-notebook | jupyter/scipy-notebook |
+
+This image has the docker-stacks images prepared for nbhosting.
+Using it is not mandatory, but again having `start-in-dir-as-uid.sh` installed in `/usr/local/bin` is a **strong requirement**, if only for performance reasons.
+
+These nbhosting image is **not** published on dockerhub, instead it is meant to be redone locally before rebuilding course images; to this end, do
+
+```bash
+nbh-manage build-core-images
+```
+
+
+# course settings
+
+In `nbhosting`, each course uses a specific image; all students in the same course have a container based on the same image. Each course has an 'imagename'  associated to it; by default the image name is the same as the course name, but this can be altered with
+
+```bash
+nbh course-settings -i imagename coursename
+```
+
+
+A course has two options:
+
+* either is uses some other image (when its imagename does not match the course name); the image name needs to match an image named to docker, and it is advised to use the name of another course in this case
+* or it wants to describe its own image (when its imagename matches its own name); in that case, a `Dockerfile` is searched in 2 locations:
+  * first in
+   `/nbhosting/local/<coursename>/Dockerfile`
+  * then in the course repo itself, that is in
+  `/nbhosting/courses-git/<coursename>/nbhosting/Dockerfile`
+
+Rebuilding a course's image is thus generally done through the following steps:
+
+```bash
+nbh course-pull-from-git mycourse
+nbh-manage course-build-image mycourse
+```
+
+# deployment logic
+
+The logic implemented for rolling out images has 2 aspects, whether it is at runtime, or at image-building time.
 
 ### runtime
 
-* each course has an 'image' name associated to it; by default the image name is the same as the course name, but this can be altered with `nbh course-settings -i imagename coursename`.
 
 * when a student shows up, if its container already exists (running or not), it is used as-is; otherwise it is created from the course image.
 
@@ -31,29 +78,25 @@ The logic implemented at this point has 2 aspects, whether it is at runtime, or 
 
 ### image-building time
 
-* the command `nbh-manage course_build_image coursename` allows an administrator to do or redo the image of that name.
+* note that there may be a need to explicitly call `docker pull` beforehand, if an upgrade of the base images is desired.
 
-* for that purpose, a dockerfile is needed (here we assume the course and image names match):
-
-  * first we search for a directory named `docker-image` in the course contents. If found, it should contain a file named `nbhosting.Dockerfile`.
-
-  * otherwise we search inside `nbhosting/images` for a file named `imagename`.dockerfile
+* assuming the course's imagename matches its name (otherwise, course-build-image will cowardly refuse to do anything), a Dockerfile is searched as described above.
 
 In any case, the docker-building command is run in a directory that contains:
 
 * the dockerfile as located above,
-* all the contents of `course/docker-image` if that's where the dockerfile was found,
+* ***note: this is no longer supported: all the contents of `course/docker-image` if that's where the dockerfile was found,***
 * and in any case the `start-in-dir-as-uid.sh` script, in the current `images/` subdir of `nbhosting`, as this is a key part of the whole business.
 
 Your docker file **MUST** copy `start-in-dir-as-uid.sh` in the images's `/usr/local/bin`; it **must** also run as root; `because start-in-dir-as-uid.sh` needs this privilege in order to setuid as the actual student uid; see as an example [the dockerfile for the python MOOC](https://github.com/parmentelat/flotpython/blob/master/docker-image/nbhosting.Dockerfile).
 
-**Final note** in the `dockerfile` for `flotpython` we have chosen to use the latest `scipy-notebook` image. This is on purpose, but not necessarily the best practice if you want to be on the safe side, and be resilient to hasty upgrades on dockerhub; so you may what to use a specific image hash instead.
+**Final note** in the `Dockerfile` for `python3-s2` we have chosen to use the ***latest*** version of `scipy-notebook` image. This is on purpose, but not necessarily the best practice if you want to be on the safe side, and be resilient to hasty upgrades on dockerhub; so you may what to use a specific image hash instead.
 
 # conclusion
 
 The objectives that we had here, and that are fulfilled with this implementation, are that:
 
 * each course can provide its own docker-image specification,
-* the administrator can also a docker image specification - this is for example for running course based on material that was not written for nbhosting, like e.g. DataScienceHandbook (it's true that a git fork could work around that issue, but well)
+* the administrator can also override this with a home-cooked docker image specification - this is for example for running course based on material that was not written for nbhosting, like e.g. DataScienceHandbook (it's true that a git fork could work around that issue, but well)
 * we can still leverage docker's image building tools
 * and easily roll out upgraded course images with minimal impact for students.
