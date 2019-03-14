@@ -4,6 +4,7 @@ import os
 
 from django.core.management.base import BaseCommand
 
+from nbhosting.courses.model_courses import CoursesDir
 from nbhosting.courses.model_course import CourseDir
 
 from nbh_main.settings import logger, NBHROOT
@@ -22,13 +23,27 @@ class Command(BaseCommand):
             help="""when set, this option causes build to be forced;
             that is to say, docker build is invoked with the --no-cache option.
             Of course this means a longer execution time""")
-        parser.add_argument("course")
+        parser.add_argument(
+            "-a", "--all", action='store_true', default=False,
+            help="redo all known courses")
+        parser.add_argument("course", nargs="*")
 
     def handle(self, *args, **kwargs):
         force = kwargs['force']
-        force_tag = "" if not force else "--no-cache"
-        course = kwargs['course']
 
+        courses = kwargs['course']
+        if not courses:
+            if kwargs['all']:
+                courses = CoursesDir().coursenames()
+            else:
+                parser.print_help()
+                exit(1)
+        for course in courses:
+            self.build_course(course, force)
+
+    def build_course(self, course, force):
+        logger.info(f"{40*'='} building image for {course}")
+        force_tag = "" if not force else "--no-cache"
         coursedir = CourseDir(course)
         if not coursedir.is_valid():
             logger.error(f"no such course {course}")
@@ -37,7 +52,7 @@ class Command(BaseCommand):
 
         image = coursedir.image
         if image != coursedir.coursename:
-            logger.error(
+            logger.warning(
                 f"cowardly refusing to rebuild image {image}"
                 f" from course {coursedir.coursename}\n"
                 f"the 2 names should match")
