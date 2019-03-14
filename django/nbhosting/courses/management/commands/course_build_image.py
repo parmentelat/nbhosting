@@ -47,7 +47,7 @@ class Command(BaseCommand):
         coursedir = CourseDir(course)
         if not coursedir.is_valid():
             logger.error(f"no such course {course}")
-            exit(1)
+            return
         build_dir = coursedir.build_dir
 
         image = coursedir.image
@@ -56,12 +56,12 @@ class Command(BaseCommand):
                 f"cowardly refusing to rebuild image {image}"
                 f" from course {coursedir.coursename}\n"
                 f"the 2 names should match")
-            exit(1)
+            return
 
         dockerfile = coursedir.customized("Dockerfile")
         if not dockerfile or not dockerfile.exists():
             logger.error(f"Could not spot Dockerfile for course {course}")
-            exit(1)
+            return
 
         def show_and_run(command):
             logger.info(f"# {command}")
