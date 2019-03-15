@@ -85,16 +85,18 @@ span.mapping.to {
                 </a>
             </div> <!--section-->
 
-            <div class="card-block m-3">
-                <h2 class="card-title">{{how_many}} notebooks</h2>
-            </div>
-            <div class="course-box m-3">
-                {% for notebook in notebooks %}
+            <div class="card">
+                <div class="card-block m-3">
+                    <h2 class="card-title">{{how_many}} notebooks</h2>
+                </div>
+                <div class="card-block course-box m-3">
+                    {% for notebook in notebooks %}
 <a class='notebook in-course staff'
 href='/auditor/notebook/{{course}}/{{notebook}}/staff'
 >{{notebook}}
 </a>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
         </div> <!-- col-8-->
 

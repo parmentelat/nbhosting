@@ -110,25 +110,28 @@ a.track.active {
                 </div>
             {% endfor %}
         </div>
-        <div class="col-9">
-            <div class="card-block m-3">
-                <h1>Sections for track {{track.name}}</h1>
-            </div>
-            {% for section in track.sections %}
+        <div class="card col-9">
             <div class="card-block m-2">
-                <h2 class="card-title">{{section.name}}
-                <span class="section-details">
-                ({{section.length}} notebooks)</span></h2>
+                <h1>Sections for track "{{track.name}}"</h1>
             </div>
-            <div class="course-box m-3">
-                {% for notebook in section.notebooks %}
-<a class='notebook {{notebook.classes}}'
-href='/auditor/notebook/{{coursename}}:{{track.name}}/{{notebook.clean_path}}'
->{{notebook.notebookname}}
-</a>
+            <ul class="list-group list-group-flush">
+                {% for section in track.sections %}
+                <li class="list-group-item">
+                    <div class="card-block">
+                        <h2 class="card-title">{{section.name}}
+                            <span class="section-details">
+                                ({{section.length}} notebooks)</span></h2>
+                    </div>
+                    <div class="course-box">
+                        {% for notebook in section.notebooks %}
+                        <a class='notebook {{notebook.classes}}'
+                            href='/auditor/notebook/{{coursename}}:{{track.name}}/{{notebook.clean_path}}'
+                        >{{notebook.notebookname}}</a>
+                        {% endfor %}
+                    </div>
+                </li>
                 {% endfor %}
-            </div>
-            {% endfor %}
+            </ul>
         </div>
     </div>
 </div>

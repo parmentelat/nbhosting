@@ -11,7 +11,7 @@ Management of known courses
   <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
 {% endif %}
     <li class="breadcrumb-item"><a href='/'>home</a></li>
-    <li class="breadcrumb-item active"><a href="/staff/courses">courses</a></li>
+    <li class="breadcrumb-item active"><a href="/staff/courses/">courses</a></li>
 </ol>
 {% endblock %}
 
@@ -25,20 +25,28 @@ div.staff-course {
     justify-content: space-around;
 }
 div.staff-course>h2:first-child {
-    width: 35%;
+    width: 40%;
 }
 </style>
 
 {% for course_detail in course_details %}
 <div class="card text-center">
-    <div class="staff-course m-4">
+    <div class="staff-course mt-4 mb-4">
         <h2 class="card-title">{{course_detail.name}}</h2>
         <a class='btn btn-lg btn-outline-primary'
-            href='/staff/course/{{course_detail.name}}'>manage</a>
-        <a class='btn btn-lg btn-outline-info'
-            href='/staff/stats/{{course_detail.name}}'>statistics</a>
-        <span class="btn btn-lg btn-secondary">
-            {{course_detail.homedirs}} student homes</span>
+            href='/staff/course/{{course_detail.name}}'
+            data-toggle="tooltip"
+            title="pull, build, settings, ..."
+        >manage</a>
+        <a class='btn btn-lg btn-outline-success'
+            href='/staff/stats/{{course_detail.name}}'
+            data-toggle="tooltip"
+            title="course activity and resources"
+        >statistics</a>
+        <span class="btn btn-lg btn-info"
+            data-toggle="tooltip" data-html="true"
+            title="existing homedirs<br/>no more details for now"
+        >{{course_detail.homedirs}} students</span>
     </div>
 </div>
 {% endfor %}

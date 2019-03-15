@@ -22,7 +22,7 @@ def auditor_list_courses(request):
     course_dirs = [
         CourseDir(coursename) for coursename in courses_dir.coursenames()]
     return render(request, "auditor-courses.html",
-        dict(course_dirs = course_dirs))
+        dict(course_dirs=course_dirs))
 
 
 @login_required
