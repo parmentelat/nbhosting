@@ -406,7 +406,7 @@ function course-update-from-git() {
         done
 
         # clear track caches
-        rm -rf $COURSE_notebooks/tracks.json
+        rm -rf $COURSE_notebooks/.tracks.json
 
         ##### notebooks
         # temporary; making sure we do clean stuff up properly
