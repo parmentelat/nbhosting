@@ -1,6 +1,7 @@
 # pylint: disable=c0111, w1203
 
-from pathlib import Path
+import os
+from pathlib import Path                                # pylint: disable=w0611
 import subprocess
 
 from importlib.util import (
@@ -11,6 +12,15 @@ from nbh_main.settings import NBHROOT, logger
 from .model_track import Track, generic_track
 from .model_track import write_tracks, read_tracks
 from .model_mapping import StaticMapping
+
+# helper
+def show_and_run(command, *, dry_run=False):
+    if not dry_run:
+        logger.info(f"# {command}")
+        os.system(command)
+    else:
+        logger.info(f"(DRY-RUN) # {command}")
+
 
 # this is what we expect to find in a course custom tracks.py
 from typing import List
@@ -344,3 +354,33 @@ class CourseDir:
     # because nbh-manage is django's manage.py we must use underscores
     def show_tracks(self):
         return self._run_nbh_manage("course_show_tracks", encoding="utf-8")
+
+
+    def build_image(self, force):
+        """
+        locates Dockerfile and triggers docker build
+        """
+        force_tag = "" if not force else "--no-cache"
+        build_dir = self.build_dir
+
+        image = self.image
+        if image != self.coursename:
+            logger.warning(
+                f"cowardly refusing to rebuild image {image}"
+                f" from course {self.coursename}\n"
+                f"the 2 names should match")
+            return
+
+        dockerfile = self.customized("Dockerfile")
+        if not dockerfile or not dockerfile.exists():
+            logger.error(f"Could not spot Dockerfile for course {course}")
+            return
+
+        # clean up and repopulate build dir
+        show_and_run(f"rm -rf {build_dir}/*")
+        build_dir.exists() or build_dir.mkdir()
+
+        show_and_run(f"cp {dockerfile} {build_dir}/Dockerfile")
+        show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {build_dir}")
+        show_and_run(f"cd {build_dir}; "
+                     f"docker build {force_tag} -f Dockerfile -t {image} .")

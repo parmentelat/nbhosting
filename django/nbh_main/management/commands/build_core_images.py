@@ -1,11 +1,10 @@
-import logging
 import os
 
 from django.core.management.base import BaseCommand
 
-from nbh_main.settings import NBHROOT
+from nbhosting import show_and_run
 
-logging.basicConfig(level=logging.INFO)
+from nbh_main.settings import NBHROOT, logger
 
 class Command(BaseCommand):
 
@@ -26,28 +25,21 @@ note that pulling docker-stacks image from dockerhub is not taken care of by thi
     # or any variation around it
     def build_core_image(self, name, dry_run):
 
-        logging.info(f"{10*'='} rebuilding core image {name}")
+        logger.info(f"{10*'='} rebuilding core image {name}")
         images_dir = NBHROOT / "images"
         # trim if needed
         name = name.replace(".Dockerfile", "")
         # search candidates
         candidates = list(images_dir.glob(f"*{name}*Dockerfile"))
         if len(candidates) != 1:
-            logging.error(f"Found {len(candidates)} matches for {name} - skipped")
+            logger.error(f"Found {len(candidates)} matches for {name} - skipped")
             return
         dockerfile = candidates[0]
 
         start_script = images_dir / "start-in-dir-as-uid.sh"
         if not start_script.exists():
-            logging.error(f"Could not spot start_script for {name} - skipped")
+            logger.error(f"Could not spot start_script for {name} - skipped")
             return
-
-        def show_and_run(command):
-            if not dry_run:
-                logging.info(f"# {command}")
-                os.system(command)
-            else:
-                logging.info(f"(DRY-RUN) # {command}")
 
         plain_name = str(dockerfile.name).replace(".Dockerfile", "")
         image_name = plain_name.replace("nbhosting-", "nbhosting/")
@@ -64,6 +56,6 @@ note that pulling docker-stacks image from dockerhub is not taken care of by thi
         if not names:
             paths = (NBHROOT / "images").glob("nbhosting*.Dockerfile")
             names = [str(path.name) for path in paths]
-            logging.info(f"{10*'='} found default names {names}")
+            logger.info(f"{10*'='} found default names {names}")
         for name in names:
             self.build_core_image(name, dry_run)

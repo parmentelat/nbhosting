@@ -39,39 +39,10 @@ class Command(BaseCommand):
                 parser.print_help()
                 exit(1)
         for course in courses:
-            self.build_course(course, force)
-
-    def build_course(self, course, force):
-        logger.info(f"{40*'='} building image for {course}")
-        force_tag = "" if not force else "--no-cache"
-        coursedir = CourseDir(course)
-        if not coursedir.is_valid():
-            logger.error(f"no such course {course}")
-            return
-        build_dir = coursedir.build_dir
-
-        image = coursedir.image
-        if image != coursedir.coursename:
-            logger.warning(
-                f"cowardly refusing to rebuild image {image}"
-                f" from course {coursedir.coursename}\n"
-                f"the 2 names should match")
-            return
-
-        dockerfile = coursedir.customized("Dockerfile")
-        if not dockerfile or not dockerfile.exists():
-            logger.error(f"Could not spot Dockerfile for course {course}")
-            return
-
-        def show_and_run(command):
-            logger.info(f"# {command}")
-            os.system(command)
-
-        # clean up and repopulate build dir
-        show_and_run(f"rm -rf {build_dir}/*")
-        build_dir.exists() or build_dir.mkdir()
-
-        show_and_run(f"cp {dockerfile} {build_dir}/Dockerfile")
-        show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {build_dir}")
-        show_and_run(f"cd {build_dir}; "
-                     f"docker build {force_tag} -f Dockerfile -t {image} .")
+            coursedir = CourseDir(course)
+            if not coursedir.is_valid():
+                logger.error(f"no such course {course}")
+                return
+            coursedir.build_image(force)
+            logger.info(f"{40*'='} building image for {course}")
+            coursedir.build_image(force)
