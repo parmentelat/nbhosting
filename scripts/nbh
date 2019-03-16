@@ -93,7 +93,8 @@ function -die() {
 # devel/tests/-oriented
 ########################################
 
-function clear-docker-kill() {
+@declare-subcommand admin-docker-kill-all
+function admin-docker-kill-all() {
     containers=$(docker ps --format '{{.Names}}')
     for c in $containers; do
         echo "Killing $c"
@@ -101,7 +102,8 @@ function clear-docker-kill() {
     done
 }
 
-function clear-docker-rm() {
+@declare-subcommand admin-docker-rm-all
+function admin-docker-rm-all() {
     containers=$(docker ps -a --format '{{.Names}}')
     for c in $containers; do
         echo "Removing $c"
@@ -120,8 +122,8 @@ function clear-etc-passwd() {
 
 # run on the box that is about to become the production box
 function prepare-swap() {
-    clear-docker-kill
-    clear-docker-rm
+    admin-docker-kill-all
+    admin-docker-rm-all
     clear-etc-passwd
     echo "WARNING: this script does not take care of the courses area"
 }
@@ -202,7 +204,6 @@ function status-docker() {
     echo "$running running / $total total containers"
 }
 
-
 function status-users() {
     echo ========== USERS and GROUPS
     local users=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/passwd | grep -v '^nfsnobody' | wc -l)
@@ -224,8 +225,8 @@ function status-tree() {
 }
 
 # provide some info on the various pieces
-@declare-subcommand admin-status
-function admin-status() {
+@declare-subcommand admin-counts
+function admin-counts() {
     status-users "$@"
     status-docker "$@"
     status-tree "$@"
@@ -478,7 +479,8 @@ function -compute-student-globals-in-course () {
 }
 
 
-@declare-subcommand add-student-in-course
+# no need to expose this one
+#@declare-subcommand add-student-in-course
 function add-student-in-course() {
     local USAGE="Usage: $COMMAND $FUNCNAME student course"
     [ "$#" -eq 2 ] || -die $USAGE
@@ -560,8 +562,7 @@ function del-student() {
 
 
 # make sure the student has a copy of the nodebook
-@declare-subcommand check-student-notebook-for-course
-function check-student-notebook-for-course() {
+function -check-student-notebook-for-course() {
     local USAGE="Usage: $COMMAND $FUNCNAME [-f] student notebook course"
 
     local forcecopy=""
@@ -908,7 +909,7 @@ function docker-view-student-course-notebook() {
     }
 
     ## create the student notebook if not there yet
-    check-student-notebook-for-course $forcecopy $student $notebook $course
+    -check-student-notebook-for-course $forcecopy $student $notebook $course
 
     -compute-student-globals-in-course $student $course
 
@@ -1033,7 +1034,7 @@ function course-clear-staff() {
 # * because dockerd handles one request at a time
 #   and so effectively sequentialize all these destruction requests
 #   this is likely to take hours or even days..
-# * also the may to locate containers is based on the course name
+# * also the way to locate containers is based on the course name
 #   in a somewhat inclusive way; it can be a bit inaccurate if I
 #   have for instance 2 courses python and thepython
 #   but only stopped containers will be removed
@@ -1042,38 +1043,18 @@ function course-clear-staff() {
 #   more than one month ago are removed
 #   with the -a option, all such containers are removed
 
-@declare-subcommand course-clean-containers
-function course-clean-containers() {
-    local USAGE="Usage: $FUNCNAME [-a] course"
-    [[ -z "$#" ]] && -die $USAGE
-    local kill_all=""
-    while getopts ":a" opt; do
-        case $opt in
-            a) kill_all=true;;
-            *) -die $USAGE;;
-        esac
-    done
-    shift $(($OPTIND-1))
-
+@declare-subcommand admin-docker-rm-course-containers
+function admin-docker-rm-course-containers() {
+    local USAGE="Usage: $FUNCNAME course"
     [ "$#" -eq 1 ] || -die $USAGE
-
     local course=$1; shift
     local pattern="${course}-x-"
     while true; do
-        local focus
-        if [ -n "$kill_all" ]; then
-            focus=$(docker ps -a \
-                    --filter 'status=exited' \
-                    --filter "name=$pattern" \
-                    --format '{{.Names}}' \
-                    | head -1)
-        else
-            focus=$(docker ps -a \
-                    | grep "$pattern" \
-                    | grep 'Exited.*month.*ago' \
-                    | awk '{print $NF;}' \
-                    | head -1)
-        fi
+        local focus=$(docker ps -a \
+            --filter 'status=exited' \
+            --filter "name=$pattern" \
+            --format '{{.Names}}' \
+            | head -1)
         # we're done
         [ -z "$focus" ] && break
         # otherwise remove it
@@ -1083,8 +1064,8 @@ function course-clean-containers() {
 }
 
 
-@declare-subcommand course-list-kernels
-function course-list-kernels() {
+@declare-subcommand admin-docker-list-kernels
+function admin-docker-list-kernels() {
     local USAGE="Usage: $FUNCNAME course [containers]"
     [ "$#" -ge 1 ] || -die $USAGE
 
@@ -1116,14 +1097,6 @@ function list-courses() {
     ls
 }
 
-
-@declare-subcommand docker-counts
-function docker-counts() {
-    echo -n "Running containers "
-    docker ps --format '{{.Names}}' | wc -l
-    echo -n "Total containers "
-    docker ps -a --format '{{.Names}}' | wc -l
-}
 
 ####################
 function -rename-dir() {
@@ -1174,7 +1147,7 @@ function course-rename() {
     local alive=$(docker ps -a --format '{{.Names}}' | grep "^${old_course}-x" | wc -l)
     if [ $alive != 0 ]; then
         local message="Found $alive containers for $old_course"
-        message="$message - Delete with nbh course-clean-containers"
+        message="$message - Delete with nbh admin-docker-rm-course-containers"
         -die $message
     fi
     -rename-dir $old_git $new_git
@@ -1195,45 +1168,49 @@ function course-rename() {
 }
 
 ###########
-# if for any reason a user can't be created
-# e.g. because of limits in /etc/login.defs
-# then things can become nasty for these students
-# because a directory is created in /students, but it has the wrong owner
-# and a docker containers gets spawned on top of that
-
-# xxx todo : fix that earlier on; should not let the whole thing proceed
-# when useradd fails to work
-
-# once the root issue is fixed - again typically in /etc/login.defs
-# the solution is to just remove both the directory and docker
-# - if relevant - for all these hashes
-# in other words, just pretend we've never heard from these people
-
-@declare-subcommand admin-repair-zombies
-function admin-repair-zombies() {
-    cd $NBHROOT/students
-
-    # locate zombie students as the ones whose dir is owned by root
-    zombies=$(find . -maxdepth 1 -user root -print | \
-              grep -v '^\.$' | sed -e s,./,,)
-
-    # do this only once
-    docker ps --all --format '{{.Names}}' > /tmp/nbh-repair.txt
-
-    for zombie in $zombies; do
-        echo -n $zombie " "
-        docker=$(grep $zombie /tmp/nbh-repair.txt)
-        if [ -d $zombie ]; then
-            echo -n "Dir "
-            rm -rf $zombie
-        fi
-        if [ -n "$docker" ] ; then
-            echo -n "Doc "
-            docker rm $docker >& /dev/null && echo -n "."
-        fi
-        echo ""
-    done
-}
+#
+# should no longer be needed now; when useradd fails,
+# then everything stops abruptly, so no longer need to repair
+#
+# # if for any reason a user can't be created
+# # e.g. because of limits in /etc/login.defs
+# # then things can become nasty for these students
+# # because a directory is created in /students, but it has the wrong owner
+# # and a docker containers gets spawned on top of that
+#
+# # xxx todo : fix that earlier on; should not let the whole thing proceed
+# # when useradd fails to work
+#
+# # once the root issue is fixed - again typically in /etc/login.defs
+# # the solution is to just remove both the directory and docker
+# # - if relevant - for all these hashes
+# # in other words, just pretend we've never heard from these people
+#
+# @declare-subcommand admin-repair-zombies
+# function admin-repair-zombies() {
+#     cd $NBHROOT/students
+#
+#     # locate zombie students as the ones whose dir is owned by root
+#     zombies=$(find . -maxdepth 1 -user root -print | \
+#               grep -v '^\.$' | sed -e s,./,,)
+#
+#     # do this only once
+#     docker ps --all --format '{{.Names}}' > /tmp/nbh-repair.txt
+#
+#     for zombie in $zombies; do
+#         echo -n $zombie " "
+#         docker=$(grep $zombie /tmp/nbh-repair.txt)
+#         if [ -d $zombie ]; then
+#             echo -n "Dir "
+#             rm -rf $zombie
+#         fi
+#         if [ -n "$docker" ] ; then
+#             echo -n "Doc "
+#             docker rm $docker >& /dev/null && echo -n "."
+#         fi
+#         echo ""
+#     done
+# }
 
 # uid allocation
 # turns out that out of the box, fedora comes with settings
@@ -1244,15 +1221,15 @@ function admin-repair-zombies() {
 # so given a course - typically old-python2-s3, we're going to
 # inspect uids that were attached to that course and try to see if there
 # has been any activity recently
-# if not, well then we can recyckle that uid - and its subuids
+# if not, well then we can recycle that uid - and its subuids
 #
 # the sad thing is, with uids that can go up to 10**9 or so, it's a shame
 # that we need to worry about that kind of stuff at all
 # it would be very helpful to know the actual minimal width of sub-ids
 # required for docker to work properly
 
-@declare-subcommand admin-free-uids
-function admin-free-uids() {
+#@declare-subcommand admin-repair-free-uids
+function admin-repair-free-uids() {
     local USAGE="Usage: FUNCNAME course"
 
     [ "$#" -eq 1 ] || -die $USAGE
@@ -1459,14 +1436,6 @@ function main() {
     # call subcommand
     $fun "$@"
 }
-
-
-# xxx from older version
-# because the outcome of this script goes on stdout,
-# so we always write on stderr, but as far as stderr is concerned,
-# we want to log it *and* to return it in stderr
-# xxx previous redirection system
-# main 2> >(tee -a $log >&2) || :
 
 
 main "$@"
