@@ -7,6 +7,8 @@ import subprocess
 from importlib.util import (
     spec_from_file_location, module_from_spec)
 
+import docker
+
 from nbh_main.settings import NBHROOT, logger
 
 from .model_track import Track, generic_track
@@ -73,10 +75,13 @@ class CourseDir:
         c1 = NBHROOT / "local" / self.coursename / filename
         c2 = self.git_dir / "nbhosting" / filename
 
-        logger.debug(f"{self}.customized({filename}):\n{c1}\n{c2}")
+#        logger.debug(f"{self}.customized({filename})")
+#        logger.debug(f"local={c1}")
+#        logger.debug(f"in course repo={c2}")
 
         for c in (c1, c2):
             if c.exists():
+#                logger.debug(f"using {c}")
                 return c
         return None
 
@@ -324,39 +329,7 @@ class CourseDir:
             return
 
 
-    def _run_nbh_manage(self, subcommand, *args, **run_args):
-        return self._run_nbh(subcommand, *args, manage=True, **run_args)
-
-    def _run_nbh(self, subcommand, *args, manage=False, **run_args):
-        """
-        return an instance of subprocess.CompletedProcess
-
-        Parameters:
-          manage: the default is to call pain nbh; when manage is set to True,
-            the `nbh-manage` command is used instead
-          args: additional arguments to subcommand
-          run_args: additional arguments to subprocess.run(); typically
-            *encoding="utf-8"* is useful when text output is expected
-
-        """
-        main = "nbh" if not manage else "nbh-manage"
-        command = [main, subcommand, self.coursename] + list(args)
-        return subprocess.run(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            **run_args)
-
-    def update_from_git(self):
-        return self._run_nbh("course-update-from-git", encoding="utf-8")
-    def build_image(self):
-        return self._run_nbh_manage("course_build_image", encoding="utf-8")
-    def clear_staff(self):
-        return self._run_nbh("course-clear-staff", encoding="utf-8")
-    # because nbh-manage is django's manage.py we must use underscores
-    def show_tracks(self):
-        return self._run_nbh_manage("course_show_tracks", encoding="utf-8")
-
-
-    def build_image(self, force):
+    def build_image(self, force=False):
         """
         locates Dockerfile and triggers docker build
         """
@@ -373,14 +346,51 @@ class CourseDir:
 
         dockerfile = self.customized("Dockerfile")
         if not dockerfile or not dockerfile.exists():
-            logger.error(f"Could not spot Dockerfile for course {course}")
+            logger.error(
+                f"Could not spot Dockerfile for course {self.coursename}")
             return
 
         # clean up and repopulate build dir
         show_and_run(f"rm -rf {build_dir}/*")
-        build_dir.exists() or build_dir.mkdir()
+        build_dir.exists() or build_dir.mkdir()         # pylint: disable=w0106
 
         show_and_run(f"cp {dockerfile} {build_dir}/Dockerfile")
         show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {build_dir}")
         show_and_run(f"cd {build_dir}; "
                      f"docker build {force_tag} -f Dockerfile -t {image} .")
+
+
+    def destroy_student_container(self, student):
+        container_name = f"{self.coursename}-x-{student}"
+        client = docker.from_env()
+        try:
+            container = client.containers.get(container_name)
+        except docker.errors.NotFound:
+            logger.info(f"nothing to do - container {container_name} not found")
+            return
+        if container.status == 'running':
+            logger.info(f"killing {container_name}")
+            container.kill()
+        logger.info(f"removing {container_name}")
+        container.remove()
+        logger.info("DONE")
+
+
+    def nbh_subprocess(self, subcommand, python, *args, **run_args):
+        """
+        return an instance of subprocess.CompletedProcess
+
+        Parameters:
+          python: the default is to call pain nbh; when python is set to True,
+            the `nbh-manage` command is used instead
+          args: additional arguments to subcommand
+          run_args: additional arguments to subprocess.run();
+            typically encoding="utf-8" is useful when text output is expected
+            which in our case is always the case..
+        """
+        main = "nbh-manage" if python else "nbh"
+        command = [main, subcommand, self.coursename] + list(args)
+        return subprocess.run(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            encoding="utf-8",
+            **run_args)

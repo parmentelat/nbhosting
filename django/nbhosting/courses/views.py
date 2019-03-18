@@ -111,26 +111,28 @@ def staff_show_course(request, course):
     return render(request, "staff-course.html", env)
 
 
-def nbh_manage(request, course, verb, managed):
+def render_subprocess_result(request, course,
+                             subcommand, message, python, *args):
+    """    triggers a subprocess and displays results
+    in a web page with returncode, stdout, stderr
+
+    this can be either a call to
+    * plain nbh (for code written in bash) with managed=False
+    * or to nbh-manage for code written in python
+
+    """
     coursedir = CourseDir(course)
-    if verb == 'update-from-git':
-        completed = coursedir.update_from_git()
-    elif verb == 'build-image':
-        completed = coursedir.build_image()
-    elif verb == 'clear-staff':
-        completed = coursedir.clear_staff()
-    elif verb == 'show-tracks':
-        completed = coursedir.show_tracks()
+    completed = coursedir.nbh_subprocess(subcommand, python, *args)
     command = " ".join(completed.args)
     # expose most locals, + the attributes of completed
     # like stdout and stderr
     env = dict(
         course=course,
-        managed=managed,
+        message=message,
         command=command,
         returncode=completed.returncode,
         stdout=completed.stdout,
-        stderr=completed.stderr
+        stderr=completed.stderr,
     )
     # the html title
     template = "course-managed.html"
@@ -140,21 +142,40 @@ def nbh_manage(request, course, verb, managed):
 @staff_member_required
 @csrf_protect
 def update_from_git(request, course):
-    return nbh_manage(request, course, 'update-from-git', 'updated')
+    return render_subprocess_result(
+        request, course,
+        "course-update-from-git", 'updated', False)
 
 
 @staff_member_required
 @csrf_protect
 def build_image(request, course):
-    return nbh_manage(request, course, 'build-image', 'rebuilt')
+    return render_subprocess_result(
+        request, course,
+        "course-build-image", 'rebuilt', True)
 
 
 @staff_member_required
 @csrf_protect
 def clear_staff(request, course):
-    return nbh_manage(request, course, 'clear-staff', 'staff cleared')
+    return render_subprocess_result(
+        request, course,
+        "course-clear-staff", 'staff files cleared', False)
+
 
 @staff_member_required
 @csrf_protect
 def show_tracks(request, course):
-    return nbh_manage(request, course, 'show-tracks', 'tracks recomputed')
+    return render_subprocess_result(
+        request, course,
+        "course-show-tracks", 'tracks recomputed', True)
+
+
+@staff_member_required
+@csrf_protect
+def destroy_my_container(request, course):
+    print("in view destroy_my_container")
+    return render_subprocess_result(
+        request, course,
+        "course-destroy-student-container", "my container destroyed",
+        True, request.user.username)
