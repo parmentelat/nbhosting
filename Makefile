@@ -10,7 +10,7 @@ GIT-CHANGES = $(shell echo $$(git diff HEAD | wc -l))
 release:
 	@if [ $(GIT-CHANGES) != 0 ]; then echo "You have uncommitted changes - cannot publish"; false; fi
 	@if [ -n "$(GIT-TAG-ALREADY-SET)" ] ; then echo "tag $(VERSIONTAG) already set"; false; fi
-	@if ! grep -q ' $(VERSION)' CHANGELOG.md ; then echo no mention of $(VERSION) in CHANGELOG.md; false; fi
+	@if ! grep -q ' $(VERSION)' django/CHANGELOG.md ; then echo no mention of $(VERSION) in CHANGELOG.md; false; fi
 	@echo "You are about to release $(VERSION) - OK (Ctrl-c if not) ? " ; read _
 	git tag $(VERSIONTAG)
 	#./setup.py sdist upload -r pypi
