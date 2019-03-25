@@ -86,22 +86,25 @@ function swap-ssl() {
 #    ./install.sh
 }
 
-function pull-students() {
+function pull-from-prod() {
     # in terms of contents, we should only worry about
     # /nbhosting/students
+    # /nbhosting/raw
+    # 
+    # also we pull in 2 dirs that are called 
+    # /nbhosting/students.prod
+    # /nbhosting/raw.prod
+    # so we can continue operate the dev site with minimal impact
 
-    mode=$1; shift
-    previous_official=$1; shift
+    current_prod=$1; shift
 
-    [ -n "$previous_official" ] || -die "$FUNCNAME bad arg nb"
+    [ -n "$current_prod" ] || -die "Usage: $FUNCNAME current-prod-box [-n]"
 
-    if [ "$mode" == "become-production" ]; then
-        echo "Pulling /nbhosting/students from $previous_official"
-        cd /nbhosting
-        rsync "$@" -a --delete $previous_official:/nbhosting/students/ /nbhosting/students/
-    else
-        echo "first arg is mode and must be become-production"
-    fi
+    for content in students raw; do
+        set -x
+        rsync "$@" -a --delete $current_prod:/nbhosting/${content}/ /nbhosting/${content}.prod/
+        set +x
+    done
 }
 
 
@@ -132,7 +135,7 @@ function call-subcommand() {
     case $(type -t -- $fun) in
 	function)
 	    shift ;;
-	*)  -die "$fun not a valid subcommand - use either swap-ip / swap-ssl / pull-students" ;;
+	*)  -die "$fun not a valid subcommand - use either swap-ip / swap-ssl / pull-from-prod" ;;
     esac
     # call subcommand
     $fun "$@"
