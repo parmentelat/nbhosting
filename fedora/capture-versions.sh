@@ -7,7 +7,7 @@ cat /etc/fedora-release
 uname -a
 
 ##### core pieces
-rpm -q docker nginx uwsgi
+rpm -q docker docker-ce nginx uwsgi
 
 ##### python3 core pieces
 python3 --version
