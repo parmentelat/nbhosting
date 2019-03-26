@@ -193,26 +193,22 @@ function -create-symlink-at-file () {
 
 
 ############################## admin
-function list-tree() {
-    find $NBHROOT -type d | fgrep -v '/.git/'
-}
-
-function status-docker() {
+function count-docker() {
     echo ========== CONTAINERS
     local running=$(docker ps | grep -v '^CONTAINER' | wc -l)
     local total=$(docker ps -a | grep -v '^CONTAINER' | wc -l)
     echo "$running running / $total total containers"
 }
 
-function status-users() {
+function count-users() {
     echo ========== USERS and GROUPS
     local users=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/passwd | grep -v '^nfsnobody' | wc -l)
     local groups=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/group | egrep -v '^(nfsnobody|docker)' | wc -l)
     echo "$users users in /etc/passwd - $groups groups in /etc/group"
+    echo "$(wc -l /etc/subuid) and $(wc -l /etc/subgid) entries in /etc/subuid and /etc/subgid"
 }
 
-
-function status-tree() {
+function count-tree() {
     echo ========== CONTENTS of $NBHROOT
     local students=$(ls $NBHROOT/students | wc -l)
     local courses_git=$(ls $NBHROOT/courses-git | wc -l)
@@ -227,9 +223,9 @@ function status-tree() {
 # provide some info on the various pieces
 @declare-subcommand admin-counts
 function admin-counts() {
-    status-users "$@"
-    status-docker "$@"
-    status-tree "$@"
+    count-users "$@"
+    count-docker "$@"
+    count-tree "$@"
 }
 
 
