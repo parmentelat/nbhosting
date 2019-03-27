@@ -161,13 +161,13 @@ function clear-tests() {
 # create directory/ies leading to file <file>
 function -mkdir-for-file-as-student () {
     [ "$#" -eq 2 ] || -die $FUNCNAME requires 2 args
-    local filename=$1; shift
+    local filename="$1"; shift
     local login=$1; shift
 
-    local dir=$(dirname $filename)
+    local dir=$(dirname "$filename")
     [ -d $dir ] || {
         -echo-stderr ID=$(id)
-        -echo-stderr Creating directory $dir for $filename
+        -echo-stderr Creating directory $dir for "$filename"
         mkdir -p $dir
         -echo-stderr Giving $dir to $login
         chown $login:$login $dir
@@ -177,18 +177,18 @@ function -mkdir-for-file-as-student () {
 # create symlink right where the notebook is, not only at the top
 function -create-symlink-at-file () {
     [ "$#" -eq 3 ] || -die $FUNCNAME requires 3 args
-    local filename=$1; shift
-    local localname=$1; shift
-    local destination=$1; shift
+    local filename="$1"; shift
+    local localname="$1"; shift
+    local destination="$1"; shift
 
-    local dir=$(dirname $filename)
+    local dir=$(dirname "$filename")
     # the symlink should
     # be in dir/ (like filename)
     # be named localname
     # and point at destination
-    local source=$dir/$localname
-    [ -h $destination ] || -echo-stderr creating static symlink $destination
-    ln -sf $destination $source
+    local source="$dir/$localname"
+    [ -h "$destination" ] || -echo-stderr creating static symlink "$destination"
+    ln -sf "$destination" "$source"
 }
 
 
@@ -326,7 +326,7 @@ function course-settings() {
 
     # image name: redefine or create
     if [ -n "$image" ]; then
-        echo $image > $COURSE_imagefile
+        echo "$image" > $COURSE_imagefile
     elif [ ! -f $COURSE_imagefile ]; then
         echo $course > $COURSE_imagefile
     fi
@@ -409,7 +409,7 @@ function course-update-from-git() {
         # temporary; making sure we do clean stuff up properly
         rm -rf $COURSE_notebooks/*
         $rsync --prune-empty-dirs --include='*.ipynb' --include='*/' --exclude='*' \
-        $COURSE_git/ $COURSE_notebooks/
+            $COURSE_git/ $COURSE_notebooks/
         ##### modules
         [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
         ##### static
@@ -574,7 +574,7 @@ function -check-student-notebook-for-course() {
 
     [ "$#" -eq 3 ] || -die $USAGE
     student=$1; shift
-    notebook=$1; shift
+    notebook="$1"; shift
     course=$1; shift
 
     [ -n "$DEBUG" ] && set -x
@@ -582,17 +582,17 @@ function -check-student-notebook-for-course() {
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
 
-    local course_notebook=$COURSE_notebooks/$notebook
-    local student_notebook=$STUDENT_course/$notebook
+    local course_notebook=$COURSE_notebooks/"$notebook"
+    local student_notebook=$STUDENT_course/"$notebook"
 
     # copy if student notebook is missing, or if force is requested
-    if [ ! -f $student_notebook ] || [ -n "$forcecopy" ]; then
-        -mkdir-for-file-as-student $student_notebook $student
-        -echo-stderr "Cloning $student_notebook from $COURSE_notebook (forcecopy=$forcecopy)"
+    if [ ! -f "$student_notebook" ] || [ -n "$forcecopy" ]; then
+        -mkdir-for-file-as-student "$student_notebook" $student
+        -echo-stderr "Cloning $student_notebook from $course_notebook (forcecopy=$forcecopy)"
         # use rsync for preserving creation time
-        sudo -u $student rsync -tp $course_notebook $student_notebook
+        sudo -u $student rsync -tp "$course_notebook" "$student_notebook"
     else
-        [ -n "$DEBUG" ] && -echo-stderr Student copy $student_notebook is fine
+        [ -n "$DEBUG" ] && -echo-stderr Student copy "$student_notebook" is fine
     fi
 
     # do this no matter what for easier deployment
@@ -600,7 +600,7 @@ function -check-student-notebook-for-course() {
         # expose() uses :: to separate
         local from_top=$(sed -e 's,::.*,,' <<< $mapping)
         local    local=$(sed -e 's,.*::,,' <<< $mapping)
-        -create-symlink-at-file $student_notebook $local /home/jovyan/static/$from_top
+        -create-symlink-at-file "$student_notebook" $local /home/jovyan/static/$from_top
     done
 
     # nothing else is required in the student's work area
@@ -636,7 +636,6 @@ function docker-create-container-for-student-in-course() {
     # rain check
     [ -d $STUDENT_home ] || -die student dir not found $STUDENT_home
     [ -d $COURSE_nbroot ] || -die course notebooks dir not found $COURSE_nbroot
-    [ -f $COURSE_notebook ] || -die master notebook not found in course $COURSE_notebook
     [ -d $COURSE_modules ] || -echo-stderr WARNING $COURSE_modules dir not found
     for toplevel in $COURSE_toplevels; do
         local static_toplevel=$NBHROOT/static/$course/$toplevel
@@ -890,7 +889,7 @@ function docker-view-student-course-notebook() {
     [ "$#" -eq 3 ] || -die $USAGE
     local student=$1; shift
     local course=$1; shift
-    local notebook=$1; shift
+    local notebook="$1"; shift
 
     ## just in case is was never done before
     -check-course $course
@@ -905,7 +904,7 @@ function docker-view-student-course-notebook() {
     }
 
     ## create the student notebook if not there yet
-    -check-student-notebook-for-course $forcecopy $student $notebook $course
+    -check-student-notebook-for-course $forcecopy $student "$notebook" $course
 
     -compute-student-globals-in-course $student $course
 
@@ -947,7 +946,7 @@ function docker-share-student-course-notebook-in-hash() {
     [ "$#" -eq 4 ] || -die $USAGE
     local student=$1; shift
     local course=$1; shift
-    local notebook=$1; shift
+    local notebook="$1"; shift
     local hash=$1; shift
 
     -compute-course-globals $course
@@ -956,14 +955,11 @@ function docker-share-student-course-notebook-in-hash() {
     [ -n "$DEBUG" ] && set -x
 
     # host side -
-    local host_notebook=$STUDENT_course/$notebook
-    [ -f $host_notebook ] || -die "Student notebook not found in $host_notebook"
+    local host_notebook=$STUDENT_course/"$notebook"
+    [ -f "$host_notebook" ] || -die "Student notebook not found in $host_notebook"
 
     # container side -
     local guest_notebook="work/$notebook"
-
-    # input here refers to the container
-    local container_command="jupyter nbconvert --to html  --stdout $guest_notebook"
 
     # the relative path for the http server (see nginx/nbhosting.conf)
     local url_path=/snapshots/$course/$hash.html
@@ -971,7 +967,9 @@ function docker-share-student-course-notebook-in-hash() {
     local absolute_path=/var/nginx/nbhosting/$url_path
     -mkdir-for-file-as-student $absolute_path nginx
 
-    docker exec $STUDENT_container $container_command > $absolute_path
+    docker exec $STUDENT_container \
+        jupyter nbconvert --to html  --stdout "$guest_notebook" \
+        > $absolute_path
 
     echo $url_path
 }

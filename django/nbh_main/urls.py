@@ -17,7 +17,7 @@ import nbh_main.views
 TRACK =     r'(?P<track>[\w_.-]*)'
 COURSE =    r'(?P<course>[\w_.-]+)'
 STUDENT =   r'(?P<student>[\w_.-]+)'
-NOTEBOOK =  r'(?P<notebook>[-\w_\+/\.]+?)(.ipynb){0,2}'
+NOTEBOOK =  r'(?P<notebook>.*(\.ipynb){0,2})'
 
 COURSE_TRACK = rf'{COURSE}(:{TRACK})?'
 
