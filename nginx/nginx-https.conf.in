@@ -149,13 +149,15 @@ http {
             proxy_read_timeout 300;        }
 
         # this is (7) in the architecture diagram
-        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs)(.*) {
+        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs)(.*)$ {
+            set $verb $1;
+            set $params $2;
             allow all;
             # we propagate the cookie we set earlier
             add_header Set-Cookie "docker_port=$cookie_docker_port;Path=/;Max-Age=31536000";
 
             # and we use it to find the local port where to proxy this
-            proxy_pass http://127.0.0.1:$cookie_docker_port/$1$2$is_args$args;
+            proxy_pass http://127.0.0.1:$cookie_docker_port/$verb$params$is_args$args;
             proxy_set_header Host $host;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
