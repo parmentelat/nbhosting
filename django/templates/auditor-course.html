@@ -13,6 +13,7 @@
 {% block breadcrumb %}
 <ol class="breadcrumb">
 {% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item staff"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
   <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
 {% endif %}
     <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
@@ -86,7 +87,7 @@ a.track.active {
     <div class="row">
         <div class="col-3">
             <div class="card-block m-3">
-                <h1>Tracks</h1>
+                <h1>by track</h1>
             </div>
             {% for ntrack in tracks %}
                 <div class="card-block m-2">
@@ -94,8 +95,8 @@ a.track.active {
                      data-toggle="tooltip"
                      data-html="true"
                      title="{{ntrack.description}}
-                     {%if ntrack.name == main_trackname%}<br/>(main track){%endif%}
-                     {%if ntrack.name == track.name%}<br/>(current track){%endif%}
+                     {% if ntrack.name == main_trackname %}<br/>(main track){% endif %}
+                     {% if ntrack.name == track.name %}<br/>(current track){% endif %}
                      "
                        class="track
                        {% if ntrack.name == main_trackname %}
@@ -112,7 +113,7 @@ a.track.active {
         </div>
         <div class="card col-9">
             <div class="card-block m-2">
-                <h1>Sections for track "{{track.name}}"</h1>
+                <h1>track {{track.name}}</h1>
             </div>
             <ul class="list-group list-group-flush">
                 {% for section in track.sections %}

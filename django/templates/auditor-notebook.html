@@ -11,6 +11,7 @@
 {% block breadcrumb %}
 <ol class="breadcrumb">
 {% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item staff"><a href="/staff/course/{{course}}">{{course}}</a></li>
   <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
 {% endif %}
     <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
@@ -50,17 +51,6 @@ iframe {
     height: 100%;
 }
 
-/* left hand side */
-button.back {
-    margin-top: 10px;
-    margin-left: 10px;
-    margin-bottom: 15px;
-}
-
-button.back>a {
-    color: #eed;
-}
-
 div.section {
     display: flex;
     flex-direction: row;
@@ -83,8 +73,8 @@ div.section {
     margin: 1px;
 }
 .notebook.in-course.current {
-    background-color: #208060;
-    border: 0.5px solid black;
+    background-color: #ffffff;
+    border: 3px solid black;
 }
 
 .in-course {
@@ -98,7 +88,7 @@ div.section {
 .in-student {
     background-color: #faa;
 }
-.notebook_path{
+.smaller{
     font-size: 60%;
 }
 
@@ -108,7 +98,6 @@ iframe {
   background-position: center;
  }
 
-
 </style>
 
 <!------------------------------>
@@ -116,14 +105,18 @@ iframe {
     <div class="iframe-side">
         {% for section in track.sections %}
             <div class="section">
+                {% if not section.is_private %}
                 <a href="/auditor/notebook/{{course}}:{{track.name}}/{{section.notebooks.0.clean_path}}"
-                    class="btn btn-outline-primary section-head">
+                    class="btn btn-outline-primary section-head"
+                    data-toggle="tooltip" data-html="true"
+                    title="<span class='smaller'>show first notebook in section {{section.name}}</span>">
                     {{section.name}}
-                </button>
+                </a>
+                {% endif %}
                 {% for notebook_obj in section.notebooks %}
                 <a href="/auditor/notebook/{{course}}:{{track.name}}/{{notebook_obj.clean_path}}"
                    data-toggle="tooltip" data-html="true"
-                   title="{{notebook_obj.notebookname}}</br><span class='notebook_path'>{{notebook_obj.clean_path}}</span>">
+                   title="{{notebook_obj.notebookname}}</br><span class='smaller'>{{notebook_obj.clean_path}}</span>">
                     <div class="notebook {{notebook_obj.classes}}
                     {% if notebook_obj.clean_path == notebook %}current{% endif %}
                     "></div>
