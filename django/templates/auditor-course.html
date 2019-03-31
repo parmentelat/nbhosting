@@ -28,6 +28,42 @@
 
 {% block content %}
 <style>
+div.tracks {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-flex-start;
+    padding-left: 20px;
+    padding-right: 10px;
+    padding-top: 0px;
+}
+.track-head {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 150%;
+}
+a.track {
+    background-color: #ddd;
+    padding: 4px;
+    border-radius: 4px;
+    border: solid 1px #888;
+    color:green;
+    margin: 5px;
+}
+a.track:link {
+    text-decoration: none;
+}
+a.track.main {
+    font-weight: bold;
+}
+a.track.active {
+    background-color: #fff;
+    border-width: 3px;
+}
+a.track.jupyterdir {
+    color: red;
+}
 .course-box {
     display: flex;
     flex-direction: row;
@@ -64,33 +100,15 @@ a.notebook:hover {
 span.section-details {
     font-size:  50%;
 }
-a.track {
-    background-color: #ddd;
-    padding: 4px;
-    border-radius: 4px;
-    border: solid 1px #888;
-    color:green;
-}
-a.track:link {
-    text-decoration: none;
-}
-a.track.main {
-    font-weight: bold;
-}
-a.track.active {
-    background-color: #fff;
-}
 </style>
 
 <!------------------------------>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-3">
-            <div class="card-block m-3">
-                <h1>by track</h1>
-            </div>
-            {% for ntrack in tracks %}
-                <div class="card-block m-2">
+        <div class="col-2">
+            <div class="tracks">
+                <h1 class="btn btn-outline-primary track-head">by track</h1>
+                {% for ntrack in tracks %}
                     <a href="/auditor/course/{{coursename}}:{{ntrack.name}}"
                      data-toggle="tooltip"
                      data-html="true"
@@ -107,11 +125,16 @@ a.track.active {
                        {% endif %}
                        ">
                     {{ ntrack.name }}
-                </a>
-                </div>
-            {% endfor %}
+                    </a>
+                {% endfor %}
+                <h1 class="btn btn-outline-danger track-head">by file</h1>
+                    <a class="track jupyterdir"
+                        href="/auditor/notebook/{{coursename}}/jupyterdir/">
+                        jupyterdir
+                    </a>
+            </div>
         </div>
-        <div class="card col-9">
+        <div class="card col-10">
             <div class="card-block m-2">
                 <h1>track {{track.name}}</h1>
             </div>

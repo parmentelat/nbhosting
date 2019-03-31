@@ -112,6 +112,12 @@ iframe {
                     title="<span class='smaller'>show first notebook in section {{section.name}}</span>">
                     {{section.name}}
                 </a>
+                {% else %}
+                <a href="/auditor/notebook/{{course}}/jupyterdir"
+                    class="btn btn-outline-danger section-head"
+                    data-toggle="tooltip" data-html="true"
+                    title="<span class='smaller'>open with jupyter classic</span>">
+                    {{section.name}}
                 {% endif %}
                 {% for notebook_obj in section.notebooks %}
                 <a href="/auditor/notebook/{{course}}:{{track.name}}/{{notebook_obj.clean_path}}"
