@@ -10,113 +10,6 @@ import nbformat
 from nbh_main.settings import logger
 
 
-class Track:
-
-    def __init__(self, coursedir, sections: List['Section'],
-                 *, name="default", description="no description"):
-        self.coursedir = coursedir
-        self.sections = sections
-        self.name = name
-        self.description = description
-        #
-        self._marked = False
-
-
-    # customize jsonpickle output
-    def __getstate__(self):
-        return dict(sections=self.sections,
-                    name=self.name,
-                    description=self.description)
-
-    # coursedir restored by read_tracks
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._marked = False
-
-
-    def __repr__(self):
-        result = f"{len(self.sections)} sections, {self.number_notebooks()} notebooks"
-        result += f" in course {self.coursedir}"
-        return result
-
-    def number_sections(self):
-        return len(self.sections)
-
-    def number_notebooks(self):
-        return sum((len(section) for section in self.sections), 0)
-
-    def spot_notebook(self, path):
-        # may be a Path instance
-        path = str(path)
-        for section in self.sections:
-            spotted = section.spot_notebook(path)
-            if spotted:
-                return spotted
-        return None
-
-    def mark_notebooks(self, student):
-        if self._marked:
-            return
-        coursedir = self.coursedir
-        for section in self.sections:
-            for notebook in section.notebooks:
-                notebook.in_course = True
-
-        # read student dir
-        read_notebook_paths = set(
-            coursedir.probe_student_notebooks(student))
-
-        # mark corresponding notebook instances as read
-        for read_path in read_notebook_paths:
-            spotted = self.spot_notebook(read_path)
-            if spotted:
-                spotted.in_student = True
-            else:
-                # existing in the student tree, but not in the track
-                odd_notebook = Notebook(coursedir, read_path)
-                odd_notebook.in_student = True
-                # turn this off for now
-                # self.add_unknown(odd_notebook)
-        self._marked = True
-
-
-class Section:                                          # pylint: disable=r0903
-
-    def __init__(self, name, coursedir, notebooks):
-        """
-        notebooks are relative paths from a common coursedir
-        """
-        self.name = name
-        self.coursedir = coursedir
-        self.notebooks = notebooks
-
-    def __repr__(self):
-        return (f"{self.coursedir}:{self.name}"
-                f" ({len(self.notebooks)} nbs)")
-
-    def __len__(self):
-        return len(self.notebooks)
-
-    # customize jsonpickle output
-    def __getstate__(self):
-        return dict(notebooks=self.notebooks,
-                    name=self.name)
-
-    # coursedir restored by read_tracks
-    # so no need for setstate
-
-
-    # for templating
-    def length(self):
-        return len(self)
-
-    def spot_notebook(self, path):
-        for notebook in self.notebooks:
-            if notebook.clean_path() == path:
-                return notebook
-        return None
-
-
 class Notebook:                                         # pylint: disable=r0903
 
     """
@@ -199,6 +92,143 @@ class Notebook:                                         # pylint: disable=r0903
             self._notebookname = self.clean_path()
             self._version = "n/a"
 
+
+class Section:                                          # pylint: disable=r0903
+
+    def __init__(self, name, coursedir, notebooks):
+        """
+        notebooks are relative paths from a common coursedir
+        """
+        self.name = name
+        self.coursedir = coursedir
+        self.notebooks = notebooks
+        #
+        self.is_private = False
+
+    def __repr__(self):
+        return (f"{self.coursedir}:{self.name}"
+                f" ({len(self.notebooks)} nbs)")
+
+    def __len__(self):
+        return len(self.notebooks)
+
+    # customize jsonpickle output
+    def __getstate__(self):
+        return dict(notebooks=self.notebooks,
+                    name=self.name,
+                    is_private=self.is_private)
+
+    # coursedir restored by read_tracks
+    # so no need for setstate
+
+
+    # for templating
+    def length(self):
+        return len(self)
+
+    def spot_notebook(self, path):
+        for notebook in self.notebooks:
+            if notebook.clean_path() == path:
+                return notebook
+        return None
+
+    @staticmethod
+    def local_section(coursedir):
+        result = Section("private", coursedir, [])
+        result.is_private = True                         # pylint: disable=w0212
+        return result
+
+    def is_private(self):
+        return self.is_private
+
+
+class Track:
+
+    def __init__(self, coursedir, sections: List['Section'],
+                 *, name="default", description="no description"):
+        self.coursedir = coursedir
+        self.sections = sections
+        self.name = name
+        self.description = description
+        # a flag that says if we've been through
+        # mark_notebooks already or not
+        self._marked = False
+
+
+    # customize jsonpickle output
+    def __getstate__(self):
+        return dict(sections=self.sections,
+                    name=self.name,
+                    description=self.description)
+
+    # coursedir restored by read_tracks
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        # when restoring from the cache we need
+        # to redo the marking process
+        self._marked = False
+
+
+    def __repr__(self):
+        result = ""
+        result += f"{len(self.sections)} sections,"
+        result += f" {self.number_notebooks()} notebooks"
+        result += f" in course {self.coursedir}"
+        return result
+
+    def number_sections(self):
+        return len(self.sections)
+
+    def number_notebooks(self):
+        return sum((len(section) for section in self.sections), 0)
+
+    def spot_notebook(self, path):
+        # may be a Path instance
+        path = str(path)
+        for section in self.sections:
+            spotted = section.spot_notebook(path)
+            if spotted:
+                return spotted
+        return None
+
+    def mark_notebooks(self, student):
+        if self._marked:
+            return
+        coursedir = self.coursedir
+        for section in self.sections:
+            for notebook in section.notebooks:
+                notebook.in_course = True
+
+        # read student dir
+        read_notebook_paths = set(
+            coursedir.probe_student_notebooks(student))
+
+        # mark corresponding notebook instances as read
+        for read_path in read_notebook_paths:
+            spotted = self.spot_notebook(read_path)
+            if spotted:
+                spotted.in_student = True
+            else:
+                # existing in the student tree, but not in the track
+                odd_notebook = Notebook(coursedir, read_path)
+                odd_notebook.in_student = True
+                # turn this off for now
+                self.add_local(odd_notebook)
+        self._marked = True
+
+    def add_local(self, local_notebook):
+        """
+        how to deal with a notebook that is in the student space
+        but not part of the course
+        we store them in a dedicated section
+        """
+        has_local_section = (self.sections and self.sections[-1].is_private())
+        if not has_local_section:
+            local_section = Section.local_section(self.coursedir)
+            self.sections.append(local_section)
+        else:
+            local_section = self.sections[-1]
+        local_section.notebooks.append(local_notebook)
 
 
 ##### helpers to build a track manually
