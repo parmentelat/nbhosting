@@ -100,13 +100,15 @@ def staff_show_course(request, course):
     shorten_staff = [hash[:7] for hash in coursedir.staff]
 
     env = dict(
-        course=course,
+        coursedir=coursedir,
+        coursename=course,
         notebooks=notebooks,
         how_many=len(notebooks),
         image=coursedir.image,
         static_mappings=coursedir.static_mappings,
         staff=shorten_staff,
         giturl=coursedir.giturl,
+        tracks=coursedir.tracks(),
     )
     return render(request, "staff-course.html", env)
 

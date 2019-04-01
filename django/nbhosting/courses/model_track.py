@@ -19,7 +19,7 @@ class Notebook:                                         # pylint: disable=r0903
     def __init__(self, coursedir, path):
         self.coursedir = coursedir
         self.path = path
-        self.in_course = None
+        self.in_track = None
         self.in_student = None
         self._notebookname = None
         self._version = None
@@ -44,7 +44,7 @@ class Notebook:                                         # pylint: disable=r0903
     def __setstate__(self, state):
         self.__dict__.update(state)
         # if it's saved it means it's in the course
-        self.in_course = True
+        self.in_track = True
         self.in_student = None
 
 
@@ -72,8 +72,8 @@ class Notebook:                                         # pylint: disable=r0903
 
     def classes(self):
         classes = []
-        if self.in_course:
-            classes.append('in-course')
+        if self.in_track:
+            classes.append('in-track')
         if self.in_student:
             classes.append('in-student')
         return " ".join(classes)
@@ -197,7 +197,7 @@ class Track:
         coursedir = self.coursedir
         for section in self.sections:
             for notebook in section.notebooks:
-                notebook.in_course = True
+                notebook.in_track = True
 
         # read student dir
         read_notebook_paths = set(
@@ -318,5 +318,5 @@ def read_tracks(coursedir, input_path: Path) -> List[Track]:
             section.coursedir = coursedir
             for notebook in section.notebooks:
                 notebook.coursedir = coursedir
-                notebook.in_course = True
+                notebook.in_track = True
     return tracks

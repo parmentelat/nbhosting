@@ -72,16 +72,16 @@ div.section {
     border: 0.5px solid #666;
     margin: 1px;
 }
-.notebook.in-course.current {
+.notebook.current {
     background-color: #ffffff;
     border: 3px solid black;
 }
 
-.in-course {
+.in-track {
     background-color: #ccc;
 }
 /* both means it exists and it's been copied */
-.in-course.in-student {
+.in-track.in-student {
     background-color: #afa;
 }
 /* only in-student means somehow it's obsolete */
@@ -104,31 +104,31 @@ iframe {
 <div class="container" height="100%">
     <div class="iframe-side">
         {% for section in track.sections %}
-            <div class="section">
-                {% if not section.is_private %}
-                <a href="/auditor/notebook/{{course}}:{{track.name}}/{{section.notebooks.0.clean_path}}"
-                    class="btn btn-outline-primary section-head"
-                    data-toggle="tooltip" data-html="true"
-                    title="<span class='smaller'>show first notebook in section {{section.name}}</span>">
-                    {{section.name}}
-                </a>
-                {% else %}
-                <a href="/auditor/notebook/{{course}}/jupyterdir"
-                    class="btn btn-outline-danger section-head"
-                    data-toggle="tooltip" data-html="true"
-                    title="<span class='smaller'>open with jupyter classic</span>">
-                    {{section.name}}
-                {% endif %}
-                {% for notebook_obj in section.notebooks %}
-                <a href="/auditor/notebook/{{course}}:{{track.name}}/{{notebook_obj.clean_path}}"
-                   data-toggle="tooltip" data-html="true"
-                   title="{{notebook_obj.notebookname}}</br><span class='smaller'>{{notebook_obj.clean_path}}</span>">
-                    <div class="notebook {{notebook_obj.classes}}
-                    {% if notebook_obj.clean_path == notebook %}current{% endif %}
-                    "></div>
-                </a>
-                {% endfor %}
-            </div>
+        <div class="section">
+            {% if not section.is_private %}
+            <a href="/auditor/notebook/{{course}}:{{track.name}}/{{section.notebooks.0.clean_path}}"
+                class="btn btn-outline-primary section-head"
+                data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>show first notebook in section {{section.name}}</span>">
+                {{section.name}}
+            </a>
+            {% else %}
+            <a href="/auditor/notebook/{{course}}/jupyterdir"
+                class="btn btn-outline-danger section-head"
+                data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>open with jupyter classic</span>">
+                {{section.name}}
+            {% endif %}
+            {% for notebook_obj in section.notebooks %}
+            <a href="/auditor/notebook/{{course}}:{{track.name}}/{{notebook_obj.clean_path}}"
+               data-toggle="tooltip" data-html="true"
+               title="{{notebook_obj.notebookname}}</br><span class='smaller'>{{notebook_obj.clean_path}}</span>">
+                <div class="notebook {{notebook_obj.classes}}
+                {% if notebook_obj.clean_path == notebook %}current{% endif %}
+                "></div>
+            </a>
+            {% endfor %}
+        </div>
         {% endfor %}
     </div>
     <div class="iframe-container">

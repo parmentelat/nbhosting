@@ -2,24 +2,24 @@
 
 
 {% block head_title %}
-{{course}} - {{how_many}} notebooks
+{{coursename}} - {{how_many}} notebooks
 {% endblock %}
 
 
 {% block title %}
-{{how_many}} notebooks in course {{course}}
+{{how_many}} notebooks in course {{coursename}}
 {% endblock %}
 
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
 {% if user.is_authenticated and user.is_staff %}
-  <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
+    <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
 {% endif %}
     <li class="breadcrumb-item"><a href='/staff/'>staff</a></li>
     <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
-    <li class="breadcrumb-item active"><a href="/staff/course/{{course}}">{{course}}</a></li>
-    <li class="breadcrumb-item"><a href="/staff/stats/{{course}}">stats</a></li>
+    <li class="breadcrumb-item active"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
+    <li class="breadcrumb-item"><a href="/staff/stats/{{coursename}}">stats</a></li>
 </ol>
 {% endblock %}
 
@@ -43,10 +43,8 @@
     margin-top: 2px
 }
 /* only in-course means it's not yet been copied */
-.in-course.staff {
-    background-color: #fef;
-}
 a.notebook {
+    background-color: #fef;
     color: black;
 }
 a.notebook:hover {
@@ -69,6 +67,19 @@ span.mapping.to {
 .smaller {
     font-size: 75%;
 }
+div.tracks {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 5px;
+}
+.track{
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 4px;
+    margin: 4px;
+    color: green;
+}
 </style>
 
 <!------------------------------>
@@ -77,13 +88,13 @@ span.mapping.to {
 
         <div class="col-8">
             <div class='section'>
-                <a href='/staff/courses/update-from-git/{{course}}'
+                <a href='/staff/courses/update-from-git/{{coursename}}'
                  class='btn btn-info btn-lg btn-block' data-toggle="tooltip"
                  data-html="true" title="<span class='smaller'>
-                    update course <code>{{course}}</code>
-                    <br/>using git pull from <br/><code>{{giturl}}</code> </span>"
+                    update course <code>{{coursename}}</code>
+                    <br/>using git pull from <br/><code>{{giturl}}</code></span>"
                 >
-                    git pull contents for {{course}}
+                    git pull contents for {{coursename}}
                 </a>
             </div> <!--section-->
 
@@ -93,8 +104,8 @@ span.mapping.to {
                 </div>
                 <div class="card-block course-box m-3">
                     {% for notebook in notebooks %}
-                    <a class='notebook in-course staff'
-                        href='/auditor/notebook/{{course}}/{{notebook}}/staff'
+                    <a class='notebook'
+                        href='/auditor/notebook/{{coursename}}/{{notebook}}/staff'
                     >
                         {{notebook}}
                     </a>
@@ -129,36 +140,61 @@ span.mapping.to {
                 <div class="card">
                     <div class="card-block m-3">
                         <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                        title="<span class='smaller'>set with <code>nbh course-settings -i</code>
-                        </br>if you use the course name<br/>then please provide <code>nbhosting/Dockerfile</code></br>so you can redo your image</span>">image</h3>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
-                                <p class='card-text'> docker name: {{image}} </p>
-                            </li>
-                        </ul>
-                    </div> <!-- card-block-->
-                </div> <!-- card-->
-
-                {% if image == course %}
-                    <a href='/staff/courses/build-image/{{course}}'
-                        class='btn btn-info btn-lg btn-block'
-                        data-toggle="tooltip"
-                        data-html="true"
-                        title="<span class='smaller'>rebuild image for that course</span>"
-                    >
-                        rebuild image
-                    </a>
-                {% endif %}
-                <a href='/staff/courses/destroy-my-container/{{course}}'
-                    class='btn btn-danger btn-lg btn-block'
-                    data-toggle="tooltip"
-                    data-html="true"
-                    title="<span class='smaller'>for trying out a newly built image</br>we need to destroy your currently running container</span>"
-                >
-                    destroy my container
-                </a>
+                            title="<span class='smaller'>set with <code>nbh course-settings -i</code>
+                            </br>if you use the course name<br/>then please provide <code>nbhosting/Dockerfile</code></br>so you can redo your image</span>">image</h3>
+                        <p class='card-text'> docker name: {{image}} </p>
+                        {% if image == coursename %}
+                            <a href='/staff/courses/build-image/{{coursename}}'
+                                class='btn btn-info btn-lg btn-block'
+                                data-toggle="tooltip" data-html="true"
+                                title="<span class='smaller'>rebuild image for that course<br/>
+                                       please be patient</span>"
+                            >
+                                rebuild image
+                            </a>
+                        {% endif %}
+                        <a href='/staff/courses/destroy-my-container/{{coursename}}'
+                            class='btn btn-danger btn-lg btn-block'
+                            data-toggle="tooltip"
+                            data-html="true"
+                            title="<span class='smaller'>for trying out a newly built image</br>
+                                   we need to destroy your currently running container</span>"
+                        >
+                            destroy my container
+                        </a>
+                    </div>
+                </div>
             </div>
 
+
+            <div class="section">
+                <div class="card">
+                    <div class="card-block m-3">
+                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
+                            title="<span class='smaller'>a track is an ordered subset
+                            of the notebooks present in th repo; defining several tracks
+                            can come in handy to propose several levels,
+                            or several languages, or to expose only exercises in a separate track">tracks</h3>
+                        <div class="tracks">
+                            {% for track in tracks %}
+                            <a class="track btn btn-secondary-success"
+                                href="/auditor/course/{{coursename}}:{{track.name}}"
+                                data-toggle="tooltip" data-html="true"
+                                title="<span class='smaller'>switch to auditor mode to see track {{track.name}}</span>"
+                            >{{track.name}}</a>
+                            {% endfor %}
+                        </div>
+                        <a href='/staff/courses/show-tracks/{{coursename}}'
+                            class='btn btn-info btn-lg btn-block'
+                            data-toggle="tooltip"
+                            data-html="true"
+                            title="<span class='smaller'>show how tracks are computed</span>"
+                            >
+                            compute tracks
+                        </a>
+                    </div>
+                </div>
+            </div>
 
             <div class="section">
                 <div class="card">
@@ -173,25 +209,20 @@ span.mapping.to {
                             </li>
                             {% endfor %}
                         </ul>
+                        <a href='/staff/courses/clear-staff/{{coursename}}'
+                            class='btn btn-info btn-lg btn-block'
+                            data-toggle="tooltip" data-html="true"
+                            title="will remove all notebooks found
+                            in all students marked as staff<br/>
+                            this helps in assessing the course is well-formed
+                            by removing any leftovers"
+                            >
+                            clear staff files
+                        </a>
                     </div> <!-- card-block-->
                 </div> <!-- card-->
-                <a href='/staff/courses/clear-staff/{{course}}'
-                    class='btn btn-info btn-lg btn-block'
-                    >
-                    clear staff files
-                </a>
             </div>
 
-            <div class="section">
-                <a href='/staff/courses/show-tracks/{{course}}'
-                    class='btn btn-info btn-lg btn-block'
-                    data-toggle="tooltip"
-                    data-html="true"
-                    title="<span class='smaller'>show how tracks are computed</span>"
-                    >
-                    show tracks
-                </a>
-            </div>
 
 
         </div> <!-- col -->
