@@ -104,9 +104,10 @@ http {
         # the URLS that go right to django, as-is
         # ipythonExercice: this is (1) in the architecture diagram
         # ipythonShare: to expose read-only snapshots
+        # ipythonBrowse: to browse through jupyter classic dir browser
         # auditor: pages for people who log in directly
         # staff: admin stuff
-        location ~ ^/(ipythonExercice|ipythonShare|admin|accounts|staff|auditor)/ {
+        location ~ ^/(ipythonExercice|ipythonShare|ipythonBrowse|admin|accounts|staff|auditor)/ {
             uwsgi_pass  django;
             include     uwsgi_params; # the uwsgi_params file you installed
         }
@@ -142,13 +143,15 @@ http {
         }
 
         # this is (7) in the architecture diagram
-        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs)(.*) {
+        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs|notebooks)(.*)$ {
+            set $verb $1;
+            set $params $2;
             allow all;
             # we propagate the cookie we set earlier
             add_header Set-Cookie "docker_port=$cookie_docker_port;Path=/;Max-Age=31536000";
 
             # and we use it to find the local port where to proxy this
-            proxy_pass http://127.0.0.1:$cookie_docker_port/$1$2$is_args$args;
+            proxy_pass http://127.0.0.1:$cookie_docker_port/$verb$params$is_args$args;
             proxy_set_header Host $host;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;

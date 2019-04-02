@@ -117,8 +117,11 @@ class CourseDir:
         )
 
 
+    def student_dir(self, student):
+        return NBHROOT / "students" / student / self.coursename
+
     def probe_student_notebooks(self, student):
-        root = NBHROOT / "students" / student / self.coursename
+        root = self.student_dir(student)
         return self._probe_notebooks_in_dir(root)
 
 

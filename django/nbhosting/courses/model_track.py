@@ -210,7 +210,9 @@ class Track:
                 spotted.in_student = True
             else:
                 # existing in the student tree, but not in the track
-                odd_notebook = Notebook(coursedir, read_path)
+                studentdir = coursedir.student_dir(student)
+                odd_notebook = Notebook(
+                    studentdir, read_path.with_suffix(".ipynb"))
                 odd_notebook.in_student = True
                 # turn this off for now
                 self.add_local(odd_notebook)
@@ -222,7 +224,7 @@ class Track:
         but not part of the course
         we store them in a dedicated section
         """
-        has_local_section = (self.sections and self.sections[-1].is_private())
+        has_local_section = (self.sections and self.sections[-1].is_private)
         if not has_local_section:
             local_section = Section.local_section(self.coursedir)
             self.sections.append(local_section)

@@ -30,7 +30,7 @@
 <style>
 div.tracks {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: wrap;
     justify-content: flex-flex-start;
     padding-left: 20px;
@@ -107,31 +107,32 @@ span.section-details {
     <div class="row">
         <div class="col-2">
             <div class="tracks">
-                <h1 class="btn btn-outline-primary track-head">by track</h1>
+                <h1 class="btn btn-outline-primary track-head"
+                    data-toggle="tooltip" data-html="true"
+                    title="you may choose one of the following tracks"
+                >by track</h1>
                 {% for ntrack in tracks %}
                     <a href="/auditor/course/{{coursename}}:{{ntrack.name}}"
-                     data-toggle="tooltip"
-                     data-html="true"
-                     title="{{ntrack.description}}
-                     {% if ntrack.name == main_trackname %}<br/>(main track){% endif %}
-                     {% if ntrack.name == track.name %}<br/>(current track){% endif %}
-                     "
-                       class="track
-                       {% if ntrack.name == main_trackname %}
-                       main
-                       {% endif %}
-                       {% if ntrack.name == track.name %}
-                       active
-                       {% endif %}
-                       ">
-                    {{ ntrack.name }}
+                        data-toggle="tooltip"
+                        data-html="true"
+                        title="{{ntrack.description}}
+                        {% if ntrack.name == main_trackname %}<br/>(main track){% endif %}
+                        {% if ntrack.name == track.name %}<br/>(current track){% endif %}
+                        "
+                        class="track
+                        {% if ntrack.name == main_trackname %}main{% endif %}
+                        {% if ntrack.name == track.name %}active{% endif %}
+                        "
+                    > {{ ntrack.name }}
                     </a>
                 {% endfor %}
-                <h1 class="btn btn-outline-danger track-head">by file</h1>
-                    <a class="track jupyterdir"
-                        href="/auditor/notebook/{{coursename}}/jupyterdir/">
-                        jupyterdir
-                    </a>
+                <a class="btn btn-outline-danger track-head"
+                    href="/auditor/jupyterdir/{{coursename}}/"
+                    data-toggle="tooltip" data-html="true"
+                    title="or, if you'd prefer through a regular jupyter browser
+                    <br/>note that in this case you'll only able to see notebooks<br/>that are <b>already present</b> in your workspace"
+                > by file
+                </a>
             </div>
         </div>
         <div class="card col-10">

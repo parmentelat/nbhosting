@@ -223,3 +223,88 @@ def share_notebook(request, course, student, notebook):
     # rebuild a full URL with proto and hostname,
     url = f"{request.scheme}://{request.get_host()}{url_path}"
     return JsonResponse(dict(url_path=url_path, url=url))
+
+
+def jupyterdir_course(request, course, student):        # pylint: disable=r0914
+
+    """
+    this entry point is for opening a student's course directory
+    using jupyter classic, allowing for regular navigation
+    what it does is
+    * check if the student already exists and has the course dir
+    * make sure the student container is ready to answer http requests
+    and then returns a http redirect to /port/<notebook_path>
+    """
+
+    logger.info("ENTERING edxfront view")
+    all_right, explanation = authorized(request)
+
+    if not all_right:
+        return HttpResponseForbidden(
+            f"Access denied: {explanation}")
+
+    # nbh's subcommand
+    subcommand = 'docker-view-student-course-jupyterdir'
+
+    # build command
+    command = ['nbh', '-d', sitesettings.nbhroot]
+    if DEBUG:
+        command.append('-x')
+    command.append(subcommand)
+
+    # add arguments to the subcommand
+    command += [student, course]
+    logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
+    completed_process = subprocess.run(
+        command, universal_newlines=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    log_completed_process(completed_process, subcommand)
+
+    if completed_process.returncode != 0:
+        message = "command {} returned {}\nstderr:{}"\
+                  .format(" ".join(command),
+                          completed_process.returncode,
+                          completed_process.stderr)
+        return error_page(
+            request, course, student, "jupyterdir", message)
+
+    try:
+        action, _docker_name, actual_port, jupyter_token = completed_process.stdout.split()
+
+        if action.startswith("failed"):
+            message = ("failed to spawn notebook container\n"
+                       "command {}\nreturned with retcod={} action={}\n"
+                       "stdout:{}\n"
+                       "stderr:{}").format(
+                           " ".join(command), completed_process.returncode, action,
+                           completed_process.stdout,
+                           completed_process.stderr)
+            return error_page(
+                request, course, student, "jupyterdir", message)
+
+        # remember that in events file for statistics
+        # not yet implemented on the Stats side
+        # Stats(course).record_open_notebook(student, notebook, action, actual_port)
+        # redirect with same proto (http or https) as incoming
+        scheme = request.scheme
+        # get the host part of the incoming URL
+        host = request.get_host()
+        # remove initial port if present in URL
+        if ':' in host:
+            host, _ = host.split(':', 1)
+        ########## forge a URL that nginx will intercept
+        # port depends on scheme - we do not specify it
+        # passing along course and student is for 'reset_from_origin'
+        url = (f"{scheme}://{host}/{actual_port}/tree/"
+               f"?token={jupyter_token}&"
+               f"course={course}&student={student}")
+        logger.info(f"edxfront: redirecting to {url}")
+        return HttpResponseRedirect(url)
+
+    except Exception as exc:
+        message = (f"exception when parsing output of nbh {subcommand}\n"
+                   f"{completed_process.stdout}\n"
+                   f"{type(exc): exc}")
+        # logger.exception(message)
+        return error_page(
+            request, course, student, "jupyterdir", message)

@@ -65,7 +65,7 @@ def auditor_show_notebook(request, course, notebook, track=None):
     return render(
         request, "auditor-notebook.html",
         dict(
-            course=course,
+            coursename=course,
             coursedir=coursedir,
             track=track,
             notebook=notebook,
@@ -74,6 +74,23 @@ def auditor_show_notebook(request, course, notebook, track=None):
             title=title,
         ))
 
+
+@login_required
+@csrf_protect
+def auditor_jupyterdir(request, course):
+    logger.info(f"auditor_jupyterdir {course}")
+
+    coursedir = CourseDir(course)
+    tracks = coursedir.tracks()
+    student = request.user.username
+    return render(
+        request, "auditor-jupyterdir.html",
+        dict(
+            coursename=course,
+            coursedir=coursedir,
+            tracks=tracks,
+            iframe=f"/ipythonBrowse/{course}/{student}/",
+        ))
 
 ######### staff
 

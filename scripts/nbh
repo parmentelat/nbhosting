@@ -934,6 +934,70 @@ function docker-view-student-course-notebook() {
 }
 
 
+# ENTRY POINT: this is the single entry point to edxfront.views
+
+@declare-subcommand docker-view-student-course-jupyterdir
+function docker-view-student-course-jupyterdir() {
+    local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course"
+
+    [ "$#" -eq 2 ] || -die $USAGE
+    local student=$1; shift
+    local course=$1; shift
+
+    ## just in case is was never done before
+    -check-course $course
+    # update jupyter_notebook_config.py and the 2 custom files
+    -check-course-jupyter $course
+
+    getent passwd $student >& /dev/null || {
+        -echo-stderr "refusing to open jupyterdir session for unknown student $student"
+        echo failed none none none
+        return 1
+    }
+
+
+
+    ## in case the student is not known yet
+    add-student-in-course $student $course || {
+        # something wrong happened, typically /etc/login.defs misconfigured
+        echo failed none none none
+        return 1
+    }
+
+    -compute-student-globals-in-course $student $course
+    [ -d $STUDENT_course ] || {
+        echo-stderr "refusing to open jupyterdir session for student $student"
+        echo -stderr "who has not yet opened the $course course"
+        echo failed none none none
+        return 1
+    }
+
+    # create and start the container
+    local container=$STUDENT_container
+    # either existing of created
+    action1=$(docker-create-container-for-student-in-course $container $student $course)
+    line2=$(docker-start-container $container)
+
+    # report: the action depends on both stages
+    local action2=$(cut -d' ' -f1 <<< $line2)
+    local port=$(cut -d' ' -f2 <<< $line2)
+    local token=$(cut -d' ' -f3 <<< $line2)
+
+    case $action2 in
+        failed*)
+            action=$action2;;
+        *)
+            case $action1 in
+                created) action=$action1;;
+                *) action=$action2;;
+            esac;;
+    esac
+    echo $action $container $port $token
+
+    return 0
+}
+
+
 #################### share a static version
 # there here is the implicit assumption that the student
 # has opened a private notebook at least once

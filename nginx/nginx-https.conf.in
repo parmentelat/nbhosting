@@ -75,7 +75,7 @@ http {
         listen 443 ssl;                              # ssl-only
 
         # the domain name it will serve for
-        server_name @server_name@;                   # ssl-only
+        server_name @server_name@;
         charset     utf-8;
 
         ########## SSL config
@@ -112,9 +112,10 @@ http {
         # the URLS that go right to django, as-is
         # ipythonExercice: this is (1) in the architecture diagram
         # ipythonShare: to expose read-only snapshots
+        # ipythonBrowse: to browse through jupyter classic dir browser
         # auditor: pages for people who log in directly
         # staff: admin stuff
-        location ~ ^/(ipythonExercice|ipythonShare|admin|accounts|staff|auditor)/ {
+        location ~ ^/(ipythonExercice|ipythonShare|ipythonBrowse|admin|accounts|staff|auditor)/ {
             uwsgi_pass  django;
             include     uwsgi_params; # the uwsgi_params file you installed
         }
@@ -146,10 +147,11 @@ http {
             proxy_set_header Connection $connection_upgrade;
             proxy_http_version 1.1;
             proxy_buffering off;
-            proxy_read_timeout 300;        }
+            proxy_read_timeout 300;
+        }
 
         # this is (7) in the architecture diagram
-        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs)(.*)$ {
+        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs|notebooks)(.*)$ {
             set $verb $1;
             set $params $2;
             allow all;

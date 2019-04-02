@@ -1,0 +1,119 @@
+{% extends "nbhosting.html" %}
+
+{% block head_title %}
+{{head_title}}
+{% endblock %}
+
+{% block title %}
+{{title}}
+{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb">
+{% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item staff"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
+  <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
+{% endif %}
+    <li class="breadcrumb-item"><a href='/auditor/'>home</a></li>
+    <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
+    <li class="breadcrumb-item"><a href="/auditor/course/{{coursename}}">{{coursename}}</a></li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<style>
+div.tracks {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: flex-flex-start;
+    padding-left: 20px;
+    padding-right: 10px;
+    padding-top: 0px;
+}
+.track-head {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 150%;
+}
+a.track {
+    background-color: #ddd;
+    padding: 4px;
+    border-radius: 4px;
+    border: solid 1px #888;
+    color:green;
+    margin: 5px;
+}
+a.track:link {
+    text-decoration: none;
+}
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+div.iframe-side {
+    position: absolute;
+    top: 130px;
+    bottom: 0px;
+    left: 0px;
+    right: 83%;
+    padding: 0px;
+}
+
+div.iframe-container {
+    position: absolute;
+    top: 130px;
+    bottom: 0px;
+    left: 17%;
+    right: 0px;
+}
+
+iframe {
+    height: 100%;
+}
+.smaller{
+    font-size: 60%;
+}
+
+iframe {
+  background-image: url("/assets/img/loading.png");
+  background-repeat: no-repeat;
+  background-position: center;
+ }
+
+</style>
+
+<!------------------------------>
+<div class="container" height="100%">
+    <div class="iframe-side">
+        <div class="tracks">
+            <h1 class="btn btn-outline-primary track-head"
+                data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>leave jupyter mode and<br/>
+                    go back to track mode</span>"
+            >tracks</h1>
+            {% for ntrack in tracks %}
+                <a href="/auditor/course/{{coursename}}:{{ntrack.name}}"
+                    data-toggle="tooltip"
+                    data-html="true"
+                    title="{{ntrack.description}}"
+                    class="track"
+                > {{ ntrack.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="iframe-container">
+        <iframe
+            height="100%"
+            width="100%"
+            src="{{iframe}}"
+            onload="this.contentWindow.focus()"
+            >
+        </iframe>
+    </div>
+</div>
+
+{% endblock %}
