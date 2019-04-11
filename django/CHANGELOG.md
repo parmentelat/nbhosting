@@ -1,3 +1,11 @@
+# 0.12.1 2019 Apr 11
+* migration to docker-ce instead of formerly docker-1.13; see fedora/migrate-to-docker-ce.md
+* updated install_requires
+* bugfix: notebooks with space in their name were problematic
+* classroom mode: show notebooks present in the student's workdir but not in track
+* classroom mode: the jupyterdir feature allows to browse workdir in raw jupyter mode
+* better copyToClipboard for sharing static snapshot
+
 # 0.11.1 2019 Mar 18
 * in auditor mode, iframe gains focus at once, no longer need to click
 * all config tweaks like static mappings or dockerfile
