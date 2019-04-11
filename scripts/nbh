@@ -88,7 +88,10 @@ function -die() {
     exit 1
 }
 
-
+function -keep-one-ipynb() {
+    local incoming="$1"; shift
+    sed -e 's/\(.ipynb\)\{2,\}/.ipynb/' <<< $incoming
+}
 ########################################
 # devel/tests/-oriented
 ########################################
@@ -1010,7 +1013,7 @@ function docker-share-student-course-notebook-in-hash() {
     [ "$#" -eq 4 ] || -die $USAGE
     local student=$1; shift
     local course=$1; shift
-    local notebook="$1"; shift
+    local notebook=$(-keep-one-ipynb "$1"); shift
     local hash=$1; shift
 
     -compute-course-globals $course
