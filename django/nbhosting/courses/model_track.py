@@ -102,8 +102,10 @@ class Section:                                          # pylint: disable=r0903
         self.name = name
         self.coursedir = coursedir
         self.notebooks = notebooks
-        #
-        self.is_private = False
+        # a untracked section is created when needed to hold
+        # notebooks that are present in the student dir
+        # but not in the track
+        self.untracked = False
 
     def __repr__(self):
         return (f"{self.coursedir}:{self.name}"
@@ -116,7 +118,7 @@ class Section:                                          # pylint: disable=r0903
     def __getstate__(self):
         return dict(notebooks=self.notebooks,
                     name=self.name,
-                    is_private=self.is_private)
+                    untracked=self.untracked)
 
     # coursedir restored by read_tracks
     # so no need for setstate
@@ -133,13 +135,10 @@ class Section:                                          # pylint: disable=r0903
         return None
 
     @staticmethod
-    def local_section(coursedir):
-        result = Section("private", coursedir, [])
-        result.is_private = True                         # pylint: disable=w0212
+    def untracked_section(coursedir):
+        result = Section("not on track", coursedir, [])
+        result.untracked = True                         # pylint: disable=w0212
         return result
-
-    def is_private(self):
-        return self.is_private
 
 
 class Track:
@@ -215,22 +214,22 @@ class Track:
                     studentdir, read_path.with_suffix(".ipynb"))
                 odd_notebook.in_student = True
                 # turn this off for now
-                self.add_local(odd_notebook)
+                self.add_untracked(odd_notebook)
         self._marked = True
 
-    def add_local(self, local_notebook):
+    def add_untracked(self, untracked_notebook):
         """
         how to deal with a notebook that is in the student space
         but not part of the course
         we store them in a dedicated section
         """
-        has_local_section = (self.sections and self.sections[-1].is_private)
-        if not has_local_section:
-            local_section = Section.local_section(self.coursedir)
-            self.sections.append(local_section)
+        has_untracked_section = (self.sections and self.sections[-1].untracked)
+        if not has_untracked_section:
+            untracked_section = Section.untracked_section(self.coursedir)
+            self.sections.append(untracked_section)
         else:
-            local_section = self.sections[-1]
-        local_section.notebooks.append(local_notebook)
+            untracked_section = self.sections[-1]
+        untracked_section.notebooks.append(untracked_notebook)
 
 
 ##### helpers to build a track manually
