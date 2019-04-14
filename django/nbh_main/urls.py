@@ -14,10 +14,11 @@ import nbhosting.courses.views
 import nbhosting.stats.views
 import nbh_main.views
 
-TRACK =     r'(?P<track>[\w_.-]*)'
-COURSE =    r'(?P<course>[\w_.-]+)'
-STUDENT =   r'(?P<student>[\w_.-]+)'
-NOTEBOOK =  r'(?P<notebook>.*(\.ipynb){0,2})'
+TRACK =       r'(?P<track>[\w_.-]*)'
+COURSE =      r'(?P<course>[\w_.-]+)'
+STUDENT =     r'(?P<student>[\w_.-]+)'
+NOTEBOOK =    r'(?P<notebook>.*(\.ipynb){0,2})'
+OPTION_LAB =  r'(?P<lab>/lab)?'
 
 COURSE_TRACK = rf'{COURSE}(:{TRACK})?'
 
@@ -30,7 +31,9 @@ urlpatterns = [
     re_path(rf'^ipythonShare/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
                         nbhosting.edxfront.views.share_notebook
     ),
-    re_path(rf'^ipythonBrowse/{COURSE}/{STUDENT}/?$',
+    # /ipythonBrowse/thecourse/thestudent
+    # /ipythonBrowse/lab/thecourse/thestudent
+    re_path(rf'^ipythonBrowse/{COURSE}/{STUDENT}{OPTION_LAB}/?$',
                         nbhosting.edxfront.views.jupyterdir_course
     ),
 
@@ -41,10 +44,13 @@ urlpatterns = [
                         nbhosting.courses.views.auditor_show_course),
     re_path(rf'^auditor/notebook/{COURSE_TRACK}/{NOTEBOOK}/?$',
                         nbhosting.courses.views.auditor_show_notebook),
-    re_path(rf'^auditor/jupyterdir/{COURSE}/?$',
+    re_path(rf'^auditor/jupyterdir/{COURSE}{OPTION_LAB}/?$',
                         nbhosting.courses.views.auditor_jupyterdir),
     re_path(rf'^auditor.*',
                         nbh_main.views.welcome),
+    # more harmful than helpful at least during devel
+    #re_path(rf'^auditor.*',
+    #                    nbh_main.views.welcome),
 
 
     # super user

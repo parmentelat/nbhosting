@@ -217,15 +217,16 @@ def share_notebook(request, course, student, notebook):
                           completed_process.stderr)
         return JsonResponse(dict(error=message))
 
-    # expect docker-share-student-course-notebook to write a url_path on its stdout
+    # expect docker-share-student-course-notebook
+    # to write a url_path on its stdout
     url_path = completed_process.stdout.strip()
     logger.info(f"reading url_path={url_path}")
     # rebuild a full URL with proto and hostname,
     url = f"{request.scheme}://{request.get_host()}{url_path}"
     return JsonResponse(dict(url_path=url_path, url=url))
 
-
-def jupyterdir_course(request, course, student):        # pylint: disable=r0914
+# pylint: disable=r0914
+def jupyterdir_course(request, course, student, lab=False):
 
     """
     this entry point is for opening a student's course directory
@@ -236,7 +237,7 @@ def jupyterdir_course(request, course, student):        # pylint: disable=r0914
     and then returns a http redirect to /port/<notebook_path>
     """
 
-    logger.info("ENTERING edxfront view")
+    logger.info(f"ENTERING edxfront view jupyterdir_course")
     all_right, explanation = authorized(request)
 
     if not all_right:
@@ -293,9 +294,11 @@ def jupyterdir_course(request, course, student):        # pylint: disable=r0914
         if ':' in host:
             host, _ = host.split(':', 1)
         ########## forge a URL that nginx will intercept
+        # pick between classic notebook or jupyterlab
+        subsystem = "lab" if lab else "tree"
         # port depends on scheme - we do not specify it
         # passing along course and student is for 'reset_from_origin'
-        url = (f"{scheme}://{host}/{actual_port}/tree/"
+        url = (f"{scheme}://{host}/{actual_port}/{subsystem}"
                f"?token={jupyter_token}&"
                f"course={course}&student={student}")
         logger.info(f"edxfront: redirecting to {url}")

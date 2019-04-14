@@ -17,8 +17,11 @@ http {
     # redirect into journalctl
     # https://stackoverflow.com/questions/28394084/nginx-log-to-stderr
 
-    error_log  @nbhroot@/logs/nginx-error.log  info; # replace info with debug
-    access_log @nbhroot@/logs/nginx-access.log;
+    # log into journalctl
+    # from lifesaver SO answer
+    # https://stackoverflow.com/questions/28394084/nginx-log-to-stderr/29005073
+    error_log syslog:server=unix:/dev/log   info;  # replace with debug if needed
+    access_log syslog:server=unix:/dev/log;
 
 
     log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
@@ -115,16 +118,18 @@ http {
         # ipythonBrowse: to browse through jupyter classic dir browser
         # auditor: pages for people who log in directly
         # staff: admin stuff
-        location ~ ^/(ipythonExercice|ipythonShare|ipythonBrowse|admin|accounts|staff|auditor)/ {
+        location ~ ^/(ipythonExercice|ipythonShare|ipythonBrowse|admin|accounts|staff|auditor|welcome) {
             uwsgi_pass  django;
             include     uwsgi_params; # the uwsgi_params file you installed
         }
 
-        # redirect non-matching urls right under /auditor/
-        # so that e.g. / -> /some/other/stuff -> /auditor/some/other/stuff
-        location / {
-            return 301 $scheme://$host/auditor$request_uri;
-        }
+
+        # more harmful than helpful at least during devel
+        # # redirect non-matching urls right under /auditor/
+        # # so that e.g. / -> /some/other/stuff -> /auditor/some/other/stuff
+        # location / {
+        #     return 301 $scheme://$host/auditor$request_uri;
+        # }
 
 
         # edxfront.views.edx_request will redirect to a URL
@@ -151,7 +156,7 @@ http {
         }
 
         # this is (7) in the architecture diagram
-        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs|notebooks)(.*)$ {
+        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs|notebooks|lab)(.*)$ {
             set $verb $1;
             set $params $2;
             allow all;

@@ -116,6 +116,11 @@ class Section:                                          # pylint: disable=r0903
 
     # customize jsonpickle output
     def __getstate__(self):
+        # XXX to be checked
+        # kind of accidentally we don't seem to save any untracked notebook
+        # which is right of course, but kind of lucky; seems like we save
+        # this before messing with any student contents
+        # it would sense to enforce this in this code though
         return dict(notebooks=self.notebooks,
                     name=self.name,
                     untracked=self.untracked)
@@ -210,6 +215,8 @@ class Track:
             else:
                 # existing in the student tree, but not in the track
                 studentdir = coursedir.student_dir(student)
+                # XXX FIXME see issue #78
+                # first arg to Notebook should be a CourseDir object
                 odd_notebook = Notebook(
                     studentdir, read_path.with_suffix(".ipynb"))
                 odd_notebook.in_student = True
