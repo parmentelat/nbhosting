@@ -109,16 +109,20 @@ function restart-services() {
     systemctl restart nbh-monitor
     systemctl restart nginx
     systemctl restart nbh-uwsgi
+    systemctl restart nbh-autopull.timer
 }
 
 function enable-services() {
     rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
+    rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
+    rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
     systemctl daemon-reload
     systemctl enable docker
     systemctl enable nginx
     systemctl enable nbh-uwsgi
     systemctl enable nbh-monitor
+    systemctl enable nbh-autopull.timer
 }
 
 function default-main() {

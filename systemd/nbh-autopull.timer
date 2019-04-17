@@ -1,0 +1,8 @@
+[Unit]
+Description=Cyclically perform git pull for courses that have autopull turned on
+
+[Timer]
+OnCalendar=*:0
+
+[Install]
+WantedBy=multi-user.target
