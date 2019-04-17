@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block title %}
-{{title}}
+Jupyter {%if lab %} lab {% else %} classic {% endif %} on {{ coursename }}
 {% endblock %}
 
 {% block breadcrumb %}
@@ -16,7 +16,11 @@
 {% endif %}
     <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
     <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
-    <li class="breadcrumb-item jupyterdir"><a href="/auditor/jupyterdir/{{coursename}}">{{coursename}}</a></li>
+    <li class="breadcrumb-item jupyterdir active">
+        <a href="/auditor/jupyterdir/{{coursename}}">{{coursename}}</a></li>
+    <li class="breadcrumb-item jupyterdir">
+        <a href="/auditor/jupyterdir/{{coursename}}{%if not lab%}/lab{% endif %}">
+            {%if not lab %}lab{% else %}classic{% endif %}</a></li>
 </ol>
 {% endblock %}
 
@@ -38,11 +42,11 @@ div.tracks {
     font-size: 150%;
 }
 a.track {
-    background-color: #ddd;
+    background-color: #f0f0f0;
     padding: 4px;
     border-radius: 4px;
     border: solid 1px #888;
-    color:green;
+    color: blue;
     margin: 5px;
 }
 a.track:link {
@@ -89,7 +93,7 @@ iframe {
 <div class="container" height="100%">
     <div class="iframe-side">
         <div class="tracks">
-            <h1 class="btn btn-outline-primary track-head"
+            <h1 class="btn btn-primary active track-head"
                 data-toggle="tooltip" data-html="true"
                 title="<span class='smaller'>leave jupyter mode and<br/>
                     go back to track mode</span>"

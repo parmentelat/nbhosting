@@ -78,15 +78,15 @@ div.section {
 }
 
 .in-track {
-    background-color: #ccc;
+    background-color: #1f69e0;
 }
 /* both means it exists and it's been copied */
 .in-track.in-student {
-    background-color: #afa;
+    background-color: #82adf2;
 }
 /* only in-student means somehow it's obsolete */
 .in-student {
-    background-color: #faa;
+    background-color: #53d653;
 }
 .smaller{
     font-size: 60%;
@@ -105,7 +105,7 @@ iframe {
     <div class="iframe-side">
         {% for section in track.sections %}
         <div class="section">
-            {% if not section.is_private %}
+            {% if not section.untracked %}
             <a href="/auditor/notebook/{{coursename}}:{{track.name}}/{{section.notebooks.0.clean_path}}"
                 class="btn btn-outline-primary section-head"
                 data-toggle="tooltip" data-html="true"
@@ -114,9 +114,9 @@ iframe {
             </a>
             {% else %}
             <a href="/auditor/jupyterdir/{{coursename}}/"
-                class="btn btn-outline-danger section-head"
+                class="btn btn-outline-success active section-head"
                 data-toggle="tooltip" data-html="true"
-                title="<span class='smaller'>open with jupyter classic</span>">
+                title="<span class='smaller'>this section is for notebooks<br/>that are not on any track</span>">
                 {{section.name}}
             {% endif %}
             {% for notebook_obj in section.notebooks %}

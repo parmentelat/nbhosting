@@ -33,15 +33,18 @@ div.tracks {
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: flex-flex-start;
-    padding-left: 20px;
+    padding-left: 0px;
     padding-right: 10px;
     padding-top: 0px;
 }
-.track-head {
+.track-head, .file-head {
     width: 100%;
     margin-top: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     font-size: 150%;
+}
+.file-head {
+    margin-top: 100px;
 }
 a.track, a.jupyter{
     padding: 4px;
@@ -50,12 +53,12 @@ a.track, a.jupyter{
     margin: 5px;
 }
 a.track {
-    background-color: #ddd;
-    color:green;
+    background-color: #f0f0f0;
+    color: blue;
 }
 a.jupyter {
-    background-color: #ddd;
-    color: orange;
+    background-color: #f0f0f0;
+    color: green;
 }
 a.track:link, a.jupyter:link {
     text-decoration: none;
@@ -108,9 +111,9 @@ span.section-details {
     <div class="row">
         <div class="col-2">
             <div class="tracks">
-                <h1 class="btn btn-outline-primary track-head"
+                <h1 class="btn btn-primary active track-head"
                     data-toggle="tooltip" data-html="true"
-                    title="you may choose one of the following tracks"
+                    title="you may choose to navigate through one of the following tracks"
                 >by track</h1>
                 {% for ntrack in tracks %}
                     <a href="/auditor/course/{{coursename}}:{{ntrack.name}}"
@@ -127,7 +130,7 @@ span.section-details {
                     > {{ ntrack.name }}
                     </a>
                 {% endfor %}
-                <h1 class="btn btn-outline-danger track-head"
+                <h1 class="btn btn-success active file-head"
                     data-toggle="tooltip" data-html="true"
                     title="or, if you'd prefer through a regular jupyter browser
                     <br/>note that in this case you'll only able to see notebooks
