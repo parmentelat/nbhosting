@@ -33,6 +33,8 @@ class CourseDir:
 
     def __init__(self, coursename):
         self.coursename = coursename
+        # historical default is no autopull
+        self.autopull = False
         self._probe_settings()
         self._notebooks = None
         self._tracks = None
@@ -318,6 +320,13 @@ class CourseDir:
         except Exception as exc:
             self.giturl = f"-- undefined -- {exc}"
 
+        # autopull: file exists -> True
+        try:
+            with (notebooks_dir / ".autopull").open() as storage:
+                self.autopull = True
+        except Exception as exc:
+            self.autopull = False
+
 
     def image_hash(self, docker_proxy):
         """
@@ -363,6 +372,13 @@ class CourseDir:
                      f"docker build {force_tag} -f Dockerfile -t {image} .")
 
 
+    def pull_from_git(self):
+        """
+        pulls from the git repository
+        """
+        return self.run_nbh_subprocess('course-update-from-git')
+
+
     def destroy_student_container(self, student):
         container_name = f"{self.coursename}-x-{student}"
         client = docker.from_env()
@@ -377,6 +393,34 @@ class CourseDir:
         logger.info(f"removing {container_name}")
         container.remove()
         logger.info("DONE")
+
+
+    # useful when a shell-written feature is needed from python
+    # we don't provide for calling nbh-manage, because in this case
+    # it means the code is in python, so using imports is preferrable
+    def run_nbh_subprocess(self, subcommand, *args, **run_args):
+        """
+        creates an instance of subprocess.CompletedProcess
+        and prints stdout, stderr and returncode
+
+        returns True when returncode is 0
+
+        Parameters:
+          args: additional arguments to subcommand
+          run_args: additional arguments to subprocess.run();
+            typically encoding="utf-8" is useful when text output is expected
+            which in our case is always the case..
+        """
+        completed = self.nbh_subprocess(subcommand, False, *args, **kwds)
+
+        print(f"{30*'='} {' '.join(command)} → {completed.returncode}")
+        print(f"{20*'='} stdout")
+        print(f"{completed.stdout}")
+        print(f"{20*'='} stderr")
+        print(f"{completed.stderr}")
+
+        return completed.returncode == 0
+
 
 
     def nbh_subprocess(self, subcommand, python, *args, **run_args):

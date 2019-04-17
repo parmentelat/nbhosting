@@ -97,6 +97,9 @@ div.tracks {
                 >
                     git pull contents for {{coursename}}
                 </a>
+                <p class="btn active btn-block {% if coursedir.autopull %} btn-success {% else %} btn-danger {% endif %}">
+                    auto-pull is turned {% if coursedir.autopull %} ON {% else %} OFF {% endif %}
+                </p>
             </div> <!--section-->
 
             <div class="card">

@@ -11,25 +11,20 @@ from nbh_main.settings import logger, NBHROOT
 
 class Command(BaseCommand):
 
-    help = """rebuild docker image for that course
+    help = """
+    this command is designed to be run cyclically with cron or systemd
 
-    NOTE that courses that override
-    their image so as to use another course's
-    image are not allowed to rebuild"""
+    it performs course-update-from-git
+    on all courses that have their autopull setting defined as true
+    """
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "-f", "--force", action='store_true', default=False,
-            help="""when set, this option causes build to be forced;
-            that is to say, docker build is invoked with the --no-cache option.
-            Of course this means a longer execution time""")
-        parser.add_argument(
             "-a", "--all", action='store_true', default=False,
-            help="redo all known courses")
+            help="apply to all known courses")
         parser.add_argument("course", nargs="*")
 
     def handle(self, *args, **kwargs):
-        force = kwargs['force']
 
         courses = kwargs['course']
         if not courses:
@@ -42,7 +37,9 @@ class Command(BaseCommand):
             coursedir = CourseDir(course)
             if not coursedir.is_valid():
                 logger.error(f"no such course {course}")
-                return
-            coursedir.build_image(force)
-            logger.info(f"{40*'='} building image for {course}")
-            coursedir.build_image(force)
+                continue
+            if not coursedir.autopull:
+                logger.info(f"course {course} has not opted for autopull")
+                continue
+            logger.info(f"{40*'='} pulling from git with course {course}")
+            coursedir.pull_from_git()
