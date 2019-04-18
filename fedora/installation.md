@@ -106,10 +106,16 @@ systemctl mask firewalld.service
 systemctl enable iptables.service
 ```
 
-## install git and docker
+## install docker and git
 
 ```
-dnf -y install git docker
+dnf -y install dnf-plugins-core
+dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+dnf install docker-ce docker-ce-cli containerd.io
+```
+
+```
+dnf -y install git
 cd /root
 git clone https://github.com/parmentelat/nbhosting.git
 ```
