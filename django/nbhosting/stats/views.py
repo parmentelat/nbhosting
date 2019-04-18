@@ -90,7 +90,7 @@ def show_stats(request, course):
     # propagate server_name to html template
     server_name = request.META['SERVER_NAME'].split('.')[0]
 
-    env = dict(course=course, sections=sections, server_name=server_name)
+    env = dict(coursename=course, sections=sections, server_name=server_name)
 
     return render(request, "stats.html", env)
 

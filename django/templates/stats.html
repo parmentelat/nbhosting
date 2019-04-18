@@ -3,24 +3,25 @@
 {% extends "nbhosting.html" %}
 
 {% block head_title %}
-{{course}}*{{server_name}} - stats
+{{coursename}}*{{server_name}} - stats
 {% endblock %}
 
 
 {% block title %}
-Stats for course {{course}}
+Stats for course {{coursename}}
 {% endblock %}
 
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
-  {% if user.is_authenticated and user.is_staff %}
+{% if user.is_authenticated and user.is_staff %}
+    <li class="breadcrumb-item auditor"><a href="/auditor/course/{{coursename}}">{{coursename}}</a></li>
     <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
-  {% endif %}
-  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
-  <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
-  <li class="breadcrumb-item stats active"><a href="/staff/stats/{{course}}">{{course}}</a></li>
-  <li class="breadcrumb-item"><a href="/staff/course/{{course}}">{{course}}</a></li>
+{% endif %}
+    <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+    <li class="breadcrumb-item"><a href='/staff/courses'>courses</a></li>
+    <li class="breadcrumb-item stats active"><a href="/staff/stats/{{coursename}}">{{coursename}}</a></li>
+    <li class="breadcrumb-item"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
 </ol>
 {% endblock %}
 
@@ -112,7 +113,7 @@ function tick(bucket_key){
     ;
 }
 //////////////////////////////////////////////////
-let url_metrics="/staff/stats/daily_metrics/{{course}}";
+let url_metrics="/staff/stats/daily_metrics/{{coursename}}";
 d3.json(url_metrics).then(function (incoming) {
     console.log(`from daily_metrics ${url_metrics}`);
     console.log(incoming);
@@ -149,7 +150,7 @@ d3.json(url_metrics).then(function (incoming) {
 		   layout);
 });
 //////////////////////////////////////////////////
-let url_counts="/staff/stats/monitor_counts/{{course}}";
+let url_counts="/staff/stats/monitor_counts/{{coursename}}";
 d3.json(url_counts).then(function (incoming) {
     console.log(`from monitor_counts ${url_counts}`);
     console.log(incoming);
@@ -245,7 +246,7 @@ d3.json(url_counts).then(function (incoming) {
 
 });
 //////////////////////////////////////////////////
-let url_usage="/staff/stats/material_usage/{{course}}";
+let url_usage="/staff/stats/material_usage/{{coursename}}";
 d3.json(url_usage).then(function(incoming) {
     console.log(`from material_usage ${url_usage}`);
     console.log(incoming);
