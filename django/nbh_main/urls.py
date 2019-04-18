@@ -68,7 +68,7 @@ urlpatterns = [
                         nbhosting.courses.views.clear_staff),
     re_path(rf'^staff/courses/show-tracks/{COURSE}/?$',
                         nbhosting.courses.views.show_tracks),
-    re_path(rf'^staff/courses/.*',
+    re_path(rf'^staff/courses.*',
                         nbhosting.courses.views.staff_list_courses),
     re_path(rf'^staff/course/{COURSE}/?$',
                         nbhosting.courses.views.staff_show_course),
