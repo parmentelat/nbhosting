@@ -106,10 +106,16 @@ systemctl mask firewalld.service
 systemctl enable iptables.service
 ```
 
-## install git and docker
+## install docker and git
 
 ```
-dnf -y install git docker
+dnf -y install dnf-plugins-core
+dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+dnf install docker-ce docker-ce-cli containerd.io
+```
+
+```
+dnf -y install git
 cd /root
 git clone https://github.com/parmentelat/nbhosting.git
 ```
@@ -144,7 +150,7 @@ In order to apply changes (esp. regarding selinux, and iptables)
 
 ***IMPORTANT NOTES*** about python libraries
 
-* ***NOTE*** Be careful to **not install `python3-django` from rpm** as this would give you 1.9 and the code would break.
+* ***NOTE*** Be careful to **not install `python3-django` from rpm** as this would give you 1.9 and the code would break. That was true as of end 2018, might no longer be an issue now.
 
 * See `capture-versions.sh`  and files named `VERSIONS*` that give more details of what was running on nominal deployments, and on the actual split between what was installed with `dnf` and what comes from `pip`
 
