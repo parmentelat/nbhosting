@@ -86,27 +86,48 @@ function swap-ssl() {
 #    ./install.sh
 }
 
-function pull-from-prod() {
+function -pull-from() {
     # in terms of contents, we should only worry about
     # /nbhosting/students
     # /nbhosting/raw
-    # 
-    # also we pull in 2 dirs that are called 
+    #
+    # also we pull in 2 dirs that are called
     # /nbhosting/students.prod
     # /nbhosting/raw.prod
     # so we can continue operate the dev site with minimal impact
 
-    current_prod=$1; shift
+    # this is granted
+    local mode="$1"; shift
 
-    [ -n "$current_prod" ] || -die "Usage: $FUNCNAME current-prod-box [-n]"
+    local OPTIND
+    local opt
+    local rsync_opt=""
+    while getopts "ni:" opt; do
+        case $opt in
+            n) rsync_opt="$rsync_opt -n" ;;
+            i) rsync_opt="$rsync_opt -i" ;;
+            *) -die "USAGE: pull-from-${mode} [-n] hostname" ;;
+        esac
+    done
+
+    shift $((OPTIND-1))
+
+    [[ "$#" -eq 1 ]] || -die "USAGE: pull-from-${mode} [-n] hostname"
+    local current_host=$1; shift
 
     for content in students raw; do
         set -x
-        rsync "$@" -a --delete $current_prod:/nbhosting/${content}/ /nbhosting/${content}.prod/
+        rsync $rsync_opt -a --delete $current_host:/nbhosting/${content}/ /nbhosting/${content}.${mode}/
         set +x
     done
 }
 
+function pull-from-prod() {
+    -pull-from prod "$@"
+}
+function pull-from-dev() {
+    -pull-from dev "$@"
+}
 
 ###
 ### function orchestrate() {
@@ -135,7 +156,7 @@ function call-subcommand() {
     case $(type -t -- $fun) in
 	function)
 	    shift ;;
-	*)  -die "$fun not a valid subcommand - use either swap-ip / swap-ssl / pull-from-prod" ;;
+	*)  -die "$fun not a valid subcommand - use either swap-ip / swap-ssl / pull-from-prod / pull-from-dev" ;;
     esac
     # call subcommand
     $fun "$@"
