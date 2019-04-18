@@ -411,9 +411,9 @@ class CourseDir:
             typically encoding="utf-8" is useful when text output is expected
             which in our case is always the case..
         """
-        completed = self.nbh_subprocess(subcommand, False, *args, **kwds)
+        completed = self.nbh_subprocess(subcommand, False, *args, **run_args)
 
-        print(f"{30*'='} {' '.join(command)} → {completed.returncode}")
+        print(f"{30*'='} {completed.args} → {completed.returncode}")
         print(f"{20*'='} stdout")
         print(f"{completed.stdout}")
         print(f"{20*'='} stderr")
