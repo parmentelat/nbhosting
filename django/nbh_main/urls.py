@@ -17,7 +17,11 @@ import nbh_main.views
 TRACK =       r'(?P<track>[\w_.-]*)'
 COURSE =      r'(?P<course>[\w_.-]+)'
 STUDENT =     r'(?P<student>[\w_.-]+)'
-NOTEBOOK =    r'(?P<notebook>.*(\.ipynb){0,2})'
+# being very loose / flexible for the spelling of <notebook>
+# (for supporting e.g. spaces in filenames)
+# requires the non-greedy version of .+
+# because otherwise the .ipynb stuff goes into <notebook> as well
+NOTEBOOK =    r'(?P<notebook>.+?)(\.ipynb){0,2}'
 OPTION_LAB =  r'(?P<lab>/lab)?'
 
 COURSE_TRACK = rf'{COURSE}(:{TRACK})?'
