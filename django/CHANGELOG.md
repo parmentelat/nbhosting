@@ -1,3 +1,12 @@
+# 0.12.2 2019 Apr 18
+* fix regression introduced when dealing with filenames with spaces; 
+  was resulting in duplicated .ipynb extensions all over the place
+* more consistent color scheme for the UI
+  blue is for track-based; green for file-based; red for managements and orange for stats
+* untracked notebooks show up correctly
+  both jupyter classic and lab are available
+* fixed stats for courses that use non-edx name scheme for user hashes
+
 # 0.12.1 2019 Apr 11
 * migration to docker-ce instead of formerly docker-1.13; see fedora/migrate-to-docker-ce.md
 * updated install_requires
