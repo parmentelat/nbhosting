@@ -15,10 +15,12 @@ nbhroot = Path(sitesettings.nbhroot)
 time_format = "%Y-%m-%dT%H:%M:%S"
 
 # this is to skip artefact-users like e.g. 'student'
-# that can be seen as staff in the sense that we don't
-# want these users to pollute the stats
-edx_hash_regexp = re.compile(r"[0-9a-f]{32}")
-
+# used to have regexps for edx-like hashes,
+# but proved too restrictive for users from m@gistere
+# who were asked to forge their hashes in separate namespaces
+# so for now let's just keep the long ones
+def artefact_user(user_hash):
+    return len(user_hash) < 30
 
 # an iterable has no builtin len method
 def iter_len(iterable):
@@ -244,7 +246,7 @@ class Stats:
                         if action == 'killing':
                             continue
                         # ignore staff or other artefact users
-                        if student in staff or not edx_hash_regexp.match(student):
+                        if student in staff or artefact_user(student):
                             continue
                         day = timestamp.split('T')[0] + ' 23:59:59'
                         if day in figures_by_day:
@@ -378,7 +380,7 @@ class Stats:
                     if action in ('killing',):
                         continue
                     # ignore staff or other artefact users
-                    if student in staff or not edx_hash_regexp.match(student):
+                    if student in staff or artefact_user(student):
                         logger.debug("ignoring staff or artefact student {}"
                                      .format(student))
                         continue
