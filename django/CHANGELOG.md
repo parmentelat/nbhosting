@@ -1,3 +1,11 @@
+# 0.13.0 2019 Apr 20
+* IMPORTANT fix about the way to configure docker-ce; change in 0.12.1 was incomplete, 
+  so docker would not be configured to use disk space under NBHROOT
+* location of the database has changed as well, now searched under NBHROOT too
+* globally more robust in terms of parametrization of NBHROOT, 
+  as our dev box now actually uses an alternate location 
+  so as to ease up pivoting when swapping dev and prod
+
 # 0.12.2 2019 Apr 18
 * fix regression introduced when dealing with filenames with spaces; 
   was resulting in duplicated .ipynb extensions all over the place
