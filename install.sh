@@ -4,11 +4,8 @@
 # expected to run in a repository that is git-updated
 # run as ./install.sh
 
-# where all the data lies; may provisions were made in the code to
-# have this configurable (in the django settings)
-# but there might still be other places where it's hard-wired
-# so it's safer to use this for now
-nbhroot=/nbhosting
+# global config, like nbhroot and similar settings
+# all come from django/nbh_main/sitesettings.py
 
 function check-subdirs() {
     for subdir in jupyter courses-git logs raw local; do
@@ -105,6 +102,10 @@ function update-nginx() {
 
 }
 
+function update-docker {
+    rsync -ai docker/daemon.json /etc/docker
+}
+
 function restart-services() {
     systemctl restart nbh-monitor
     systemctl restart nginx
@@ -136,6 +137,7 @@ function default-main() {
     update-images
 
     update-nginx
+    update-docker
     enable-services
     restart-services
 

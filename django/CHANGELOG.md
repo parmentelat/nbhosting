@@ -18,7 +18,7 @@
 # 0.11.1 2019 Mar 18
 * in auditor mode, iframe gains focus at once, no longer need to click
 * all config tweaks like static mappings or dockerfile
-  can appear in `/nbhosting/local` (preferred) or in course `nbhosting` subdir
+  can appear in $NBHROOT/local (preferred) or in course's `nbhosting` subdir
 * new `destroy my container` feature in staff course view
 * which by the way is reorganized a little
 * rough mass registration script available; passwords get sent by email

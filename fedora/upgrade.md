@@ -126,7 +126,7 @@ amount of time needed next time.
 When swapping a box from, say, devel to production: there currently is a need to
 
 * manually manage (start/stop/enable) the IP addresses in use through related systemd services named in `nbhosting*addr.service`
-* manually edit `nbhosting/nbhosting/sitesettings.py` to select the 3 lines that describe `server_name` and related SSL certificate
+* manually edit `django/nbh_main/sitesettings.py` to select the 3 lines that describe `server_name` and related SSL certificate
 * re-run `install.sh`
 
 

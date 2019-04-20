@@ -32,13 +32,13 @@ from .loggers import init_loggers
 ########## production vs devel
 DEVEL = False
 if os.getuid() == 0:
-    # typically /nbhosting/logs
+    # typically $NBHROOT/logs
     LOGS_DIR = Path(sitesettings.nbhroot) / 'logs'
-    # typically /root/nbhosting
+    # typically $HOME/nbhosting
     BASE_DIR = Path(sitesettings.srcroot)
 else:
     # just a convenience for devel boxes
-    # e.g. /users/tparment/git/nbhosting/nbhosting
+    # e.g. $HOME/git/nbhosting/django
     django_root = Path(__file__).parents[1]
     sitesettings.nbhroot = str(django_root / 'fake-root')
     # some provisions for devel mode
@@ -124,11 +124,11 @@ WSGI_APPLICATION = 'nbh_main.wsgi.application'
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 # this sqlite3 database will contain the account info
 # for the admin
-# typically in /nbhosting/db.sqlite3
+# typically in $NBHROOT/db.sqlite3
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),
+        'NAME': str(Path(sitesettings.nbhroot) / 'db.sqlite3'),
     }
 }
 

@@ -7,7 +7,9 @@ Description=the nbhosting django app as a uwsgi instance
 # in file nbh-uwsgi.service.f27
 
 [Service]
-ExecStartPre=/bin/rm -rf /nbhosting/course/*/.tracks.json
+# this is wrong because of the hard-wired path
+# plus, there is no indication that it is really useful though, so..
+#ExecStartPre=/bin/rm -rf /nbhosting/current/courses/*/.tracks.json
 ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/nbhosting.ini
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT

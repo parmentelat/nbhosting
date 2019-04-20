@@ -177,7 +177,7 @@ class CourseDir:
         the tracks() function will receive self as its single parameter
         it is expected to return a dictionary
            track_name -> Track instance
-        see flotpython/courses/nbhosting/tracks.py for a realistic example
+        see flotpython/nbhosting/tracks.py for a realistic example
 
         the keys in this dictionary are used in the web interface
         to propose the list of available tracks

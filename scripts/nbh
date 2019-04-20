@@ -138,11 +138,11 @@ function list-tests() {
     echo ==================== users
     grep student- /etc/passwd
     echo ==================== user dirs
-    ls -d /nbhosting/students/student-* 2> /dev/null
+    ls -d $NBHROOT/students/student-* 2> /dev/null
 }
 
 function clear-tests() {
-    for userdir in $(ls -d /nbhosting/students/student-* 2>/dev/null); do
+    for userdir in $(ls -d $NBHROOT/students/student-* 2>/dev/null); do
         user=$(basename $userdir)
         for coursedir in $(ls -d $userdir/* 2>/dev/null); do
             course=$(basename $coursedir)
@@ -451,7 +451,7 @@ function -check-course-jupyter() {
     course=$1; shift
     -compute-course-globals $course
     [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
-    # temporary : if we find a file named 'DETACHED' in /nbhosting/jupyter/course/
+    # temporary : if we find a file named 'DETACHED' in $NBHROOT/jupyter/course/
     # then we leave that alone; otherwise, keep that in sync with our sources
     if [ -f $COURSE_jupyter/DETACHED ]; then
         -echo-stderr "Leaving jupyter material for $course intact (DETACHED found)"
@@ -627,9 +627,9 @@ function docker-create-container-for-student-in-course() {
 
     # container name - if it exists then nothing happens here
     local container=$1; shift
-    # student name aka student - should exist as /nbhosting/students/$student
+    # student name aka student - should exist as $NBHROOT/students/$student
     local student=$1; shift
-    # course name - should exist as /nbhosting/courses/$course
+    # course name - should exist as $NBHROOT/courses/$course
     # i.e. should have gone through course-init and update-course
     local course=$1; shift
 

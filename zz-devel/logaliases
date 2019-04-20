@@ -47,7 +47,7 @@ function jou-all()		{ jou -f nginx docker nbh-uwsgi nbh-monitor; }
 
 ##########
 function logs-all() {
-    -logs $(find /nbhosting/logs -type f)
+    -logs $(find /nbhosting/current/logs -type f)
 }
 
 function -logs() {
@@ -60,7 +60,7 @@ function -logs() {
 }
 
 function logs() {
-    cd /nbhosting/logs
+    cd /nbhosting/current/logs
     echo "current directory is now $(pwd)"
 }
 

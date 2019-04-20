@@ -60,9 +60,9 @@ A course has two options:
 
 * or it wants to describe its own image (when its imagename **does match** its own name); in that case, a `Dockerfile` is searched in 2 locations:
   * first in
-   `/nbhosting/local/<coursename>/Dockerfile`
+   `$NBHROOT/local/<coursename>/Dockerfile`
   * then in the course repo itself, that is in
-  `/nbhosting/courses-git/<coursename>/nbhosting/Dockerfile`
+  `$NBHROOT/courses-git/<coursename>/nbhosting/Dockerfile`
 
 In that second case, rebuilding a course's image is thus generally done either
 

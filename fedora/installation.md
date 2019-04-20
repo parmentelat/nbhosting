@@ -46,9 +46,6 @@ tmpfs          tmpfs      26G     0   26G   0% /run/user/0
 ```
 ## how `nbhosting` uses this space
 
-* `/nbhosting/dockers/`
-
-   will be handed over to docker as its main area for storing images and snapshots, basically all the copy-on-write powered images
 * `/nbhosting/courses-git/`
 
     is where we create git repo clones, used as a basis for exposing contents to the containers
@@ -74,7 +71,15 @@ The data that should be backed up is the one in
 
   is designed to be low-to-mid noise, and to take reasonable space; it is enough to reconstruct all the statistics displayed in the web pages.
 
-* Worth being mentioned as well in this area are the various dockerfiles, that I assume are stored in the `nbhosting` git repo under `docker-images`, but well, technically this is important data as it describes the contents of each course image.
+* `/nbhosting/local`
+
+  is the place where the admin can write stuff to supersede what comes with each course repo in their `nbhosting/` subdir; like `Dockerfile`, `tracks.py` and such other customizations
+
+## disposable data
+
+* `/nbhosting/dockers/`
+
+   will be handed over to docker as its main area for storing images and snapshots, basically all the copy-on-write powered images
 
 ****
 
@@ -82,7 +87,8 @@ The data that should be backed up is the one in
 
 Notes
 
-* `/etc/sysconfig/docker` is the place where we define `/nbhosting/dockers` as being `docker`'s workspace
+* `/etc/docker/daemon.json` is the place where we define `/nbhosting/dockers` as being `docker`'s workspace;
+  also note that this location is **not altered** if you redefine `nbhroot` in your `sitesettings.py` file; the reason for that is that when swapping prod and dev boxes, we don't care about that specifi area, so we're better off having it in its own location
 * we want to use a static `iptables` config, and ***not firewalld*** that will just screw it all up for us
 * likewise, we need to turn off SElinux
 * it is required that `sudo` allows non-tty apps to issue calls to `sudo`; by default on fedaora, it is the case, but it turns out our local IT has a policy in place that requires a terminal (see `requiretty` as a sudo configuration clause). To address this, consider creating the following file (*it puzzles me that `install.sh` does not do it, it might just not be needed any more...*)
@@ -132,10 +138,7 @@ chmod 440 /etc/sudoers.d/99-nbhosting
 
 ## docker setup
 ```
-sed -i -f etc-sysconfig-docker.sed /etc/sysconfig/docker
-
 systemctl enable docker
-systemctl start docker
 ```
 
 ## reboot
@@ -249,9 +252,28 @@ nbh --help
 
 ****
 
+# Preparing core images
+
+## pull docker images (step A)
+
+```
+docker pull  jupyter/minimal-notebook; docker pull jupyter/scipy-notebook
+```
+
+This will fetch at dockerhub the 2 images that are used to create our own core images
+
+## build core images (step B)
+
+```
+nbh-manage build-core-images
+```
+
+This will rebuild docker images `nbhosting/minimal-notebook` and `nbhosting/scipy-notbeook` on top of the publically available ones that we pulled in the previous step.
+
+
 # Managing courses
 
-## initialisation (step 1 : pull from git)
+## course initialisation (step 1 : pull from git)
 
 ```
 nbh course-init python3-s2 https://github.com/flotpython/course.git
@@ -269,31 +291,43 @@ nbh course-update-from-git flotpython
 
 * for now this **needs to be done at least once**
 * as it will create the actual course notebooks master area
-* which fyi again goes in `/nbhosting/courses/flotpython`
+* which fyi again goes in `$NBHROOT/courses/flotpython`
 
-## image (step 3 : build image for course)
+## image (step 3 : build course image)
 
-#### option1 : piggyback
+#### option 1 : use a core image
 
-If you use an nbhosting instance that already hosts a course, say `python3-s2`, and you want to host course `bioinfo` with the same image as `python3-s2`, you can do this:
-
-```
-nbh course-settings -i python3-s2 bioinfo
-```
-
-and check that your setting is properly displayed on the course page for `bioinfo`.
-
-
-#### option2 : your own image
+nbhosting comes with predefined images, that are built on top of publically
+available images (see step B above). If you'd like your course to use one of
+these, do
 
 ```
-nbh-manage course_build_image python3-s2
+nbh course-settings -i nbhosting/minimal-notebook mycourse
 ```
 
-* this assumes a dockerfile has been created for that course; this can be either
+Note that it is **not recommended** to use dockerhub images *as is*, as it will
+cause very poor overll performance. If needed, see the `Dockerfile` for the core
+images, that are located in the `images` subdir in the git repo.
 
-  * in the course git repo, under `nbhosting/Dockerfile`
-  * or in `nbhosting`'s git repo itself, under `images`/*coursename*`.Dockerfile`
+#### option 2 : piggyback
+
+If your nbhosting instance already hosts a course, say `python3-s2`, and you want to host course `mycourse` with the same image as `python3-s2`, you can do this:
+
+```
+nbh course-settings -i python3-s2 mycourse
+```
+
+#### option 3 : your own image
+
+```
+nbh-manage course-build-image mycourse
+```
+
+* this assumes a `Dockerfile` has been written for that course; this can be either
+
+  * in the course git repo, under `nbhosting/Dockerfile` or (re)defined locally,
+    in `nbhosting`'s root directory (default for that is `/nbhosting`), in a
+    file called `local/mycourse/Dockerfile`
 
 ## UI
 
@@ -324,8 +358,8 @@ and so are defined from files in the course repo.
 
 The 2 first settings are stored in text files, e.g.
 
-* `/nbhosting/courses/flotpython/.staff`
-* `/nbhosting/courses/flotpython/.image`
+* `$NBHROOT/courses/flotpython/.staff`
+* `$NBHROOT/courses/flotpython/.image`
 
 that can be edited directly, or be changed with `nbh course-settings`; run with `--help` for more details
 
@@ -402,9 +436,9 @@ as far as `systemd` and `journactl` are concerned:
 
 Additional logs go into
 
-* `/nbhosting/logs/nbhosting.log`
-* `/nbhosting/logs/monitor.log`
-* `/nbhosting/logs/nginx-{error,access}.log`
+* `$NBHROOT/logs/nbhosting.log`
+* `$NBHROOT/logs/monitor.log`
+* `$NBHROOT/logs/nginx-{error,access}.log`
 * also each docker container can be probed for its logs
   * `docker logs flotpython-x-thestudentid`
 
