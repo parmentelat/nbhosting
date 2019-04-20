@@ -20,7 +20,7 @@ time_format = "%Y-%m-%dT%H:%M:%S"
 # who were asked to forge their hashes in separate namespaces
 # so for now let's just keep the long ones
 def artefact_user(user_hash):
-    return len(user_hash) < 30
+    return len(user_hash) < 28
 
 # an iterable has no builtin len method
 def iter_len(iterable):
