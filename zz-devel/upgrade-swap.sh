@@ -102,7 +102,7 @@ function -pull-from() {
     local OPTIND
     local opt
     local rsync_opt=""
-    while getopts "ni:" opt; do
+    while getopts "ni" opt; do
         case $opt in
             n) rsync_opt="$rsync_opt -n" ;;
             i) rsync_opt="$rsync_opt -i" ;;
@@ -117,7 +117,8 @@ function -pull-from() {
 
     for content in students raw; do
         set -x
-        rsync $rsync_opt -a --delete $current_host:/nbhosting/${content}/ /nbhosting/${content}.${mode}/
+        rsync $rsync_opt -a --delete \
+            $current_host:/nbhosting/${content}/ /nbhosting/${mode}/${content}/
         set +x
     done
 }
