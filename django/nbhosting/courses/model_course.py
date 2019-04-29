@@ -35,7 +35,11 @@ class CourseDir:
         self.coursename = coursename
         # historical default is no autopull
         self.autopull = False
-        self._probe_settings()
+        # for bootstrapping
+        try:
+            self._probe_settings()
+        except:
+            pass
         self._notebooks = None
         self._tracks = None
 
@@ -328,6 +332,10 @@ class CourseDir:
             self.autopull = False
 
 
+    def set_image(self, image):
+        with (self.notebooks_dir / ".image").open('w') as storage:
+            storage.write(f"{image}\n")
+
     def image_hash(self, docker_proxy):
         """
         the hash of the image that should be used for containers
@@ -435,8 +443,11 @@ class CourseDir:
             typically encoding="utf-8" is useful when text output is expected
             which in our case is always the case..
         """
-        main = "nbh-manage" if python else "nbh"
-        command = [main, subcommand, self.coursename] + list(args)
+        if not python:
+            command = ["nbh", "-d", str(NBHROOT)]
+        else:
+            command = [ "nbh-manage" ]
+        command += [subcommand, self.coursename] + list(args)
         return subprocess.run(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             encoding="utf-8",
