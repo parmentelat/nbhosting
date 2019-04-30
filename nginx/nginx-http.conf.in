@@ -117,11 +117,10 @@ http {
 
 
         # more harmful than helpful at least during devel
-        # # redirect non-matching urls right under /auditor/
-        # # so that e.g. / -> /some/other/stuff -> /auditor/some/other/stuff
-        # location / {
-        #     return 301 $scheme://$host/auditor$request_uri;
-        # }
+        # redirect non-matching urls to /welcome
+        location / {
+             return 301 $scheme://$host/welcome;
+        }
 
 
         # edxfront.views.edx_request will redirect to a URL
