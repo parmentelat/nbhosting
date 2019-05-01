@@ -1,7 +1,11 @@
 {% extends "nbhosting.html" %}
 
+{% block head_title %}
+manage courses
+{% endblock %}
+
 {% block title %}
-Management of known courses
+manage courses
 {% endblock %}
 
 
@@ -18,36 +22,41 @@ Management of known courses
 
 {% block content %}
 <style>
-div.staff-course {
+div.grid {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+}
+h3 {
+    text-align: right;
+}
+/*
+div.buttons-flex {
     display: flex;
     flex-direction: row;
     flex-wrap: no-wrap;
     justify-content: space-around;
 }
-div.staff-course>h2:first-child {
-    width: 40%;
-}
+*/
 </style>
 
-{% for course_detail in course_details %}
-<div class="card text-center">
-    <div class="staff-course mt-4 mb-4">
-        <h2 class="card-title">{{course_detail.name}}</h2>
-        <a class='btn btn-lg btn-outline-danger'
+<div class="grid">
+    {% for course_dir in course_dirs %}
+        <h3 class="card-title m-2">{{course_dir.coursename}}</h3>
+        <a class="btn btn-lg btn-outline-danger m-2"
             href='/staff/course/{{course_detail.name}}'
             data-toggle="tooltip"
             title="pull, build, settings, ..."
         >manage</a>
-        <a class='btn btn-lg btn-outline-warning'
+        <a class="btn btn-lg btn-outline-warning m-2"
             href='/staff/stats/{{course_detail.name}}'
             data-toggle="tooltip"
             title="course activity and resources"
         >statistics</a>
-        <span class="btn btn-lg btn-info"
+        <span class="btn btn-lg btn-info m-2"
             data-toggle="tooltip" data-html="true"
             title="existing homedirs<br/>no more details for now"
-        >{{course_detail.homedirs}} students</span>
-    </div>
+        >{{course_dir.student_homes}} students</span>
+    {% endfor %}
 </div>
-{% endfor %}
+
 {% endblock %}

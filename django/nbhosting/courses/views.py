@@ -104,13 +104,11 @@ def auditor_jupyterdir(request, course, lab=False):
 @csrf_protect
 def staff_list_courses(request):
     courses_dir = CoursesDir()
-    course_details = [
-        dict(name=name,
-             homedirs=CourseDir(name).student_homes())
-        for name in courses_dir.coursenames()
-        ]
+    course_dirs = [
+        CourseDir(name) for name in courses_dir.coursenames()
+    ]
     return render(request, "staff-courses.html",
-                  {'course_details': course_details})
+                  {'course_dirs': course_dirs})
 
 @staff_member_required
 @csrf_protect
