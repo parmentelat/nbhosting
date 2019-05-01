@@ -85,6 +85,9 @@ urlpatterns = [
     # this one is not reachable through nginx, mostly for devel
     re_path(rf'^welcome.*',
                         nbh_main.views.welcome),
+    # empty url
+    re_path(rf'^/?$',
+                        nbh_main.views.welcome),
 
     # various redirects and other django-provided pages
     re_path(rf'^admin/',
