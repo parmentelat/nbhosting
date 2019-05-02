@@ -110,7 +110,6 @@ function -pull-from() {
     set -x
     rsync $rsync_opt -a --delete \
         $current_host:/nbhosting/${mode}/ /nbhosting/${mode}/
-    done
 }
 
 function pull-from-prod() {
