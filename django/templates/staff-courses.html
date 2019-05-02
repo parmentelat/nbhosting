@@ -43,12 +43,12 @@ div.buttons-flex {
     {% for course_dir in course_dirs %}
         <h3 class="card-title m-2">{{course_dir.coursename}}</h3>
         <a class="btn btn-lg btn-outline-danger m-2"
-            href='/staff/course/{{course_detail.name}}'
+            href='/staff/course/{{course_dir.coursename}}'
             data-toggle="tooltip"
             title="pull, build, settings, ..."
         >manage</a>
         <a class="btn btn-lg btn-outline-warning m-2"
-            href='/staff/stats/{{course_detail.name}}'
+            href='/staff/stats/{{course_dir.coursename}}'
             data-toggle="tooltip"
             title="course activity and resources"
         >statistics</a>
