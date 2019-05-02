@@ -87,14 +87,6 @@ function swap-ssl() {
 }
 
 function -pull-from() {
-    # in terms of contents, we should only worry about
-    # /nbhosting/students
-    # /nbhosting/raw
-    #
-    # also we pull in 2 dirs that are called
-    # /nbhosting/students.prod
-    # /nbhosting/raw.prod
-    # so we can continue operate the dev site with minimal impact
 
     # this is granted
     local mode="$1"; shift
@@ -117,14 +109,7 @@ function -pull-from() {
 
     set -x
     rsync $rsync_opt -a --delete \
-        $current_host:/root/nbhosting/db.sqlite3 /nbhosting/${mode}/
-    set +x
-    local contents="courses  courses-git  images  jupyter  local  logs	modules  raw  static  students"
-    for content in $contents; do
-        set -x
-        rsync $rsync_opt -a --delete \
-            $current_host:/nbhosting/${content}/ /nbhosting/${mode}/${content}/
-        set +x
+        $current_host:/nbhosting/${mode}/ /nbhosting/${mode}/
     done
 }
 
