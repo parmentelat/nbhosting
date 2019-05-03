@@ -41,7 +41,7 @@ div.buttons-flex {
 
 <div class="grid">
     {% for course_dir in course_dirs %}
-        <h3 class="card-title m-2">{{course_dir.coursename}}</h3>
+        <h3 class="card-title m-2 p-2">{{course_dir.coursename}}</h3>
         <a class="btn btn-lg btn-outline-danger m-2"
             href='/staff/course/{{course_dir.coursename}}'
             data-toggle="tooltip"
