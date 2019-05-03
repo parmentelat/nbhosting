@@ -39,52 +39,7 @@ function -die() {
     exit 1
 }
 
-function swap-ip() {
-    mode=$1; shift
-
-    [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
-
-    if [ "$mode" == "become-production" ]; then
-        systemctl stop nbhosting-dev-addr
-        systemctl disable nbhosting-dev-addr
-        systemctl start nbhosting-addr
-        systemctl enable nbhosting-addr
-    else
-        systemctl stop nbhosting-addr
-        systemctl disable nbhosting-addr
-        systemctl start nbhosting-dev-addr
-        systemctl enable nbhosting-dev-addr
-    fi
-}
-
-##### (*) SSL
-# nginx is configured to use a servername and related
-# certificate file
-
-function swap-ssl() {
-    mode=$1; shift
-
-    [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
-
-    cd /root/nbhosting/django/nbh_main
-
-    if [ "$mode" == "become-production" ]; then
-        sed -i.swapped \
-            -e 's,^server_name *=.*,server_name = "nbhosting.inria.fr",' \
-            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate/bundle.crt",' \
-            -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key",' \
-            sitesettings.py
-    else
-        sed -i.swapped \
-            -e 's,^server_name *=.*,server_name = "nbhosting-dev.inria.fr",' \
-            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate-dev/bundle.crt",' \
-            -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate-dev/nbhosting-dev.inria.fr.key",' \
-            sitesettings.py
-    fi
-
-#    cd /root/nbhosting
-#    ./install.sh
-}
+#####
 
 function -pull-from() {
 
@@ -119,23 +74,92 @@ function pull-from-dev() {
     -pull-from dev "$@"
 }
 
-###
-### function orchestrate() {
-###     local usage="Usage: $FUNCNAME current-official new-official
-###  Example:
-###   $FULLPATH thurst.inria.fr thermals.inria.fr
-### "
-###
-###     current=$1; shift
-###     new=$1; shift
-###
-###     # copy this script over in /tmp on both boxes
-###     for h in $current $new; do
-###         -echo-stderr "Pushing $FULLPATH onto $h in /tmp"
-###         rsync -ai $FULLPATH root@$h:/tmp
-###     done
-###     ssh root@${current} /tmp/$COMMAND xxx etc...
-###
+#####
+
+function swap-ip() {
+    mode=$1; shift
+
+    [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
+
+    if [ "$mode" == "become-prod" ]; then
+        systemctl stop nbhosting-dev-addr
+        systemctl disable nbhosting-dev-addr
+        systemctl enable nbhosting-addr
+        # don't do this yet
+        echo DO LATER: systemctl start nbhosting-addr
+    elif [ "$mode" == "become-dev" ]; then
+        systemctl stop nbhosting-addr
+        systemctl disable nbhosting-addr
+        systemctl enable nbhosting-dev-addr
+        echo DO LATER: systemctl start nbhosting-dev-addr
+    else
+        echo ignoring unknown mode $mode
+    fi
+}
+
+##### (*) SSL
+# nginx is configured to use a servername and related
+# certificate file
+
+function swap-ssl() {
+    mode=$1; shift
+
+    [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
+
+    cd /root/nbhosting/django/nbh_main
+
+    if [ "$mode" == "become-prod" ]; then
+        sed -i.swapped \
+            -e 's,^server_name *=.*,server_name = "nbhosting.inria.fr",' \
+            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate/bundle.crt",' \
+            -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key",' \
+            sitesettings.py
+    elif [ "$mode" == "become-dev" ]; then
+        sed -i.swapped \
+            -e 's,^server_name *=.*,server_name = "nbhosting-dev.inria.fr",' \
+            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate-dev/bundle.crt",' \
+            -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate-dev/nbhosting-dev.inria.fr.key",' \
+            sitesettings.py
+    else
+        echo ignoring unknown mode $mode
+    fi
+
+}
+
+function swap-contents() {
+    mode=$1; shift
+
+    [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
+
+    if [ "$mode" == "become-prod" ]; then
+        cd /nbhosting
+        rm current
+        ln -s prod current
+    elif [ "$mode" == "become-dev" ]; then
+        cd /nbhosting
+        rm current
+        ln -s dev current
+    else
+        echo ignoring unknown mode $mode
+    fi
+}
+
+# ignore unrelevant  nbh-autopull
+SERVICES="nbhosting-addr nbhosting-dev-addr nbh-uwsgi nbh-monitor nginx docker"
+CONFIG=$HOME/nbhosting/django/nbh_main/sitesettings.py
+
+function status() {
+    for service in $SERVICES; do
+        echo ===== $service =====
+        systemctl is-active $service
+        systemctl is-enabled $service
+    done
+    echo '===== configuration ====='
+    egrep '^(server_name|ssl_certificate)' $CONFIG
+    echo '===== data space ====='
+    ls -l /nbhosting/current
+}
+
 
 # very rough for now; run all stages individually and manually
 
@@ -151,14 +175,5 @@ function call-subcommand() {
     # call subcommand
     $fun "$@"
 }
-
-
-# xxx from older version
-# because the outcome of this script goes on stdout,
-# so we always write on stderr, but as far as stderr is concerned,
-# we want to log it *and* to return it in stderr
-# xxx previous redirection system
-# main 2> >(tee -a $log >&2) || :
-
 
 call-subcommand "$@"
