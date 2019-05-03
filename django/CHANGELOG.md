@@ -1,3 +1,8 @@
+# 0.13.1 2019 May 3
+* toplevel url in https://nbhosting.inria.fr/ works now
+* new all-in-one command nbh-manage create-course
+* nicer staff courses page
+
 # 0.13.0 2019 Apr 20
 * IMPORTANT fix about the way to configure docker-ce; change in 0.12.1 was incomplete, 
   so docker would not be configured to use disk space under NBHROOT
