@@ -86,7 +86,7 @@ urlpatterns = [
     re_path(rf'^welcome.*',
                         nbh_main.views.welcome),
     # empty url
-    re_path(rf'^/?$',
+    re_path(rf'^$',
                         nbh_main.views.welcome),
 
     # various redirects and other django-provided pages
