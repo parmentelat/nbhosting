@@ -23,8 +23,10 @@ def main():
             )
         raise
     # allow to use subcommands with dashes
+    # but allow e.g. --help to pass through as-is
     if len(sys.argv) >= 2:
-        sys.argv[1] = sys.argv[1].replace('-', '_')
+        if not sys.argv[1].startswith('-'):
+            sys.argv[1] = sys.argv[1].replace('-', '_')
     execute_from_command_line(sys.argv)
 
 if __name__ == "__main__":
