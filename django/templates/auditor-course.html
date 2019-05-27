@@ -46,24 +46,24 @@ div.tracks {
 .file-head {
     margin-top: 100px;
 }
-a.track, a.jupyter{
+#left-pane a {
     padding: 4px;
     border-radius: 4px;
     border: solid 1px #888;
     margin: 5px;
 }
-a.track {
+#left-pane a.track {
     background-color: #f0f0f0;
     color: blue;
 }
-a.jupyter {
+#left-pane a {
     background-color: #f0f0f0;
     color: green;
 }
-a.track:link, a.jupyter:link {
+#left-pane a:link {
     text-decoration: none;
 }
-a.track.active, a.jupyter.active {
+#left-pane a.active {
     background-color: #fff;
     border-width: 3px;
 }
@@ -109,7 +109,7 @@ span.section-details {
 <!------------------------------>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-2">
+        <div class="col-2" id="left-pane">
             <div class="tracks">
                 <h1 class="btn btn-primary active track-head"
                     data-toggle="tooltip" data-html="true"

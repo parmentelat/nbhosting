@@ -30,7 +30,7 @@ html, body {
     width: 100%;
 }
 
-div.iframe-side {
+div.left-pane {
     position: absolute;
     top: 130px;
     bottom: 0px;
@@ -102,7 +102,7 @@ iframe {
 
 <!------------------------------>
 <div class="container" height="100%">
-    <div class="iframe-side">
+    <div class="left-pane">
         {% for section in track.sections %}
         <div class="section">
             {% if not section.untracked %}
