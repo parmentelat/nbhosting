@@ -84,6 +84,7 @@ def auditor_jupyterdir(request, course, lab=False):
     tracks = coursedir.tracks()
     student = request.user.username
     iframe = f"/ipythonBrowse/{course}/{student}"
+    giturl = coursedir.giturl
     message = "classic"
     if lab:
         iframe += "/lab"
@@ -95,6 +96,7 @@ def auditor_jupyterdir(request, course, lab=False):
             coursedir=coursedir,
             tracks=tracks,
             iframe=iframe,
+            giturl=giturl,
             lab=lab,
         ))
 
