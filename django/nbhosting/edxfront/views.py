@@ -226,7 +226,7 @@ def share_notebook(request, course, student, notebook):
     return JsonResponse(dict(url_path=url_path, url=url))
 
 # pylint: disable=r0914
-def jupyterdir_course(request, course, student, lab=False):
+def jupyterdir_forward(request, course, student, jupyter_url):
 
     """
     this entry point is for opening a student's course directory
@@ -237,12 +237,24 @@ def jupyterdir_course(request, course, student, lab=False):
     and then returns a http redirect to /port/<notebook_path>
     """
 
-    logger.info(f"ENTERING edxfront view jupyterdir_course")
+    logger.info(f"jupyterdir_forward: jupyter_url={jupyter_url}")
+    logger.info(f"jupyterdir_forward: GET={request.GET}")
     all_right, explanation = authorized(request)
 
     if not all_right:
         return HttpResponseForbidden(
             f"Access denied: {explanation}")
+
+    # minimal filtering
+    allowed_verbs = (
+        'tree',     # classic notebook
+        'lab',      # jupyterlab
+        'git-pull', # nbgitpuller
+    )
+
+    if not any(jupyter_url.startswith(verb) for verb in allowed_verbs):
+        return HttpResponseForbidden(
+            f"Access denied: verb not in {allowed_verbs}")
 
     # nbh's subcommand
     subcommand = 'docker-view-student-course-jupyterdir'
@@ -294,14 +306,14 @@ def jupyterdir_course(request, course, student, lab=False):
         if ':' in host:
             host, _ = host.split(':', 1)
         ########## forge a URL that nginx will intercept
-        # pick between classic notebook or jupyterlab
-        subsystem = "lab" if lab else "tree"
         # port depends on scheme - we do not specify it
         # passing along course and student is for 'reset_from_origin'
-        url = (f"{scheme}://{host}/{actual_port}/{subsystem}"
-               f"?token={jupyter_token}&"
-               f"course={course}&student={student}")
-        logger.info(f"edxfront: redirecting to {url}")
+        url = (f"{scheme}://{host}/{actual_port}/{jupyter_url}"
+               f"?token={jupyter_token}"
+               f"&course={course}&student={student}")
+        for k, v in request.GET.items():
+            url += f"&{k}={v}"
+        logger.info(f"jupyterdir_forward: redirecting to {url}")
         return HttpResponseRedirect(url)
 
     except Exception as exc:

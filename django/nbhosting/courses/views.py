@@ -83,20 +83,27 @@ def auditor_jupyterdir(request, course, lab=False):
     coursedir = CourseDir(course)
     tracks = coursedir.tracks()
     student = request.user.username
-    iframe = f"/ipythonBrowse/{course}/{student}"
+    iframe = f"/ipythonForward/{course}/{student}"
     giturl = coursedir.giturl
-    message = "classic"
-    if lab:
-        iframe += "/lab"
+    gitpull_url = (f"/ipythonForward/{course}/{student}/git-pull"
+                   f"?repo={giturl}"
+                   f"&redirect=false"
+                   f"&toplevel=work/")
+    if not lab:
+        message = "classic"
+        iframe += "/tree"
+    else:
         message = "lab"
+        iframe += "/lab"
     return render(
         request, "auditor-jupyterdir.html",
         dict(
             coursename=course,
             coursedir=coursedir,
+            student=student,
             tracks=tracks,
             iframe=iframe,
-            giturl=giturl,
+            gitpull_url=gitpull_url,
             lab=lab,
         ))
 

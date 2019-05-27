@@ -23,6 +23,7 @@ STUDENT =     r'(?P<student>[\w_.-]+)'
 # because otherwise the .ipynb stuff goes into <notebook> as well
 NOTEBOOK =    r'(?P<notebook>.+?)(\.ipynb){0,2}'
 OPTION_LAB =  r'(?P<lab>/lab)?'
+JUPYTER_URL = r'(?P<jupyter_url>.*)?'
 
 COURSE_TRACK = rf'{COURSE}(:{TRACK})?'
 
@@ -35,10 +36,11 @@ urlpatterns = [
     re_path(rf'^ipythonShare/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
                         nbhosting.edxfront.views.share_notebook
     ),
-    # /ipythonBrowse/thecourse/thestudent
-    # /ipythonBrowse/lab/thecourse/thestudent
-    re_path(rf'^ipythonBrowse/{COURSE}/{STUDENT}{OPTION_LAB}/?$',
-                        nbhosting.edxfront.views.jupyterdir_course
+    # /ipythonForward/thecourse/thestudent/tree
+    # /ipythonForward/thecourse/thestudent/lab
+    # /ipythonForward/thecourse/thestudent/git-pull?repo=...
+    re_path(rf'^ipythonForward/{COURSE}/{STUDENT}/{JUPYTER_URL}/?$',
+                        nbhosting.edxfront.views.jupyterdir_forward
     ),
 
     # regular users who log in
