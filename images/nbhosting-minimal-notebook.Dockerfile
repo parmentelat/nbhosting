@@ -10,57 +10,13 @@ FROM jupyter/minimal-notebook:latest
 USER root
 COPY start-in-dir-as-uid.sh /usr/local/bin
 
-
 # --------
-# this is to increase the ulimit -n (max nb of open files)
-# as perceived by regular user processes in the container
-# before we implement this setting, default was 1024
-# 128 * 1024 looks about right
-# container root was OK at 1024*1024
-RUN for type in hard soft; do echo '*' $type nofile 131072 ; done > /etc/security/limits.d/open-file.conf
+# factorizing preparation steps, that are common to
+# all our images (minimal-notebook and scipy-notebook for now)
+
+ADD common-nbhosting-prepare.sh /root/common-nbhosting-prepare.sh
+
+RUN bash /root/common-nbhosting-prepare.sh
 
 
-# --------
-# add lsof in the mix to help troubleshoot shortages of open files
-# from the container context
-RUN apt-get update && apt-get install lsof
 
-
-# --------
-# hacks for jupyter itself
-# (*) disable check done when saving files - see https://github.com/jupyter/notebook/issues/484
-# (*) disable the 'Trusted' notification widget
-# (#) remove the 'Notebook saved' message that annoyingly pops up
-RUN (find /opt /usr -name notebook.js -o -name main.min.js | \
-     xargs sed -i \
-      -e 's|if (check_last_modified)|if (false)|') \
- &&  (find /opt /usr -name notificationarea.js -o -name main.min.js | \
-      xargs sed -i \
-      -e 's|this.init_trusted_notebook_notification_widget();||' \
-      -e 's|nnw.set_message(i18n.msg._("Notebook saved"),2000);||' \
-      )
-
-
-# --------
-# use latest pip
-RUN pip install -U pip
-
-
-# --------
-# auto-evaluated exercices
-RUN pip install nbautoeval
-
-
-# --------
-# the ipythontutor magic
-RUN pip install ipythontutor
-
-
-# --------
-# go back to tornado-4.5.3 for asyncio
-RUN pip install tornado==4.5.3
-
-
-# --------
-# install jupyter extensions, none enabled though
-RUN pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install --system

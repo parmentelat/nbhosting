@@ -36,10 +36,11 @@ note that pulling docker-stacks image from dockerhub is not taken care of by thi
             return
         dockerfile = candidates[0]
 
-        start_script = images_dir / "start-in-dir-as-uid.sh"
-        if not start_script.exists():
-            logger.error(f"Could not spot start_script for {name} - skipped")
-            return
+        # maybe better use git ls-files *.sh ?
+        scripts = [
+            "common-nbhosting-prepare.sh",
+            "start-in-dir-as-uid.sh",
+            ]
 
         plain_name = str(dockerfile.name).replace(".Dockerfile", "")
         image_name = plain_name.replace("nbhosting-", "nbhosting/")
@@ -47,7 +48,13 @@ note that pulling docker-stacks image from dockerhub is not taken care of by thi
 
         work_dir = f"/tmp/core-{plain_name}"
         show_and_run(f"rm -rf {work_dir}; mkdir -p {work_dir}")
-        show_and_run(f"cp {dockerfile} {start_script} {work_dir}")
+        show_and_run(f"cp {dockerfile} {work_dir}")
+        for script in scripts:
+            path = images_dir / script
+            if not path.exists():
+                logger.error(f"Could not spot script {script} for {name} - skipped")
+                return
+            show_and_run(f"cp {path} {work_dir}")
         show_and_run(f"cd {work_dir}; docker build -f {dockerfile.name} -t {image_name} .")
 
     def handle(self, *args, **kwargs):
