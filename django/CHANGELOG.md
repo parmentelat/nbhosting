@@ -1,3 +1,8 @@
+# 0.14.0 2019 Jun 3
+* refactored build of core images, remove the need for duplication of gory details
+* no longer needs to downgrade tornado, await works just fine
+* standard image now include our custom nbgitpuller
+
 # 0.13.1 2019 May 3
 * toplevel url in https://nbhosting.inria.fr/ works now
 * new all-in-one command nbh-manage create-course
