@@ -87,13 +87,14 @@ def auditor_jupyterdir(request, course, lab=False):
     giturl = coursedir.giturl
     gitpull_url = (f"/ipythonForward/{course}/{student}/git-pull"
                    f"?repo={giturl}"
-                   f"&redirect=false"
-                   f"&toplevel=work/")
+                   f"&autoRedirect=false"
+                   f"&toplevel=work/"
+                   f"&redirectUrl={iframe}"
+                   )
+    logger.info("gitpull_url", gitpull_url)
     if not lab:
-        message = "classic"
         iframe += "/tree"
     else:
-        message = "lab"
         iframe += "/lab"
     return render(
         request, "auditor-jupyterdir.html",
