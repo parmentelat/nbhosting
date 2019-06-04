@@ -50,7 +50,7 @@ pip install nbautoeval
 pip install ipythontutor
 
 # the nbgitpuller thingy
-pip install git+https://github.com/parmentelat/nbgitpuller@nbhosting && jupyter serverextension enable --py nbgitpuller
+pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
 
 # --------
 # during a transition perdio we had to do this 
