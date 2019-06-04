@@ -1,8 +1,4 @@
-# we keep on exposing local variables to a template
-# using locals(); hence disable w0641 - unused variable
-# pylint: disable=c0111, w0641
-#from pathlib import Path
-#import subprocess
+# pylint: disable=c0111, w1203
 
 from django.shortcuts import render
 #from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
@@ -22,7 +18,7 @@ def auditor_list_courses(request):
     course_dirs = [
         CourseDir(coursename) for coursename in courses_dir.coursenames()]
     return render(request, "auditor-courses.html",
-        dict(course_dirs=course_dirs))
+                  dict(course_dirs=course_dirs))
 
 
 @login_required
@@ -62,6 +58,15 @@ def auditor_show_notebook(request, course, notebook, track=None):
     # compute title as notebookname if found in sections
     notebook_obj = track.spot_notebook(notebook)
     title = notebook_obj.notebookname if notebook_obj else notebook
+    giturl = coursedir.giturl
+    iframe = f"/ipythonExercice/{course}/{notebook}/{student}"
+    gitpull_url = (f"/ipythonForward/{course}/{student}/git-pull"
+                   f"?repo={giturl}"
+                   f"&autoRedirect=false"
+                   f"&toplevel=."
+                   f"&redirectUrl={iframe}"
+                   )
+
     return render(
         request, "auditor-notebook.html",
         dict(
@@ -69,7 +74,8 @@ def auditor_show_notebook(request, course, notebook, track=None):
             coursedir=coursedir,
             track=track,
             notebook=notebook,
-            iframe=f"/ipythonExercice/{course}/{notebook}/{student}",
+            iframe=iframe,
+            gitpull_url=gitpull_url,
             head_title=f"nbh:{course}",
             title=title,
         ))

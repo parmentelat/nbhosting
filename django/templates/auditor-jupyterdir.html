@@ -119,19 +119,14 @@ iframe {
             {% endfor %}
         </div>
         <div class="tracks">
-        <h1 class="btn btn-danger active update-head"
+        <a href="{{gitpull_url}}"
+            class="btn btn-outline-danger update-head"
             data-toggle="tooltip" data-html="true"
             title="use this feature if you want to adopt changes
-            the teacher has made upstream"
-        >go git</h1>
-        <a href="{{gitpull_url}}"
-            target="nbhosting-jupyter"
-            data-toggle="tooltip" data-html="true"
-            title="<span class='smaller'>this will turn your workspace into a git repo if needed,
-            and update it from the teacher's last version</span>"
-            class="git-pull"
-            > git pull
-        </a>
+            the teacher has made upstream<br/>
+            this will turn your workspace into a git repo if needed,
+            and update it from the teacher's last version"
+        >go git &amp; pull</a>
     </div>
     </div>
     <div class="iframe-container">

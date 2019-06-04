@@ -130,6 +130,16 @@ iframe {
             {% endfor %}
         </div>
         {% endfor %}
+        <div class="section">
+            <a href="{{gitpull_url}}"
+                class="btn btn-outline-danger section-head"
+                target="nbhosting-jupyter"
+                data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>initialize git repo if needed<br/>and pull from upstream</span>"
+            >
+            go git &amp; pull
+        </a>
+        </div>
     </div>
     <div class="iframe-container">
         <iframe
