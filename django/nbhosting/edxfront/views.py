@@ -254,7 +254,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
 
     if not any(jupyter_url.startswith(verb) for verb in allowed_verbs):
         return HttpResponseForbidden(
-            f"Access denied: verb not in {allowed_verbs}")
+            f"Access denied: verb not in {allowed_verbs} with {jupyter_url}")
 
     # nbh's subcommand
     subcommand = 'docker-view-student-course-jupyterdir'
