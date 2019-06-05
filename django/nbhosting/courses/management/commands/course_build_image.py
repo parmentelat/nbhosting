@@ -19,6 +19,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            "-n", "--dry-run", action='store_true', default=False,
+            help="simply show what would be done")
+        parser.add_argument(
             "-f", "--force", action='store_true', default=False,
             help="""when set, this option causes build to be forced;
             that is to say, docker build is invoked with the --no-cache option.
@@ -29,6 +32,7 @@ class Command(BaseCommand):
         parser.add_argument("course", nargs="*")
 
     def handle(self, *args, **kwargs):
+        dry_run = kwargs['dry_run']
         force = kwargs['force']
 
         courses = kwargs['course']
@@ -45,4 +49,4 @@ class Command(BaseCommand):
                 return
             coursedir.build_image(force)
             logger.info(f"{40*'='} building image for {course}")
-            coursedir.build_image(force)
+            coursedir.build_image(force, dry_run)

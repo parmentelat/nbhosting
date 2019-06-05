@@ -349,7 +349,7 @@ class CourseDir:
             return
 
 
-    def build_image(self, force=False):
+    def build_image(self, force=False, dry_run=False):
         """
         locates Dockerfile and triggers docker build
         """
@@ -371,13 +371,15 @@ class CourseDir:
             return
 
         # clean up and repopulate build dir
-        show_and_run(f"rm -rf {build_dir}/*")
+        show_and_run(f"rm -rf {build_dir}/*", dry_run=dry_run)
         build_dir.exists() or build_dir.mkdir()         # pylint: disable=w0106
 
-        show_and_run(f"cp {dockerfile} {build_dir}/Dockerfile")
-        show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {build_dir}")
+        show_and_run(f"cp {dockerfile} {build_dir}/Dockerfile", dry_run=dry_run)
+        show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {build_dir}",
+                     dry_run=dry_run)
         show_and_run(f"cd {build_dir}; "
-                     f"docker build {force_tag} -f Dockerfile -t {image} .")
+                     f"docker build {force_tag} -f Dockerfile -t {image} .",
+                     dry_run=dry_run)
 
 
     def pull_from_git(self):
