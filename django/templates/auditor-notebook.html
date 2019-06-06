@@ -21,6 +21,40 @@
 {% endblock %}
 
 {% block content %}
+
+
+<!--  javascript -->
+<script>
+function update_current_notebook(notebook) {
+    $("div.notebook").each(function(index, div) {
+        let $div = $(div);
+        let current = $div.attr("data-notebook") == notebook;
+        if (current) {
+            $div.addClass("current");
+        } else {
+            $div.removeClass("current");
+        }
+    })
+}
+function iframe_src(url) {
+    console.log(`iframe url becomes ${url}`);
+    $("#nbhosting-jupyter")[0].src = url;
+}
+/* initialize with track from url */
+let global_track = "{{track.name}}";
+function change_track(track){
+    global_track = track;
+}
+function iframe_notebook(notebook) {
+    console.log('iframe_notebook', this)
+    let url=`/ipythonExercice/{{coursename}}/${notebook}/{{student}}`;
+    iframe_src(url);
+    update_current_notebook(notebook);
+}
+</script>
+
+
+<!--  CSS -->
 <style>
 html, body {
     height: 100%;
@@ -31,7 +65,7 @@ html, body {
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 130px;
+    top: 105px;
     bottom: 0px;
     left: 0px;
     /*
@@ -64,7 +98,7 @@ div.left-bottom {
 
 div.iframe-container {
     position: absolute;
-    top: 130px;
+    top: 105px;
     bottom: 0px;
     left: 17%;
     right: 0px;
@@ -117,21 +151,21 @@ div.section:last-child {
     border: 0.5px solid #666;
     margin: 1px;
 }
-.notebook.current {
+div.section>a>.notebook.current {
     background-color: #ffffff;
     border: 3px solid black;
 }
 
 .in-track {
-    background-color: #1f69e0;
+    background-color: #2E86C1; /* blue-ish */
 }
 /* both means it exists and it's been copied */
 .in-track.in-student {
-    background-color: #82adf2;
+    background-color: #17A589;  /* green-ish */
 }
 /* only in-student means somehow it's obsolete */
 .in-student {
-    background-color: #53d653;
+    background-color: #884EA0;  /* purple-ish */
 }
 .smaller{
     font-size: 60%;
@@ -145,7 +179,7 @@ iframe {
 
  .track-head, .file-head {
      width: 100%;
-     font-size: 200%;
+     font-size: 150%;
  }
 
 .jupyter {
@@ -155,6 +189,7 @@ iframe {
 .classic, .lab {
     width: 50%;
     margin: 0px 6px;
+    padding: 6px 0px;
 }
 
 .git {
@@ -176,6 +211,7 @@ iframe {
             <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
                 {% for track_obj in tracks %}
                 <a class="nav-link show track-name {% if track.name == track_obj.name %}active{% endif %}"
+                    onclick="change_track('{{track_obj.name}}')"
                     id="sections-{{track_obj.name}}-tab"
                     data-toggle="pill" href="#sections-{{track_obj.name}}"
                     role="tab" aria-controls="sections-{{track_obj.name}}"
@@ -193,12 +229,13 @@ iframe {
                 <div class="section">
                     <a class="btn btn-outline-primary section-head">{{section.name}}</a>
                     {% for notebook_obj in section.notebooks %}
-                    <a href="/auditor/notebook/{{coursename}}:{{track.name}}/{{notebook_obj.clean_path}}"
+                    <a onclick="iframe_notebook('{{notebook_obj.clean_path}}')"
                        data-toggle="tooltip" data-html="true"
                        title="{{notebook_obj.notebookname}}</br><span class='smaller'>{{notebook_obj.clean_path}}</span>">
-                        <div class="notebook {{notebook_obj.classes}}
-                        {% if notebook_obj.clean_path == notebook %}current{% endif %}
-                        "></div>
+                        <div data-notebook="{{notebook_obj.clean_path}}"
+                            class="notebook {{notebook_obj.classes}}
+                            {% if notebook_obj.clean_path == notebook %}current{% endif %}"
+                        ></div>
                     </a>
                     {% endfor %}
                 </div>
@@ -214,17 +251,16 @@ iframe {
                 title="or, if you'd prefer through a regular jupyter browser
                 <br/>note that in this case you'll only able to see notebooks
                 <br/>that are <b>already present</b> in your workspace"
-            >Jupyter</h1>
+            >Jupy<wbr>ter</h1>
             <div class="jupyter">
-                <a href="/ipythonForward/{{coursename}}/{{student}}/tree"
-                    target="nbhosting-jupyter"
+                <a onclick="iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree')"
                     data-toggle="tooltip" data-html="true"
                     title="Jupyter classic will display the contents of your workdir
                     and spawn noteboks in separate tabs"
                     class="classic btn btn-outline-success"
-                    >  classic
+                    >  clas<wbr>sic
                 </a>
-                <a href="/ipythonForward/{{coursename}}/{{student}}/lab"
+                <a onclick="iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab')"
                     target="nbhosting-jupyter"
                     data-toggle="tooltip" data-html="true"
                     title="with Jupyter lab you can edit all your contents from
@@ -234,9 +270,8 @@ iframe {
                 </a>
             </div>
 
-            <a href="{{gitpull_url}}"
+            <a onclick="iframe_src('{{gitpull_url}}')"
                 class="btn btn-outline-danger git"
-                target="nbhosting-jupyter"
                 data-toggle="tooltip" data-html="true"
                 title="you may need to initialize</br>your workspace as a git repo<br/>this button will also update from upstream"
             > go git &amp; pull
@@ -246,13 +281,12 @@ iframe {
     </div>
 
     <div class="iframe-container">
-        <iframe
+        <iframe id="nbhosting-jupyter"
             height="100%"
             width="100%"
             src="{{iframe}}"
             onload="this.contentWindow.focus()"
-            name="nbhosting-jupyter"
-            >
+        >
         </iframe>
     </div>
 </div>
