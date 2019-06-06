@@ -222,11 +222,19 @@ iframe {
     margin-top: 10px;
 }
 
+.transitionable {
+    -webkit-transition: all 1.2s ease-in-out;
+    -moz-transition: all 1.2s ease-in-out;
+    -ms-transition: all 1.2s ease-in-out;
+    -o-transition: all 1.2s ease-in-out;
+    transition: all 1.2s ease-in-out;
+
+}
 </style>
 
 <!------------------------------>
 <div class="container" height="100%">
-    <div id="left-pane">
+    <div id="left-pane" class="transitionable">
 
         <div class="left-upper">
             <h1 class="btn btn-outline-secondary track-head"
@@ -305,7 +313,7 @@ iframe {
 
     </div>
 
-    <div id="iframe-container">
+    <div id="iframe-container" class="transitionable">
         <iframe id="nbhosting-jupyter"
             height="100%"
             width="100%"
