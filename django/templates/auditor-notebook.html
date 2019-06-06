@@ -16,10 +16,10 @@
 {% endif %}
     <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
     <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
-    <li class="breadcrumb-item"><a href="/auditor/course/{{coursename}}">{{coursename}}</a></li>
-    <li class="breadcrumb-item active">
+    <li class="breadcrumb-item active"><a href="/auditor/course/{{coursename}}">{{coursename}}</a></li>
+<!--    <li class="breadcrumb-item active">
         <a href="/auditor/course/{{coursename}}:{{track.name}}">{{track.name}}</a>
-    </li>
+    </li> -->
 </ol>
 {% endblock %}
 
@@ -30,13 +30,39 @@ html, body {
     width: 100%;
 }
 
-div.left-pane {
+#left-pane {
+    display: flex;
+    flex-direction: column;
     position: absolute;
     top: 130px;
     bottom: 0px;
     left: 0px;
+    /*
+      this means use 1/6 for the left hand side panel
+      must add up with the setting for iframe-container
+    */
     right: 83%;
     padding: 0px;
+}
+
+div.left-upper {
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid gray;
+}
+
+div.left-middle {
+    overflow-y: auto;
+}
+
+div.left-bottom {
+    /* margin-top: auto is important so that
+       the box gets attached to the bottom of the viewport */
+    margin: auto 10px 5px 10px;
+    border-radius: 10px;
+    /* tmp */
+    border: 2px solid green;
+    padding: 10px;
 }
 
 div.iframe-container {
@@ -51,14 +77,36 @@ iframe {
     height: 100%;
 }
 
+/* ----------- */
+
+.track-name {
+    border-radius: 5px;
+    border: 1px solid gray;
+    margin: 5px;
+    padding: 4px 16px;
+}
+.track-name:not(.active) {
+    background-color: #f0f0f0;
+}
+
+div.track-sections {
+    padding: 10px 0px;
+    margin: 10px;
+    border-radius: 10px;
+    border: 2px solid blue;
+}
+
 div.section {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-flex-start;
-    padding-left: 20px;
+    padding-left: 10px;
     padding-right: 10px;
     padding-top: 0px;
+}
+div.section:last-child {
+    padding-bottom: 0px;
 }
 .section-head {
     width: 100%;
@@ -98,49 +146,108 @@ iframe {
   background-position: center;
  }
 
+ .track-head, .file-head {
+     width: 100%;
+     font-size: 200%;
+ }
+
+.jupyter {
+    display: flex;
+}
+
+.classic, .lab {
+    width: 50%;
+    margin: 0px 6px;
+}
+
+.git {
+    width: 100%;
+    margin-top: 10px;
+}
+
 </style>
 
 <!------------------------------>
 <div class="container" height="100%">
-    <div class="left-pane">
-        {% for section in track.sections %}
-        <div class="section">
-            {% if not section.untracked %}
-            <a href="/auditor/notebook/{{coursename}}:{{track.name}}/{{section.notebooks.0.clean_path}}"
-                class="btn btn-outline-primary section-head"
+    <div id="left-pane">
+
+        <div class="left-upper">
+            <h1 class="btn btn-outline-secondary track-head"
                 data-toggle="tooltip" data-html="true"
-                title="<span class='smaller'>show first notebook in section {{section.name}}</span>">
-                {{section.name}}
-            </a>
-            {% else %}
-            <a href="/auditor/jupyterdir/{{coursename}}/"
-                class="btn btn-outline-success active section-head"
-                data-toggle="tooltip" data-html="true"
-                title="<span class='smaller'>this section is for notebooks<br/>that are not on any track</span>">
-                {{section.name}}
-            {% endif %}
-            {% for notebook_obj in section.notebooks %}
-            <a href="/auditor/notebook/{{coursename}}:{{track.name}}/{{notebook_obj.clean_path}}"
-               data-toggle="tooltip" data-html="true"
-               title="{{notebook_obj.notebookname}}</br><span class='smaller'>{{notebook_obj.clean_path}}</span>">
-                <div class="notebook {{notebook_obj.classes}}
-                {% if notebook_obj.clean_path == notebook %}current{% endif %}
-                "></div>
-            </a>
+                title="you may choose to navigate through one of the following tracks"
+            >by track</h1>
+            <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
+                {% for track_obj in tracks %}
+                <a class="nav-link show track-name {% if track.name == track_obj.name %}active{% endif %}"
+                    id="sections-{{track_obj.name}}-tab"
+                    data-toggle="pill" href="#sections-{{track_obj.name}}"
+                    role="tab" aria-controls="sections-{{track_obj.name}}"
+                    aria-selected="{% if track.name == track_obj.name %}true{% else %}false{% endif %}"
+                >{{track_obj.name}}</a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tab-content left-middle" id="track-picker-tabContent">
+            {% for track_obj in tracks %}
+            <div class="tab-pane fade track-sections {% if track.name == track_obj.name %}active show{% endif %}"
+                id="sections-{{track_obj.name}}" role="tabpanel" aria-labelledby="sections-{{track_obj.name}}-tab">
+                {% for section in track_obj.sections %}
+                <div class="section">
+                    <a class="btn btn-outline-primary section-head">{{section.name}}</a>
+                    {% for notebook_obj in section.notebooks %}
+                    <a href="/auditor/notebook/{{coursename}}:{{track.name}}/{{notebook_obj.clean_path}}"
+                       data-toggle="tooltip" data-html="true"
+                       title="{{notebook_obj.notebookname}}</br><span class='smaller'>{{notebook_obj.clean_path}}</span>">
+                        <div class="notebook {{notebook_obj.classes}}
+                        {% if notebook_obj.clean_path == notebook %}current{% endif %}
+                        "></div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
             {% endfor %}
         </div>
-        {% endfor %}
-        <div class="section">
+
+        <div class="left-bottom">
+
+            <h1 class="btn btn-outline-secondary file-head"
+                data-toggle="tooltip" data-html="true"
+                title="or, if you'd prefer through a regular jupyter browser
+                <br/>note that in this case you'll only able to see notebooks
+                <br/>that are <b>already present</b> in your workspace"
+            >Jupyter</h1>
+            <div class="jupyter">
+                <a href="/ipythonForward/{{coursename}}/{{student}}/tree"
+                    target="nbhosting-jupyter"
+                    data-toggle="tooltip" data-html="true"
+                    title="Jupyter classic will display the contents of your workdir
+                    and spawn noteboks in separate tabs"
+                    class="classic btn btn-outline-success"
+                    >  classic
+                </a>
+                <a href="/ipythonForward/{{coursename}}/{{student}}/lab"
+                    target="nbhosting-jupyter"
+                    data-toggle="tooltip" data-html="true"
+                    title="with Jupyter lab you can edit all your contents from
+                    within a single browser tab"
+                    class="lab btn btn-outline-success"
+                    >  lab
+                </a>
+            </div>
+
             <a href="{{gitpull_url}}"
-                class="btn btn-outline-danger section-head"
+                class="btn btn-outline-danger git"
                 target="nbhosting-jupyter"
                 data-toggle="tooltip" data-html="true"
-                title="<span class='smaller'>initialize git repo if needed<br/>and pull from upstream</span>"
-            >
-            go git &amp; pull
-        </a>
+                title="you may need to initialize</br>your workspace as a git repo<br/>this button will also update from upstream"
+            > go git &amp; pull
+            </a>
         </div>
+
     </div>
+
     <div class="iframe-container">
         <iframe
             height="100%"

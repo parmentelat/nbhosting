@@ -66,6 +66,7 @@ def auditor_show_notebook(request, course, notebook, track=None):
                    f"&toplevel=."
                    f"&redirectUrl={iframe}"
                    )
+    tracks = coursedir.tracks()
 
     return render(
         request, "auditor-notebook.html",
@@ -78,6 +79,8 @@ def auditor_show_notebook(request, course, notebook, track=None):
             gitpull_url=gitpull_url,
             head_title=f"nbh:{course}",
             title=title,
+            tracks=tracks,
+            student=student,
         ))
 
 
