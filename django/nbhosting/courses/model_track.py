@@ -92,6 +92,22 @@ class Notebook:                                         # pylint: disable=r0903
             self._notebookname = self.clean_path()
             self._version = "n/a"
 
+class StudentNotebook(Notebook):
+    """
+    for representing a file found in the student's workspace
+    see also issue #78
+    these instances are created with a coursedir attribute that
+    is NOT a CourseDir instance, but a simple Path object instead
+    that represents path to the student's workspace
+    not quite right yet, but at least we can outline the places
+    where this happens
+    """
+    def __repr__(self):
+        return f"STUDENT notebook {self.path} in {self.coursedir}"
+
+    def absolute(self):
+        return (self.coursedir / self.path).absolute()
+
 
 class Section:                                          # pylint: disable=r0903
 
@@ -215,9 +231,9 @@ class Track:
             else:
                 # existing in the student tree, but not in the track
                 studentdir = coursedir.student_dir(student)
-                # XXX FIXME see issue #78
+                # see issue #78
                 # first arg to Notebook should be a CourseDir object
-                odd_notebook = Notebook(
+                odd_notebook = StudentNotebook(
                     studentdir, read_path.with_suffix(".ipynb"))
                 odd_notebook.in_student = True
                 # turn this off for now
