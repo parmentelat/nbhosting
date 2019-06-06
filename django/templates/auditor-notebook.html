@@ -55,6 +55,14 @@ function iframe_notebook(notebook) {
 function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
 }
+function fullscreen_on() {
+    $("#left-pane").addClass("fullscreen");
+    $("#iframe-container").addClass("fullscreen");
+}
+function fullscreen_off() {
+    $("#left-pane").removeClass("fullscreen");
+    $("#iframe-container").removeClass("fullscreen");
+}
 </script>
 
 
@@ -63,6 +71,7 @@ function focus_iframe() {
 html, body {
     height: 100%;
     width: 100%;
+    background-color: #aaa;
 }
 
 #left-pane {
@@ -80,10 +89,16 @@ html, body {
     padding: 0px;
 }
 
+#left-pane.fullscreen {
+    right: 100%;
+}
+
 div.left-upper {
+    margin: 10px 10px 0px 10px;
     padding: 10px;
     border-radius: 10px;
     border: 2px solid gray;
+    background-color: white;
 }
 
 div.left-middle {
@@ -98,14 +113,19 @@ div.left-bottom {
     /* tmp */
     border: 2px solid green;
     padding: 10px;
+    background-color: white;
 }
 
-div.iframe-container {
+#iframe-container {
     position: absolute;
     top: 105px;
     bottom: 0px;
     left: 17%;
     right: 0px;
+}
+
+#iframe-container.fullscreen {
+    left: 0%;
 }
 
 iframe {
@@ -129,6 +149,7 @@ div.track-sections {
     margin: 10px;
     border-radius: 10px;
     border: 2px solid blue;
+    background-color: white;
 }
 
 div.section {
@@ -284,7 +305,7 @@ iframe {
 
     </div>
 
-    <div class="iframe-container">
+    <div id="iframe-container">
         <iframe id="nbhosting-jupyter"
             height="100%"
             width="100%"
