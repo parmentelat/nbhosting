@@ -56,7 +56,7 @@ div.course>span.track>a::before {
     <div class="course p-3 m-3">
         <span class="course">
             <a class='btn btn-info btn-lg'
-            href='/auditor/course/{{course_dir.coursename}}:{{main_trackname}}'
+            href='/auditor/notebook/{{course_dir.coursename}}:{{main_trackname}}/'
             data-toggle="tooltip"
             data-html="true"
             title="track '{{main_trackname}}' for course '{{course_dir.coursename}}'"
@@ -71,7 +71,7 @@ div.course>span.track>a::before {
                 data-toggle="tooltip"
                 data-html="true"
                 title="{{track.description}}"
-                href="/auditor/course/{{course_dir.coursename}}:{{track.name}}">
+                href="/auditor/notebook/{{course_dir.coursename}}:{{track.name}}">
                 {{ track.name }}
                 </a>
             </span>

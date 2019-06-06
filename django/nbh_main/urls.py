@@ -22,7 +22,6 @@ STUDENT =     r'(?P<student>[\w_.-]+)'
 # requires the non-greedy version of .+
 # because otherwise the .ipynb stuff goes into <notebook> as well
 NOTEBOOK =    r'(?P<notebook>.+?)(\.ipynb){0,2}'
-OPTION_LAB =  r'(?P<lab>/lab)?'
 JUPYTER_URL = r'(?P<jupyter_url>.*)?'
 
 COURSE_TRACK = rf'{COURSE}(:{TRACK})?'
@@ -46,18 +45,15 @@ urlpatterns = [
     # regular users who log in
     re_path(rf'^auditor/courses.*$',
                         nbhosting.courses.views.auditor_list_courses),
+    # this now is the foremost interface to a course
+    re_path(rf'^auditor/notebook/{COURSE_TRACK}(/{NOTEBOOK})?/?$',
+                        nbhosting.courses.views.auditor_show_notebook),
+    # second-order, probably will end up in the trash
     re_path(rf'^auditor/course/{COURSE_TRACK}/?$',
                         nbhosting.courses.views.auditor_show_course),
-    re_path(rf'^auditor/notebook/{COURSE_TRACK}/{NOTEBOOK}/?$',
-                        nbhosting.courses.views.auditor_show_notebook),
-    re_path(rf'^auditor/jupyterdir/{COURSE}{OPTION_LAB}/?$',
-                        nbhosting.courses.views.auditor_jupyterdir),
+    # more harmful than helpful at least during devel
     re_path(rf'^auditor.*',
                         nbh_main.views.welcome),
-    # more harmful than helpful at least during devel
-    #re_path(rf'^auditor.*',
-    #                    nbh_main.views.welcome),
-
 
     # super user
     re_path(rf'^staff/courses/update-from-git/{COURSE}/?$',

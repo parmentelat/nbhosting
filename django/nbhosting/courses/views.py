@@ -46,17 +46,26 @@ def auditor_show_course(request, course, track=None):
 
 @login_required
 @csrf_protect
-def auditor_show_notebook(request, course, notebook, track=None):
+def auditor_show_notebook(request, course, notebook=None, track=None):
+
+    student = request.user.username
+
     # don't want to mess with the urls
     trackname = track
     coursedir = CourseDir(course)
     if trackname is None:
         trackname = coursedir.tracknames()[0]
     track = coursedir.track(trackname)
-    student = request.user.username
     track.mark_notebooks(student)
+
+    if notebook is None:
+        notebook_obj = track.sections[0].notebooks[0]
+        notebook = notebook_obj.clean_path()
+        print(f"default notebook -> {notebook}")
+    else:
+        notebook_obj = track.spot_notebook(notebook)
+
     # compute title as notebookname if found in sections
-    notebook_obj = track.spot_notebook(notebook)
     title = notebook_obj.notebookname if notebook_obj else notebook
     giturl = coursedir.giturl
     iframe = f"/ipythonExercice/{course}/{notebook}/{student}"
@@ -83,39 +92,6 @@ def auditor_show_notebook(request, course, notebook, track=None):
             student=student,
         ))
 
-
-@login_required
-@csrf_protect
-def auditor_jupyterdir(request, course, lab=False):
-    logger.info(f"auditor_jupyterdir {course}")
-
-    coursedir = CourseDir(course)
-    tracks = coursedir.tracks()
-    student = request.user.username
-    iframe = f"/ipythonForward/{course}/{student}"
-    giturl = coursedir.giturl
-    gitpull_url = (f"/ipythonForward/{course}/{student}/git-pull"
-                   f"?repo={giturl}"
-                   f"&autoRedirect=false"
-                   f"&toplevel=."
-                   f"&redirectUrl={iframe}"
-                   )
-    logger.info("gitpull_url", gitpull_url)
-    if not lab:
-        iframe += "/tree"
-    else:
-        iframe += "/lab"
-    return render(
-        request, "auditor-jupyterdir.html",
-        dict(
-            coursename=course,
-            coursedir=coursedir,
-            student=student,
-            tracks=tracks,
-            iframe=iframe,
-            gitpull_url=gitpull_url,
-            lab=lab,
-        ))
 
 ######### staff
 
