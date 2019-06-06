@@ -88,7 +88,7 @@ class Notebook:                                         # pylint: disable=r0903
                     nbo['metadata'].get('version', '0.1'))
         except:
             logger.exception(
-                f"failed to extract notebook metadata {self.clean_path()} ")
+                f"failed to extract metadata for notebook {self.clean_path()} ")
             self._notebookname = self.clean_path()
             self._version = "n/a"
 

@@ -29,7 +29,7 @@ class Tests(TestCase):
         self._test_custom("python3-s2", 9, 'undefined')
 
     def test_notebookname(self):
-        course = CourseDir("python3-s2")
-        notebook = Notebook(course, "w1/w1-s1-c1-versions-python.ipynb")
+        coursedir = CourseDir("python3-s2")
+        notebook = Notebook(coursedir, "w1/w1-s1-c1-versions-python.ipynb")
 
         self.assertEqual(notebook.notebookname, "Versions de python")
