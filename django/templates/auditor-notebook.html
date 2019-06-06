@@ -39,6 +39,7 @@ function update_current_notebook(notebook) {
 function iframe_src(url) {
     console.log(`iframe url becomes ${url}`);
     $("#nbhosting-jupyter")[0].src = url;
+    focus_iframe();
 }
 /* initialize with track from url */
 let global_track = "{{track.name}}";
@@ -50,6 +51,9 @@ function iframe_notebook(notebook) {
     let url=`/ipythonExercice/{{coursename}}/${notebook}/{{student}}`;
     iframe_src(url);
     update_current_notebook(notebook);
+}
+function focus_iframe() {
+    $("iframe")[0].contentWindow.focus();
 }
 </script>
 
@@ -227,11 +231,11 @@ iframe {
                 id="sections-{{track_obj.name}}" role="tabpanel" aria-labelledby="sections-{{track_obj.name}}-tab">
                 {% for section in track_obj.sections %}
                 <div class="section">
-                    <a class="btn btn-outline-primary section-head">{{section.name}}</a>
+                    <a class="btn btn-outline-primary section-head"
+                    {% autoescape off %}{{section.decorate_a}}{% endautoescape %}
+                    >{{section.name}}</a>
                     {% for notebook_obj in section.notebooks %}
-                    <a onclick="iframe_notebook('{{notebook_obj.clean_path}}')"
-                       data-toggle="tooltip" data-html="true"
-                       title="{{notebook_obj.notebookname}}</br><span class='smaller'>{{notebook_obj.clean_path}}</span>">
+                    <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}>
                         <div data-notebook="{{notebook_obj.clean_path}}"
                             class="notebook {{notebook_obj.classes}}
                             {% if notebook_obj.clean_path == notebook %}current{% endif %}"
@@ -285,7 +289,7 @@ iframe {
             height="100%"
             width="100%"
             src="{{iframe}}"
-            onload="this.contentWindow.focus()"
+            onload="focus_iframe()"
         >
         </iframe>
     </div>

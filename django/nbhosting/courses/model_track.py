@@ -78,6 +78,21 @@ class Notebook:                                         # pylint: disable=r0903
             classes.append('in-student')
         return " ".join(classes)
 
+    def decorate_a(self, main_tooltip=None):
+        """
+        a convenience that decorates the inside of a <a> tag
+        to point at that notebook
+        """
+        if main_tooltip is None:
+            main_tooltip = self.notebookname
+
+        result = ""
+        result += f'''onclick="iframe_notebook('{self.clean_path()}')"'''
+        result += f''' data-toggle="tooltip" data-html="true"'''
+        result += f''' title="{main_tooltip}
+        </br><span class='smaller'>{self.clean_path()}</span>"'''
+        return result
+
     def _read_embedded(self):
         try:
             with self.absolute().open() as feed:
@@ -148,6 +163,10 @@ class Section:                                          # pylint: disable=r0903
     # for templating
     def length(self):
         return len(self)
+
+    # can't seem to use section.notebooks[0].decorate_a in template
+    def decorate_a(self):
+        return self.notebooks[0].decorate_a("")
 
     def spot_notebook(self, path):
         for notebook in self.notebooks:
