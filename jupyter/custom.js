@@ -277,19 +277,3 @@ define([
     })
 })
 
-/*
- * the jupyterdir feature embeds a notebook directory browser
- * in an iframe; however the links from this dir browser to
- * individual notebooks are created with a hardwired target="_blank"
- * attribute, that makes them open in a separate tab or window,
- *
- * the trick below would remove this target attribute, resulting in
- * the notebooks being opened within the iframe
- *
- * this is not turned on yet though, it needs more tests in particular
- * wrt the Back button, that seems to create awkward situations with
- * a nbhosting welcome view inside the iframe...
- */
-function make_jupyter_dir_links_local_to_its_iframe() {
-    $("#ipython-main-app div#notebooks a.item_link").removeAttr("target");
-}
