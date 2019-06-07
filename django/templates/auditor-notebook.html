@@ -55,13 +55,22 @@ function iframe_notebook(notebook) {
 function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
 }
+function fullscreen_toggle(){
+    if ($("#fullscreen-toggle").hasClass("fullscreen")) {
+        fullscreen_off();
+    } else {
+        fullscreen_on();
+    }
+}
 function fullscreen_on() {
     $("#left-pane").addClass("fullscreen");
     $("#iframe-container").addClass("fullscreen");
+    $("#fullscreen-toggle").addClass("fullscreen");
 }
 function fullscreen_off() {
     $("#left-pane").removeClass("fullscreen");
     $("#iframe-container").removeClass("fullscreen");
+    $("#fullscreen-toggle").removeClass("fullscreen");
 }
 </script>
 
@@ -114,6 +123,19 @@ div.left-bottom {
     border: 2px solid green;
     padding: 10px;
     background-color: white;
+}
+
+#fullscreen-toggle {
+    position: fixed;
+    left: 17%;
+    top: 105px;
+    z-index: 100;
+    transform: scaleX(-1);
+}
+
+#fullscreen-toggle.fullscreen {
+    transform: scaleX(1);
+    left: 0px;
 }
 
 #iframe-container {
@@ -223,17 +245,23 @@ iframe {
 }
 
 .transitionable {
-    -webkit-transition: all 1.2s ease-in-out;
-    -moz-transition: all 1.2s ease-in-out;
-    -ms-transition: all 1.2s ease-in-out;
-    -o-transition: all 1.2s ease-in-out;
-    transition: all 1.2s ease-in-out;
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
 
 }
 </style>
 
 <!------------------------------>
 <div class="container" height="100%">
+    <div id="fullscreen-toggle" class="transitionable">
+        <img src="/assets/img/right.svg" height="80px"
+        onclick="fullscreen_toggle()"
+        ></img>
+    </div>
+
     <div id="left-pane" class="transitionable">
 
         <div class="left-upper">
