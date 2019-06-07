@@ -167,7 +167,7 @@ iframe {
 }
 
 div.track-sections {
-    padding: 10px 0px;
+    padding: 10px 10px;
     margin: 10px;
     border-radius: 10px;
     border: 2px solid blue;
@@ -228,8 +228,16 @@ iframe {
 
  .track-head, .file-head {
      width: 100%;
-     font-size: 150%;
+     font-size: 120%;
  }
+
+.single-track-head {
+    width: 100%;
+    font-size: 80%;
+}
+.single-track-head:before {
+    content: "\2933";
+}
 
 .jupyter {
     display: flex;
@@ -239,11 +247,13 @@ iframe {
     width: 50%;
     margin: 0px 6px;
     padding: 6px 0px;
+    font-size: 75%;
 }
 
 .git {
     width: 100%;
     margin-top: 10px;
+    font-size: 100%;
 }
 
 .transitionable {
@@ -253,6 +263,10 @@ iframe {
     -o-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
 
+}
+
+.hidden {
+    display: none;
 }
 </style>
 
@@ -266,7 +280,8 @@ iframe {
 
     <div id="left-pane" class="transitionable">
 
-        <div class="left-upper">
+        <div class='left-upper {% if tracks|length_is:"1" %}hidden{% endif%}'>
+
             <h1 class="btn btn-outline-secondary track-head"
                 data-toggle="tooltip" data-html="true"
                 title="you may choose to navigate through one of the following tracks"
@@ -284,10 +299,23 @@ iframe {
             </div>
         </div>
 
+
         <div class="tab-content left-middle" id="track-picker-tabContent">
+
             {% for track_obj in tracks %}
-            <div class="tab-pane fade track-sections {% if track.name == track_obj.name %}active show{% endif %}"
-                id="sections-{{track_obj.name}}" role="tabpanel" aria-labelledby="sections-{{track_obj.name}}-tab">
+            <div class="tab-pane fade track-sections
+                        {% if track.name == track_obj.name %}active show{% endif %}"
+                id="sections-{{track_obj.name}}" role="tabpanel"
+                aria-labelledby="sections-{{track_obj.name}}-tab"
+                >
+                {% if tracks|length_is:"1" %}
+                <h1 class="btn btn-outline-secondary single-track-head"
+                    data-toggle="tooltip" data-html="true"
+                    title="you may read along the single track<br/>
+                           that this course offers">
+                   </h1>
+                {% endif%}
+
                 {% for section in track_obj.sections %}
                 <div class="section">
                     <a class="btn btn-outline-primary section-head"
@@ -306,6 +334,7 @@ iframe {
             </div>
             {% endfor %}
         </div>
+
 
         <div class="left-bottom">
 
