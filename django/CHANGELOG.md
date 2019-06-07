@@ -1,5 +1,6 @@
 # 0.14.1 2019 Jun 7
 * new all-in-one /auditor/notebook view refurbished from scratch
+* in particular, this exposes nbgitpuller (required on the image though)
 * /auditor/course and /auditor/jupyterdir both go down the sewer
 
 # 0.14.0 2019 Jun 3
