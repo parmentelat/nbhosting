@@ -23,29 +23,6 @@ def auditor_list_courses(request):
 
 @login_required
 @csrf_protect
-def auditor_show_course(request, course, track=None):
-    # don't want to mess with the urls
-    trackname = track
-    coursedir = CourseDir(course)
-    tracks = coursedir.tracks()
-    if trackname is None:
-        trackname = coursedir.tracknames()[0]
-    track = coursedir.track(trackname)
-    student = request.user.username
-    track.mark_notebooks(student)
-
-    env = dict(
-        coursedir=coursedir,
-        coursename=course,
-        tracks=tracks,
-        track=track,
-        main_trackname=tracks[0].name,
-    )
-    return render(request, "auditor-course.html", env)
-
-
-@login_required
-@csrf_protect
 def auditor_show_notebook(request, course, notebook=None, track=None):
 
     student = request.user.username

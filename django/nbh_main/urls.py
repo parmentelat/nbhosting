@@ -48,9 +48,6 @@ urlpatterns = [
     # this now is the foremost interface to a course
     re_path(rf'^auditor/notebook/{COURSE_TRACK}(/{NOTEBOOK})?/?$',
                         nbhosting.courses.views.auditor_show_notebook),
-    # second-order, probably will end up in the trash
-    re_path(rf'^auditor/course/{COURSE_TRACK}/?$',
-                        nbhosting.courses.views.auditor_show_course),
     # more harmful than helpful at least during devel
     re_path(rf'^auditor.*',
                         nbh_main.views.welcome),
