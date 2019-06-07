@@ -1,3 +1,7 @@
+# 0.14.1 2019 Jun 7
+* new all-in-one /auditor/notebook view refurbished from scratch
+* /auditor/course and /auditor/jupyterdir both go down the sewer
+
 # 0.14.0 2019 Jun 3
 * refactored build of core images, remove the need for duplication of gory details
 * no longer needs to downgrade tornado, await works just fine
