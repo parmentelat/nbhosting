@@ -4,7 +4,6 @@ import os
 
 from django.core.management.base import BaseCommand
 
-from nbhosting.courses.model_courses import CoursesDir
 from nbhosting.courses.model_course import CourseDir
 
 from nbh_main.settings import logger, NBHROOT
