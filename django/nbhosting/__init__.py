@@ -3,4 +3,4 @@
 from .version import __version__
 
 # for nbh_main management commands
-from .courses.model_course import show_and_run
+from .utils import show_and_run
