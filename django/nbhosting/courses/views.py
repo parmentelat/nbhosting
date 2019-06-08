@@ -6,7 +6,6 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-from nbhosting.courses.model_courses import CoursesDir
 from nbhosting.courses.model_course import CourseDir
 from nbhosting.courses.model_track import Notebook
 
@@ -17,9 +16,7 @@ from nbh_main.settings import logger
 @login_required
 @csrf_protect
 def auditor_list_courses(request):
-    courses_dir = CoursesDir()
-    course_dirs = [
-        CourseDir(coursename) for coursename in courses_dir.coursenames()]
+    course_dirs = CourseDir.objects.order_by('coursename')
     return render(request, "auditor-courses.html",
                   dict(course_dirs=course_dirs))
 
@@ -32,7 +29,7 @@ def auditor_show_notebook(request, course, notebook=None, track=None):
 
     # don't want to mess with the urls
     trackname = track
-    coursedir = CourseDir(course)
+    coursedir = CourseDir.objects.get(coursename=course)
     if trackname is None:
         trackname = coursedir.tracknames()[0]
     track = coursedir.track(trackname)
@@ -78,28 +75,26 @@ def auditor_show_notebook(request, course, notebook=None, track=None):
 @staff_member_required
 @csrf_protect
 def staff_list_courses(request):
-    courses_dir = CoursesDir()
-    course_dirs = [
-        CourseDir(name) for name in courses_dir.coursenames()
-    ]
+    course_dirs = CourseDir.objects.order_by('coursename')
     return render(request, "staff-courses.html",
                   {'course_dirs': course_dirs})
 
 @staff_member_required
 @csrf_protect
 def staff_show_course(request, course):
-    coursedir = CourseDir(course)
+    coursedir = CourseDir.objects.get(coursename=course)
+    print(f"in staff_show_course: {hasattr(coursedir, 'image')}")
+    coursedir.probe()
     notebooks = list(coursedir.notebooks())
     notebooks.sort()
     # shorten staff hashes
 
-    shorten_staff = [hash[:7] for hash in coursedir.staff]
+    shorten_staff = [username[:7] for username in coursedir.staff_usernames.split()]
 
     env = dict(
         coursedir=coursedir,
         coursename=course,
         notebooks=notebooks,
-        how_many=len(notebooks),
         image=coursedir.image,
         static_mappings=coursedir.static_mappings,
         staff=shorten_staff,
@@ -119,7 +114,7 @@ def render_subprocess_result(request, course,
     * or to nbh-manage for code written in python
 
     """
-    coursedir = CourseDir(course)
+    coursedir = CourseDir.objects.get(coursename=course)
     completed = coursedir.nbh_subprocess(subcommand, python, *args)
     command = " ".join(completed.args)
     # expose most locals, + the attributes of completed

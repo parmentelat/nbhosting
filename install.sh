@@ -106,13 +106,6 @@ function update-docker {
     rsync -ai docker/daemon.json /etc/docker
 }
 
-function restart-services() {
-    systemctl restart nbh-monitor
-    systemctl restart nginx
-    systemctl restart nbh-uwsgi
-    systemctl restart nbh-autopull.timer
-}
-
 function enable-services() {
     rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
@@ -124,6 +117,18 @@ function enable-services() {
     systemctl enable nbh-uwsgi
     systemctl enable nbh-monitor
     systemctl enable nbh-autopull.timer
+}
+
+function migrate-database() {
+# not quite sure why, but it seems safer to use manage.py here
+    (cd django; manage.py migrate)
+}
+
+function restart-services() {
+    systemctl restart nbh-monitor
+    systemctl restart nginx
+    systemctl restart nbh-uwsgi
+    systemctl restart nbh-autopull.timer
 }
 
 function default-main() {
@@ -139,6 +144,7 @@ function default-main() {
     update-nginx
     update-docker
     enable-services
+    migrate-database
     restart-services
 
     # this is just convenience

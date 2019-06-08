@@ -135,9 +135,9 @@ class TotalsAccumulator:
 class Stats:
 
 
-    def __init__(self, course):
-        self.course = course
-        self.course_dir = nbhroot / "raw" / self.course
+    def __init__(self, coursename):
+        self.coursename = coursename
+        self.course_dir = nbhroot / "raw" / self.coursename
         self.course_dir.mkdir(parents=True, exist_ok=True)
 
     ####################
@@ -150,14 +150,12 @@ class Stats:
     def _write_events_line(self, student, notebook, action, port):
         timestamp = time.strftime(time_format, time.gmtime())
         path = self.notebook_events_path()
-        course = self.course
+        coursename = self.coursename
         try:
             with path.open("a") as f:
-                f.write("{timestamp} {course} {student} {notebook} {action} {port}\n".
-                        format(timestamp=timestamp, course=course, student=student,
-                               notebook=notebook, action=action, port=port))
+                f.write(f"{timestamp} {coursename} {student} {notebook} {action} {port}\n")
         except Exception as e:
-            logger.exception("Cannot store stats line into {}".format(path))
+            logger.exception(f"Cannot store stats line into {path}")
 
     def record_open_notebook(self, student, notebook, action, port):
         """
@@ -234,19 +232,19 @@ class Stats:
         # the events dimension
         accumulator = TotalsAccumulator()
         #
-        staff = CourseDir(self.course).staff
+        staff_names = {username for username in CourseDir.objects.get(coursename=self.coursename).staff_usernames.split()}
         try:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     try:
-                        timestamp, course, student, notebook, action, port = line.split()
+                        timestamp, coursename, student, notebook, action, port = line.split()
                         # if action is 'killing' then notebook is '-'
                         # which should not be counted as a notebook of course
                         # so let's ignore these lines altogether
                         if action == 'killing':
                             continue
                         # ignore staff or other artefact users
-                        if student in staff or artefact_user(student):
+                        if student in staff_names or artefact_user(student):
                             continue
                         day = timestamp.split('T')[0] + ' 23:59:59'
                         if day in figures_by_day:
@@ -371,7 +369,8 @@ class Stats:
         # a dict hashed on a tuple (notebook, student) -> number of visits
         raw_counts = defaultdict(int)
         #
-        staff = CourseDir(self.course).staff
+        staff_names = {username for username in
+                       CourseDir.objects.get(coursename=self.coursename).staff_usernames.split()}
         try:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
@@ -380,7 +379,7 @@ class Stats:
                     if action in ('killing',):
                         continue
                     # ignore staff or other artefact users
-                    if student in staff or artefact_user(student):
+                    if student in staff_names or artefact_user(student):
                         logger.debug("ignoring staff or artefact student {}"
                                      .format(student))
                         continue
@@ -444,11 +443,11 @@ class Stats:
 
 if __name__ == '__main__':
     import sys
-    course = 'fp' if len(sys.argv) == 1 else sys.argv[1]
-    d = Stats(course).daily_metrics()
+    coursename = 'fp' if len(sys.argv) == 1 else sys.argv[1]
+    d = Stats(coursename).daily_metrics()
     for cat, cat_dict in d.items():
         print("---------- {cat}".format(**locals()))
         for k, v in cat_dict.items():
             print(" {k} -> {len_v} items".
                   format(k=k, len_v=len(v)))
-    #d = Stats(course).monitor_counts()
+    #d = Stats(coursename).monitor_counts()

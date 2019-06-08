@@ -16,20 +16,18 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-#        parser.add_argument(
-#            "-a", "--all", action='store_true', default=False,
-#            help="apply to all students")
         parser.add_argument("course", nargs=1, type=str)
         parser.add_argument("student", nargs="+")
 
     def handle(self, *args, **kwargs):
 
-        course = kwargs['course'][0]
+        coursename = kwargs['course'][0]
         students = kwargs['student']
-        coursedir = CourseDir(course)
-        if not coursedir.is_valid():
-            logger.error(f"no such course {course}")
+        try:
+            coursedir = CourseDir.objects.get(coursename=coursename)
+            for student in students:
+                coursedir.destroy_student_container(student)
+        except CourseDir.DoesNotExist:
+            logger.error(f"no such course {coursename}")
             return
 
-        for student in students:
-            coursedir.destroy_student_container(student)

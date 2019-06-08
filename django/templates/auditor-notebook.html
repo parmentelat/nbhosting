@@ -80,7 +80,6 @@ function fullscreen_off() {
 html, body {
     height: 100%;
     width: 100%;
-    background-color: #aaa;
 }
 
 #left-pane {
@@ -96,6 +95,7 @@ html, body {
     */
     right: 83%;
     padding: 0px;
+    background-color: #aaa;
 }
 
 #left-pane.fullscreen {
@@ -221,9 +221,10 @@ div.section>a>.notebook.current {
 }
 
 iframe {
-  background-image: url("/assets/img/loading.png");
-  background-repeat: no-repeat;
-  background-position: center;
+    background-image: url("/assets/img/loading.svg");
+    background-repeat: no-repeat;
+    background-size: 100%;
+/*    background-position: center; */
  }
 
  .track-head, .file-head {

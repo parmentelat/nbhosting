@@ -3,7 +3,6 @@
 # django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet
 #
 #from .model_course import CourseDir
-#from .model_courses import CoursesDir
 
 from .model_track import (
     Track, Section, Notebook,

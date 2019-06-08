@@ -27,19 +27,18 @@ class Command(BaseCommand):
 
         coursename = kwargs['coursename']
         git_url = kwargs['git_url']
+        image = kwargs['image']
 
         try:
-            coursedir = CourseDir(coursename)
-            if coursedir.is_valid():
-                print(f"course {coursename} already existing")
-                exit(1)
-        except:
-            pass
-        coursedir.run_nbh_subprocess('course-init', git_url)
-        # reload now that it's created
-        coursedir = CourseDir(coursename)
-        coursedir.pull_from_git()
-        # set image
-        image = kwargs['image'] or coursename
-        coursedir.set_image(image)
-        return 0
+            already = CourseDir.objects.get(coursename=coursename)
+            logger.error(f"course {coursename} already existing")
+            exit(1)
+        except CourseDir.DoesNotExist:
+            kwds = {}
+            if image is not None:
+                kwds['image'] = image
+            created = CourseDir.objects.create(
+                coursename=coursename, giturl=git_url, **kwds)
+            created.run_nbh_subprocess('course-init', git_url)
+            created.pull_from_git()
+            return 0

@@ -4,7 +4,6 @@ import os
 
 from django.core.management.base import BaseCommand
 
-from nbhosting.courses.model_courses import CoursesDir
 from nbhosting.courses.model_course import CourseDir
 
 from nbh_main.settings import logger, NBHROOT
@@ -18,25 +17,27 @@ class Command(BaseCommand):
     on all courses that have their autopull setting defined as true
     """
 
+    
     def add_arguments(self, parser):
         parser.add_argument(
             "-a", "--all", action='store_true', default=False,
             help="apply to all known courses")
-        parser.add_argument("course", nargs="*")
+        parser.add_argument("coursenames", nargs="*")
+
 
     def handle(self, *args, **kwargs):
 
-        courses = kwargs['course']
-        if not courses:
+        coursenames = kwargs['coursenames']
+        if not coursenames:
             if kwargs['all']:
-                courses = CoursesDir().coursenames()
+                coursenames = [coursedir.coursename for coursedir in CourseDir.objects.all()]
             else:
                 print("must provide at least one course, or --all")
                 exit(1)
-        for course in courses:
-            coursedir = CourseDir(course)
+        for coursename in coursenames:
+            coursedir = CourseDir.objects.get(coursename=coursename)
             if not coursedir.is_valid():
-                logger.error(f"no such course {course}")
+                logger.error(f"no such course {coursename}")
                 continue
             if not coursedir.autopull:
                 logger.info(f"course {course} has not opted for autopull")

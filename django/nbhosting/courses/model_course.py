@@ -9,39 +9,55 @@ from importlib.util import (
 
 import docker
 
+from django.db import models
+from django.contrib.auth.models import User
+
 from nbh_main.settings import NBHROOT, logger
+
+from nbhosting.utils import show_and_run
 
 from .model_track import Track, generic_track
 from .model_track import write_tracks, read_tracks
 from .model_mapping import StaticMapping
-
-# helper
-def show_and_run(command, *, dry_run=False):
-    if not dry_run:
-        logger.info(f"# {command}")
-        os.system(command)
-    else:
-        logger.info(f"(DRY-RUN) # {command}")
-
 
 # this is what we expect to find in a course custom tracks.py
 from typing import List
 CourseTracks = List[Track]
 
 
-class CourseDir:
+class CourseDir(models.Model):
 
-    def __init__(self, coursename):
-        self.coursename = coursename
-        # historical default is no autopull
-        self.autopull = False
-        # for bootstrapping
-        try:
-            self._probe_settings()
-        except:
-            pass
+    coursename = models.CharField(max_length=128)
+    giturl = models.CharField(max_length=1024, default='none')
+    image = models.CharField(max_length=256, default='none')
+    autopull = models.BooleanField(default=False)
+
+    # staff users refer to hashes created remotely
+    # so they do not match locally registered users
+    # so it is *not* a many-to-many relationship
+    staff_usernames = models.TextField(default="", blank=True)
+
+    # this OTOH qualifies for a proper n-to-n thing
+    registered_users = models.ManyToManyField(
+        User, related_name='courses_registered'
+    )
+
+    def __init__(self, *args, **kwds):
         self._notebooks = None
         self._tracks = None
+        super().__init__(*args, **kwds)
+
+
+    # hopefully temporary; being a Model seems to imply
+    # the constructor is not run when reloading at startup-time
+    # so we need to call this explicitly when needed
+    def probe(self):
+        if hasattr(self, '_probed'):
+            return
+        try:
+            self._probe_settings()
+        finally:
+            self._probed = True
 
 
     def is_valid(self):
@@ -72,6 +88,9 @@ class CourseDir:
 
     def customized(self, filename):
         """
+        implements the standard way to search for custom files
+        either locally, or by the course itself
+
         given a filename, search this:
         * first in nbhroot/local/coursename/<filename>
         * second in nbhroot/courses-git/coursename/nbhosting/<filename>
@@ -303,39 +322,6 @@ class CourseDir:
                 print(toplevel, file=raw)
 
 
-        try:
-            with (notebooks_dir / ".image").open() as storage:
-                self.image = storage.read().strip()
-        except Exception as exc:
-            self.image = f"-- undefined -- {exc}"
-
-
-        try:
-            with (notebooks_dir / ".staff").open() as storage:
-                self.staff = {
-                    line.strip() for line in storage if line}
-        except Exception:
-            self.staff = set()
-
-
-        try:
-            with (notebooks_dir / ".giturl").open() as storage:
-                self.giturl = storage.read().strip()
-        except Exception as exc:
-            self.giturl = f"-- undefined -- {exc}"
-
-        # autopull: file exists -> True
-        try:
-            with (notebooks_dir / ".autopull").open() as storage:
-                self.autopull = True
-        except Exception as exc:
-            self.autopull = False
-
-
-    def set_image(self, image):
-        with (self.notebooks_dir / ".image").open('w') as storage:
-            storage.write(f"{image}\n")
-
     def image_hash(self, docker_proxy):
         """
         the hash of the image that should be used for containers
@@ -454,3 +440,48 @@ class CourseDir:
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             encoding="utf-8",
             **run_args)
+
+
+# temporary helper to initialize db from disk
+def sync_disk_to_database(migrate_extras=False):
+    subdirs = (NBHROOT / "courses-git").glob("*")
+    for subdir in subdirs:
+        coursename = subdir.name
+        logger.debug(f"found on disk: course {coursename}")
+        coursedir, created = CourseDir.objects.get_or_create(coursename=coursename)
+        if created:
+            logger.info(f"sync_disk_to_database has creating course {coursename}")
+        if migrate_extras:
+
+            # old-style gitpull_url
+            old_giturl_path = coursedir.notebooks_dir / ".giturl"
+            with old_giturl_path.open() as feed:
+                coursedir.giturl = feed.read().strip()
+
+            # old-style staff
+            old_staff_path = coursedir.notebooks_dir / ".staff"
+            if old_staff_path.exists():
+                new_staff = ""
+                with old_staff_path.open() as old_staff:
+                    for line in old_staff:
+                        staff = line.strip()
+                        new_staff += f"{staff}\n"
+                        logger.info(f"added staff user {staff} to {coursename}")
+                coursedir.staff_usernames = new_staff
+
+            # old-style image
+            old_image_path = coursedir.notebooks_dir / ".image"
+            if not old_image_path.exists():
+                logger.debug(f"{old_image_path} not found")
+                coursedir.image = coursedir.coursename
+            else:
+                with old_image_path.open() as feed:
+                    imagename = feed.read().strip()
+                    logger.debug(f"coursename={coursename}, imagename={imagename}")
+                    coursedir.image = imagename
+
+            # old-style autopull
+            old_autopull_path = coursedir.notebooks_dir / ".autopull"
+            coursedir.autopull = old_autopull_path.exists()
+
+            coursedir.save()

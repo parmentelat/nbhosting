@@ -25,7 +25,6 @@ import docker
 from nbh_main.settings import sitesettings
 # redirect into monitor.log
 from nbh_main.settings import monitor_logger as logger
-from nbhosting.courses.model_courses import CoursesDir
 from nbhosting.courses.model_course import CourseDir
 
 from nbhosting.stats.stats import Stats
@@ -305,17 +304,17 @@ class Monitor:
         # initialize all known courses - we want data on all courses
         # even if they don't run any container yet
         logger.debug("scanning courses")
-        coursesdir = CoursesDir()
-        coursenames = coursesdir.coursenames()
-        figures_by_course = {coursename : CourseFigures()
-                             for coursename in coursenames}
+        figures_by_course = {c.coursename : CourseFigures()
+                             for c in CourseDir.objects.all()}
+        coursedirs_by_name = {c.coursename : c
+                              for c in Coursedir.objects.all()}
 
         try:
             proxy = docker.from_env(version='auto')
             logger.debug("scanning containers")
             containers = proxy.containers.list(all=True)
-            hash_by_course = {coursename : CourseDir(coursename).image_hash(proxy)
-                              for coursename in coursenames}
+            hash_by_course = {c.coursename : c.image_hash(proxy)
+                              for c in CourseDir.objects.all()}
             low_level_api = docker.APIClient(base_url='unix://var/run/docker.sock')
         except Exception:
             logger.exception(
@@ -394,7 +393,7 @@ class Monitor:
             asyncio.gather(*futures))
         # write results
         for coursename, figures in figures_by_course.items():
-            student_homes = CourseDir(coursename).student_homes()
+            student_homes = coursedirs_by_name[coursename].student_homes()
             Stats(coursename).record_monitor_counts(
                 figures.running_containers, figures.frozen_containers,
                 figures.running_kernels,
@@ -412,8 +411,8 @@ class Monitor:
         # so let us compute the actual time to wait
         logger.info("nbh-monitor is starting up")
         coursenames = CoursesDir().coursenames()
-        for coursename in coursenames:
-            Stats(coursename).record_monitor_known_counts_line()
+        for c in CourseDir.objects.all():
+            Stats(c.coursename).record_monitor_known_counts_line()
         while True:
             try:
                 self.run_once()

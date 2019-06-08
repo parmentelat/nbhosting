@@ -2,7 +2,7 @@ import os
 
 from django.core.management.base import BaseCommand
 
-from nbhosting import show_and_run
+from nbhosting.utils import show_and_run
 
 from nbh_main.settings import NBHROOT, logger
 

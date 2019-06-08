@@ -1,6 +1,10 @@
-#__package__ = 'nbhosting'
+# ever since Ive been using db-backed models
+# I keep on running into the infamous
+# "AppRegistryNotReady: Apps aren't loaded yet"
+# exception thrown by django ar random stages
+# including and most frustatingly when running
+# setup.py and/or manage.py
+#
+# so I am taking the drastic step of removing *ANY* autoimport
+# feature in here
 
-from .version import __version__
-
-# for nbh_main management commands
-from .utils import show_and_run

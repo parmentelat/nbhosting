@@ -21,7 +21,11 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         preserve = kwargs['preserve']
         coursename = kwargs['coursename']
-        coursedir = CourseDir(coursename)
+        try:
+            coursedir = CourseDir.objects.get(coursename=coursename)
+        except CourseDir.DoesNotExist:
+            logger.error(f"course not found {coursename}")
+            return 1
         logger.info(f"preserve mode = {preserve}")
         if not preserve:
             cache = (coursedir.notebooks_dir / ".tracks.json")

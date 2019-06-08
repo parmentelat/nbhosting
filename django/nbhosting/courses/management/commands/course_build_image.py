@@ -4,7 +4,6 @@ import os
 
 from django.core.management.base import BaseCommand
 
-from nbhosting.courses.model_courses import CoursesDir
 from nbhosting.courses.model_course import CourseDir
 
 from nbh_main.settings import logger, NBHROOT
@@ -16,6 +15,7 @@ class Command(BaseCommand):
     NOTE that courses that override
     their image so as to use another course's
     image are not allowed to rebuild"""
+
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -29,24 +29,25 @@ class Command(BaseCommand):
         parser.add_argument(
             "-a", "--all", action='store_true', default=False,
             help="redo all known courses")
-        parser.add_argument("course", nargs="*")
+        parser.add_argument("coursenames", nargs="*")
+
 
     def handle(self, *args, **kwargs):
         dry_run = kwargs['dry_run']
         force = kwargs['force']
 
-        courses = kwargs['course']
-        if not courses:
+        coursenames = kwargs['coursenames']
+        if not coursenames:
             if kwargs['all']:
-                courses = CoursesDir().coursenames()
+                coursenames = [coursedir.coursename for coursedir in CourseDir.objects.all()]
             else:
                 print("must provide at least one course, or --all")
                 exit(1)
-        for course in courses:
-            coursedir = CourseDir(course)
+        for coursename in coursenames:
+            coursedir = CourseDir.objects.get(coursename=coursename)
             if not coursedir.is_valid():
-                logger.error(f"no such course {course}")
+                logger.error(f"no such course {coursename}")
                 return
             coursedir.build_image(force)
-            logger.info(f"{40*'='} building image for {course}")
+            logger.info(f"{40*'='} building image for {coursename}")
             coursedir.build_image(force, dry_run)

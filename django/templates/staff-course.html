@@ -2,7 +2,7 @@
 
 
 {% block head_title %}
-{{coursename}} - {{how_many}} notebooks
+{{coursename}} - {{notebooks}} notebooks
 {% endblock %}
 
 
@@ -116,6 +116,22 @@ div.tracks {
                     {% endfor %}
                 </div>
             </div>
+
+
+            <div class="card">
+                <div class="card-block m-3">
+                    <h2 class="card-title">{{how_many}} users</h2>
+                </div>
+                <div class="card-block course-box m-3">
+                    {% for user in coursedir.registered_users.all %}
+                    <a class='registered-user'>
+                        {{user.first_name}} {{user.last_name}}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+
         </div> <!-- col-8-->
 
     <!------------------------------>
