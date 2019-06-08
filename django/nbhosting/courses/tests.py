@@ -2,9 +2,10 @@
 
 from django.test import TestCase
 
-from nbhosting.courses import CourseDir, generic_track
+from nbhosting.courses.model_course import CourseDir
 
-from nbhosting.courses import Track, Section, Notebook
+from nbhosting.courses.model_track import Track, Section, Notebook, generic_track
+
 
 class Tests(TestCase):
 

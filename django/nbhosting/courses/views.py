@@ -6,7 +6,10 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-from nbhosting.courses import CoursesDir, CourseDir, Notebook
+from nbhosting.courses.model_courses import CoursesDir
+from nbhosting.courses.model_course import CourseDir
+from nbhosting.courses.model_track import Notebook
+
 from nbh_main.settings import logger
 
 ######### auditor

@@ -25,7 +25,9 @@ import docker
 from nbh_main.settings import sitesettings
 # redirect into monitor.log
 from nbh_main.settings import monitor_logger as logger
-from nbhosting.courses import CourseDir, CoursesDir
+from nbhosting.courses.model_courses import CoursesDir
+from nbhosting.courses.model_course import CourseDir
+
 from nbhosting.stats.stats import Stats
 
 """

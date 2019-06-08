@@ -6,7 +6,7 @@ from datetime import timedelta
 from collections import OrderedDict, defaultdict
 
 from nbhosting.stats.timebuckets import TimeBuckets
-from nbhosting.courses import CourseDir
+from nbhosting.courses.model_course import CourseDir
 from nbh_main.settings import sitesettings, logger
 
 nbhroot = Path(sitesettings.nbhroot)
