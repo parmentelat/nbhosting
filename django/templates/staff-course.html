@@ -2,12 +2,12 @@
 
 
 {% block head_title %}
-{{coursename}} - {{notebooks}} notebooks
+{{coursename}} - {{notebooks|length}} notebooks
 {% endblock %}
 
 
 {% block title %}
-{{how_many}} notebooks in course {{coursename}}
+{{notebooks|length}} notebooks in course {{coursename}}
 {% endblock %}
 
 
@@ -88,6 +88,13 @@ div.tracks {
     <div class="row">
 
         <div class="col-8">
+            <div class="section">
+                <a href="/staff/course/{{coursename}}/update/"
+                    class='btn btn-danger btn-lg btn-block'
+                    data-toggle="tooltip"
+                    title="click to edit this course"
+                >EDIT</a>
+            </div>
             <div class='section'>
                 <a href='/staff/courses/update-from-git/{{coursename}}'
                  class='btn btn-info btn-lg btn-block' data-toggle="tooltip"

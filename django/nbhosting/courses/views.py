@@ -1,13 +1,17 @@
 # pylint: disable=c0111, w1203
 
-from django.shortcuts import render
-#from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+
+#from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
 from nbhosting.courses.model_course import CourseDir
 from nbhosting.courses.model_track import Notebook
+
+from nbhosting.courses.forms import UpdateCourseForm
 
 from nbh_main.settings import logger
 
@@ -172,3 +176,32 @@ def destroy_my_container(request, course):
         request, course,
         "course-destroy-student-container", "my container destroyed",
         True, request.user.username)
+
+
+def staff_course_update(request, course):
+    print(f"MATCHED staff-course.html with course={course}")
+    coursedir = get_object_or_404(CourseDir, coursename=course)
+
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+
+        # Create a form instance and populate it with data from the request (binding):
+        form = UpdateCourseForm(request.POST)
+
+        # Check if the form is valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            coursedir.autopull = form.cleaned_data['autopull']
+            coursedir.save()
+
+            # redirect to a new URL: xxx
+            return HttpResponseRedirect(f"/staff/course/{course}")
+
+    # If this is a GET (or any other method) create the default form.
+    else:
+        proposed_autopull = coursedir.autopull
+        form = UpdateCourseForm(initial={'autopull': proposed_autopull})
+
+    context = dict(form=form, coursedir=coursedir, coursename=course)
+
+    return render(request, 'staff-course-update.html', context)
