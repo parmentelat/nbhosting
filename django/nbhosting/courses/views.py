@@ -192,6 +192,7 @@ def staff_course_update(request, course):
         if form.is_valid():
             # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
             coursedir.autopull = form.cleaned_data['autopull']
+            coursedir.image = form.cleaned_data['image']
             coursedir.save()
 
             # redirect to a new URL: xxx
@@ -199,8 +200,11 @@ def staff_course_update(request, course):
 
     # If this is a GET (or any other method) create the default form.
     else:
-        proposed_autopull = coursedir.autopull
-        form = UpdateCourseForm(initial={'autopull': proposed_autopull})
+        form = UpdateCourseForm(
+            initial=dict(
+                autopull=coursedir.autopull,
+                image=coursedir.image,
+                ))
 
     context = dict(form=form, coursedir=coursedir, coursename=course)
 

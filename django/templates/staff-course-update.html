@@ -26,8 +26,26 @@ updating {{coursedir.coursename}}
 
 
 {% block content %}
+<style>
+form>table tr {
+    border: 1px solid;
+}
+form>table th {
+    font-weight: bold;
+}
+form>table th, form>table td {
+    padding: 10px;
+}
+
+input[type="submit"] {
+    margin-top: 20px;
+    background-color: red;
+    border-radius: 10px;
+}
+</style>
 
 <h1>Course: {{ coursedir.coursename }}</h1>
+<h2>git url: {{ coursedir.giturl }}</h2>
 
 <form action="" method="post">
   {% csrf_token %}
