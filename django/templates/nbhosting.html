@@ -15,25 +15,43 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 <style>
 div.nbh-banner {
-    padding: 1rem 2rem;
-    margin-bottom: 5px;
+    padding: 0px 2rem 18px 2rem;
+    display: flex;
+    flex-direction: row;
+    background-color: #e9ecef; /* from bootstrap jumbotron */
 }
-div.nbh-title>h2{
-    padding-bottom: 8px;
+div.nbh-title {
+    margin-right: auto;
+}
+.nbh-title>h2 {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+ol.nbh-breadcrumb {
+    margin-bottom: 1em;
+}
+div.nbh-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#nbh-user {
+    margin-top: 22px;
+    margin-bottom: 0.5em;
+}
+#nbh-version-line {
+/*    margin-bottom: 1em; */
+}
+#nbh-version {
+    font-size: 75%;
 }
 .nbh-breadcrumb ol.breadcrumb {
     padding: 0px;
     margin: 0px;
     font-size: 80%;
 }
-.nbh-user, .nbh-logo {
-    display: flex;
-    align-items: center;
-}
-.nbh-user>a, .nbh-logo>a {
-    margin: auto;
-}
 
+/* ---------- */
 div.section {
   padding: 1rem;
 }
@@ -50,6 +68,7 @@ div.code-ko {
     background-color: #fdb;
 }
 
+/* ---------- */
 ol.breadcrumb a:link {
     text-decoration: none;
 }
@@ -81,30 +100,31 @@ ol.breadcrumb li.active>a {
 
 <body>
 
-<div class='jumbotron nbh-banner'>
-    <div class="row">
-        <div class="col-8 nbh-title">
-                <h2>{% block title %}<a href="/">nbhosting</a>{% endblock %}</h2>
-                <span class="nbh-breadcrumb">{% block breadcrumb %}{% endblock %}</span>
-        </div>
-        <div class="col-3 nbh-user">
-            <a class="btn btn-sm
-                {% if user.is_authenticated %} btn-outline-danger
-                {% else %} btn-outline-secondary
-                {% endif %}
-                "
-                {% if user.is_authenticated %}
-                href="/accounts/logout/">logout, {{ user.get_username }}
-                {% else %}
-                href="/accounts/login/">login
-                {% endif %}
-            </a>
-        </div>
-        <div class="col-1 nbh-logo">
+<div class='nbh-banner'>
+    <div class="nbh-title">
+        <h2>{% block title %}<a href="/">nbhosting</a>{% endblock %}</h2>
+        <span class="nbh-breadcrumb">{% block breadcrumb %}{% endblock %}</span>
+    </div>
+    <div class="nbh-right">
+        <a id="nbh-user" class="btn btn-sm
+            {% if user.is_authenticated %} btn-outline-danger
+            {% else %} btn-outline-secondary
+            {% endif %}
+            "
+            {% if user.is_authenticated %}
+            href="/accounts/logout/">logout, {{ user.get_username }}
+            {% else %}
+            href="/accounts/login/">login
+            {% endif %}
+        </a>
+        <span id="nbh-version-line">
             <a href="https://github.com/parmentelat/nbhosting" target="_">
-                <img src="{% static "img/GitHub-Mark-120px-plus.png" %}" height="40px">
+                <img src="{% static "img/GitHub-Mark-120px-plus.png" %}" height="20px">
             </a>
-        </div>
+            <span id="nbh-version">
+                {% if nbh_version %} v. {{nbh_version}} {% endif %}
+            </span>
+        </span>
     </div>
 </div>
 

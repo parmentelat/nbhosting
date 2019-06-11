@@ -8,12 +8,14 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
+from nbh_main.settings import logger
+
 from nbhosting.courses.model_course import CourseDir
 from nbhosting.courses.model_track import Notebook
-
 from nbhosting.courses.forms import UpdateCourseForm
 
-from nbh_main.settings import logger
+from nbhosting.version import __version__ as nbh_version
+
 
 ######### auditor
 
@@ -21,8 +23,12 @@ from nbh_main.settings import logger
 @csrf_protect
 def auditor_list_courses(request):
     course_dirs = CourseDir.objects.order_by('coursename')
-    return render(request, "auditor-courses.html",
-                  dict(course_dirs=course_dirs))
+    env = dict(
+        course_dirs=course_dirs,
+        nbh_version=nbh_version,
+    )
+
+    return render(request, "auditor-courses.html", env)
 
 
 @login_required
@@ -58,20 +64,21 @@ def auditor_show_notebook(request, course, notebook=None, track=None):
                    )
     tracks = coursedir.tracks()
 
-    return render(
-        request, "auditor-notebook.html",
-        dict(
-            coursename=course,
-            coursedir=coursedir,
-            track=track,
-            notebook=notebook,
-            iframe=iframe,
-            gitpull_url=gitpull_url,
-            head_title=f"nbh:{course}",
-            title=title,
-            tracks=tracks,
-            student=student,
-        ))
+    env = dict(
+        nbh_version=nbh_version,
+        coursename=course,
+        coursedir=coursedir,
+        track=track,
+        notebook=notebook,
+        iframe=iframe,
+        gitpull_url=gitpull_url,
+        head_title=f"nbh:{course}",
+        title=title,
+        tracks=tracks,
+        student=student,
+    )
+
+    return render(request, "auditor-notebook.html", env)
 
 
 ######### staff
@@ -80,8 +87,11 @@ def auditor_show_notebook(request, course, notebook=None, track=None):
 @csrf_protect
 def staff_list_courses(request):
     course_dirs = CourseDir.objects.order_by('coursename')
-    return render(request, "staff-courses.html",
-                  {'course_dirs': course_dirs})
+    env = dict(
+        nbh_version=nbh_version,
+        course_dirs=course_dirs,
+    )
+    return render(request, "staff-courses.html", env)
 
 @staff_member_required
 @csrf_protect
@@ -96,6 +106,7 @@ def staff_show_course(request, course):
     shorten_staff = [username[:7] for username in coursedir.staff_usernames.split()]
 
     env = dict(
+        nbh_version=nbh_version,
         coursedir=coursedir,
         coursename=course,
         notebooks=notebooks,
@@ -124,6 +135,7 @@ def render_subprocess_result(request, course,
     # expose most locals, + the attributes of completed
     # like stdout and stderr
     env = dict(
+        nbh_version=nbh_version,
         course=course,
         message=message,
         command=command,
@@ -206,6 +218,10 @@ def staff_course_update(request, course):
                 image=coursedir.image,
                 ))
 
-    context = dict(form=form, coursedir=coursedir, coursename=course)
+    env = dict(
+        nbh_version=nbh_version,
+        form=form,
+        coursedir=coursedir,
+        coursename=course)
 
-    return render(request, 'staff-course-update.html', context)
+    return render(request, 'staff-course-update.html', env)
