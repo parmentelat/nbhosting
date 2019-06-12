@@ -10,7 +10,7 @@ class CourseForm(ModelForm):
 
     class Meta:
         model = CourseDir
-        fields = ['autopull', 'image']
+        fields = ['autopull', 'image', 'staff_usernames']
 
 class UpdateCourseForm(forms.Form):
     autopull = forms.BooleanField(
@@ -20,7 +20,7 @@ class UpdateCourseForm(forms.Form):
                    "pull every hour from your git remote"),
         )
     image = forms.CharField(
-        label=' image',
+        label='image',
         required=False,
         help_text="""
             the name of the docker image used to spawn student containers for
@@ -34,6 +34,21 @@ class UpdateCourseForm(forms.Form):
             latter case you will be responsible for triggering rebuilds of that
             image""",
         )
+    staff_usernames = forms.CharField(
+        label='staff_usernames',
+        required=False,
+        strip=True,
+        widget=forms.TextInput(attrs={
+            'size': '128',
+            # not rendering apparently
+            # 'title': 'separate users with spaces',
+            }),
+        help_text="""
+        the names of users that are considered staff for this course;
+        this is mainly used to ignore activity from these people
+        when computing statistics
+        """
+    )
 
 #    def clean_autopull(self):
 #        """

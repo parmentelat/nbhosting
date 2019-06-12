@@ -27,6 +27,17 @@
 
 {% block content %}
 <style>
+.autopull {
+    padding-left: 40px;
+    font-size: 200%;
+    vertical-align: middle;
+}
+.autopull-on {
+    color: blue;
+}
+.autopull-off {
+    color: #d66d92;
+}
 .course-box {
     display: flex;
     flex-direction: row;
@@ -68,18 +79,25 @@ span.mapping.to {
 .smaller {
     font-size: 75%;
 }
-div.tracks {
+div.tracks, div.staffs{
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     margin: 5px;
 }
 .track{
-    border-radius: 4px;
+    border-radius: 6px;
     border: 1px solid #ccc;
     padding: 4px;
     margin: 4px;
     color: green;
+}
+.staff {
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    padding: 4px;
+    margin: 4px;
+    color: blue;
 }
 </style>
 
@@ -90,23 +108,31 @@ div.tracks {
         <div class="col-8">
             <div class="section">
                 <a href="/staff/course/{{coursename}}/update/"
-                    class='btn btn-warning btn-lg btn-block'
+                    class='btn btn-outline-warning btn-lg btn-block'
                     data-toggle="tooltip"
                     title="click to edit this course"
-                >EDIT details for {{coursename}}</a>
+                >edit details for {{coursename}}</a>
             </div>
             <div class='section'>
                 <a href='/staff/courses/update-from-git/{{coursename}}'
-                 class='btn btn-info btn-lg btn-block' data-toggle="tooltip"
-                 data-html="true" title="<span class='smaller'>
-                    update course <code>{{coursename}}</code>
-                    <br/>using git pull from <br/><code>{{giturl}}</code></span>"
+                 class='btn btn-info btn-lg btn-block'
                 >
-                    git pull contents for {{coursename}}
+                    <span data-toggle="tooltip"
+                        data-html="true" title="<span class='smaller'>
+                       update course <code>{{coursename}}</code>
+                       <br/>using git pull from <br/><code>{{giturl}}</code></span>">
+                        git pull contents for {{coursename}}
+                    </span>
+                    <span
+                        class="fa autopull {% if coursedir.autopull %}fa-clock-o autopull-on{% else %}fa-stop-circle autopull-off{% endif %}"
+                        data-toggle="tooltip" title="autopull is turned {% if coursedir.autopull %} ON {% else %} OFF {% endif %}"
+                        >
+                    </span>
+                    <span
+                        class="{%if coursedir.autopull %} btn-success {% else %} btn-danger {% endif %}">
+
+                </span>
                 </a>
-                <p class="btn active btn-block {% if coursedir.autopull %} btn-success {% else %} btn-danger {% endif %}">
-                    auto-pull is turned {% if coursedir.autopull %} ON {% else %} OFF {% endif %}
-                </p>
             </div> <!--section-->
 
             <div class="card">
@@ -144,56 +170,6 @@ div.tracks {
     <!------------------------------>
         <div class="col-4">
 
-            <div class='section'>
-                <div class="card">
-                    <div class="card-block m-3">
-                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                         title="<span class='smaller'>
-                             static mappings are symlinks created in all working subdirs<br/>
-                         you can define them for your course in
-                         <code>nbhosting/static-mappings</code></span>">static mappings</h3>
-                         <ul class="list-group list-group-flush">
-                            {% for static_mapping in static_mappings %}
-                            <li class="list-group-item">
-                                <p class='card-text'> {{static_mapping.html|safe|escape}} </p>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div> <!-- card-block-->
-                </div> <!-- card-->
-            </div>
-
-            <div class="section">
-                <div class="card">
-                    <div class="card-block m-3">
-                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                            title="<span class='smaller'>set with <code>nbh course-settings -i</code>
-                            </br>if you use the course name<br/>then please provide <code>nbhosting/Dockerfile</code></br>so you can redo your image</span>">image</h3>
-                        <p class='card-text'> docker name: {{image}} </p>
-                        {% if image == coursename %}
-                            <a href='/staff/courses/build-image/{{coursename}}'
-                                class='btn btn-info btn-lg btn-block'
-                                data-toggle="tooltip" data-html="true"
-                                title="<span class='smaller'>rebuild image for that course<br/>
-                                       please be patient</span>"
-                            >
-                                rebuild image
-                            </a>
-                        {% endif %}
-                        <a href='/staff/courses/destroy-my-container/{{coursename}}'
-                            class='btn btn-danger btn-lg btn-block'
-                            data-toggle="tooltip"
-                            data-html="true"
-                            title="<span class='smaller'>for trying out a newly built image</br>
-                                   we need to destroy your currently running container</span>"
-                        >
-                            destroy my container
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-
             <div class="section">
                 <div class="card">
                     <div class="card-block m-3">
@@ -215,7 +191,12 @@ div.tracks {
                             class='btn btn-info btn-lg btn-block'
                             data-toggle="tooltip"
                             data-html="true"
-                            title="<span class='smaller'>show how tracks are computed</span>"
+                            title="<span class='smaller'>
+                                   show how tracks are computed<br/>
+                                   this primarily runs <br/>the python module<br/>
+                                   named <code>nbhosting/tracks.py</code><br/>
+                                   in the course repo
+                                </span>"
                             >
                             compute tracks
                         </a>
@@ -223,26 +204,79 @@ div.tracks {
                 </div>
             </div>
 
+
+            <div class='section'>
+                <div class="card">
+                    <div class="card-block m-3">
+                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
+                         title="<span class='smaller'>
+                             static mappings are symlinks created in all working subdirs<br/>
+                         you can define them for your course in
+                         <code>nbhosting/static-mappings</code></span>">static mappings</h3>
+                         <ul class="list-group list-group-flush">
+                            {% for static_mapping in static_mappings %}
+                            <li class="list-group-item">
+                                <p class='card-text'> {{static_mapping.html|safe|escape}} </p>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div> <!-- card-block-->
+                </div> <!-- card-->
+            </div>
+
+
+            <div class="section">
+                <div class="card">
+                    <div class="card-block m-3">
+                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
+                            title="<span class='smaller'>set with <code>nbh course-settings -i</code>
+                            </br>if you use the course name<br/>then please provide <code>nbhosting/Dockerfile</code></br>so you can redo your image</span>">docker image : {{image}}</h3>
+                        {% if image == coursename %}
+                            <a href='/staff/courses/build-image/{{coursename}}'
+                                class='btn btn-info btn-lg btn-block'
+                                data-toggle="tooltip" data-html="true"
+                                title="<span class='smaller'>
+                                    rebuild image for that course<br/>
+                                    please be patient</span>"
+                            >
+                                rebuild image
+                            </a>
+                        {% endif %}
+                        <a href='/staff/courses/destroy-my-container/{{coursename}}'
+                            class='btn btn-danger btn-lg btn-block'
+                            data-toggle="tooltip"
+                            data-html="true"
+                            title="<span class='smaller'>
+                                for trying out a newly built image</br>
+                                you need to destroy your <br/>
+                                currently running container</span>"
+                        >
+                            destroy my container
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
             <div class="section">
                 <div class="card">
                     <div class="card-block m-3">
                         <h3 class="card-title" data-toggle="tooltip" data-html="true"
                         title="<span class='smaller'>set with <code>nbh course-settings -s</code>
                         </br>students listed as staff are ignored when gathering usage statistics">staff</h3>
-                        <ul class="list-group list-group-flush">
-                            {% for hash in staff %}
-                            <li class="list-group-item">
-                                <p class='card-text'> {{hash}} </p>
-                            </li>
+                        <div class="staffs">
+                            {% for hash in shorten_staffs %}
+                            <span class="staff">{{hash}}</span>
                             {% endfor %}
-                        </ul>
+                        </div>
                         <a href='/staff/courses/clear-staff/{{coursename}}'
                             class='btn btn-info btn-lg btn-block'
                             data-toggle="tooltip" data-html="true"
-                            title="will remove all notebooks found
-                            in all students marked as staff<br/>
-                            this helps in assessing the course is well-formed
-                            by removing any leftovers"
+                            title="<span class='smaller'>
+                                remove all notebooks found</br>
+                                in all students marked as staff<br/>
+                                this helps in assessing the course</br>
+                                is well-formed, by removing any leftovers</span>"
                             >
                             clear staff files
                         </a>

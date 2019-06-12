@@ -27,20 +27,44 @@ updating {{coursedir.coursename}}
 
 {% block content %}
 <style>
+form>table {
+    margin : 20px;
+}
 form>table tr {
     border: 1px solid;
 }
 form>table th {
     font-weight: bold;
+    text-align: right;
+    vertical-align: top;
 }
+form>table th>label {
+    padding-top: 5px;
+}
+
 form>table th, form>table td {
     padding: 10px;
 }
+form>table td>input {
+    padding: 5px;
+    display: inline;
+    border-radius: 5px;
+    margin-bottom: 12px;
+}
 
 input[type="submit"] {
-    margin-top: 20px;
+    font-size: 200%;
+    font-weight: bold;
+    width: 80%;
+    padding: 20px;
+    margin: 20px 10% ;
     background-color: red;
-    border-radius: 10px;
+    border-radius: 20px;
+}
+
+h1, h2 {
+    padding: 12px;
+    text-align: center;
 }
 </style>
 

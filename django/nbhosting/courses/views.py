@@ -103,7 +103,16 @@ def staff_show_course(request, course):
     notebooks.sort()
     # shorten staff hashes
 
-    shorten_staff = [username[:7] for username in coursedir.staff_usernames.split()]
+    def shorten(staff):
+        if len(staff) >= 10:
+            return f"{staff[:7]}..."
+        else:
+            return staff
+
+
+    shorten_staffs = [shorten(username)
+                     for username in   coursedir.staff_usernames.split()]
+    shorten_staffs.sort()
 
     env = dict(
         nbh_version=nbh_version,
@@ -112,7 +121,7 @@ def staff_show_course(request, course):
         notebooks=notebooks,
         image=coursedir.image,
         static_mappings=coursedir.static_mappings,
-        staff=shorten_staff,
+        shorten_staffs=shorten_staffs,
         giturl=coursedir.giturl,
         tracks=coursedir.tracks(),
     )
@@ -205,6 +214,7 @@ def staff_course_update(request, course):
             # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
             coursedir.autopull = form.cleaned_data['autopull']
             coursedir.image = form.cleaned_data['image']
+            coursedir.staff_usernames = form.cleaned_data['staff_usernames']
             coursedir.save()
 
             # redirect to a new URL: xxx
@@ -216,6 +226,7 @@ def staff_course_update(request, course):
             initial=dict(
                 autopull=coursedir.autopull,
                 image=coursedir.image,
+                staff_usernames=coursedir.staff_usernames,
                 ))
 
     env = dict(
