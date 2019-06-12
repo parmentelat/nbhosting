@@ -244,11 +244,14 @@ Make sure to see the reservation explained in `configuration.md`, about possible
 
 ## use
 
-There's a single command `nbh` that's an entry point into all the features exposed to the CLI; see the list with
+There's a single command `nbh-manage` that's an entry point into all the features exposed to the CLI; see the list with
 
 ```
-nbh --help
+nbh-manage help
 ```
+
+this actually is the usual django's `manage.py`, but extended in the `[courses]`
+and `[nbh_main]` categories
 
 ****
 
@@ -295,29 +298,27 @@ nbh course-update-from-git flotpython
 
 ## image (step 3 : build course image)
 
+The docker image name to use with a course is modifiable in the web UI - you
+need staff privileges of course.
+
 #### option 1 : use a core image
 
 nbhosting comes with predefined images, that are built on top of publically
 available images (see step B above). If you'd like your course to use one of
-these, do
+these, use e.g. `nbhosting/minimal-notebook`
 
-```
-nbh course-settings -i nbhosting/minimal-notebook mycourse
-```
-
+as the docker image name for this course.
 Note that it is **not recommended** to use dockerhub images *as is*, as it will
 cause very poor overll performance. If needed, see the `Dockerfile` for the core
 images, that are located in the `images` subdir in the git repo.
 
 #### option 2 : piggyback
 
-If your nbhosting instance already hosts a course, say `python3-s2`, and you want to host course `mycourse` with the same image as `python3-s2`, you can do this:
-
-```
-nbh course-settings -i python3-s2 mycourse
-```
+If your nbhosting instance already hosts a course, say `python3-s2`, and you want to host course `mycourse` with the same image as `python3-s2`, you can just use that as your docker image name.
 
 #### option 3 : your own image
+
+Otherwise, your docker image name should match the course name, and you can rebuild that image from the shell with
 
 ```
 nbh-manage course-build-image mycourse
@@ -335,33 +336,30 @@ You can trigger steps 2 (update from git) and 3 (rebuild image) from the web UI 
 
 ## settings (optional)
 
-**WARNING** this aspect of the system is undergoing quite substantial changes **WARNING**
-
 ### what ?
 
 There are a few settings available for a course; as of this writing:
 
+* a boolean `autopull` flag; when enabled, nbhosting will pull from git every hour or so;
 * docker image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however images are big and tedious to build, so you could want to share another course's image
 * students that are considered *staff*; corresponding hashes will be ignored when building usage statistics
 
 * list of static mappings; see below
 * sectioning and tracks; see below
 
-By experience, the first two settings seem to make more sense on a nbhosting
+By experience, the first 3 settings seem to make more sense on a nbhosting
 deployment basis; the dev and prod boxes will not necessarily align on these.
-The last ones on the other hand seem to depend on the git repo structure only,
-and so are defined from files in the course repo.
+
+The last 2 settings,  ones on the other hand seem to depend on the git repo
+structure only, and so are defined from files in the course repo.
+
 
 ### how ?
 
-##### image and staff
+##### autopull, image and staff
 
-The 2 first settings are stored in text files, e.g.
+This is configurable from the Web UI; go the the course management page, and click the orange `edit details for yourcoursename` button
 
-* `$NBHROOT/courses/flotpython/.staff`
-* `$NBHROOT/courses/flotpython/.image`
-
-that can be edited directly, or be changed with `nbh course-settings`; run with `--help` for more details
 
 ##### static mappings
 static mappings allow you to define symlinks that work from anywhere in the notebooks tree; for example, if you define the following 2 mappings

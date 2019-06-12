@@ -294,63 +294,6 @@ function course-init() {
 
     [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
     -course-init >> $log 2>&1
-    # run these automatically to avoid various frustrations
-    course-settings $course >> $log 2>&1
-    course-update-from-git $course >> $log 2>&1
-}
-
-
-##########
-# CLI to set course attributes/settings
-###
-
-@declare-subcommand course-settings
-function course-settings() {
-    local USAGE="Usage: $COMMAND $FUNCNAME  [-i image] [-s staff-hash] course
-      -i : specify the docker image to use for that course
-      -s : (cumulative) add staff hash - staff members are ignored in stats
-"
-
-    local image=""
-    local staff=""
-    while getopts "i:s:" option; do
-        case $option in
-            i) image="$OPTARG" ;;
-            s) staff="$staff $OPTARG" ;;
-            ?) -die "$USAGE" ;;
-        esac
-    done
-    shift $((OPTIND-1))
-    # reset OPTIND for subsequent calls to getopts
-    OPTIND=1
-
-    [ "$#" -eq 1 ] || -die $USAGE
-
-    course=$1; shift
-    -compute-course-globals $course
-
-    ### update the course settings
-
-    # image name: redefine or create
-    if [ -n "$image" ]; then
-        echo "$image" > $COURSE_imagefile
-    elif [ ! -f $COURSE_imagefile ]; then
-        echo $course > $COURSE_imagefile
-    fi
-
-    # augment or init -  for staff members
-    if [ -n "$staff" ]; then
-        for hash in $staff; do
-            echo $hash >> $COURSE_stafffile
-        done
-    elif [ ! -f $COURSE_stafffile ]; then
-        touch $COURSE_stafffile
-    fi
-
-    # convenience: update .giturl
-    if [ ! -f $COURSE_giturlfile ]; then
-        (cd $COURSE_git; git config --get remote.origin.url) > $COURSE_giturlfile
-    fi
 
 }
 
@@ -369,9 +312,6 @@ function course-update-from-git() {
 
     course=$1; shift
     -compute-course-globals $course
-
-    # just a convenience so that these get initialized
-    course-settings $course
 
     local log=$NBHROOT/logs/$course/update.log
 

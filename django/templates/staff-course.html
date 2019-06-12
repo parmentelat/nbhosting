@@ -229,8 +229,10 @@ div.tracks, div.staffs{
                 <div class="card">
                     <div class="card-block m-3">
                         <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                            title="<span class='smaller'>set with <code>nbh course-settings -i</code>
-                            </br>if you use the course name<br/>then please provide <code>nbhosting/Dockerfile</code></br>so you can redo your image</span>">docker image : {{image}}</h3>
+                            title="<span class='smaller'>
+                                if you use the course name<br/>
+                                then please provide <code>nbhosting/Dockerfile</code>
+                            </br>so you can redo your image</span>">docker image : <code>{{image}}</code></h3>
                         {% if image == coursename %}
                             <a href='/staff/courses/build-image/{{coursename}}'
                                 class='btn btn-info btn-lg btn-block'
@@ -262,8 +264,10 @@ div.tracks, div.staffs{
                 <div class="card">
                     <div class="card-block m-3">
                         <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                        title="<span class='smaller'>set with <code>nbh course-settings -s</code>
-                        </br>students listed as staff are ignored when gathering usage statistics">staff</h3>
+                        title="<span class='smaller'>
+                            students listed as staff<br/>
+                            are ignored when<br/>
+                            gathering usage statistics">staff</h3>
                         <div class="staffs">
                             {% for hash in shorten_staffs %}
                             <span class="staff">{{hash}}</span>

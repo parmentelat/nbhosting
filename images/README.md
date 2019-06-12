@@ -43,20 +43,15 @@ nbh-manage build-core-images
 
 # course settings
 
-In `nbhosting`, each course uses a specific image; all students in the same course have a container based on the same image. Each course has an 'imagename'  associated to it; by default the image name is the same as the course name, but this can be altered with
+In `nbhosting`, each course uses a specific image; all students in the same course have a container based on the same image.
 
-```bash
-nbh course-settings -i imagename coursename
-```
+So each course has an `image` name  associated to it; by default the image name is the same as the course name, but this can be altered in the web UI.
 
-
-A course has two options:
+A course has several options:
 
 * either is uses some other image (that is to say, its imagename **does not
-* match** the course name); the image name needs to match an image known to
-* docker, and it is advised to use the name of another course in this case;
-* trying to rebuild the image for a course that falls into this first category
-* will result in an error.
+ match** the course name); trying to rebuild the image for a course that falls
+ into this first category will result in an error.
 
 * or it wants to describe its own image (when its imagename **does match** its own name); in that case, a `Dockerfile` is searched in 2 locations:
   * first in
@@ -73,6 +68,10 @@ In that second case, rebuilding a course's image is thus generally done either
 nbh course-pull-from-git mycourse
 nbh-manage course-build-image mycourse
 ```
+
+Whatever the option among the 2 discussed above, the important thing is for a course to pick a name that is
+* **a valid docker image name**
+* that is built **on top** of one of the **core nbhosting images**, as these contain crucial utilities.
 
 
 # deployment logic
