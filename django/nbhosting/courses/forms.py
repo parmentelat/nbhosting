@@ -38,11 +38,10 @@ class UpdateCourseForm(forms.Form):
         label='staff_usernames',
         required=False,
         strip=True,
-        widget=forms.TextInput(attrs={
-            'size': '128',
-            # not rendering apparently
-            # 'title': 'separate users with spaces',
-            }),
+        widget=forms.Textarea(attrs={
+            'rows': 10,
+            'cols': 100,
+        }),
         help_text="""
         the names of users that are considered staff for this course;
         this is mainly used to ignore activity from these people
