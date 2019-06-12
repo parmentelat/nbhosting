@@ -226,7 +226,7 @@ def staff_course_update(request, course):
             initial=dict(
                 autopull=coursedir.autopull,
                 image=coursedir.image,
-                staff_usernames=coursedir.staff_usernames,
+                staff_usernames=" ".join(coursedir.staff_usernames.split()),
                 ))
 
     env = dict(
