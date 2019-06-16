@@ -89,8 +89,10 @@ class Notebook:                                         # pylint: disable=r0903
         result = ""
         result += f'''onclick="iframe_notebook('{self.clean_path()}')"'''
         result += f''' data-toggle="tooltip" data-html="true"'''
-        result += f''' title="{main_tooltip}
-        </br><span class='smaller'>{self.clean_path()}</span>"'''
+        result += f''' title="'''
+        if main_tooltip:
+            result +=  f'''{main_tooltip}<br/>'''
+        result += f'''<span class='smaller'>{self.clean_path()}</span>"'''
         return result
 
     def _read_embedded(self):
