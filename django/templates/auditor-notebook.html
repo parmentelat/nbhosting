@@ -25,13 +25,17 @@
 
 <!--  javascript -->
 <script>
+function update_header(string) {
+    $('div.nbh-title>h2').html(string);    
+}
+
 function update_current_notebook(notebook) {
     $("div.notebook").each(function(index, div) {
         let $div = $(div);
         let current = $div.attr("data-notebook") == notebook;
         if (current) {
             $div.addClass("current");
-            $('div.nbh-title>h2').html($div.attr("data-notebook-title"));
+            update_header($div.attr("data-notebook-title"));
         } else {
             $div.removeClass("current");
         }
@@ -348,14 +352,14 @@ iframe {
                 <br/>that are <b>already present</b> in your workspace"
             >Jupy<wbr>ter</h1>
             <div class="jupyter">
-                <a onclick="iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree')"
+                <a onclick="{iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree'); update_header('Jupyter classic');}"
                     data-toggle="tooltip" data-html="true"
                     title="Jupyter classic will display the contents of your workdir
                     and spawn noteboks in separate tabs"
                     class="classic btn btn-outline-success"
                     >  clas<wbr>sic
                 </a>
-                <a onclick="iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab')"
+                <a onclick="{iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab'); update_header('Jupyter lab');}"
                     target="nbhosting-jupyter"
                     data-toggle="tooltip" data-html="true"
                     title="with Jupyter lab you can edit all your contents from
