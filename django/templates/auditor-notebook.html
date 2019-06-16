@@ -31,6 +31,7 @@ function update_current_notebook(notebook) {
         let current = $div.attr("data-notebook") == notebook;
         if (current) {
             $div.addClass("current");
+            $('div.nbh-title>h2').html($div.attr("data-notebook-title"));
         } else {
             $div.removeClass("current");
         }
@@ -325,7 +326,8 @@ iframe {
                     {% for notebook_obj in section.notebooks %}
                     <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}>
                         <div data-notebook="{{notebook_obj.clean_path}}"
-                            class="notebook {{notebook_obj.classes}}
+                             data-notebook-title="{{notebook_obj.notebookname}}"
+                             class="notebook {{notebook_obj.classes}}
                             {% if notebook_obj.clean_path == notebook %}current{% endif %}"
                         ></div>
                     </a>
