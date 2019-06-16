@@ -60,7 +60,7 @@ function iframe_notebook(notebook) {
 function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
 }
-function hideleft_toggle(){
+function hideleft_toggle() {
     if ($("#hideleft-toggle").hasClass("hideleft")) {
         hideleft_off();
     } else {
@@ -91,7 +91,7 @@ html, body {
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 105px;
+    top: 102px;
     bottom: 0px;
     left: 0px;
     /*
@@ -100,7 +100,7 @@ html, body {
     */
     right: 83%;
     padding: 0px;
-    background-color: #e0e0e0;
+    background-color: #e9ecef; /* from bootstrap jumbotron */
 }
 
 #left-pane.hideleft {
@@ -133,7 +133,7 @@ div.left-bottom {
 #hideleft-toggle {
     position: fixed;
     left: 17%;
-    top: 105px;
+    top: 102px;
     z-index: 100;
     transform: scaleX(-1);
 }
@@ -145,7 +145,7 @@ div.left-bottom {
 
 #iframe-container {
     position: absolute;
-    top: 105px;
+    top: 102px;
     bottom: 0px;
     left: 17%;
     right: 0px;
