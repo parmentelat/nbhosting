@@ -60,6 +60,7 @@ function iframe_notebook(notebook) {
 function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
 }
+
 function hideleft_toggle() {
     if ($("#hideleft-toggle").hasClass("hideleft")) {
         hideleft_off();
@@ -77,6 +78,27 @@ function hideleft_off() {
     $("#iframe-container").removeClass("hideleft");
     $("#hideleft-toggle").removeClass("hideleft");
 }
+
+
+function hidetop_toggle() {
+    if ($("#hidetop-toggle").hasClass("hidetop")) {
+        hidetop_off();
+    } else {
+        hidetop_on();
+    }
+}
+function hidetop_on() {
+    $(".nbh-banner").addClass("hidetop");
+    $(".nbh-body").addClass("hidetop");
+    $("#hidetop-toggle").addClass("hidetop");
+}
+function hidetop_off() {
+    $(".nbh-banner").removeClass("hidetop");
+    $(".nbh-body").removeClass("hidetop");
+    $("#hidetop-toggle").removeClass("hidetop");
+}
+
+
 </script>
 
 
@@ -87,11 +109,28 @@ html, body {
     width: 100%;
 }
 
+.nbh-banner.hidetop {
+    display: none;
+}
+
+/* 102px is the header size */
+#left-pane, #iframe-container, #hideleft-toggle {
+    top: 102px;
+}
+/* this one is 102px - 20px (toggle height) */
+#hidetop-toggle {
+    top: 82px;
+}
+
+
+.nbh-body.hidetop #iframe-container, .nbh-body.hidetop #left-pane, .nbh-body.hidetop #hideleft-toggle {
+    top: 0px;
+}
+
 #left-pane {
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 102px;
     bottom: 0px;
     left: 0px;
     /*
@@ -130,10 +169,26 @@ div.left-bottom {
     background-color: white;
 }
 
+#hidetop-toggle {
+    position: fixed;
+    right: 0px;
+    z-index: 100;
+    transform: scaleY(-1);
+}
+
+#hidetop-toggle.hidetop {
+    transform: scale(1);
+    top: 0px;
+}
+
+#hidetop-toggle.hideleft {
+    transform: scaleX(1);
+    left: 0px;
+}
+
 #hideleft-toggle {
     position: fixed;
     left: 17%;
-    top: 102px;
     z-index: 100;
     transform: scaleX(-1);
 }
@@ -145,7 +200,6 @@ div.left-bottom {
 
 #iframe-container {
     position: absolute;
-    top: 102px;
     bottom: 0px;
     left: 17%;
     right: 0px;
@@ -283,7 +337,12 @@ iframe {
         onclick="hideleft_toggle()"
         ></img>
     </div>
-
+    <div id="hidetop-toggle" class="transitionable">
+        <img src="/assets/img/down.svg" height="40px"
+        onclick="hidetop_toggle()"
+        ></img>
+    </div>
+    
     <div id="left-pane" class="transitionable">
 
         <div class='left-upper {% if tracks|length_is:"1" %}hidden{% endif%}'>
