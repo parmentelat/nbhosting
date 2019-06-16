@@ -60,22 +60,22 @@ function iframe_notebook(notebook) {
 function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
 }
-function fullscreen_toggle(){
-    if ($("#fullscreen-toggle").hasClass("fullscreen")) {
-        fullscreen_off();
+function hideleft_toggle(){
+    if ($("#hideleft-toggle").hasClass("hideleft")) {
+        hideleft_off();
     } else {
-        fullscreen_on();
+        hideleft_on();
     }
 }
-function fullscreen_on() {
-    $("#left-pane").addClass("fullscreen");
-    $("#iframe-container").addClass("fullscreen");
-    $("#fullscreen-toggle").addClass("fullscreen");
+function hideleft_on() {
+    $("#left-pane").addClass("hideleft");
+    $("#iframe-container").addClass("hideleft");
+    $("#hideleft-toggle").addClass("hideleft");
 }
-function fullscreen_off() {
-    $("#left-pane").removeClass("fullscreen");
-    $("#iframe-container").removeClass("fullscreen");
-    $("#fullscreen-toggle").removeClass("fullscreen");
+function hideleft_off() {
+    $("#left-pane").removeClass("hideleft");
+    $("#iframe-container").removeClass("hideleft");
+    $("#hideleft-toggle").removeClass("hideleft");
 }
 </script>
 
@@ -100,10 +100,10 @@ html, body {
     */
     right: 83%;
     padding: 0px;
-    background-color: #aaa;
+    background-color: #e0e0e0;
 }
 
-#left-pane.fullscreen {
+#left-pane.hideleft {
     right: 100%;
 }
 
@@ -130,7 +130,7 @@ div.left-bottom {
     background-color: white;
 }
 
-#fullscreen-toggle {
+#hideleft-toggle {
     position: fixed;
     left: 17%;
     top: 105px;
@@ -138,7 +138,7 @@ div.left-bottom {
     transform: scaleX(-1);
 }
 
-#fullscreen-toggle.fullscreen {
+#hideleft-toggle.hideleft {
     transform: scaleX(1);
     left: 0px;
 }
@@ -151,7 +151,7 @@ div.left-bottom {
     right: 0px;
 }
 
-#iframe-container.fullscreen {
+#iframe-container.hideleft {
     left: 0%;
 }
 
@@ -278,9 +278,9 @@ iframe {
 
 <!------------------------------>
 <div class="container" height="100%">
-    <div id="fullscreen-toggle" class="transitionable">
+    <div id="hideleft-toggle" class="transitionable">
         <img src="/assets/img/right.svg" height="40px"
-        onclick="fullscreen_toggle()"
+        onclick="hideleft_toggle()"
         ></img>
     </div>
 
