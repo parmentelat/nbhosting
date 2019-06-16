@@ -1,3 +1,9 @@
+# 0.15.2 2019 Jun 16
+* fullscreen mode using arrows to hide top and left drawer of auditor notebook view
+* heder updated in auditor notebook view when switching notebooks and jupyter modes
+* staff usernames (for ignoring stats only) can be entered in the ui
+* deprecated nbh course-settings, use the ui
+
 # 0.15.1 2019 Jun 11
 * db-backed data model for course details
 * form to edit course
