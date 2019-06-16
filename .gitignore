@@ -6,3 +6,9 @@ db.sqlite3
 dist/
 nbhosting.egg-info/
 uwsgi/nbhosting.ini
+django/fake-root/
+tests/phantomjs-2.1.1-macosx
+TAGS
+*.key
+extra-docs/
+jupyter/screenshots-older-versions/
