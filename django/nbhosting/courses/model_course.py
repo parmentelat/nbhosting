@@ -330,6 +330,9 @@ class CourseDir(models.Model):
         """
         try:
             return docker_proxy.images.get(self.image).id
+        except docker.errors.ImageNotFound:
+            logger.error(f"Course {self.coursename} "
+                         f"uses unknown docker image {self.image}")
         except:
             logger.exception("Can't figure image hash")
             return
