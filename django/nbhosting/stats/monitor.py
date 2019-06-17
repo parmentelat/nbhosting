@@ -410,7 +410,6 @@ class Monitor:
         # one cycle can take some time as all the jupyters need to be http-probed
         # so let us compute the actual time to wait
         logger.info("nbh-monitor is starting up")
-        coursenames = CoursesDir().coursenames()
         for c in CourseDir.objects.all():
             Stats(c.coursename).record_monitor_known_counts_line()
         while True:
