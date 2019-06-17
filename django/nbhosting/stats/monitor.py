@@ -307,7 +307,7 @@ class Monitor:
         figures_by_course = {c.coursename : CourseFigures()
                              for c in CourseDir.objects.all()}
         coursedirs_by_name = {c.coursename : c
-                              for c in Coursedir.objects.all()}
+                              for c in CourseDir.objects.all()}
 
         try:
             proxy = docker.from_env(version='auto')
