@@ -36,13 +36,13 @@ def init_loggers(dir, debug):
 #                'formatter': 'standard',
 #                'filename' : str(path / 'nbhosting.log'),
 #            },
-            'monitor': {
-                'class': 'logging.handlers.TimedRotatingFileHandler',
-                'when': 'midnight',
-                'backupCount': 7,
-                'formatter': 'standard',
-                'filename' : str(path / 'monitor.log'),
-            },
+#            'monitor': {
+#                'class': 'logging.handlers.TimedRotatingFileHandler',
+#                'when': 'midnight',
+#                'backupCount': 7,
+#                'formatter': 'standard',
+#                'filename' : str(path / 'monitor.log'),
+#            },
             'stdout': {
                 'level': level,
                 'class': 'logging.StreamHandler',
@@ -58,7 +58,7 @@ def init_loggers(dir, debug):
             },
             'monitor': {
                 'level': level,
-                'handlers': ['monitor'],
+                'handlers': ['stdout'],  # ditto, logs go to systemd/journal
                 'propagate': False,
             },
         },
