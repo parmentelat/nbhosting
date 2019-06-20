@@ -166,16 +166,16 @@ this would be for `backquoted inline code`
 }
 
 /* ***** text cells ***** */
-div.text_cell.unrendered.selected>div.inner_cell>div.input_area {
+body:not(.rise-enabled) div.text_cell.unrendered.selected>div.inner_cell>div.input_area {
     background-color: #b1d4e7;
 }
-div.text_cell.unrendered.unselected>div.inner_cell>div.input_area {
+body:not(.rise-enabled) div.text_cell.unrendered.unselected>div.inner_cell>div.input_area {
     background-color: #bfe3f7;
 }
-div.text_cell.rendered.selected>div.inner_cell>div.text_cell_render {
+body:not(.rise-enabled) div.text_cell.rendered.selected>div.inner_cell>div.text_cell_render {
     background-color: #f2f2f2;
 }
-div.text_cell.rendered.unselected>div.inner_cell>div.text_cell_render {
+body:not(.rise-enabled) div.text_cell.rendered.unselected>div.inner_cell>div.text_cell_render {
     background-color: #f8f8f8;
 }
 
