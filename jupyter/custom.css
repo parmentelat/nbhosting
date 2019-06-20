@@ -10,8 +10,10 @@
 /* ---------- hide menu entries */
 
 /* File */
-#new_notebook, #open_notebook, #copy_notebook, #rename_notebook,
-#restore_checkpoint, #trust_notebook, #kill_and_exit	{ display: none; }
+#new_notebook, #open_notebook,
+#copy_notebook, #rename_notebook,
+#restore_checkpoint, #trust_notebook,
+#kill_and_exit                                  { display: none; }
 
 /* Edit & View - hide full submenu */
 div#menus>div>div>ul.nav>li:nth-child(2),
@@ -19,8 +21,8 @@ div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
 
 /* Insert : is fine */
 
-/* Cell */
-#change_cell_type {display: none;}
+/* Cell submenu */
+#change_cell_type {display: none; }
 
 /* Widgets */
 div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
@@ -31,13 +33,13 @@ div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
    needless to say, this is a little brittle
    xxx especially if ipywidgets is not available !
 */
-div#menus>div>div>ul.nav>li:nth-last-child(2)		{ display: none; }
+div#menus>div>div>ul.nav>li:nth-last-child(2)	{ display: none; }
 
 /* Help submenu - sounds more robust already
    xxx would it make sense to preserve submenu
    and filter out individual entries, like for File above ?
 */
-div#menus>div>div>ul.nav>li:nth-last-child(1)		{ display: none; }
+div#menus>div>div>ul.nav>li:nth-last-child(1)	{ display: none; }
 
 /* ---------- other pieces in the UI */
 /* third horizontal area (toolbar) */
@@ -45,7 +47,7 @@ div#menus>div>div>ul.nav>li:nth-last-child(1)		{ display: none; }
 #cut_copy_paste,
 select#cell_type,
 #notification_trusted,
-p#kernel_indicator					{display: none; }
+p#kernel_indicator					            {display: none; }
 
 /* the command palette */
 #maintoolbar>div>div>div:nth-child(7)			{display: none; }
@@ -114,8 +116,9 @@ div#maintoolbar-container {
     padding-right: 12px;
 }
 
-/* -------------------- cosmetic only */
-/* pink-ish to make it stand out */
+
+/* outline main notebook menubar */
+/* menubar needs to stand out as it ends up in the middle of the page*/
 div#header {
     background-color: #e0e9f2;
 }
@@ -124,7 +127,6 @@ div#header {
 button.btn {
     border-radius: 6px;
 }
-
 .nbh-dialog {
     font-size: larger;
 }
