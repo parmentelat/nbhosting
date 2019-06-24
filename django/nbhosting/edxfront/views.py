@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidde
 
 from nbh_main.settings import sitesettings
 from nbh_main.settings import logger, DEBUG
+from nbhosting.courses.model_course import CourseDir
 from nbhosting.stats.stats import Stats
 
 # Create your views here.
@@ -84,8 +85,7 @@ def authorized(request):
     else:
         return authorize_devel_request(request)
 
-def edx_request(request, course, student, notebook):    # pylint: disable=r0914
-
+def edx_request(request, course, student, notebook):
     """
     the main edxfront entry point; it
     * creates a student if needed
@@ -93,7 +93,31 @@ def edx_request(request, course, student, notebook):    # pylint: disable=r0914
     * makes sure the student container is ready to answer http requests
     and then returns a http redirect to /port/<notebook_path>
     """
+    # have we received a request to force the copy (for reset_from_origin)
+    forcecopy = request.GET.get('forcecopy', False)
 
+    return _open_notebook(request, course, student, notebook,
+                          forcecopy=forcecopy, init_student_git=False)
+
+
+def classroom_request(request, course, student, notebook):
+    """
+    same as above, but with another copying policy
+
+    instead of copying notebooks on a need-by-need basis,
+    the student's workspace gets initialized as a standalone git repo
+    """
+
+    return _open_notebook(request, course, student, notebook,
+                          forcecopy=False, init_student_git=True)
+
+
+def _open_notebook(request, course, student, notebook,
+                   *, forcecopy, init_student_git): # pylint: disable=r0914
+    """
+    implement both edx_request and classroom_request
+    that behave almost exctly the same
+    """
     ok, explanation = authorized(request)
 
     if not ok:
@@ -102,8 +126,6 @@ def edx_request(request, course, student, notebook):    # pylint: disable=r0914
 
     # the ipynb extension is removed from the notebook name in urls.py
     notebook_withext = notebook + ".ipynb"
-    # have we received a request to force the copy (for reset_from_origin)
-    forcecopy = request.GET.get('forcecopy', False)
 
     subcommand = 'docker-view-student-course-notebook'
 
@@ -128,7 +150,8 @@ def edx_request(request, course, student, notebook):    # pylint: disable=r0914
         )
 
     # add arguments to the subcommand
-    command += [student, course, notebook_withext]
+    command += [student, course, notebook_withext,
+                coursedir.image, coursedir.giturl]
     logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
     completed_process = subprocess.run(
         command, universal_newlines=True,

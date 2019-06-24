@@ -151,12 +151,10 @@ function -compute-course-globals() {
     # read settings files
     COURSE_imagefile=$COURSE_notebooks/.image
     COURSE_stafffile=$COURSE_notebooks/.staff
-    COURSE_giturlfile=$COURSE_notebooks/.giturl
-
+    
     COURSE_static_mappings=$(cat $COURSE_notebooks/.static-mappings 2> /dev/null)
     COURSE_static_toplevels=$(cat $COURSE_notebooks/.static-toplevels 2> /dev/null)
     COURSE_image=$(cat $COURSE_imagefile 2> /dev/null)
-    COURSE_giturl=$(cat $COURSE_giturlfile 2> /dev/null)
 }
 
 
@@ -400,7 +398,6 @@ function del-student() {
 
 # make sure the student has a copy of the nodebook
 function -check-student-notebook-for-course() {
-    local USAGE="Usage: $COMMAND $FUNCNAME [-f] student notebook course"
 
     local forcecopy=""
     while getopts "f" option; do
@@ -413,10 +410,9 @@ function -check-student-notebook-for-course() {
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
 
-    [ "$#" -eq 3 ] || -die $USAGE
+    course=$1; shift
     student=$1; shift
     notebook="$1"; shift
-    course=$1; shift
 
     [ -n "$DEBUG" ] && set -x
 
@@ -448,6 +444,25 @@ function -check-student-notebook-for-course() {
     # the rest (modules/ for code, and static/)
     # will be bind-mounted in the docker container
 }
+
+
+function  -init-student-git-repo-for-course() {
+    local course=$1; shift
+    local student=$1; shift
+    local notebook="$1"; shift
+
+    -echo-stderr " -init-student-git-repo-for-course $student "$notebook" $course"
+
+    -compute-course-globals $course
+    -compute-student-globals-in-course $student $course
+
+    # xxx we need to have giturl passed along
+    # just like a course's image name by the way, this is currently broken!
+
+    local giturl=""
+
+}
+
 
 ##########
 # create a docker container
@@ -711,15 +726,19 @@ function docker-start-container() {
 
 
 # ENTRY POINT: this is the single entry point to edxfront.views in MOOC mode
+# in classroom mode, we run this with the -g option so that a git repo
+# gets created in the student's workspace
 
 @declare-subcommand docker-view-student-course-notebook
 function docker-view-student-course-notebook() {
-    local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course notebook"
+    local USAGE="Usage: $COMMAND $FUNCNAME [-f] [-g] student course notebook image giturl"
 
     local forcecopy=""
-    while getopts "f" option; do
+    local init_student_git=""
+    while getopts "fg" option; do
         case $option in
             f) forcecopy="-f" ;;
+            g) init_student_git="true" ;;
             ?) -die "$USAGE" ;;
         esac
     done
@@ -727,10 +746,12 @@ function docker-view-student-course-notebook() {
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
 
-    [ "$#" -eq 3 ] || -die $USAGE
+    [ "$#" -eq 5 ] || -die $USAGE
     local student=$1; shift
-    local course=$1; shift
+    local course="$1"; shift
     local notebook="$1"; shift
+    local image="$1"; shift
+    local giturl="$1"; shift
 
     ## just in case is was never done before
     -check-course $course
@@ -745,7 +766,11 @@ function docker-view-student-course-notebook() {
     }
 
     ## create the student notebook if not there yet
-    -check-student-notebook-for-course $forcecopy $student "$notebook" $course
+    if [ -z "$init_student_git" ]; then
+        -check-student-notebook-for-course $forcecopy $course $student "$notebook" 
+    else
+        -init-student-git-repo-for-course $course $student "$notebook" 
+    fi
 
     -compute-student-globals-in-course $student $course
 

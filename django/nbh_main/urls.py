@@ -27,14 +27,17 @@ JUPYTER_URL = r'(?P<jupyter_url>.*)?'
 COURSE_TRACK = rf'{COURSE}(:{TRACK})?'
 
 urlpatterns = [
-    # tweaking greedy and non greedy so that the .ipynb suffix
-    # will go away if there's one or even two
+    # can't change this one as FUN and M@gistere depend on it
     re_path(rf'^ipythonExercice/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
-                        nbhosting.edxfront.views.edx_request
-    ),
+                        nbhosting.edxfront.views.edx_request),
+    # used internally to produce snapshots
     re_path(rf'^ipythonShare/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
-                        nbhosting.edxfront.views.share_notebook
-    ),
+                        nbhosting.edxfront.views.share_notebook),
+    # new name for ipythonExercice, should be used from now on
+    re_path(rf'^notebookLazyCopy/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
+                        nbhosting.edxfront.views.edx_request),
+    re_path(rf'^notebookInitGit/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
+                        nbhosting.edxfront.views.classroom_request),
     # /ipythonForward/thecourse/thestudent/tree
     # /ipythonForward/thecourse/thestudent/lab
     # /ipythonForward/thecourse/thestudent/git-pull?repo=...
