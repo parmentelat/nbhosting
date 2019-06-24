@@ -87,7 +87,7 @@ define([
     }
 
     // edxfront/views.py passes along course and student as params in the GET URL
-    // so all we need to do is forge the initial URL in ipythonExercice/
+    // so all we need to do is forge the initial URL in notebookLazyCopy/
     // but with the forcecopy flag
     let add_reset_and_share_buttons = function(Jupyter) {
     	// stolen from jupyter-notebook/notebook/static/base/js/utils.js
@@ -239,7 +239,7 @@ define([
     	$("#file_menu").append(`<li class="divider"></li>`);
 
     	let reset_url =
-            `/ipythonExercice/${course}/${notebook}/${student}?forcecopy=true`;
+            `/notebookLazyCopy/${course}/${notebook}/${student}?forcecopy=true`;
     	$('#file_menu').append(
     	    `<li id="reset_from_origin"><a href="#">Reset to Original</a></li>`);
     	$('#reset_from_origin').click(function() {

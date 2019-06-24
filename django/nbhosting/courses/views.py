@@ -55,7 +55,7 @@ def auditor_show_notebook(request, course, notebook=None, track=None):
     # compute title as notebookname if found in sections
     title = notebook_obj.notebookname if notebook_obj else notebook
     giturl = coursedir.giturl
-    iframe = f"/ipythonExercice/{course}/{notebook}/{student}"
+    iframe = f"/notebookInitGit/{course}/{notebook}/{student}"
     gitpull_url = (f"/ipythonForward/{course}/{student}/git-pull"
                    f"?repo={giturl}"
                    f"&autoRedirect=false"

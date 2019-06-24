@@ -85,7 +85,7 @@ for student in $students; do
     uptime
     case $MODE in
 	high)
-	    url="https://nbhosting.inria.fr/ipythonExercice/$course/$notebook/$student"
+	    url="https://nbhosting.inria.fr/notebookLazyCopy/$course/$notebook/$student"
 	    echo Fetching "$url" into logs/$student.html
 	    curl --silent -L $url >& logs/$student.html &
 	    ;;

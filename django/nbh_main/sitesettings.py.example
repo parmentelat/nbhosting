@@ -66,7 +66,8 @@ allowed_referer_domains = [
 ]
 
 # the IPs of devel boxes
-# these will be able to send /ipythonExercice/ urls directly
+# these will be allowed to send /notebookLazyCopy/ (formerly known as /ipythonExercice/) urls directly
+# this is useful for debugging / troubleshooting
 allowed_devel_ips = [
     # home
     ( 'exact', '82.226.190.44'),

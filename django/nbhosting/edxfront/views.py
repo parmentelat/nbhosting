@@ -115,6 +115,17 @@ def edx_request(request, course, student, notebook):    # pylint: disable=r0914
     # propagate the forcecopy flag for reset_from_origin
     if forcecopy:
         command.append('-f')
+    # propagate that a git initialization was requested
+    # forcecopy has no effect in this case
+    if init_student_git:
+        command.append('-g')
+
+    coursedir = CourseDir(course)
+    if not coursedir.is_valid():
+        return error_page(
+            request, course, student, notebook,
+            f"no such course {course}"
+        )
 
     # add arguments to the subcommand
     command += [student, course, notebook_withext]

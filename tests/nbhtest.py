@@ -109,7 +109,7 @@ def run(topurl, user, course, notebooks, index, delay):
     if topurl.endswith("/"):
         topurl = topurl[:-1]
     
-    url = "{topurl}/ipythonExercice/{course}/{nb}/{user}"\
+    url = "{topurl}/notebookLazyCopy/{course}/{nb}/{user}"\
           .format(**locals())
 
     print("fetching URL {url}".format(url=url))

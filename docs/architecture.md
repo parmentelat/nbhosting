@@ -4,6 +4,8 @@
 
     https://nbhosting.inria.fr/ipythonExercice/flotbioinfo/w1/en-w1-s07-c1-walking.ipynb/mary
 
+note that `ipythonExercice` should be replaced with `notebookLazyCopy` in recent code
+
 2. nginx proxies to the django app, that creates if needed
 
   * Unix id, home dir for student mary

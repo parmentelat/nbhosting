@@ -107,10 +107,12 @@ http {
         # the URLS that go right to django, as-is
         # ipythonExercice: this is (1) in the architecture diagram
         # ipythonShare: to expose read-only snapshots
-        # ipythonBrowse: to browse through jupyter classic dir browser
+        # ipythonForward: to browse through jupyter classic dir browser
+        # notebookLazyCopy: new name for ipythonExercice - should be preferred
+        # notebookGitInit: a variant that initializes a git repo if needed
         # auditor: pages for people who log in directly
         # staff: admin stuff
-        location ~ ^/(ipythonExercice|ipythonShare|ipythonForward|admin|accounts|staff|auditor|welcome) {
+        location ~ ^/(ipythonExercice|ipythonShare|ipythonForward|notebookLazyCopy|notebookGitInit|admin|accounts|staff|auditor|welcome) {
             uwsgi_pass  django;
             include     uwsgi_params; # the uwsgi_params file you installed
         }
