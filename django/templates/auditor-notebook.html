@@ -67,6 +67,7 @@ function hideleft_toggle() {
     } else {
         hideleft_on();
     }
+    focus_iframe();
 }
 function hideleft_on() {
     $("#left-pane").addClass("hideleft");
@@ -86,7 +87,7 @@ function hidetop_toggle() {
     } else {
         hidetop_on();
     }
-    iframe_focus();
+    focus_iframe();
 }
 function hidetop_on() {
     $(".nbh-banner").addClass("hidetop");
@@ -100,6 +101,10 @@ function hidetop_off() {
 }
 
 
+function toggle_decorations() {
+    hidetop_toggle();
+    hideleft_toggle();
+}
 </script>
 
 
@@ -343,12 +348,12 @@ iframe {
 <div class="container" height="100%">
     <div id="hideleft-toggle" class="transitionable">
         <img src="/assets/img/right.svg" height="40px"
-        onclick="hideleft_toggle()"
+        onclick="toggle_decorations()"
         ></img>
     </div>
     <div id="hidetop-toggle" class="transitionable">
         <img src="/assets/img/down.svg" height="40px"
-        onclick="hidetop_toggle()"
+        onclick="toggle_decorations()"
         ></img>
     </div>
     
