@@ -93,71 +93,6 @@ function -keep-one-ipynb() {
     sed -e 's/\(.ipynb\)\{2,\}/.ipynb/' <<< $incoming
 }
 ########################################
-# devel/tests/-oriented
-########################################
-
-@declare-subcommand admin-docker-kill-all
-function admin-docker-kill-all() {
-    containers=$(docker ps --format '{{.Names}}')
-    for c in $containers; do
-        echo "Killing $c"
-        docker kill $c
-    done
-}
-
-@declare-subcommand admin-docker-rm-all
-function admin-docker-rm-all() {
-    containers=$(docker ps -a --format '{{.Names}}')
-    for c in $containers; do
-        echo "Removing $c"
-        docker rm $c
-    done
-}
-
-# we assume students hashes are 32 chars long
-function clear-etc-passwd() {
-    users=$(egrep '[0-9a-f]{32}' /etc/passwd | awk -F: '{print $1;}')
-    for user in $users; do
-        echo "Removing user $user from /etc/passwd"
-        del-student $user
-    done
-}
-
-# run on the box that is about to become the production box
-function prepare-swap() {
-    admin-docker-kill-all
-    admin-docker-rm-all
-    clear-etc-passwd
-    echo "WARNING: this script does not take care of the courses area"
-}
-
-##
-function list-tests() {
-    echo ==================== "(all)" dockers
-    docker ps -a --format {{.Names}} | grep -- '-x-student-'
-    echo ==================== users
-    grep student- /etc/passwd
-    echo ==================== user dirs
-    ls -d $NBHROOT/students/student-* 2> /dev/null
-}
-
-function clear-tests() {
-    for userdir in $(ls -d $NBHROOT/students/student-* 2>/dev/null); do
-        user=$(basename $userdir)
-        for coursedir in $(ls -d $userdir/* 2>/dev/null); do
-            course=$(basename $coursedir)
-            docker=${course}-x-${user}
-            echo killing $docker
-            docker kill $docker >& /dev/null
-            echo removing $docker
-            docker rm $docker >& /dev/null
-        done
-        echo deleting user $user
-        del-student $user
-    done
-}
-
-########################################
 # runtime
 ########################################
 
@@ -192,47 +127,6 @@ function -create-symlink-at-file () {
     local source="$dir/$localname"
     [ -h "$destination" ] || -echo-stderr creating static symlink "$destination"
     ln -sf "$destination" "$source"
-}
-
-
-############################## admin
-function count-docker() {
-    echo ========== CONTAINERS
-    local running=$(docker ps | grep -v '^CONTAINER' | wc -l)
-    local total=$(docker ps -a | grep -v '^CONTAINER' | wc -l)
-    echo "$running running / $total total containers"
-}
-
-function count-users() {
-    echo ========== USERS and GROUPS
-    local users=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/passwd | grep -v '^nfsnobody' | wc -l)
-    local groups=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/group | egrep -v '^(nfsnobody|docker)' | wc -l)
-    echo "$users users in /etc/passwd - $groups groups in /etc/group"
-    set -x
-    tail -1 /etc/subuid
-    tail -1 /etc/subgid
-    grep -v '^#' /etc/login.defs  | grep SUB_[UG]ID_MAX
-    set +x
-}
-
-function count-tree() {
-    echo ========== CONTENTS of $NBHROOT
-    local students=$(ls $NBHROOT/students | wc -l)
-    local courses_git=$(ls $NBHROOT/courses-git | wc -l)
-    local courses=$(ls $NBHROOT/courses | wc -l)
-    echo "$students students - $courses_git course repos - $courses actual courses"
-    local logfiles=$(find $NBHROOT/logs -type f| wc -l)
-    echo "$logfiles log files under $NBHROOT/logs"
-    local rawfiles=$(find $NBHROOT/raw -type f| wc -l)
-    echo "$rawfiles raw files under $NBHROOT/raw"
-}
-
-# provide some info on the various pieces
-@declare-subcommand admin-counts
-function admin-counts() {
-    count-users "$@"
-    count-docker "$@"
-    count-tree "$@"
 }
 
 
@@ -816,7 +710,7 @@ function docker-start-container() {
 }
 
 
-# ENTRY POINT: this is the single entry point to edxfront.views
+# ENTRY POINT: this is the single entry point to edxfront.views in MOOC mode
 
 @declare-subcommand docker-view-student-course-notebook
 function docker-view-student-course-notebook() {
@@ -881,7 +775,7 @@ function docker-view-student-course-notebook() {
 }
 
 
-# ENTRY POINT: this is the single entry point to edxfront.views
+# ENTRY POINT: another entrypoint to edxfront.views in classroom mode
 
 @declare-subcommand docker-view-student-course-jupyterdir
 function docker-view-student-course-jupyterdir() {
@@ -985,17 +879,6 @@ function docker-share-student-course-notebook-in-hash() {
     echo $url_path
 }
 
-
-#################### helpers
-
-@declare-subcommand admin-docker-enter
-function admin-docker-enter() {
-    local USAGE="Usage: $FUNCNAME container"
-    [ "$#" -eq 1 ] || -die $USAGE
-    local container=$1; shift
-
-    docker exec -ti $container /bin/bash
-}
 
 #
 # this will destroy any notebook in the workspace
@@ -1172,36 +1055,130 @@ function course-rename() {
 
 }
 
-# uid allocation
-# turns out that out of the box, fedora comes with settings
-# in /etc/login.defs that are quite large in terms of subuids
-# i.e. each new user eats up a large range of subuids
-# this makes me fear a possible need for cleaning up uids at some point
-#
-# so given a course - typically old-python2-s3, we're going to
-# inspect uids that were attached to that course and try to see if there
-# has been any activity recently
-# if not, well then we can recycle that uid - and its subuids
-#
-# the sad thing is, with uids that can go up to 10**9 or so, it's a shame
-# that we need to worry about that kind of stuff at all
-# it would be very helpful to know the actual minimal width of sub-ids
-# required for docker to work properly
 
-#@declare-subcommand admin-repair-free-uids
-function admin-repair-free-uids() {
-    local USAGE="Usage: FUNCNAME course"
+############################## admin helpers
 
-    [ "$#" -eq 1 ] || -die $USAGE
-    local course=$1; shift
-
-    echo $FUNCNAME on course $course - not yet implemented
+function count-docker() {
+    echo ========== CONTAINERS
+    local running=$(docker ps | grep -v '^CONTAINER' | wc -l)
+    local total=$(docker ps -a | grep -v '^CONTAINER' | wc -l)
+    echo "$running running / $total total containers"
 }
 
 
+function count-users() {
+    echo ========== USERS and GROUPS
+    local users=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/passwd | grep -v '^nfsnobody' | wc -l)
+    local groups=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/group | egrep -v '^(nfsnobody|docker)' | wc -l)
+    echo "$users users in /etc/passwd - $groups groups in /etc/group"
+    set -x
+    tail -1 /etc/subuid
+    tail -1 /etc/subgid
+    grep -v '^#' /etc/login.defs  | grep SUB_[UG]ID_MAX
+    set +x
+}
 
 
-##############################
+function count-tree() {
+    echo ========== CONTENTS of $NBHROOT
+    local students=$(ls $NBHROOT/students | wc -l)
+    local courses_git=$(ls $NBHROOT/courses-git | wc -l)
+    local courses=$(ls $NBHROOT/courses | wc -l)
+    echo "$students students - $courses_git course repos - $courses actual courses"
+    local logfiles=$(find $NBHROOT/logs -type f| wc -l)
+    echo "$logfiles log files under $NBHROOT/logs"
+    local rawfiles=$(find $NBHROOT/raw -type f| wc -l)
+    echo "$rawfiles raw files under $NBHROOT/raw"
+}
+
+
+# provide some info on the various pieces
+@declare-subcommand admin-counts
+function admin-counts() {
+    count-users "$@"
+    count-docker "$@"
+    count-tree "$@"
+}
+
+
+@declare-subcommand admin-docker-enter
+function admin-docker-enter() {
+    local USAGE="Usage: $FUNCNAME container"
+    [ "$#" -eq 1 ] || -die $USAGE
+    local container=$1; shift
+
+    docker exec -ti $container /bin/bash
+}
+
+
+############################## devel/tests/-oriented
+
+@declare-subcommand admin-docker-kill-all
+function admin-docker-kill-all() {
+    containers=$(docker ps --format '{{.Names}}')
+    for c in $containers; do
+        echo "Killing $c"
+        docker kill $c
+    done
+}
+
+
+@declare-subcommand admin-docker-rm-all
+function admin-docker-rm-all() {
+    containers=$(docker ps -a --format '{{.Names}}')
+    for c in $containers; do
+        echo "Removing $c"
+        docker rm $c
+    done
+}
+
+
+# we assume students hashes are 32 chars long
+function clear-etc-passwd() {
+    users=$(egrep '[0-9a-f]{32}' /etc/passwd | awk -F: '{print $1;}')
+    for user in $users; do
+        echo "Removing user $user from /etc/passwd"
+        del-student $user
+    done
+}
+
+
+# run on the box that is about to become the production box
+function prepare-swap() {
+    admin-docker-kill-all
+    admin-docker-rm-all
+    clear-etc-passwd
+    echo "WARNING: this script does not take care of the courses area"
+}
+
+
+function list-tests() {
+    echo ==================== "(all)" dockers
+    docker ps -a --format {{.Names}} | grep -- '-x-student-'
+    echo ==================== users
+    grep student- /etc/passwd
+    echo ==================== user dirs
+    ls -d $NBHROOT/students/student-* 2> /dev/null
+}
+
+function clear-tests() {
+    for userdir in $(ls -d $NBHROOT/students/student-* 2>/dev/null); do
+        user=$(basename $userdir)
+        for coursedir in $(ls -d $userdir/* 2>/dev/null); do
+            course=$(basename $coursedir)
+            docker=${course}-x-${user}
+            echo killing $docker
+            docker kill $docker >& /dev/null
+            echo removing $docker
+            docker rm $docker >& /dev/null
+        done
+        echo deleting user $user
+        del-student $user
+    done
+}
+
+
+######### main driver stub
 USAGE="$COMMAND [-d nbhroot] [-x] subcommand ...
   -d  allows to set another root than $NBHROOT
   -x  turn on debugging
