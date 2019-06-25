@@ -53,7 +53,7 @@ function change_track(track){
 }
 function iframe_notebook(notebook) {
     console.log('iframe_notebook', this)
-    let url=`/notebookInitGit/{{coursename}}/${notebook}/{{student}}`;
+    let url=`/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
     iframe_src(url);
     update_current_notebook(notebook);
 }

@@ -36,7 +36,7 @@ urlpatterns = [
     # new name for ipythonExercice, should be used from now on
     re_path(rf'^notebookLazyCopy/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
                         nbhosting.edxfront.views.edx_request),
-    re_path(rf'^notebookInitGit/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
+    re_path(rf'^notebookGitRepo/{COURSE}/{NOTEBOOK}/{STUDENT}/?$',
                         nbhosting.edxfront.views.classroom_request),
     # /ipythonForward/thecourse/thestudent/tree
     # /ipythonForward/thecourse/thestudent/lab

@@ -443,12 +443,10 @@ function -lazy-copy-student-notebook-for-course() {
 }
 
 
-function  -git-init-student-repo-for-course() {
+function  -git-repo-student-for-course() {
     local course="$1"; shift
     local giturl="$1"; shift
     local student=$1; shift
-
-    -echo-stderr -git-init-student-repo-for-course $course $giturl $student
 
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
@@ -456,8 +454,14 @@ function  -git-init-student-repo-for-course() {
     local toplevel=$STUDENT_course
     [ -d $toplevel/.git ] && return 0
     [ -d $toplevel ] || { sudo $student mkdir -p $toplevel; }
-    (cd $toplevel; sudo $student git clone $giturl .)
-
+    cd $toplevel
+    -echo-stderr -git-repo-student-for-course  in $toplevel
+    # in principle a simple git clone would have done the trick
+    # but because of the presence of .monitor
+    { sudo -u $student git clone --no-checkout $giturl .cloned;
+      sudo -u $student mv -f .cloned/.git .git;
+      sudo -u $student rmdir .cloned;
+      sudo -u $student git reset --hard HEAD; } 1>&2
 }
 
 
@@ -768,7 +772,7 @@ function docker-view-student-course-notebook() {
     if [ -z "$init_student_git" ]; then
         -lazy-copy-student-notebook-for-course $forcecopy $course $student "$notebook" 
     else
-        -git-init-student-repo-for-course $course $giturl $student 
+        -git-repo-student-for-course $course $giturl $student 
     fi
 
     -compute-student-globals-in-course $student $course
