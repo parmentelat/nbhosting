@@ -148,13 +148,10 @@ function -compute-course-globals() {
 #    # for systemd-nspawn
 #    COURSE_ref=$MACHINES/$course.ref
 
-    # read settings files
-    COURSE_imagefile=$COURSE_notebooks/.image
-    COURSE_stafffile=$COURSE_notebooks/.staff
-    
+# this is how the static mappings business is being exposed to bash
+# from the django app    
     COURSE_static_mappings=$(cat $COURSE_notebooks/.static-mappings 2> /dev/null)
     COURSE_static_toplevels=$(cat $COURSE_notebooks/.static-toplevels 2> /dev/null)
-    COURSE_image=$(cat $COURSE_imagefile 2> /dev/null)
 }
 
 
@@ -397,7 +394,7 @@ function del-student() {
 
 
 # make sure the student has a copy of the nodebook
-function -check-student-notebook-for-course() {
+function -lazy-copy-student-notebook-for-course() {
 
     local forcecopy=""
     while getopts "f" option; do
@@ -446,20 +443,20 @@ function -check-student-notebook-for-course() {
 }
 
 
-function  -init-student-git-repo-for-course() {
-    local course=$1; shift
+function  -git-init-student-repo-for-course() {
+    local course="$1"; shift
+    local giturl="$1"; shift
     local student=$1; shift
-    local notebook="$1"; shift
 
-    -echo-stderr " -init-student-git-repo-for-course $student "$notebook" $course"
+    -echo-stderr -git-init-student-repo-for-course $course $giturl $student
 
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
 
-    # xxx we need to have giturl passed along
-    # just like a course's image name by the way, this is currently broken!
-
-    local giturl=""
+    local toplevel=$STUDENT_course
+    [ -d $toplevel/.git ] && return 0
+    [ -d $toplevel ] || { sudo $student mkdir -p $toplevel; }
+    (cd $toplevel; sudo $student git clone $giturl .)
 
 }
 
@@ -474,9 +471,9 @@ function  -init-student-git-repo-for-course() {
 # * stage1 action=existing
 @declare-subcommand docker-create-container-for-student-in-course
 function docker-create-container-for-student-in-course() {
-    local USAGE="Usage: $COMMAND $FUNCNAME container student course"
+    local USAGE="Usage: $COMMAND $FUNCNAME container student course image"
 
-    [ "$#" -eq 3 ] || -die "$USAGE"
+    [ "$#" -eq 4 ] || -die "$USAGE"
 
     # container name - if it exists then nothing happens here
     local container=$1; shift
@@ -485,6 +482,8 @@ function docker-create-container-for-student-in-course() {
     # course name - should exist as $NBHROOT/courses/$course
     # i.e. should have gone through course-init and update-course
     local course=$1; shift
+    # image name as known to docker
+    local image="$1"; shift
 
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
@@ -498,8 +497,8 @@ function docker-create-container-for-student-in-course() {
         [ -d $static_toplevel ] || -echo-stderr WARNING $static_toplevel dir not found
     done
 
-    docker inspect --type image $COURSE_image >& /dev/null ||\
-        -die image $COURSE_image not known to docker
+    docker inspect --type image $image >& /dev/null ||\
+        -die image $image not known to docker
 
     [ -n "$DEBUG" ] && set -x
 
@@ -568,7 +567,7 @@ function docker-create-container-for-student-in-course() {
         # probably not needed with more recent ones
         command="$command
                  -e PYTHONPATH=/home/jovyan/modules
-                 $COURSE_image
+                 $image
                  start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
                  jupyter notebook
                  --ip=0.0.0.0
@@ -767,9 +766,9 @@ function docker-view-student-course-notebook() {
 
     ## create the student notebook if not there yet
     if [ -z "$init_student_git" ]; then
-        -check-student-notebook-for-course $forcecopy $course $student "$notebook" 
+        -lazy-copy-student-notebook-for-course $forcecopy $course $student "$notebook" 
     else
-        -init-student-git-repo-for-course $course $student "$notebook" 
+        -git-init-student-repo-for-course $course $giturl $student 
     fi
 
     -compute-student-globals-in-course $student $course
@@ -777,7 +776,7 @@ function docker-view-student-course-notebook() {
     # create and start the container
     local container=$STUDENT_container
     # either existing of created
-    action1=$(docker-create-container-for-student-in-course $container $student $course)
+    action1=$(docker-create-container-for-student-in-course $container $student $course $image)
     line2=$(docker-start-container $container)
 
     # report: the action depends on both stages
@@ -916,14 +915,13 @@ function docker-share-student-course-notebook-in-hash() {
 #
 @declare-subcommand course-clear-staff
 function course-clear-staff() {
-    local USAGE="Usage: $FUNCNAME course"
-    [ "$#" -eq 1 ] || -die $USAGE
+    local USAGE="Usage: $FUNCNAME course staff1 .. staffn"
 
     local course=$1; shift
     -compute-course-globals $course
+
     # 'student' is used by FUN's studio
-    staffs="student $(cat $COURSE_stafffile)"
-    for staff in $staffs; do
+    for staff in "$@" student; do
         -compute-student-globals-in-course $staff $course
         notebooks=$(find $STUDENT_course -name '*.ipynb')
         if [ -z "$notebooks" ]; then

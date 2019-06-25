@@ -142,12 +142,14 @@ def _open_notebook(request, course, student, notebook,
     if init_student_git:
         command.append('-g')
 
-    coursedir = CourseDir(course)
+    coursedir = CourseDir.objects.get(coursename=course)
     if not coursedir.is_valid():
         return error_page(
             request, course, student, notebook,
             f"no such course {course}"
         )
+
+    logger.info(f"DEBUGGING image={coursedir.image} and giturl={coursedir.giturl}")
 
     # add arguments to the subcommand
     command += [student, course, notebook_withext,

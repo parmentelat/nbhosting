@@ -176,9 +176,11 @@ def build_image(request, course):
 @staff_member_required
 @csrf_protect
 def clear_staff(request, course):
+    coursedir = CourseDir.objects.get(coursename=course)
     return render_subprocess_result(
         request, course,
-        "course-clear-staff", 'staff files cleared', False)
+        f"course-clear-staff", 'staff files cleared', False,
+        *coursedir.staff_usernames.split())
 
 
 @staff_member_required
