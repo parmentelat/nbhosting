@@ -277,19 +277,12 @@ div.section>a>.notebook.current {
 }
 
 .in-track {
-    background-color: #ccc;
-    /* background-color: #2E86C1;  blue-ish */
-}
-/* both means it exists and it's been copied */
-.in-track.in-student {
     background-color: #afa;
-    /* background-color: #17A589;  green-ish */
 }
-/* only in-student means somehow it's obsolete */
 .in-student {
     background-color: #884EA0;  /* purple-ish */
 }
-.smaller{
+.smaller {
     font-size: 60%;
 }
 
@@ -300,10 +293,17 @@ iframe {
 /*    background-position: center; */
  }
 
- .track-head, .file-head {
+ .track-head, .jupyter-head {
      width: 100%;
-     font-size: 120%;
  }
+
+.track-head {
+ font-size: 120%;
+}
+
+.jupyter-head {
+    font-size: 80%;
+}
 
 .single-track-head {
     width: 100%;
@@ -418,11 +418,9 @@ iframe {
 
         <div class="left-bottom">
 
-            <h1 class="btn btn-outline-secondary file-head"
+            <h1 class="btn btn-outline-secondary jupyter-head"
                 data-toggle="tooltip" data-html="true"
-                title="or, if you'd prefer through a regular jupyter browser
-                <br/>note that in this case you'll only able to see notebooks
-                <br/>that are <b>already present</b> in your workspace"
+                title="or, if you'd prefer through a regular jupyter browser"
             >Jupy<wbr>ter</h1>
             <div class="jupyter">
                 <a onclick="{iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree'); update_header('Jupyter classic');}"
@@ -445,8 +443,8 @@ iframe {
             <a onclick="iframe_src('{{gitpull_url}}')"
                 class="btn btn-outline-danger git"
                 data-toggle="tooltip" data-html="true"
-                title="you may need to initialize</br>your workspace as a git repo<br/>this button will also update from upstream"
-            > go git &amp; pull
+                title="update your workspace<br/>from the upstream git repo"
+            > git pull
             </a>
         </div>
 
