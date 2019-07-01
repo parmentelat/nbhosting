@@ -11,9 +11,14 @@ from nbh_main.settings import logger, NBHROOT
 class Command(BaseCommand):
 
     help = """
-    this command lets you create a course from a git repo
+    this command is designed as a one-shot migration tool for courses, 
+    from the pre-0.15 file-based format to the db-backed new format
 
-    by default, the coursename is used as the docker image name, but you can use the -i option to declare that you'd prefer to use another image instead
+    it will deal with all course known to nbhosting, and will populate the db
+    from the contents of files. 
+
+    the command won't delete any file, but show a list of the ones 
+    that could be cleaned up later on.
     """
 
     def add_arguments(self, parser):
