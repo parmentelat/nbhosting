@@ -10,32 +10,38 @@
 * * light cleanup in nbh sript
 
 # 0.15.2 2019 Jun 16
+
 * fullscreen mode using arrows to hide top and left drawer of auditor notebook view
 * heder updated in auditor notebook view when switching notebooks and jupyter modes
 * staff usernames (for ignoring stats only) can be entered in the ui
 * deprecated nbh course-settings, use the ui
 
 # 0.15.1 2019 Jun 11
+
 * db-backed data model for course details
 * form to edit course
 * slightly redesigned header
 
 # 0.14.1 2019 Jun 7
+
 * new all-in-one /auditor/notebook view refurbished from scratch
 * in particular, this exposes nbgitpuller (required on the image though)
 * /auditor/course and /auditor/jupyterdir both go down the sewer
 
 # 0.14.0 2019 Jun 3
+
 * refactored build of core images, remove the need for duplication of gory details
 * no longer needs to downgrade tornado, await works just fine
 * standard image now include our custom nbgitpuller
 
 # 0.13.1 2019 May 3
+
 * toplevel url in https://nbhosting.inria.fr/ works now
 * new all-in-one command nbh-manage create-course
 * nicer staff courses page
 
 # 0.13.0 2019 Apr 20
+
 * IMPORTANT fix about the way to configure docker-ce; change in 0.12.1 was incomplete, 
   so docker would not be configured to use disk space under NBHROOT
 * location of the database has changed as well, now searched under NBHROOT too
@@ -44,6 +50,7 @@
   so as to ease up pivoting when swapping dev and prod
 
 # 0.12.2 2019 Apr 18
+
 * fix regression introduced when dealing with filenames with spaces; 
   was resulting in duplicated .ipynb extensions all over the place
 * more consistent color scheme for the UI
@@ -53,6 +60,7 @@
 * fixed stats for courses that use non-edx name scheme for user hashes
 
 # 0.12.1 2019 Apr 11
+
 * migration to docker-ce instead of formerly docker-1.13; see fedora/migrate-to-docker-ce.md
 * updated install_requires
 * bugfix: notebooks with space in their name were problematic
@@ -61,6 +69,7 @@
 * better copyToClipboard for sharing static snapshot
 
 # 0.11.1 2019 Mar 18
+
 * in auditor mode, iframe gains focus at once, no longer need to click
 * all config tweaks like static mappings or dockerfile
   can appear in $NBHROOT/local (preferred) or in course's `nbhosting` subdir
