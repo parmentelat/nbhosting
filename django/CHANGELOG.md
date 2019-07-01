@@ -1,3 +1,14 @@
+# 0.16.1 2019 July 1
+
+* new URLs are available to pick between 2 copy policies
+  * /notebookLazyCopy (equivalent to legacy ipythonExercice) and
+  * /notebookGitRepo (for use in classroom mode, a full git repo gets created)
+* monitor to log on stdout for journalctl to pick
+* UI: toggle buttons now toggle left and top at the same time
+* updated install doc
+* some CSS jupyter tweaks are now restricted to not apply in slideshow mode
+* * light cleanup in nbh sript
+
 # 0.15.2 2019 Jun 16
 * fullscreen mode using arrows to hide top and left drawer of auditor notebook view
 * heder updated in auditor notebook view when switching notebooks and jupyter modes
