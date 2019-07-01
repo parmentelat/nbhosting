@@ -1,49 +1,95 @@
 # Fedora installation and setup
 
+## Purpose
+
 * this document is about setting up `nbhosting` from metal, i.e. right after a fresh install.
-* date: July 12 2017
-* based on fedora 25
-* **SSL certificates**: in case of a reinstallation:
+* date: July 12 2017 - revised July 1 2019
+* based on fedora 29
+
+
+## Requirements
+
+Depending on the scope of your deployment, you will need
+
+* primarily as much memory as you can get; `nbhosting` uses docker to spawn one
+  jupyter-powered container per tuple (student x course), so even if these are killed
+  after a 15 minutes-ish amount of idle time, that may require substantial amount;
+* in terms of disk space, 1 Tb will already lead you rather far, thanks to docker's
+  imaging capabilities.
+
+## SSL
+
+*  the application can in theory run under simply `http` in devel mode, but for any real
+   deployment you're going to run as an iframe-embedded site for a main site that runs
+   https (like e.g. `fun-mooc.fr`). In such a case running `nbhosting` behind `http` just
+   won't work, as the browser won't allow it; it is thus assumed that you have a proper
+   certificate and private key available
+
+* in case of a reinstallation
   * ***don't forget*** to back up SSL certificate and especially ***the private key***
-  * this is stored in dir `/root/ssl-certificate/`
+  * which in the case of ` nbhosting.inria.fr` is stored in dir `/root/ssl-certificate/`
 
-# see also
+## see also
 
-* companion file `configuration.md` is an attempt at describing all the places where changes can be needed
+* companion file `configuration.md` describes the logic of configuration of `nbhosting` 
+
+## Packaging
+
+`nbhosting` is designed to be easy to deploy, but it does some rather strong assumptions
+ on the underlying infrastructure. In particular, it assumes that you have a **dedicated**
+ fedora box for running the complete service. In this respect it has no provision for
+ leveraging several physical servers. In line with this assumption, all the pieces come as
+ a single monolitihic bundle, that takes care of all the pieces (nginx, django in uwsgi)
+ from a single point of installation and control.
 
 ****
 
 # disk partitioning
 
-## WARNING
+We use `btrfs` as the underlying filesystem for docker; the requirement is thus to have
+`/nbhosting` mounted on a `btrfs` partition somehow.
 
-**Something to think about before setting up a production box**:
-it might make more sense to actually cut **2 separate btrfs partitions**, instead of a single one like it is exposed below; having a completely separate btrfs partition for hosting the docker images and containers may turn out to be more convenient, especially when a reset is needed. Remember that it takes less than a second to create a new btrfs filesystem on a partition, while it can take hours to properly remove images and containers using docker one by one, so there's that.
+
+##### Optional Note
+
+It might make more sense to actually cut **2 separate btrfs partitions**, instead of a
+single one like it is exposed below; having a completely separate btrfs partition for
+hosting the docker images and containers may turn out to be more convenient, especially
+when a reset is needed. Remember that it takes less than a second to create a new btrfs
+filesystem on a partition, while it can take hours to properly remove images and
+containers using docker one by one, so there's that. This being said, the current
+production box on `nbhosting.inria.fr` has this single btrfs partition scheme, so a
+dual-partition setup can be considered optional.
 
 
 ## system *vs* application
 
-The requirement is to have `/nbhosting` mounted on a `btrfs` partition somehow.
+You should reserve some reasonable space for your system install, so typically you would
+cut 2 main partitions (ignoring the other OS-oriented details):
 
-Here's the choice that I made with the fedora installation program after selecting the `btrfs` layout:
+* `/` should be mounted on a (for example) 30 Gb partition (can be either btrfs or regular ext4)
+* `/nbhosting` mounted on a `btrfs` partition that spans the rest of the (for example) 1 Tb hard drive.
 
-![partitioning](partitioning.png) .
+Here is what can be observed on our production and devel boxes:
 
-On `thermals.inria.fr` as of the setup in July 2017:
-
+```bash
+root@devel ~ (master *) #
+df -hT / /nbhosting /boot
+Filesystem     Type   Size  Used Avail Use% Mounted on
+/dev/sda3      btrfs  1.1T   43G  1.1T   4% /
+/dev/sda3      btrfs  1.1T   43G  1.1T   4% /nbhosting
+/dev/sda1      ext4   976M  106M  804M  12% /boot
 ```
-[root@thermals ~]# df -hT
-Filesystem     Type      Size  Used Avail Use% Mounted on
-devtmpfs       devtmpfs  126G     0  126G   0% /dev
-tmpfs          tmpfs     126G     0  126G   0% /dev/shm
-tmpfs          tmpfs     126G  1.9M  126G   1% /run
-tmpfs          tmpfs     126G     0  126G   0% /sys/fs/cgroup
-/dev/sda3      btrfs     1.1T  1.4G  1.1T   1% /
-/dev/sda3      btrfs     1.1T  1.4G  1.1T   1% /nbhosting
-tmpfs          tmpfs     126G  4.0K  126G   1% /tmp
-/dev/sda1      ext4      976M   98M  811M  11% /boot
-tmpfs          tmpfs      26G     0   26G   0% /run/user/0
+
+```bash
+root@production ~ (master *) #
+df -hT / /nbhosting /boot
+Filesystem     Type   Size  Used Avail Use% Mounted on
+/dev/sda3      ext4   271G   18G  239G   7% /
+/dev/sdb       btrfs  9.9T   90G  9.7T   1% /nbhosting
+/dev/sda1      ext4   190M  125M   52M  71% /boot
 ```
+
 ## how `nbhosting` uses this space
 
 * `/nbhosting/courses-git/`
@@ -83,36 +129,14 @@ The data that should be backed up is the one in
 
 ****
 
-# fedora configs
+# 1-time fedora config
 
-Notes
+After a base installation of fedora, please do the following:
 
-* `/etc/docker/daemon.json` is the place where we define `/nbhosting/dockers` as being `docker`'s workspace;
-  also note that this location is **not altered** if you redefine `nbhroot` in your `sitesettings.py` file; the reason for that is that when swapping prod and dev boxes, we don't care about that specifi area, so we're better off having it in its own location
-* we want to use a static `iptables` config, and ***not firewalld*** that will just screw it all up for us
-* likewise, we need to turn off SElinux
-* it is required that `sudo` allows non-tty apps to issue calls to `sudo`; by default on fedaora, it is the case, but it turns out our local IT has a policy in place that requires a terminal (see `requiretty` as a sudo configuration clause). To address this, consider creating the following file (*it puzzles me that `install.sh` does not do it, it might just not be needed any more...*)
+## install docker-ce 
 
-```
-# cat /etc/sudoers.d/99-nbhosting
-Defaults !requiretty
-```
-
-## ssh
-After raw install of fedora, do the usual:
-
-* enable root access via ssh
-* disable password authentication for sshd
-
-## iptables vs firewalld
-
-```
-dnf install -y iptables-services
-systemctl mask firewalld.service
-systemctl enable iptables.service
-```
-
-## install docker and git
+**Warning** the docker stack as published by fedora has stopped being upgraded a few years
+back, make sure to use docker-ce as published by docker
 
 ```
 dnf -y install dnf-plugins-core
@@ -120,18 +144,41 @@ dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce
 dnf install docker-ce docker-ce-cli containerd.io
 ```
 
+## install git and download `nbhosting` sources
+
 ```
 dnf -y install git
 cd /root
 git clone https://github.com/parmentelat/nbhosting.git
 ```
 
-## fedora basics
+## iptables vs firewalld
 
+* we want to use a static `iptables` config, and ***not firewalld*** that will just screw it all up for us
 
-```
+```bash
+dnf install -y iptables-services
+systemctl mask firewalld.service
+systemctl enable iptables.service
+cd /root/nbhosting
 cp etc/sysconfig/iptables /etc/sysconfig/iptables
+```
+
+## turn off SElinux
+
+likewise, we need to turn off SElinux
+
+```bash
+cd /root/nbhosting
 cp etc/selinux/config /etc/selinux/config
+```
+
+## `sudo` 
+
+* it is required that `sudo` allows non-tty apps to issue calls to `sudo`; by default on fedora, it is the case, but it turns out our local IT used to have a policy in place that requires a terminal (see `requiretty` as a sudo configuration clause). To address this, consider creating the following file:
+
+```bash
+cd /root/nbhosting
 cp etc/sudoers.d/99-nbhosting /etc/sudoers.d/
 chmod 440 /etc/sudoers.d/99-nbhosting
 ```
@@ -151,113 +198,96 @@ In order to apply changes (esp. regarding selinux, and iptables)
 
 ## packages / dependencies
 
-***IMPORTANT NOTES*** about python libraries
+* ***NOTE*** Be careful to **not install `python3-django` from rpm** as this might give a
+  too old version of Django. That was true as of end 2018, might no longer be an issue
+  now.
 
-* ***NOTE*** Be careful to **not install `python3-django` from rpm** as this would give you 1.9 and the code would break. That was true as of end 2018, might no longer be an issue now.
+* FYI, see `capture-versions.sh`  and files named `VERSIONS*` in the present subdir, that
+  give more details of what was running on nominal deployments, and on the actual split
+  between what was installed with `dnf` and what comes from `pip`
 
-* See `capture-versions.sh`  and files named `VERSIONS*` that give more details of what was running on nominal deployments, and on the actual split between what was installed with `dnf` and what comes from `pip`
+To install third-party packages that `nbhosting` depends on:
 
-```
+```bash
 dnf -y install python3
 dnf -y install nginx
 dnf -y install uwsgi uwsgi-plugin-python3
 ```
 
-```
+```bash
 pip3 install --upgrade pip setuptools
 pip3 install --upgrade Django django-extensions
 pip3 install jsonpickle
 # for nbh-monitor
 pip3 install aiohttp docker
-
-# see VERSIONS for python libraries
 ```
 
-#### note on fedora upgrades
-
-If you upgrade to a more recent fedora, as always `dnf` will take care of the packages that it knows about, but **won't automatically install the `pip` dependencies, that need to be reinstalled manually**.
 
 ## SSL certificates
 
-The application can in theory run under simply `http`, but for any real deployment you're going to run as an iframe-embedded site for a main site that runs https (like e.g. `fun-mooc.fr`). In such a case running `nbhosting` behind `http` just won't work, as the browser won't allow it.
+The default config has it that the SSL certificate used by the main entry point (in our case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`. 
 
-The default config has it that the SSL certificate used by the main entry point (in our case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`, and more specifically
+You can of course pick any other location that you want, but you will later on need the
+location of your certificate and key; in our case we installed them in:
 
 ```
-$ egrep 'server|ssl_cert' django/nbh_main/sitesettings.py
-server_mode = "https"
-server_name = "nbhosting.inria.fr"
 ssl_certificate = "/root/ssl-certificate/bundle.crt"
 ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 ```
 
-Make sure to take care of these settings and cryptographic material.
-
-## install and update
-
-We do not expose any packaging; instead overall the workflow is to
-
-* create a git clone in `/root/nbhosting`
-* create a config. file by copying the provided template and editing it
-* run the `install.sh` script in here to install (or, update just the same)
-
-### initial installation
+## initial configuration
 
 ```
-cd /root
-git clone https://github.com/parmentelat/nbhosting.git
 cd /root/nbhosting/django/nbh_main
 cp sitesettings.py.example sitesettings.py
 ```
 
-* at that point, edit `sitesettings.py`, and then
+* at that point, edit `sitesettings.py` to fill in your settings, and then
 
 ```
 cd /root/nbhosting
 ./install.sh
 ```
 
-that will also start the services, you should be good to go
+that will also start the services.
 
 
-### admin (create super user)
+## admin (create super user)
 
-Initialize the admin superuser; preferably user `profs` - this is what will allow to enter the admin web interface:
+Initialize the admin superuser; this is what will allow to enter the admin web interface:
 
 ```
-cd /root/nbhosting/nbhosting
+cd /root/nbhosting/django
 python3 manage.py migrate
 python3 manage.py createsuperuser
 ```
 
+You should be good to go; point your browser at your domain name
 
-## update to a more recent version
+https://mynbhosting.example.org
 
-```
-cd /root/nbhosting
-git pull
-./install.sh
-```
-
-Make sure to see the reservation explained in `configuration.md`, about possible new variables introduced in `sitesettings.py.example` in the meanwhile.
+and enter with the login/password you just enabled with `createsuperuser`
 
 
-## use
+# administering the system
 
-There's a single command `nbh-manage` that's an entry point into all the features exposed to the CLI; see the list with
+## `nbh-manage`
+
+There's a single command `nbh-manage` that's an entry point into all the features exposed
+to the CLI; see the list with
 
 ```
 nbh-manage help
 ```
 
 this actually is the usual django's `manage.py`, but extended in the `[courses]`
-and `[nbh_main]` categories
+and `[nbh_main]` categories. This is the tool we'll use to prepare courses and images.
 
 ****
 
-# Preparing core images
+## Preparing core images
 
-## pull docker images (step A)
+### pull docker images (step A)
 
 ```
 docker pull  jupyter/minimal-notebook; docker pull jupyter/scipy-notebook
@@ -265,60 +295,54 @@ docker pull  jupyter/minimal-notebook; docker pull jupyter/scipy-notebook
 
 This will fetch at dockerhub the 2 images that are used to create our own core images
 
-## build core images (step B)
+### build core images (step B)
 
 ```
 nbh-manage build-core-images
 ```
 
-This will rebuild docker images `nbhosting/minimal-notebook` and `nbhosting/scipy-notbeook` on top of the publically available ones that we pulled in the previous step.
+This will rebuild docker images `nbhosting/minimal-notebook` and
+`nbhosting/scipy-notebook` on top of the publically available ones that we pulled in step
+A.
 
 
-# Managing courses
+## Managing courses
 
-## course initialisation (step 1 : pull from git)
+### course initialisation (step 1: bind to a git repo)
 
-```
-nbh course-init python3-s2 https://github.com/flotpython/course.git
-```
+Create a course named `python3` from git repo `https://github.com/flotpython/course.git`
 
-* this creates a course (the git repo in fact)
-* that fyi goes in `/nbhosting/courses-git/python3-s2/`
-
-## updates (step 2 : update from git)
-
-```
-nbh course-update-from-git flotpython
+```bash
+nbh-manage course-create python3 https://github.com/flotpython/course.git
 ```
 
+**Note** if you want to attach that course to a docker image whose name is **not the course name**, you can add a `-i` or `--image` option (can be tweaked later of course)
 
-* for now this **needs to be done at least once**
-* as it will create the actual course notebooks master area
-* which fyi again goes in `$NBHROOT/courses/flotpython`
+```bash
+nbh-manage course-create -i nbhosting/scipy-notebook python3 https://github.com/flotpython/course.git
+```
 
-## image (step 3 : build course image)
+### course image (step 2 : build course image)
 
 The docker image name to use with a course is modifiable in the web UI - you
-need staff privileges of course.
+need staff privileges of course. 
 
 #### option 1 : use a core image
 
 nbhosting comes with predefined images, that are built on top of publically
 available images (see step B above). If you'd like your course to use one of
-these, use e.g. `nbhosting/minimal-notebook`
+these, use e.g. `nbhosting/minimal-notebook` as the docker image name for this course.
 
-as the docker image name for this course.
-Note that it is **not recommended** to use dockerhub images *as is*, as it will
-cause very poor overll performance. If needed, see the `Dockerfile` for the core
-images, that are located in the `images` subdir in the git repo.
+***Note*** that it is **not recommended** to use dockerhub images *as is*, as it will
+cause very poor overall performance. FYI the recipes to build our core images are located in the `images` subdir in the git repo.
 
 #### option 2 : piggyback
 
-If your nbhosting instance already hosts a course, say `python3-s2`, and you want to host course `mycourse` with the same image as `python3-s2`, you can just use that as your docker image name.
+If your nbhosting instance already hosts a course, say `python3`, and you want to host course `mycourse` with the same image as `python3`, you can just use that as your docker image name.
 
 #### option 3 : your own image
 
-Otherwise, your docker image name should match the course name, and you can rebuild that image from the shell with
+Otherwise, your docker image name should match the course name (which is the default of course), and you can rebuild that image from the shell with
 
 ```
 nbh-manage course-build-image mycourse
@@ -330,11 +354,30 @@ nbh-manage course-build-image mycourse
     in `nbhosting`'s root directory (default for that is `/nbhosting`), in a
     file called `local/mycourse/Dockerfile`
 
-## UI
 
-You can trigger steps 2 (update from git) and 3 (rebuild image) from the web UI at the course page (the same that shows a list of known notebooks).
+### refreshing course contents
 
-## settings (optional)
+Whenever you push a change to the master course git repo (e.g. on github), there is a need
+to tell nbhosting to pull that change so it is aware. Two options are available for that
+
+* you can turn on autopull mode; for that, use the web UI (see below), it will cause nbhosting to pull on an hourly basis
+* otherwise you will need to pull the course contents manually, through the Web UI again, or from the command line with
+
+```bash
+nbh-manage course-pull-from-git mycourse
+```
+
+## Web UI
+
+The breadcrumb track is designed to give a staff admin access to functions targetting
+administrative (red buttons) or regular consultation (blue buttons) features.
+
+![](crumbs.png)
+
+So for example, you can trigger updates from git, and image builds, from the web UI at the
+(red) course page.
+
+## course settings (optional)
 
 ### what ?
 
@@ -344,24 +387,25 @@ There are a few settings available for a course; as of this writing:
 * docker image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however images are big and tedious to build, so you could want to share another course's image
 * students that are considered *staff*; corresponding hashes will be ignored when building usage statistics
 
+By experience, these first 3 settings seem to make more sense on a nbhosting
+deployment basis; the dev and prod boxes will not necessarily align on these.
+
+From that same staff course page, you can also see
+
 * list of static mappings; see below
 * sectioning and tracks; see below
 
-By experience, the first 3 settings seem to make more sense on a nbhosting
-deployment basis; the dev and prod boxes will not necessarily align on these.
-
-The last 2 settings,  ones on the other hand seem to depend on the git repo
-structure only, and so are defined from files in the course repo.
-
+These last 2 settings, on the other hand, seem to depend on the git repo structure only,
+and that is why there are defined **from (files in) the course repo itself**.
 
 ### how ?
 
-##### autopull, image and staff
+#### autopull, image and staff
 
 This is configurable from the Web UI; go the the course management page, and click the orange `edit details for yourcoursename` button
 
 
-##### static mappings
+#### static mappings
 static mappings allow you to define symlinks that work from anywhere in the notebooks tree; for example, if you define the following 2 mappings
 
 ```
@@ -371,15 +415,16 @@ rise.css -> media/rise.css
 
 then in every student work dir (i.e. every directory that contains at least one student notebook), the platform will create symbolic links named `data` and `rise.css`, that point at **read-only** snapshots of `data` and `media/rise.css`, from the git repo toplevel.
 
-The default static mappings are defined as
+For legacy reasons, the default static mappings are defined as
+
 ```
 data -> data
 media -> media
 ```
 
-but can be redefined in each course git repo in `nbhosting/static-mappings`
+but can be redefined in each course git repo in `nbhosting/static-mappings` - with the format used above.
 
-##### tracks
+#### tracks
 
 when run in classroom mode, we have no MOOC structure to guide our students, so
 the following mechanism allows to define some structuration. This is done through the notion of **tracks**.
@@ -403,21 +448,23 @@ keys are taken as the names for all available tracks.
 
 ### when ?
 
-Beware that some settings are used at **container-creation** time; meaning that if a student has come at least once, her container exists and the course settings will be mostly ignored.
+Beware that some settings are used at **container-creation** time; meaning that if a
+student has come at least once, her container exists and the course settings will be
+mostly ignored.
 
-Same goes of course if a change is made to the course image (like, adding a python library).
+Same goes of course if a change is made to the course image (like, adding a Python
+library).
 
 This being said, a stopped container can be safely removed manually, causing it
 to be re-created the next time a student shows up. But tearing down thousands of
 containers can be time-consuming and create a big load on the box. To alleviate
 for that, the monitor is instructed to remove containers that have not been used
 in a fixed amount of time - typically a couple weeks. It also removes containers
-that rely on an older version if the image.
-
+that rely on an older version of the image.
 
 ****
 
-# Ops
+# Operations
 
 ## services
 
@@ -453,19 +500,35 @@ Additional logs go into
   * cpu load
 
 ## rain check
-* it is also possible to open any of the notebooks: go to the `notebooks` page for a given course (i.e. not the `stats` page); clicking any of the notebooks will open it as if opened by a student whose name is `anonymous`.
-* this is a convenient way to check the course is up and running - in particular, make sure you have built the image for that course !
+* it is also possible to open any of the notebooks: go to the admin page for a given
+  course; clicking any of the notebooks will open it as if opened by a student whose name
+  is `anonymous`.
+* this is a convenient way to check the course is up and running - in particular, make
+  sure you have built the image for that course !
 
-# comfort
 
-Some additions of mine to feel a little more at home:
+# upgrading
 
 ```
-cd
-
-dnf -y install git emacs-nox curl
-
-git clone git://diana.pl.sophia.inria.fr/diana.git
-diana/bash/install.sh -b 5 systemd git gitprompt
-echo "source /root/nbhosting/zz-devel/logaliases" >> .bash-private.ish
+cd /root/nbhosting
+git pull
+./install.sh
 ```
+
+Make sure to see the reservation explained in `configuration.md`, about possible new variables introduced in `sitesettings.py.example` in the meanwhile.
+
+
+
+# miscell
+
+#### mountpoint for docker images
+
+* `/etc/docker/daemon.json` is the place where we define `/nbhosting/dockers` as being
+  `docker`'s workspace; this ***DOES NOT*** depend on the contents of `sitesettings.py`
+
+#### note on fedora upgrades
+
+If you upgrade to a more recent fedora, as always `dnf` will take care of the packages that it knows about, but **won't automatically install the `pip` dependencies, that need to be reinstalled manually**.
+
+
+
