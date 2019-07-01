@@ -29,10 +29,6 @@ Depending on the scope of your deployment, you will need
   * ***don't forget*** to back up SSL certificate and especially ***the private key***
   * which in the case of ` nbhosting.inria.fr` is stored in dir `/root/ssl-certificate/`
 
-## see also
-
-* companion file `configuration.md` describes the logic of configuration of `nbhosting` 
-
 ## Packaging
 
 `nbhosting` is designed to be easy to deploy, but it does some rather strong assumptions
@@ -59,7 +55,9 @@ when a reset is needed. Remember that it takes less than a second to create a ne
 filesystem on a partition, while it can take hours to properly remove images and
 containers using docker one by one, so there's that. This being said, the current
 production box on `nbhosting.inria.fr` has this single btrfs partition scheme, so a
-dual-partition setup can be considered optional.
+dual-partition setup can be considered optional. The location where docker images uses
+disk space is hard-wired as `/nbhosting/dockers` (and, as of this writing, is not
+reconfigurable).
 
 
 ## system *vs* application
@@ -242,14 +240,30 @@ cd /root/nbhosting/django/nbh_main
 cp sitesettings.py.example sitesettings.py
 ```
 
-* at that point, edit `sitesettings.py` to fill in your settings, and then
+The benefit of this approach is that `sitesettings.py` is outside of git's scope, and
+won't generate any merge conflicts when upgrading later on. On the downside, if
+`sitesettings.py.example` changes, the local copy needs to be edited accordingly..
+
+Then edit the file with the details that describe your site specifics; you can for example
+
+* chose to use http or https (https is almost mandatory though, see comments in the file)
+* define where your certificate and key are if you go for https
+* set a private `SECRET_KEY` for django
+* set `DEBUG` for django
+* define the frontends that you accept to be an iframe of,
+* ...
+
+
+## applying a configuration
+
+Every time that you change `sitesettings.py`, you need to apply them by doing
 
 ```
 cd /root/nbhosting
 ./install.sh
 ```
 
-that will also start the services.
+that will also take care of everything, like starting the services.
 
 
 ## admin (create super user)
@@ -267,6 +281,10 @@ You should be good to go; point your browser at your domain name
 https://mynbhosting.example.org
 
 and enter with the login/password you just enabled with `createsuperuser`
+
+
+## reconfiguring
+
 
 
 # administering the system
@@ -509,26 +527,42 @@ Additional logs go into
 
 # upgrading
 
+## upgrading nbhosting
+
 ```
 cd /root/nbhosting
 git pull
 ./install.sh
 ```
 
-Make sure to see the reservation explained in `configuration.md`, about possible new variables introduced in `sitesettings.py.example` in the meanwhile.
+***Caveat***
 
+Be aware that the contents of the example file (`sitesettings.py.example`) 
+is **not loaded as defaults**, and so you **must** define all the expected variables 
+in your `sitesettings.py`. This means that some care might be needed when updating
+to a more recent release. Consider the following scenario:
+
+* you install as described above; 
+  you end up with 10 variables in your `sitesettings.py` file
+* a month later, you pull a new release that has 12 variables
+  in `sitesettings.py.example`
+
+In this case, you need to identify the 2 new variables, and define them in your `sitesettings.py` (even if you are fine with the defaults as set in the example file)
+
+
+## note on fedora upgrades
+
+If you upgrade to a more recent fedora, as always `dnf` will take care of the packages
+that it knows about, but **won't automatically install the `pip` dependencies, that need
+to be reinstalled manually**. 
 
 
 # miscell
 
-#### mountpoint for docker images
+## mountpoint for docker images
 
 * `/etc/docker/daemon.json` is the place where we define `/nbhosting/dockers` as being
   `docker`'s workspace; this ***DOES NOT*** depend on the contents of `sitesettings.py`
-
-#### note on fedora upgrades
-
-If you upgrade to a more recent fedora, as always `dnf` will take care of the packages that it knows about, but **won't automatically install the `pip` dependencies, that need to be reinstalled manually**.
 
 
 
