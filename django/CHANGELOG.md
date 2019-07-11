@@ -1,3 +1,7 @@
+# 0.16.2 2019 July 11
+
+* checkpoint for upgrading prod box
+
 # 0.16.1 2019 July 1
 
 * new URLs are available to pick between 2 copy policies
