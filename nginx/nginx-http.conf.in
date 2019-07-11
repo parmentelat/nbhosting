@@ -66,6 +66,10 @@ http {
     # configuration of the server
     server {
 
+        # manually set this to 1 for showing 
+        # a 'down for maintenance' message
+        set $down 0;
+
         # the port your site will be served on
         listen 80;
 
@@ -113,6 +117,7 @@ http {
         # auditor: pages for people who log in directly
         # staff: admin stuff
         location ~ ^/(ipythonExercice|ipythonShare|ipythonForward|notebookLazyCopy|notebookGitRepo|admin|accounts|staff|auditor|welcome) {
+            if ($down) { return 503; }
             uwsgi_pass  django;
             include     uwsgi_params; # the uwsgi_params file you installed
         }
@@ -131,6 +136,7 @@ http {
         # for max. range we start at 2000
         # this is (4) in the architecture diagram
         location ~ ^/([1-9][0-9]*)/(.*)$ {
+            if ($down) { return 503; }
             set $docker_port $1;
             set $notebook_path $2;
             allow all;
