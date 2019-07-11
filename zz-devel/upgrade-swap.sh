@@ -60,11 +60,11 @@ function -pull-from() {
     shift $((OPTIND-1))
 
     [[ "$#" -eq 1 ]] || -die "USAGE: pull-from-${mode} [-n] hostname"
-    local current_host=$1; shift
+    local mode_host=$1; shift
 
     set -x
     rsync $rsync_opt -a --delete \
-        $current_host:/nbhosting/${mode}/ /nbhosting/${mode}/
+        $mode_host:/nbhosting/${mode}/ /nbhosting/${mode}/
 }
 
 function pull-from-prod() {
