@@ -1,3 +1,8 @@
+# 0.16.3 2019 July 27
+
+* new commands courses-list and course-rename
+* deprecate command 'migrate-datamodel'
+
 # 0.16.2 2019 July 11
 
 * checkpoint for upgrading prod box
