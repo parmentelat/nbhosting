@@ -1073,7 +1073,7 @@ function course-rename() {
     -rename-dir $old_raw $new_raw
     -rename-dir $old_logs $new_logs
     -rename-dir $old_build $new_build
-    -rename-dir $old_local $new_local
+    [ -d $old_local ] && -rename-dir $old_local $new_local
 
     for student_dir in $(echo $NBHROOT/students/*/$old_course); do
         local new_dir=$(sed -e "s,$old_course,$new_course," <<< $student_dir)
