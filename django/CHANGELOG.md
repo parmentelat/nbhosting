@@ -1,3 +1,7 @@
+# 0.16.4 2019 July 27
+
+* /auditor/courses/?pattern=
+
 # 0.16.3 2019 July 27
 
 * new commands courses-list and course-rename
