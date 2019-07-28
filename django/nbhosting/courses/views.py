@@ -1,5 +1,7 @@
 # pylint: disable=c0111, w1203
 
+import re
+
 from django.shortcuts import render, get_object_or_404
 
 #from django.http import HttpResponse, HttpResponseNotFound
@@ -17,12 +19,25 @@ from nbhosting.courses.forms import UpdateCourseForm
 from nbhosting.version import __version__ as nbh_version
 
 
+def match(coursename, pattern):
+    print(f"match {coursename} {pattern}")
+    pieces = pattern.split('|')
+    for piece in pieces:
+        print(f"piece={piece}")
+        if re.search(piece, coursename):
+            return True
+    return False
+
 ######### auditor
 
 @login_required
 @csrf_protect
 def auditor_list_courses(request):
     course_dirs = CourseDir.objects.order_by('coursename')
+    pattern = request.GET.get('pattern', None)
+    if pattern:
+        course_dirs = [coursedir for coursedir in course_dirs 
+                       if match(coursedir.coursename, pattern)]
     env = dict(
         course_dirs=course_dirs,
         nbh_version=nbh_version,
