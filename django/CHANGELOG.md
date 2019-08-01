@@ -1,3 +1,10 @@
+# 0.16.6 2019 Aug 1
+
+* the core images come with more predefined content, namely
+  * git user preconfigured, nbgitpuller and jupyterlab-git
+  * ipywidgets, and splitcell nbextension
+* management commands deal with courses in alphabetical order
+
 # 0.16.5 2019 Aug 1
 
 * courses-list -l
