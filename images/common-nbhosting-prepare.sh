@@ -5,7 +5,7 @@
 
 apt-get update
 
-pip install -U pip
+pip install -U pip setuptools
 
 # --------
 # this is to increase the ulimit -n (max nb of open files)
@@ -38,9 +38,25 @@ find /opt /usr -name notificationarea.js -o -name main.min.js | \
 
 
 # --------
+# git from inside
+
+# configure git
+git config --global user.email "notebook.user@example.org" && git config --global user.name "Notebook User"
+
+# jupyterlab git extension
+jupyter labextension install @jupyterlab/git && pip install --upgrade jupyterlab-git && jupyter serverextension enable --py jupyterlab_git
+
+# the nbgitpuller thingy
+pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
+
+# --------
 # useful additions and extensions
 
-# install jupyter extensions, none enabled though
+# install jupyter extensions
+pip install ipywidgets && jupyter nbextension enable --py widgetsnbextension
+# enable splitcell nbextension
+jupyter nbextension enable splitcell/splitcell
+
 pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install --system
 
 # auto-evaluated exercices
@@ -49,10 +65,7 @@ pip install nbautoeval
 # the ipythontutor magic
 pip install ipythontutor
 
-# the nbgitpuller thingy
-pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
-
 # --------
-# during a transition perdio we had to do this 
+# during a transition period we had to do this 
 # but it is no longer necessary
 # pip install tornado==4.5.3
