@@ -24,7 +24,8 @@ class Command(BaseCommand):
         coursenames = kwargs['coursenames']
         if not coursenames:
             if kwargs['all']:
-                coursenames = [coursedir.coursename for coursedir in CourseDir.objects.all()]
+                coursenames = sorted(
+                    (cd.coursename for cd in CourseDir.objects.all()))
             else:
                 print("must provide at least one course, or --all")
                 exit(1)
