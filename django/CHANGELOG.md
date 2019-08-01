@@ -1,3 +1,8 @@
+# 0.16.5 2019 Aug 1
+
+* courses-list -l
+* course-create with no image name uses coursename 
+
 # 0.16.4 2019 July 27
 
 * /auditor/courses/?pattern=
