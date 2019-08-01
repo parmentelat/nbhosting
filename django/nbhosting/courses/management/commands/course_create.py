@@ -35,8 +35,7 @@ class Command(BaseCommand):
             exit(1)
         except CourseDir.DoesNotExist:
             kwds = {}
-            if image is not None:
-                kwds['image'] = image
+            kwds['image'] = image if image else coursename
             created = CourseDir.objects.create(
                 coursename=coursename, giturl=git_url, **kwds)
             created.run_nbh_subprocess('course-init', git_url)

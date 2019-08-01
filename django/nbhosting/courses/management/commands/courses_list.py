@@ -24,10 +24,20 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("patterns", nargs='*', type=str)
+        parser.add_argument("-l", "--long", action='store_true', default=False,
+                            help="show more info")
 
     def handle(self, *args, **kwargs):
 
         patterns = kwargs['patterns']
+        long = kwargs['long']
+
+        def show_course(cd):
+            if not long:
+                print(cd.coursename)
+            else:
+                on_off = "on" if cd.autopull else "off"
+                print(f"{cd.coursename:15s}\t{cd.image}\t{cd.giturl} [AP {on_off}]")
 
         all_coursedirs = sorted(
             CourseDir.objects.all(),
@@ -35,10 +45,10 @@ class Command(BaseCommand):
         for coursedir in all_coursedirs:
             name = coursedir.coursename
             if not patterns:
-                print(name)
+                show_course(coursedir)
             else:
                 for pattern in patterns:
                     if pattern in name:
-                        print(name)
+                        show_course(coursedir)
                         break
         return 0
