@@ -1,3 +1,7 @@
+# 0.16.7 2019 Aug 2
+
+* bugfix with autopull that couls get stalled
+
 # 0.16.6 2019 Aug 1
 
 * the core images come with more predefined content, namely
