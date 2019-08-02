@@ -43,7 +43,8 @@ find /opt /usr -name notificationarea.js -o -name main.min.js | \
 # git from inside
 
 # configure git
-git config --global user.email "notebook.user@example.org" && git config --global user.name "Notebook User"
+sudo -u jovyan git config --global user.email "notebook.user@example.org" 
+sudo -u jovyan git config --global user.name "Notebook User"
 
 # jupyterlab git extension
 jupyter labextension install @jupyterlab/git && pip install --upgrade jupyterlab-git && jupyter serverextension enable --py jupyterlab_git
