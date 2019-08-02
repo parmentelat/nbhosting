@@ -54,10 +54,11 @@ pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter 
 
 # install jupyter extensions
 pip install ipywidgets && jupyter nbextension enable --py widgetsnbextension
+
+# install contrib extensions including splitcell
+pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install --system
 # enable splitcell nbextension
 jupyter nbextension enable splitcell/splitcell
-
-pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install --system
 
 # auto-evaluated exercices
 pip install nbautoeval
@@ -65,7 +66,3 @@ pip install nbautoeval
 # the ipythontutor magic
 pip install ipythontutor
 
-# --------
-# during a transition period we had to do this 
-# but it is no longer necessary
-# pip install tornado==4.5.3
