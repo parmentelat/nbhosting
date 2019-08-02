@@ -30,7 +30,8 @@ class Command(BaseCommand):
         coursenames = kwargs['coursenames']
         if not coursenames:
             if kwargs['all']:
-                coursenames = [coursedir.coursename for coursedir in CourseDir.objects.all()]
+                coursenames = sorted(
+                    (cd.coursename for cd in CourseDir.objects.all()))
             else:
                 print("must provide at least one course, or --all")
                 exit(1)
@@ -40,7 +41,7 @@ class Command(BaseCommand):
                 logger.error(f"no such course {coursename}")
                 continue
             if not coursedir.autopull:
-                logger.info(f"course {course} has not opted for autopull")
+                logger.info(f"course {coursename} has not opted for autopull")
                 continue
-            logger.info(f"{40*'='} pulling from git with course {course}")
+            logger.info(f"{40*'='} pulling from git with course {coursename}")
             coursedir.pull_from_git()
