@@ -234,6 +234,7 @@ iframe {
     border: 1px solid gray;
     margin: 5px;
     padding: 4px 16px;
+    font-size: 80%;
 }
 .track-name:not(.active) {
     background-color: #f0f0f0;
@@ -303,11 +304,11 @@ iframe {
  }
 
 .track-head {
- font-size: 120%;
+ font-size: 100%;
 }
 
 .jupyter-head {
-    font-size: 80%;
+    font-size: 100%;
 }
 
 .single-track-head {
@@ -326,7 +327,7 @@ iframe {
     width: 50%;
     margin: 0px 6px;
     padding: 6px 0px;
-    font-size: 75%;
+    font-size: 80%;
 }
 
 .git {
@@ -426,7 +427,7 @@ iframe {
 
             <h1 class="btn btn-outline-secondary jupyter-head"
                 data-toggle="tooltip" data-html="true"
-                title="or, if you'd prefer through a regular jupyter browser"
+                title="or, if you'd prefer through a regular jupyter app"
             >Jupy<wbr>ter</h1>
             <div class="jupyter">
                 <a onclick="{iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree'); update_header('Jupyter classic');}"
@@ -446,12 +447,12 @@ iframe {
                 </a>
             </div>
 
-            <a onclick="iframe_src('{{gitpull_url}}')"
+<!--            <a onclick="iframe_src('{{gitpull_url}}')"
                 class="btn btn-outline-danger git"
                 data-toggle="tooltip" data-html="true"
                 title="update your workspace<br/>from the upstream git repo"
             > git pull
-            </a>
+            </a> -->
         </div>
 
     </div>
