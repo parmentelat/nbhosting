@@ -85,7 +85,6 @@ function hideleft_off() {
     $("#hideleft-toggle").removeClass("hideleft");
 }
 
-
 function hidetop_toggle() {
     if ($("#hidetop-toggle").hasClass("hidetop")) {
         hidetop_off();
@@ -106,9 +105,17 @@ function hidetop_off() {
 }
 
 
-function toggle_decorations() {
-    hidetop_toggle();
-    hideleft_toggle();
+function toggle_decorations(direction, event) {
+    // with shift-click or control click
+    // toggle just that direction
+    if (event.shiftKey || event.metaKey 
+     || event.ctrlKey || event.altKey) {
+         console.log('direction', direction);
+        (direction == 'top') ? hidetop_toggle() : hideleft_toggle();
+    } else {
+        hidetop_toggle();
+        hideleft_toggle();
+    }
 }
 </script>
 
@@ -359,14 +366,10 @@ iframe {
 <!------------------------------>
 <div class="container" height="100%">
     <div id="hideleft-toggle" class="transitionable">
-        <img src="/assets/img/right.svg" height="40px"
-        onclick="toggle_decorations()"
-        ></img>
+        <img src="/assets/img/right.svg" height="40px" />
     </div>
     <div id="hidetop-toggle" class="transitionable">
-        <img src="/assets/img/down.svg" height="40px"
-        onclick="toggle_decorations()"
-        ></img>
+        <img src="/assets/img/down.svg" height="40px" />
     </div>
     
     <div id="left-pane" class="transitionable">
@@ -474,4 +477,13 @@ iframe {
     </div>
 </div>
 
+<script>
+function clickleft(e) { toggle_decorations('left', e); }
+function clicktop(e) { toggle_decorations('top', e); }
+
+$(() => {
+    $("#hideleft-toggle").click(clickleft);
+    $("#hidetop-toggle").click(clicktop);
+});
+</script>
 {% endblock %}
