@@ -280,7 +280,6 @@ class CourseDir(models.Model):
 
 
     def _probe_settings(self):
-        notebooks_dir = self.notebooks_dir
 
         self.static_mappings = []
         custom_static_mappings = self.customized("static-mappings")
@@ -298,7 +297,7 @@ class CourseDir(models.Model):
                 # screws up the expose-static-* business
                 #logger.info(f"mappings file not found {path}")
                 self.static_mappings = StaticMapping.defaults()
-            except Exception as exc:
+            except Exception:
                 logger.exception(f"could not load static-mappings for {self}")
                 self.static_mappings = StaticMapping.defaults()
 

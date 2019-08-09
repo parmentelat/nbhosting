@@ -41,28 +41,31 @@ function update_current_notebook(notebook) {
         }
     })
 }
+
+/* initialize with track from url */
+function change_track(track){
+    window.history.pushState(
+        {}, "", `/auditor/notebook/{{coursename}}:${track}`)
+}
+
 function iframe_src(url) {
     console.log(`iframe url becomes ${url}`);
     $("#nbhosting-jupyter")[0].src = url;
     focus_iframe();
 }
-/* initialize with track from url */
-let global_track = "{{track.name}}";
-function change_track(track){
-    global_track = track;
-    window.history.pushState(
-        {}, "", `/auditor/notebook/{{coursename}}:${track}`)
-}
+
 function iframe_notebook(notebook) {
     console.log('iframe_notebook', this)
     let url=`/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
     iframe_src(url);
     update_current_notebook(notebook);
 }
+
 function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
 }
 
+// hide left and top areas
 function hideleft_toggle() {
     if ($("#hideleft-toggle").hasClass("hideleft")) {
         hideleft_off();
