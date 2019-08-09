@@ -41,21 +41,44 @@ function update_current_notebook(notebook) {
         }
     })
 }
+function turn_off_sections() {
+    $("a.track-name").removeClass('active');
+}
+function turn_jupyter_button(name, true_if_on) {
+    let button = $(`div.jupyter a#${name}`);
+    true_if_on ? button.addClass('active') : button.removeClass('active');
+}
 
 /* initialize with track from url */
-function change_track(track){
+function select_track(track){
     window.history.pushState(
-        {}, "", `/auditor/notebook/{{coursename}}:${track}`)
+        {}, "", `/auditor/notebook/{{coursename}}:${track}`);
+    turn_jupyter_button('classic', false);
+    turn_jupyter_button('jlab', false);
+}
+function select_classic(){
+    iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree');
+    update_header('Jupyter classic');
+    update_current_notebook('--no-match--');
+    turn_off_sections();
+    turn_jupyter_button('classic', true);
+    turn_jupyter_button('jlab', false);
+}
+function select_jlab(){
+    iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab');
+    update_header('Jupyter lab');
+    update_current_notebook('--no-match--');
+    turn_off_sections();
+    turn_jupyter_button('classic', false);
+    turn_jupyter_button('jlab', true);
 }
 
 function iframe_src(url) {
-    console.log(`iframe url becomes ${url}`);
     $("#nbhosting-jupyter")[0].src = url;
     focus_iframe();
 }
 
 function iframe_notebook(notebook) {
-    console.log('iframe_notebook', this)
     let url=`/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
     iframe_src(url);
     update_current_notebook(notebook);
@@ -383,7 +406,7 @@ iframe {
             <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
                 {% for track_obj in tracks %}
                 <a class="nav-link show track-name {% if track.name == track_obj.name %}active{% endif %}"
-                    onclick="change_track('{{track_obj.name}}')"
+                    onclick="select_track('{{track_obj.name}}')"
                     id="sections-{{track_obj.name}}-tab"
                     data-toggle="pill" href="#sections-{{track_obj.name}}"
                     role="tab" aria-controls="sections-{{track_obj.name}}"
@@ -439,14 +462,16 @@ iframe {
                 title="or, if you'd prefer through a regular jupyter app"
             >Jupy<wbr>ter</h1>
             <div class="jupyter">
-                <a onclick="{iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree'); update_header('Jupyter classic');}"
+                <a id="classic"
+                    onclick="select_classic()"
                     data-toggle="tooltip" data-html="true"
                     title="Jupyter classic will display the contents of your workdir
                     and spawn noteboks in separate tabs"
                     class="classic btn btn-outline-success"
                     >  clas<wbr>sic
                 </a>
-                <a onclick="{iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab'); update_header('Jupyter lab');}"
+                <a id="jlab"
+                    onclick="select_jlab()"
                     target="nbhosting-jupyter"
                     data-toggle="tooltip" data-html="true"
                     title="with Jupyter lab you can edit all your contents from
