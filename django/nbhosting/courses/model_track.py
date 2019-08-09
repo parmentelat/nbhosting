@@ -109,6 +109,7 @@ class Notebook:                                         # pylint: disable=r0903
             self._notebookname = self.clean_path()
             self._version = "n/a"
 
+
 class StudentNotebook(Notebook):
     """
     for representing a file found in the student's workspace
@@ -161,10 +162,6 @@ class Section:                                          # pylint: disable=r0903
     # coursedir restored by read_tracks
     # so no need for setstate
 
-
-    # for templating
-    def length(self):
-        return len(self)
 
     # can't seem to use section.notebooks[0].decorate_a in template
     def decorate_a(self):

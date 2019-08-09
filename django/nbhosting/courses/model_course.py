@@ -111,13 +111,6 @@ class CourseDir(models.Model):
         return None
 
 
-    # for templating
-    def length(self):
-        """
-        number of sections
-        """
-        return len(self)
-
     def notebooks(self):
         """
         sorted list of notebook paths
