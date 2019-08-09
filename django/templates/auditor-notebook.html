@@ -50,6 +50,8 @@ function iframe_src(url) {
 let global_track = "{{track.name}}";
 function change_track(track){
     global_track = track;
+    window.history.pushState(
+        {}, "", `/auditor/notebook/{{coursename}}:${track}`)
 }
 function iframe_notebook(notebook) {
     console.log('iframe_notebook', this)
