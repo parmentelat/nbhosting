@@ -435,8 +435,7 @@ iframe {
 
                 {% for section in track_obj.sections %}
                 <div class="section">
-                    <a class="btn section-head 
-                    {% if section.untracked %}btn-outline-danger {% else %}btn-outline-primary{% endif %}"
+                    <a class="btn section-head btn-outline-primary"
                     {% autoescape off %}{{section.decorate_a}}{% endautoescape %}
                     >{{section.name}}</a>
                     {% for notebook_obj in section.notebooks %}
@@ -459,7 +458,8 @@ iframe {
 
             <h1 class="btn btn-outline-secondary jupyter-head"
                 data-toggle="tooltip" data-html="true"
-                title="or, if you'd prefer through a regular jupyter app"
+                title="or, if you'd prefer through<br/> a regular jupyter app
+                      <br/>(esp. with your own notebooks)"
             >Jupy<wbr>ter</h1>
             <div class="jupyter">
                 <a id="classic"

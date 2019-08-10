@@ -9,6 +9,8 @@ import nbformat
 
 from nbh_main.settings import logger
 
+# as of 2019 aug, we don't worry at all about untracked notebooks
+# that can be entirely managed through a regular jupyter app
 
 class Notebook:                                         # pylint: disable=r0903
 
@@ -110,23 +112,6 @@ class Notebook:                                         # pylint: disable=r0903
             self._version = "n/a"
 
 
-class StudentNotebook(Notebook):
-    """
-    for representing a file found in the student's workspace
-    see also issue #78
-    these instances are created with a coursedir attribute that
-    is NOT a CourseDir instance, but a simple Path object instead
-    that represents path to the student's workspace
-    not quite right yet, but at least we can outline the places
-    where this happens
-    """
-    def __repr__(self):
-        return f"STUDENT notebook {self.path} in {self.coursedir}"
-
-    def absolute(self):
-        return (self.coursedir / self.path).absolute()
-
-
 class Section:                                          # pylint: disable=r0903
 
     def __init__(self, name, coursedir, notebooks):
@@ -136,10 +121,6 @@ class Section:                                          # pylint: disable=r0903
         self.name = name
         self.coursedir = coursedir
         self.notebooks = notebooks
-        # a untracked section is created when needed to hold
-        # notebooks that are present in the student dir
-        # but not in the track
-        self.untracked = False
 
     def __repr__(self):
         return (f"{self.coursedir}:{self.name}"
@@ -150,14 +131,8 @@ class Section:                                          # pylint: disable=r0903
 
     # customize jsonpickle output
     def __getstate__(self):
-        # XXX to be checked
-        # kind of accidentally we don't seem to save any untracked notebook
-        # which is right of course, but kind of lucky; seems like we save
-        # this before messing with any student contents
-        # it would sense to enforce this in this code though
         return dict(notebooks=self.notebooks,
-                    name=self.name,
-                    untracked=self.untracked)
+                    name=self.name)
 
     # coursedir restored by read_tracks
     # so no need for setstate
@@ -172,12 +147,6 @@ class Section:                                          # pylint: disable=r0903
             if notebook.clean_path() == path:
                 return notebook
         return None
-
-    @staticmethod
-    def untracked_section(coursedir):
-        result = Section("not on track", coursedir, [])
-        result.untracked = True                         # pylint: disable=w0212
-        return result
 
 
 class Track:
@@ -247,31 +216,11 @@ class Track:
             if spotted:
                 spotted.in_student = True
             else:
-                # existing in the student tree, but not in the track
-                studentdir = coursedir.student_dir(student)
-                # see issue #78
-                # first arg to Notebook should be a CourseDir object
-                odd_notebook = StudentNotebook(
-                    studentdir, read_path.with_suffix(".ipynb"))
-                odd_notebook.in_student = True
                 # turn this off for now
-                self.add_untracked(odd_notebook)
+                # no longer try to incorporate notebooks
+                # that are not on that track
+                pass
         self._marked = True
-
-    def add_untracked(self, untracked_notebook):
-        """
-        how to deal with a notebook that is in the student space
-        but not part of the course
-        we store them in a dedicated section
-        """
-        has_untracked_section = (self.sections and self.sections[-1].untracked)
-        if not has_untracked_section:
-            untracked_section = Section.untracked_section(self.coursedir)
-            self.sections.append(untracked_section)
-        else:
-            untracked_section = self.sections[-1]
-        untracked_section.notebooks.append(untracked_notebook)
-
 
 ##### helpers to build a track manually
 def notebooks_by_pattern(coursedir, pattern):
