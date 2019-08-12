@@ -24,7 +24,8 @@ STUDENT =     r'(?P<student>[\w_.-]+)'
 NOTEBOOK =    r'(?P<notebook>.+?)(\.ipynb){0,2}'
 JUPYTER_URL = r'(?P<jupyter_url>.*)?'
 
-COURSE_TRACK = rf'{COURSE}(:{TRACK})?'
+JUPYTER_APP = r'(?P<jupyter_app>(classic)|(jlab))'
+COURSE_TRACK = rf'{COURSE}(:{TRACK})?(@{JUPYTER_APP})?'
 
 urlpatterns = [
     # can't change this one as FUN and M@gistere depend on it

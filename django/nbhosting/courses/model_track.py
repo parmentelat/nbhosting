@@ -138,9 +138,12 @@ class Section:                                          # pylint: disable=r0903
     # so no need for setstate
 
 
+    def first_notebook(self):
+        return self.notebooks[0]
+
     # can't seem to use section.notebooks[0].decorate_a in template
     def decorate_a(self):
-        return self.notebooks[0].decorate_a("")
+        return self.first_notebook().decorate_a("")
 
     def spot_notebook(self, path):
         for notebook in self.notebooks:
@@ -188,6 +191,9 @@ class Track:
 
     def number_notebooks(self):
         return sum((len(section) for section in self.sections), 0)
+    
+    def first_notebook(self):
+        return self.sections[0].first_notebook()
 
     def spot_notebook(self, path):
         # may be a Path instance
