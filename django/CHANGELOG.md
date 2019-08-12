@@ -1,3 +1,14 @@
+# 0.17.0 2019 Aug 12
+
+* one can write a URL in `/auditor/notebook/course@classic` 
+  - or `course@jlab` - for direct access to jupyter app
+* more consistent UI when switching between tracks or jupyter apps
+* as a side effect, we no longer show untracked notebooks 
+  in track mode, use a jupyter app to manage them
+* togglers to go fullscreen can be used independently
+  e.g. control-clicking the left one will only hide left panel
+
+
 # 0.16.7 2019 Aug 2
 
 * bugfix with autopull that couls get stalled
