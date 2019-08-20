@@ -298,6 +298,18 @@ function -check-course-jupyter() {
 
 ############################## unix accounts and containers
 function -compute-student-globals-in-course () {
+
+    local init_student_dir="true"
+    while getopts "n" option; do
+        case $option in
+            n) init_student_dir="" ;;
+        esac
+    done
+    shift $((OPTIND-1))
+    # reset OPTIND for subsequent calls to getopts
+    OPTIND=1
+
+
     student=$1; shift
     course=$1; shift
     STUDENT_home=$NBHROOT/students/$student
@@ -307,7 +319,9 @@ function -compute-student-globals-in-course () {
 
     STUDENT_container="${course}-x-${student}"
 
-    [ -d $STUDENT_course ] || sudo -u $student mkdir -p $STUDENT_course
+    if [ -n "$init_student_dir" ]; then
+        [ -d $STUDENT_course ] || sudo -u $student mkdir -p $STUDENT_course
+    fi
 }
 
 
@@ -443,25 +457,29 @@ function -lazy-copy-student-notebook-for-course() {
 }
 
 
-function  -git-repo-student-for-course() {
+function -git-repo-student-for-course() {
     local course="$1"; shift
     local giturl="$1"; shift
     local student=$1; shift
 
     -compute-course-globals $course
-    -compute-student-globals-in-course $student $course
+    # DON't (-n) create student dir if not present
+    -compute-student-globals-in-course -n $student $course
 
     local toplevel=$STUDENT_course
-    [ -d $toplevel/.git ] && return 0
-    [ -d $toplevel ] || { sudo $student mkdir -p $toplevel; }
-    cd $toplevel
-    -echo-stderr -git-repo-student-for-course  in $toplevel
-    # in principle a simple git clone would have done the trick
-    # but because of the presence of .monitor
-    { sudo -u $student git clone --no-checkout $giturl .cloned;
-      sudo -u $student mv -f .cloned/.git .git;
-      sudo -u $student rmdir .cloned;
-      sudo -u $student git reset --hard HEAD; } 1>&2
+    # not existing at all, the easy case
+    if [ ! -d $toplevel ]; then
+        sudo -u $student git clone $giturl $toplevel 1>&2
+    elif [ ! -d $toplevel/.git ]; then
+        -echo-stderr found student dir $toplevel without a .git needs rescue
+#        { sudo -u $student git clone --no-checkout $giturl .cloned;
+#          sudo -u $student mv -f .cloned/.git .git;
+#          sudo -u $student rmdir .cloned;
+#          sudo -u $student git reset --hard HEAD; } 1>&2
+        cd $toplevel
+        sudo -u $student git clone $giturl . 1>%2
+    # else we should be good
+    fi
 }
 
 
