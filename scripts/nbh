@@ -509,11 +509,6 @@ function docker-create-container-for-student-in-course() {
     # update jupyter_notebook_config.py and the 2 custom files
     -check-course-jupyter $course
 
-    # touch a file in the student's course dir
-    # so the monitoring tool can spare it
-    # <=> jupyter's root
-    touch $STUDENT_course/.monitor
-
     local jupyter_token=$container
     # check if container container is already defined
     if docker inspect --format "{{.Name}}" $container >& /dev/null ; then
@@ -676,11 +671,6 @@ function docker-start-container() {
     local container="$1"; shift
 
     [ -n "$DEBUG" ] && set -x
-
-    # touch a file in the student's course dir
-    # so the monitoring tool can spare it
-    # <=> jupyter's root
-    touch $STUDENT_course/.monitor
 
     local jupyter_token=$container
     # check if container container is already defined
