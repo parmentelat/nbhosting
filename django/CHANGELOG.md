@@ -1,3 +1,8 @@
+# 0.17.1 2019 Aug 21
+
+* in classroom mode, could not open notebooks (error 404) for fresh users
+* sub-unit notebook border width was causing random rendering
+
 # 0.17.0 2019 Aug 12
 
 * one can write a URL in `/auditor/notebook/course@classic` 
