@@ -1,3 +1,7 @@
+# 0.17.2 2019 Aug 21
+
+* bugfix #86
+
 # 0.17.1 2019 Aug 21
 
 * in classroom mode, could not open notebooks (error 404) for fresh users
