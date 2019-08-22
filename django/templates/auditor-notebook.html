@@ -62,7 +62,7 @@ let first_notebook_per_track = JSON.parse(
     document.getElementById('first-notebook-per-track').textContent);
 
 /* a track has been chosen */
-function select_track(track){
+function select_track(track, update_notebook){
     window.history.pushState(
         {}, "", `/auditor/notebook/{{coursename}}:${track}`);
     turn_jupyter_button('classic', false);
@@ -73,10 +73,14 @@ function select_track(track){
     $(`div.track-sections:not([id="sections-${track}])"`).removeClass('active').removeClass('show');
     $(`div.track-sections[id="sections-${track}"]`).addClass('active').addClass('show');
 
-    let notebook = first_notebook_per_track[track];
-    if (notebook) {
-        iframe_notebook(notebook);
-        update_current_notebook(notebook);
+    if (update_notebook) {
+        let notebook = first_notebook_per_track[track];
+        if (notebook) {
+            iframe_notebook(notebook);
+            update_current_notebook(notebook);
+        } else {
+            console.log(`Could not spot first notebook for track ${track}`);
+        }
     }
 }
 function select_classic(){
@@ -432,7 +436,7 @@ iframe {
             <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
                 {% for track_obj in tracks %}
                 <a class="nav-link show track-name"
-                    onclick="select_track('{{track_obj.name}}')"
+                    onclick="select_track('{{track_obj.name}}', true)"
                     id="sections-{{track_obj.name}}-tab"
                     data-toggle="pill" href="#sections-{{track_obj.name}}"
                     role="tab" aria-controls="sections-{{track_obj.name}}"
@@ -537,7 +541,7 @@ $(() => {
     {% if jupyter_app %} 
         select_{{jupyter_app}}();
     {% else %}
-        select_track("{{track.name}}");
+        select_track("{{track.name}}", false);
     {% endif %}
 });
 
