@@ -52,6 +52,7 @@ function update_current_notebook(notebook) {
 }
 function turn_off_sections() {
     $("a.track-name").removeClass('active');
+    $(`h1.single-track-head`).removeClass('active');
 }
 function turn_jupyter_button(name, true_if_on) {
     let button = $(`div.jupyter a#${name}`);
@@ -62,7 +63,7 @@ let first_notebook_per_track = JSON.parse(
     document.getElementById('first-notebook-per-track').textContent);
 
 /* a track has been chosen */
-function select_track(track, update_notebook){
+function select_track(track, show_first_notebook){
     window.history.pushState(
         {}, "", `/auditor/notebook/{{coursename}}:${track}`);
     turn_jupyter_button('classic', false);
@@ -72,8 +73,9 @@ function select_track(track, update_notebook){
     $(`a.track-name[id="sections-${track}-tab"]`).addClass('active');
     $(`div.track-sections:not([id="sections-${track}])"`).removeClass('active').removeClass('show');
     $(`div.track-sections[id="sections-${track}"]`).addClass('active').addClass('show');
+    $(`h1.single-track-head`).addClass('active');
 
-    if (update_notebook) {
+    if (show_first_notebook) {
         let notebook = first_notebook_per_track[track];
         if (notebook) {
             iframe_notebook(notebook);
@@ -464,11 +466,14 @@ iframe {
 
                 {% for section in track_obj.sections %}
                 <div class="section">
-                    <a class="btn section-head btn-outline-primary"
-                    {% autoescape off %}{{section.decorate_a}}{% endautoescape %}
+                    <a {% autoescape off %}{{section.decorate_a}}{% endautoescape %}
+                    class="btn section-head btn-outline-primary"
+                    onclick="select_track('{{track_obj.name}}', true);"
                     >{{section.name}}</a>
                     {% for notebook_obj in section.notebooks %}
-                    <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}>
+                    <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}
+onclick="iframe_notebook('{{notebook_obj.clean_path}}');select_track('{{track_obj.name}}', false);"
+                    >
                         <div data-notebook="{{notebook_obj.clean_path}}"
                              data-notebook-title="{{notebook_obj.notebookname}}"
                              class="notebook {{notebook_obj.classes}}

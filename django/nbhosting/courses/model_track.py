@@ -89,7 +89,6 @@ class Notebook:                                         # pylint: disable=r0903
             main_tooltip = self.notebookname
 
         result = ""
-        result += f'''onclick="iframe_notebook('{self.clean_path()}')"'''
         result += f''' data-toggle="tooltip" data-html="true"'''
         result += f''' title="'''
         if main_tooltip:
