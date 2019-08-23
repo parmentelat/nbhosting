@@ -29,16 +29,18 @@
 <script>
 
 {% if jupyter_app %}
-//let global_track_or_app = "@{{jupyter_app}}";
+let global_track_or_app = "@{{jupyter_app}}";
 {% else %}
-//let global_track_or_app = ":{{track.name}}";
+let global_track_or_app = ":{{track.name}}";
 {% endif %}
 
 function update_header(string) {
     $('div.nbh-title>h2').html(string);    
 }
 
-function update_current_notebook(notebook) {
+// make sure the current notebook 
+// is properly highlighted in the track area
+function outline_current_notebook(notebook) {
     $("div.notebook").each(function(index, div) {
         let $div = $(div);
         let current = $div.attr("data-notebook") == notebook;
@@ -50,22 +52,34 @@ function update_current_notebook(notebook) {
         }
     })
 }
-function turn_off_sections() {
+// make sure no track is highlighted
+function turn_off_tracks() {
     $("a.track-name").removeClass('active');
     $(`h1.single-track-head`).removeClass('active');
 }
+// turn off one of the 2 jupyter app buttons
 function turn_jupyter_button(name, true_if_on) {
     let button = $(`div.jupyter a#${name}`);
     true_if_on ? button.addClass('active') : button.removeClass('active');
 }
 
+// update the URL bar so that page can be bookmarked or reloaded
+function update_url(trailer) {
+    window.history.pushState(
+        {}, "", `/auditor/notebook/{{coursename}}${global_track_or_app}${trailer}`);
+}
+
+// parse map { track -> first-notebook-path }
 let first_notebook_per_track = JSON.parse(
     document.getElementById('first-notebook-per-track').textContent);
 
-/* a track has been chosen */
+// a track has been chosen 
+// hightlight corresponding track button,
+// and turn off jup app buttons
+// if show_first_button is set, 
+// also display first notebook in track 
 function select_track(track, show_first_notebook){
-    window.history.pushState(
-        {}, "", `/auditor/notebook/{{coursename}}:${track}`);
+    global_track_or_app = `:${track}`;
     turn_jupyter_button('classic', false);
     turn_jupyter_button('jlab', false);
     // xxx need internet connection
@@ -79,47 +93,57 @@ function select_track(track, show_first_notebook){
         let notebook = first_notebook_per_track[track];
         if (notebook) {
             iframe_notebook(notebook);
-            update_current_notebook(notebook);
+            outline_current_notebook(notebook);
         } else {
             console.log(`Could not spot first notebook for track ${track}`);
         }
     }
 }
-function select_classic(){
-    window.history.pushState(
-        {}, "", `/auditor/notebook/{{coursename}}@classic`);
+
+// jupyter classic app
+function select_classic() {
+    global_track_or_app = "@classic";
+    update_url("");
     iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree');
     update_header('Jupyter classic');
-    update_current_notebook('--no-match--');
-    turn_off_sections();
+    outline_current_notebook('--no-match--');
+    turn_off_tracks();
     turn_jupyter_button('classic', true);
     turn_jupyter_button('jlab', false);
 }
+// jupyter lab app
 function select_jlab(){
-    window.history.pushState(
-        {}, "", `/auditor/notebook/{{coursename}}@jlab`);
+    global_track_or_app = "@jlab";
+    update_url("");
     iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab');
     update_header('Jupyter lab');
-    update_current_notebook('--no-match--');
-    turn_off_sections();
+    outline_current_notebook('--no-match--');
+    turn_off_tracks();
     turn_jupyter_button('classic', false);
     turn_jupyter_button('jlab', true);
 }
 
+// direct iframe to this url
+// and focus input events there
 function iframe_src(url) {
     $("#nbhosting-jupyter")[0].src = url;
     focus_iframe();
 }
-
-function iframe_notebook(notebook) {
-    let url=`/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
-    iframe_src(url);
-    update_current_notebook(notebook);
-}
-
 function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
 }
+
+// show notebook in iframe
+// track is not managed
+function iframe_notebook(notebook) {
+    let url=`/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
+    iframe_src(url);
+    outline_current_notebook(notebook);
+    update_url(`/${notebook}`);
+}
+
+
+////////// toggle buttons
 
 // hide left and top areas
 function hideleft_toggle() {
