@@ -14,7 +14,7 @@ import nbhosting.courses.views
 import nbhosting.stats.views
 import nbh_main.views
 
-TRACK =       r'(?P<track>[\w_.-]*)'
+TRACK =       r'(?P<track>[^/]*)'
 COURSE =      r'(?P<course>[\w_.-]+)'
 STUDENT =     r'(?P<student>[\w_.-]+)'
 # being very loose / flexible for the spelling of <notebook>
