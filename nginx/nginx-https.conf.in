@@ -160,6 +160,8 @@ http {
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_read_timeout 300;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
         }
 
         # this is (7) in the architecture diagram
@@ -182,6 +184,8 @@ http {
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_read_timeout 300;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
         }
 
         # the static contents for the nbhosting django app itself
