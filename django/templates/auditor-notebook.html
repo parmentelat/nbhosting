@@ -82,11 +82,13 @@ function select_track(track, show_first_notebook){
     global_track_or_app = `:${track}`;
     turn_jupyter_button('classic', false);
     turn_jupyter_button('jlab', false);
+    // html5 does not allow space in ids
+    let track_id = track.replace(/ /g, '');
     // xxx need internet connection
-    $(`a.track-name:not([id="sections-${track}-tab"]`).removeClass('active');
-    $(`a.track-name[id="sections-${track}-tab"]`).addClass('active');
-    $(`div.track-sections:not([id="sections-${track}])"`).removeClass('active').removeClass('show');
-    $(`div.track-sections[id="sections-${track}"]`).addClass('active').addClass('show');
+    $(`a.track-name:not([id="sections-${track_id}-tab"]`).removeClass('active');
+    $(`a.track-name[id="sections-${track_id}-tab"]`).addClass('active');
+    $(`div.track-sections:not([id="sections-${track_id}])"`).removeClass('active').removeClass('show');
+    $(`div.track-sections[id="sections-${track_id}"]`).addClass('active').addClass('show');
     $(`h1.single-track-head`).addClass('active');
 
     if (show_first_notebook) {
@@ -467,9 +469,9 @@ iframe {
                 {% for track_obj in tracks %}
                 <a class="nav-link show track-name"
                     onclick="select_track('{{track_obj.name}}', true)"
-                    id="sections-{{track_obj.name}}-tab"
-                    data-toggle="pill" href="#sections-{{track_obj.name}}"
-                    role="tab" aria-controls="sections-{{track_obj.name}}"
+                    id="sections-{{track_obj.name|cut:" "}}-tab"
+                    data-toggle="pill" href="#sections-{{track_obj.name|cut:" "}}"
+                    role="tab" aria-controls="sections-{{track_obj.name|cut:" "}}"
                     aria-selected="{% if track.name == track_obj.name %}true{% else %}false{% endif %}"
                 >{{track_obj.name}}</a>
                 {% endfor %}
@@ -481,8 +483,8 @@ iframe {
 
             {% for track_obj in tracks %}
             <div class="tab-pane fade track-sections transitionable"
-                id="sections-{{track_obj.name}}" role="tabpanel"
-                aria-labelledby="sections-{{track_obj.name}}-tab"
+                id="sections-{{track_obj.name|cut:" "}}" role="tabpanel"
+                aria-labelledby="sections-{{track_obj.name|cut:" "}}-tab"
                 >
                 {% if tracks|length_is:"1" %}
                 <h1 class="btn btn-outline-secondary single-track-head"
