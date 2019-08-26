@@ -20,7 +20,7 @@ http {
     # log into journalctl
     # from lifesaver SO answer
     # https://stackoverflow.com/questions/28394084/nginx-log-to-stderr/29005073
-    error_log syslog:server=unix:/dev/log   info;  # replace with debug if needed
+    error_log syslog:server=unix:/dev/log   debug;  # replace with debug if needed
     access_log syslog:server=unix:/dev/log;
 
 
@@ -162,6 +162,9 @@ http {
             proxy_read_timeout 300;
             proxy_connect_timeout 300;
             proxy_send_timeout 300;
+            proxy_intercept_errors on;
+            error_page 404 /assets/404.html;
+            error_page 502 /assets/502.html;
         }
 
         # this is (7) in the architecture diagram
@@ -186,6 +189,9 @@ http {
             proxy_read_timeout 300;
             proxy_connect_timeout 300;
             proxy_send_timeout 300;
+            proxy_intercept_errors on;
+            error_page 404 /assets/404.html;
+            error_page 502 /assets/502.html;
         }
 
         # the static contents for the nbhosting django app itself

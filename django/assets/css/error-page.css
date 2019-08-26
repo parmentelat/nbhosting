@@ -1,0 +1,17 @@
+body {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    text-align: center;
+    background-color: white;
+}
+#banner {
+    margin-top: 2cm;
+    margin-bottom: 2cm;
+}
+
+#text {
+    margin-left: 3cm;
+    margin-right: 3cm;
+}
+body ul li {
+    text-align: left;
+}
