@@ -1,3 +1,9 @@
+# 0.18.9 2019 Aug 26
+
+* drop support for http #94
+* an attempt at addressing #93 - error 502 - 
+  by increasing some timeouts on the nginx side
+
 # 0.17.6 2019 Aug 26
 
 * bugfix #92
