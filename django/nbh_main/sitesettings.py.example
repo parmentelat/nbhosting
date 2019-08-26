@@ -6,10 +6,12 @@
 # in the same directory as settings.py
 ####################
 
-# set to either http or https
-# if you set https the system will accept ONLY https
-# note that fun-mooc.fr for example can be reached only over https
-# and will thus refuse to fetch the nbhoting iframe over http
+# as of 0.18.0 only 'https' is supported for server_mode
+# this means the system will accept ONLY https requests
+# i.e. http incoming requests are redirected to https
+# note that official sites like fun-mooc.fr can themselves
+# be reached only over https, and will thus refuse
+# to fetch a nbhosting iframe over http
 server_mode = "https"
 
 # for the nginx config

@@ -82,23 +82,23 @@ function update-images() {
 
 function update-nginx() {
 
-    # update both configs from the .in
-    local configs="nginx-https.conf nginx-http.conf"
-    local config
-    for config in $configs; do
-        sed -e "s,@nbhroot@,$nbhroot," \
-            -e "s,@server_name@,$server_name,g" \
-            -e "s,@ssl_certificate@,$ssl_certificate,g" \
-            -e "s,@ssl_certificate_key@,$ssl_certificate_key,g" \
-            nginx/$config.in > nginx/$config
-    done
+    # update config from the .in
+    local config="nginx-https.conf"
+    sed -e "s,@nbhroot@,$nbhroot," \
+        -e "s,@server_name@,$server_name,g" \
+        -e "s,@ssl_certificate@,$ssl_certificate,g" \
+        -e "s,@ssl_certificate_key@,$ssl_certificate_key,g" \
+        nginx/$config.in > nginx/$config
 
-    if [ "$server_mode" != "http" ]; then
-        config="nginx-https.conf"
-    else
-        config="nginx-http.conf"
-    fi
-    rsync $rsopts nginx/$config /etc/nginx/nginx.conf
+    [ "$server_mode" == "https" ] || {
+        echo "****"
+        echo "Since 0.18.0 only https is supported for server_mode"
+        echo "nbhosting NOT INSTALLED PROPERLY"
+        echo "****"
+        exit 1
+    }
+        
+    rsync $rsopts nginx/nginx-https.conf /etc/nginx/nginx.conf
 
 }
 
