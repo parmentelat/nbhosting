@@ -1,4 +1,9 @@
-# 0.18.9 2019 Aug 26
+# 0.18.1 2019 Aug 26
+
+* nicer error pages, and an attempt to provide more useful feedback
+  to users if 502 still triggers
+
+# 0.18.0 2019 Aug 26
 
 * drop support for http #94
 * an attempt at addressing #93 - error 502 - 
