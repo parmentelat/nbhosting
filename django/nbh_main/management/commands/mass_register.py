@@ -10,6 +10,8 @@ import random
 import string
 import logging
 
+import re
+
 # keep it simple, we expect a localhost sendmail service
 import smtplib
 
@@ -60,6 +62,26 @@ def default_last_name(email):
 #            return string[1:-1]
 #    return string
 
+# a range of valid chars with letters, digits, - . _
+CRANGE = "[.\-\w]"
+# same with spaces
+CRANGESP = "[.\-\w ']"
+SP = "[ \t]"
+
+EMAIL = rf"{CRANGE}+@{CRANGE}+"
+ATTRIBUTE = "[a-z_]+"
+VALUE = rf'({CRANGE}+|\"{CRANGESP}+\")'
+PAIR = rf"{ATTRIBUTE}={VALUE}"
+QPAIR = rf"(?P<attribute>{ATTRIBUTE})=(?P<value>{VALUE})"
+
+LINE = rf"(?P<email>{EMAIL})\W+(?P<attributes>({PAIR}{SP}*)*)"
+
+for char in LINE:
+    print(char, end="")
+print()
+
+RE_LINE = re.compile(LINE)
+RE_PAIR = re.compile(QPAIR)
 
 def parse(input_filename):
     # we first parse the whole file and do various checks
@@ -72,18 +94,27 @@ def parse(input_filename):
             if not line or line.startswith('#'):
                 continue
             try:
-                email, *options = line.split()
+                match = RE_LINE.match(line)
+                email, attributes = match.group('email'), match.group('attributes')
+                print(f"email={email}, attributes={attributes}")
                 todo = dict(email=email, lineno=lineno)
-                for option in options:
-                    optname, value = option.split('=')
-                    if optname not in OPTIONS:
-                        raise ValueError(f"no such option {optname}")
-                    todo[optname] = value
-                for optname in OPTIONS:
-                    if optname in todo:
+                while attributes:
+                    m_pair = RE_PAIR.search(attributes)
+                    if not m_pair:
+                        # end of line - exit while loop
                         continue
-                    default_function = globals()[f"default_{optname}"]
-                    todo[optname] = default_function(email)
+                    attribute = m_pair.group('attribute')
+                    value = m_pair.group('value')
+                    attributes = attributes[m_pair.end():]
+                    print(f"remain {attributes}")
+                    if attribute not in OPTIONS:
+                        raise ValueError(f"no such attribute {attribute}")
+                    todo[attribute] = value
+                for attribute in OPTIONS:
+                    if attribute in todo:
+                        continue
+                    default_function = globals()[f"default_{attribute}"]
+                    todo[attribute] = default_function(email)
                 todos.append(todo)
             except Exception as exc:                    # pylint: disable=w0703
                 logging.error(f"{lineno}:{line}:{exc}")
