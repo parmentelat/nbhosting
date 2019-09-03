@@ -1,3 +1,8 @@
+# 0.18.2 2019 Sep 3
+
+* bugfix in css selector, that caused safari to not show active track
+* mass register input format has support for quoted tokens
+
 # 0.18.1 2019 Aug 26
 
 * nicer error pages, and an attempt to provide more useful feedback
