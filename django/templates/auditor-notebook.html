@@ -85,9 +85,9 @@ function select_track(track, show_first_notebook){
     // html5 does not allow space in ids
     let track_id = track.replace(/ /g, '');
     // xxx need internet connection
-    $(`a.track-name:not([id="sections-${track_id}-tab"]`).removeClass('active');
+    $(`a.track-name:not([id="sections-${track_id}-tab"])`).removeClass('active');
     $(`a.track-name[id="sections-${track_id}-tab"]`).addClass('active');
-    $(`div.track-sections:not([id="sections-${track_id}])"`).removeClass('active').removeClass('show');
+    $(`div.track-sections:not([id="sections-${track_id}"])`).removeClass('active').removeClass('show');
     $(`div.track-sections[id="sections-${track_id}"]`).addClass('active').addClass('show');
     $(`h1.single-track-head`).addClass('active');
 
