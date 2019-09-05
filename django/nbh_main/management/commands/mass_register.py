@@ -100,6 +100,8 @@ def parse(input_filename):
                         continue
                     attribute = m_pair.group('attribute')
                     value = m_pair.group('value')
+                    if value[0] == '"' and value[-1] == '"':
+                        value = value[1:-1]
                     attributes = attributes[m_pair.end():]
                     if attribute not in OPTIONS:
                         raise ValueError(f"no such attribute {attribute}")
