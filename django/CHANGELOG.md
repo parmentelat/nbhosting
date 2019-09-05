@@ -1,3 +1,7 @@
+# 0.18.3 2019 Sep 4
+
+* mass registration with quotes was not removing quotes
+
 # 0.18.2 2019 Sep 3
 
 * bugfix in css selector, that caused safari to not show active track
