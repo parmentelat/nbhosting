@@ -76,10 +76,6 @@ QPAIR = rf"(?P<attribute>{ATTRIBUTE})=(?P<value>{VALUE})"
 
 LINE = rf"(?P<email>{EMAIL})\W+(?P<attributes>({PAIR}{SP}*)*)"
 
-for char in LINE:
-    print(char, end="")
-print()
-
 RE_LINE = re.compile(LINE)
 RE_PAIR = re.compile(QPAIR)
 
@@ -96,7 +92,6 @@ def parse(input_filename):
             try:
                 match = RE_LINE.match(line)
                 email, attributes = match.group('email'), match.group('attributes')
-                print(f"email={email}, attributes={attributes}")
                 todo = dict(email=email, lineno=lineno)
                 while attributes:
                     m_pair = RE_PAIR.search(attributes)
@@ -106,7 +101,6 @@ def parse(input_filename):
                     attribute = m_pair.group('attribute')
                     value = m_pair.group('value')
                     attributes = attributes[m_pair.end():]
-                    print(f"remain {attributes}")
                     if attribute not in OPTIONS:
                         raise ValueError(f"no such attribute {attribute}")
                     todo[attribute] = value
