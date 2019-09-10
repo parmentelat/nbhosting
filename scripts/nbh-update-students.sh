@@ -1,9 +1,13 @@
 #!/bin/bash
 
 function usage() {
-    echo "[-u] Usage $0 course"
-    echo "the expected hash for all students spaces"
-    echo "is extracted from the course-git area"
+    echo "Usage $0 [-p] [-s] course"
+    echo "  performs a git pull on that course"
+    echo "  then picks corresponding hash"
+    echo "  and checks all the students spaces in students/*.*"
+    echo "options"
+    echo " -p: actually pulls from the students spaces"
+    echo " -s: silent mode; students that are OK are not reported"
     exit 1
 }
 
@@ -13,9 +17,11 @@ function current_hash() {
  
 # default is to just be watching
 pull_mode=""
-while getopts "p" option; do
+silent_mode=""
+while getopts "ps" option; do
     case $option in
             p) pull_mode="true" ;;
+            s) silent_mode="true" ;;
 	    ?) usage ;;
     esac
 done
@@ -29,7 +35,11 @@ course=$1; shift
 [[ -n "$@" ]] && usage
 
 echo "pulling from git for course $course"
-nbh-manage course-pull-from-git $course
+if [ -z "$silent_mode" ]; then
+    nbh-manage course-pull-from-git $course 
+else
+    nbh-manage course-pull-from-git $course >& /dev/null
+fi
 
 cd /nbhosting/current/courses-git/$course
 expected_hash=$(current_hash)
@@ -46,7 +56,7 @@ for student_home in /nbhosting/current/students/*.*; do
     cd $student_course
     student_hash=$(current_hash)
     if [ $student_hash == "$expected_hash" ]; then
-	echo == $student OK
+        [ -z "$silent_mode" ] && echo == $student OK
     else
 	if [ -z "$pull_mode" ]; then
 	    echo XX $student is on $student_hash
@@ -54,7 +64,7 @@ for student_home in /nbhosting/current/students/*.*; do
 	    sudo -u $student git pull
 	    new_hash=$(current_hash)
 	    if [ "$new_hash" == "$expected_hash" ]; then
-		echo "++ $student pulled OK"
+		[ -z "$silent_mode" ] && echo "++ $student pulled OK"
 	    else
 		echo "-- $student still behind on $new_hash"
 	    fi
