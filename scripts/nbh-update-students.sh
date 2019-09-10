@@ -28,6 +28,9 @@ course=$1; shift
 [ -n "$course" ] || usage
 [[ -n "$@" ]] && usage
 
+echo "pulling from git for course $course"
+nbh-manage course-pull-from-git $course
+
 cd /nbhosting/current/courses-git/$course
 expected_hash=$(current_hash)
 echo "expected hash extracted from $(pwd) as $expected_hash"
