@@ -69,3 +69,10 @@ pip install nbautoeval
 # the ipythontutor magic
 pip install ipythontutor
 
+# beg. Sep. 2019
+# when building an ijavascript kernel 
+# I ran into /home/jovyan/.npm being owned by root at this point
+# which broke npm builds
+# it probably means that we should run one of the steps above
+# as jovyan instead of root, but as a quick and dirty workaround:
+chown -R jovyan:users /home/jovyan/.npm
