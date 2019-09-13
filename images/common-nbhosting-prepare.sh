@@ -49,8 +49,8 @@ sudo -u jovyan git config --global user.name "Notebook User"
 # jupyterlab git extension
 jupyter labextension install @jupyterlab/git && pip install --upgrade jupyterlab-git && jupyter serverextension enable --py jupyterlab_git
 
-# the nbgitpuller thingy
-pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
+# the nbgitpuller thingy - turned off
+# pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
 
 # --------
 # useful additions and extensions
