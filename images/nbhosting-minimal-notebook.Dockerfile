@@ -14,9 +14,12 @@ COPY start-in-dir-as-uid.sh /usr/local/bin
 # factorizing preparation steps, that are common to
 # all our images (minimal-notebook and scipy-notebook for now)
 
-ADD common-nbhosting-prepare.sh /root/common-nbhosting-prepare.sh
+ADD nbhosting-image-root.sh /root/nbhosting-image-root.sh
+RUN bash /root/nbhosting-image-root.sh
 
-RUN bash /root/common-nbhosting-prepare.sh
+USER jovyan
 
+ADD nbhosting-image-jovyan.sh /home/jovyan/nbhosting-image-jovyan.sh
+RUN bash /home/jovyan/nbhosting-image-jovyan.sh
 
-
+USER root

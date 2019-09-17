@@ -41,7 +41,8 @@ note that pulling docker-stacks image from dockerhub is not taken care of by thi
 
         # maybe better use git ls-files *.sh ?
         scripts = [
-            "common-nbhosting-prepare.sh",
+            "nbhosting-image-root.sh",
+            "nbhosting-image-jovyan.sh",
             "start-in-dir-as-uid.sh",
             ]
 
