@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 show_course(coursedir)
             else:
                 for pattern in patterns:
-                    if pattern in name:
+                    if pattern == '*' or pattern in name:
                         show_course(coursedir)
                         break
         return 0
