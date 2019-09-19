@@ -144,9 +144,9 @@ class CourseDir(models.Model):
 
 
 
-    def student_homes(self):
+    def nb_student_homes(self):
         """
-        return the number of students who have that course in their home dir
+        the number of students who have that course in their home dir
         """
         student_course_dirs = (
             NBHROOT / "students").glob(f"*/{self.coursename}")

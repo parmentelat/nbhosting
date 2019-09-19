@@ -393,11 +393,11 @@ class Monitor:
             asyncio.gather(*futures))
         # write results
         for coursename, figures in figures_by_course.items():
-            student_homes = coursedirs_by_name[coursename].student_homes()
+            nb_student_homes = coursedirs_by_name[coursename].nb_student_homes()
             Stats(coursename).record_monitor_counts(
                 figures.running_containers, figures.frozen_containers,
                 figures.running_kernels,
-                student_homes,
+                nb_student_homes,
                 load1, load5, load15,
                 spaces['docker']['percent'], spaces['docker']['free'],
                 spaces['nbhosting']['percent'], spaces['nbhosting']['free'],
