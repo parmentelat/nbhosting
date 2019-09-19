@@ -100,13 +100,8 @@ class CourseDir(models.Model):
         c1 = NBHROOT / "local" / self.coursename / filename
         c2 = self.git_dir / "nbhosting" / filename
 
-#        logger.debug(f"{self}.customized({filename})")
-#        logger.debug(f"local={c1}")
-#        logger.debug(f"in course repo={c2}")
-
         for c in (c1, c2):
             if c.exists():
-#                logger.debug(f"using {c}")
                 return c
         return None
 
