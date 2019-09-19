@@ -138,6 +138,34 @@ class CourseDir(models.Model):
         return self._probe_notebooks_in_dir(root)
 
 
+    def users_with_workspace(self, user_pattern=None):
+        """
+        an iterator on tuples of the form
+        (User, workspace_path)
+        for all (registered) users who have a 
+        workspace open on that course
+        and whose name matches the pattern, if provided    
+        """
+
+        def user_match(user, pattern):
+            if not pattern:
+                return True
+            import re
+            if '*' in pattern:
+                pattern = pattern.replace('*', '.*')
+                pattern = f"^{pattern}$"
+                return re.match(pattern, user.username)
+            else:
+                return pattern in user.username
+
+        for user in User.objects.all():
+            if not user_match(user, user_pattern):
+                continue
+            user_workspace = self.student_dir(user.username)
+            if not user_workspace.exists():
+                continue
+            yield user, user_workspace
+        
 
     def nb_student_homes(self):
         """
@@ -364,6 +392,17 @@ class CourseDir(models.Model):
         """
         return self.run_nbh_subprocess('course-update-from-git')
 
+
+    def current_hash(self, student=None):
+        """
+        returns full hash of current commit, either in the student's 
+        directory, or in the main course git area if not provided
+        """
+        directory = self.git_dir if not student else self.student_dir(student)
+        command=['git', '-C', str(directory), 'log', '-1', "--pretty=%h"]
+        return subprocess.run(
+            command, capture_output=True).stdout.decode().strip()
+        
 
     def destroy_student_container(self, student):
         container_name = f"{self.coursename}-x-{student}"
