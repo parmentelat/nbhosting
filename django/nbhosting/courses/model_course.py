@@ -24,6 +24,8 @@ from .model_mapping import StaticMapping
 from typing import List
 CourseTracks = List[Track]
 
+from ..matching import matching_policy
+
 
 class CourseDir(models.Model):
 
@@ -138,28 +140,38 @@ class CourseDir(models.Model):
         return self._probe_notebooks_in_dir(root)
 
 
-    def users_with_workspace(self, user_pattern=None):
+    def users_with_workspace(self, *, user_patterns=None, staff_selector=None):
         """
         an iterator on tuples of the form
         (User, workspace_path)
         for all (registered) users who have a 
         workspace open on that course
-        and whose name matches the pattern, if provided    
+        and whose name matches the pattern, if provided
+        
+        user_patterns: see matching policy in module nbhosting.matching
+            
+        staff_selector: 
+          if not provided, defaults to {'student', 'staff'}
         """
 
-        def user_match(user, pattern):
-            if not pattern:
-                return True
-            import re
-            if '*' in pattern:
-                pattern = pattern.replace('*', '.*')
-                pattern = f"^{pattern}$"
-                return re.match(pattern, user.username)
+        if isinstance(user_patterns, str):
+            user_patterns = [user_patterns]
+
+        if staff_selector is None:
+            staff_selector = {'staff', 'selector'}
+
+        staff_set = {user for user in self.staff_usernames.split()}
+        def staff_match(user, staff_selector):
+            if user.username in staff_set:
+                return 'staff' in staff_selector
             else:
-                return pattern in user.username
+                return 'student' in staff_selector
+           
 
         for user in User.objects.all():
-            if not user_match(user, user_pattern):
+            if not matching_policy(user.username, user_patterns):
+                continue
+            if not staff_match(user, staff_selector):
                 continue
             user_workspace = self.student_dir(user.username)
             if not user_workspace.exists():
