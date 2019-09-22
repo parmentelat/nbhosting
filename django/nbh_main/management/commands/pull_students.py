@@ -123,5 +123,6 @@ class Command(BaseCommand):
                     staff_selector=staff_selector):
                 coursedir.update_user_workspace(
                     user, user_workspace=workspace, course_hash=course_hash,
-                    do_pull=do_pull, do_reset=do_reset)
+                    do_pull=do_pull, do_reset=do_reset,
+                    quiet_mode=quiet_mode)
         return 0
