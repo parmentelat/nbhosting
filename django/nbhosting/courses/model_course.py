@@ -167,8 +167,10 @@ class CourseDir(models.Model):
             else:
                 return 'student' in staff_selector
            
-
-        for user in User.objects.all():
+        all_users = sorted(
+            User.objects.all(),
+            key=lambda user: user.username)
+        for user in all_users:
             if not matching_policy(user.username, user_patterns):
                 continue
             if not staff_match(user, staff_selector):
@@ -178,6 +180,50 @@ class CourseDir(models.Model):
                 continue
             yield user, user_workspace
         
+
+    def update_user_workspace(self, user:User, *,
+                              course_hash=None, user_workspace=None, 
+                              quiet_mode=False, do_pull=False, do_reset=False):
+        """
+        allows to inspect or update a user's workspace
+        
+        if do_pull is False, the method only checks the user's current commit's hash
+        with the course's; do_reset is not used in this case
+        
+        if do_pull is True, this method will invoke git pull 
+        from within the user's directory; if in addition do_reset is set as well, 
+        then a 'git reset --hard' is issued prior to git pulling.
+        
+        quiet_mode asks for a less verbose output
+        
+        if either course_hash or user_workspace are already known, 
+        pass them along for more efficiency
+        """
+        if course_hash is None:
+            course_hash = coursedir.current_hash()
+        if user_workspace is None:
+            user_workspace = self.student_dir(user.username)
+        user_hash = self.current_hash(user.username)
+        
+        def myqprint(*args):
+            if not quiet_mode:
+                print(*args)
+            
+        if course_hash == user_hash:
+            myqprint(f"OK student {user.username}")
+            return
+        if not do_pull:
+            print(f"!! {self.coursename}/{user.username} is on {user_hash}")
+            return
+        if do_reset:
+            os.system(f"sudo -u {user.username} git -C {user_workspace} reset --hard")
+        os.system(f"sudo -u {user.username} git -C {user_workspace} pull")
+        new_hash = self.current_hash(user.username)
+        if new_hash == course_hash:
+            myqprint(f"OK {user.username} pulled to {course_hash}")
+        else:
+            print(f"!! {user.username} still behind on {new_hash}")
+
 
     def nb_student_homes(self):
         """
@@ -398,11 +444,15 @@ class CourseDir(models.Model):
                      dry_run=dry_run)
 
 
-    def pull_from_git(self):
+    def pull_from_git(self, silent=False):
         """
         pulls from the git repository
         """
-        return self.run_nbh_subprocess('course-update-from-git')
+        if not silent:
+            return self.run_nbh_subprocess('course-update-from-git')
+        else:
+            completed = self.nbh_subprocess('course-update-from-git', False)
+            return completed.returncode == 0
 
 
     def current_hash(self, student=None):
