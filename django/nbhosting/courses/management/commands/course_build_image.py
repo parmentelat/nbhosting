@@ -10,11 +10,13 @@ from nbh_main.settings import logger, NBHROOT
 
 class Command(BaseCommand):
 
-    help = """rebuild docker image for that course
+    help = """
+    rebuild docker image for that course
 
     NOTE that courses that override
     their image so as to use another course's
-    image are not allowed to rebuild"""
+    image are not allowed to rebuild
+    """
 
 
     def add_arguments(self, parser):
