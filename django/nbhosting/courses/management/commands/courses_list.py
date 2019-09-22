@@ -36,8 +36,9 @@ class Command(BaseCommand):
             if not long:
                 print(cd.coursename)
             else:
-                on_off = "on" if cd.autopull else "off"
-                print(f"{cd.coursename:15s}\t{cd.image}\t{cd.giturl} [AP {on_off}]")
+                autopull = "on" if cd.autopull else "off"
+                hash = cd.current_hash()
+                print(f"{cd.coursename:20s}\t{cd.image:30s}[AP {autopull:3s}]\t{hash}\t{cd.giturl}")
 
         all_coursedirs = sorted(
             CourseDir.objects.all(),
