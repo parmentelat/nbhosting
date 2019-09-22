@@ -1,4 +1,4 @@
-# 0.19.0 2019 Sep 22
+# 0.19.1 2019 Sep 22
 
 * new management command nbh-manage pull-students 
 * courses-list -l also shows git hash
