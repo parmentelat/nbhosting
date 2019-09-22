@@ -1,3 +1,11 @@
+# 0.19.0 2019 Sep 22
+
+* new management command nbh-manage pull-students 
+* courses-list -l also shows git hash
+* core images with a cleaner separation between what is done by root and jovyan;
+  allows to resurrect ijavascript kernel
+* remove references to nbgitpuller
+
 # 0.18.3 2019 Sep 4
 
 * mass registration with quotes was not removing quotes
