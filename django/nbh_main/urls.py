@@ -4,7 +4,7 @@ nbhosting URL Configuration
 
 # pylint: disable=c0326, c0330
 
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic.base import RedirectView
@@ -98,7 +98,7 @@ urlpatterns = [
                         auth_views.LoginView.as_view(), name='login'),
     re_path(rf'^accounts/logout/',
                         auth_views.LogoutView.as_view(), name='logout'),
-    # path(rf'accounts/',          include('django.contrib.auth.urls')),
+    path(rf'accounts/',          include('django.contrib.auth.urls')),
     # this seems to create a lot of issues, like bottomless recursions
     # probably better to handle this in nginx
     #re_path(rf'.*',

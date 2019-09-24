@@ -175,3 +175,5 @@ STATIC_ROOT = '/var/nginx/nbhosting/assets/'
 #################### back to django defaults, no longer a /nbh/ barrier
 LOGIN_REDIRECT_URL = '/welcome/'
 LOGIN_URL =          '/accounts/login/'
+
+DEFAULT_FROM_EMAIL = f"nbhosting-no-reply@{sitesettings.server_name}"

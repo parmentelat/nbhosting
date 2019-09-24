@@ -29,6 +29,15 @@ div.center {
     flex-wrap: nowrap;
     justify-content: space-around;
 }
+div.center-vertical {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+.smaller {
+    font-size: 60%;
+}
 </style>
 
 <div class="container">
@@ -62,9 +71,13 @@ div.center {
                     <br/>
                     for using it under this mode, you will need to ask your
                     teacher for an account, and then
-                    <div class="center">
+                    <div class="center-vertical">
                     <a href="/accounts/login/" class="btn btn-outline-secondary mt-3">
                         log into the system</a>
+                        <br/>
+                    <a href="/accounts/password_reset/" 
+                        class="smaller btn btn-outline-danger mt-3 p-1">
+                        I forgot my password</a>
                     </div>
                 </p>
             {% else %}
