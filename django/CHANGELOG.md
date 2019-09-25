@@ -1,3 +1,7 @@
+# 0.20.0 2019 Sep 25
+
+* new feature to reset one's password
+
 # 0.19.1 2019 Sep 22
 
 * new management command nbh-manage pull-students 
