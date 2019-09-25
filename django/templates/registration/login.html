@@ -25,6 +25,7 @@ $(function() {
         .attr("placeholder", "Password")
 })
 </script>
+
 {% if form.errors %}
 <div class="row">
     <div class="offset-md-2 col-md-8">
@@ -49,19 +50,6 @@ $(function() {
         </div>
     </div>
 {% endif %}
-
-{% comment %}
-this works like a charm
-{% if user.is_authenticated %}
-    {% if user.is_staff %}
-        <p>Welcome, superuser {{ user.get_username }}.</p>
-    {% else %}
-        <p>Welcome, {{ user.get_username }}. Thanks for logging in.</p>
-    {% endif %}
-{% else %}
-    <p>Welcome, new user. Please log in.</p>
-{% endif %}
-{% endcomment %}
 
 <div class="row p-4">
 
