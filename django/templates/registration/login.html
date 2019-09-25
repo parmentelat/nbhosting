@@ -13,12 +13,16 @@ nbhosting login
     background-color: #ddd;
     padding: 20px;
 }
+.forgot {
+    font-size: 60%;
+    width: 100%;
+}
 </style>
 
 <script>
 $(function() {
-    $(".login-box>label").addClass("sr-only");
-    $(".login-box>input").addClass("form-control");
+    $(".box label").addClass("sr-only");
+    $(".box input").addClass("form-control");
     $("input#id_username")
         .attr("placeholder", "Login");
     $("input#id_password")
@@ -65,23 +69,19 @@ $(function() {
     <div class="col-md-6">
         <form class="form-signin" method="post" action="{% url 'login' %}">
             {% csrf_token %}
-            <div class="login-box">
+            <div class="box">
                 <h1 class="h3 mb-4 mt-2">Welcome to nbhosting</h1>
                 {{ form.username.label_tag }}
                 {{ form.username }}
                 {{ form.password.label_tag }}
                 {{ form.password }}
-                <button id='submit' class="btn btn-lg btn-primary btn-block mt-5"
-                    type="submit">Sign in</button>
+                <input type="submit" value="Sign in"
+                    class="btn btn-lg btn-primary btn-block mt-3 mb-2 p-1">
                 {# propagate next if set #}
                 <input type="hidden" name="next" value="" />
-                {% comment %}
-                {# Assumes you setup the password_reset view in your URLconf #}
-                <h5 class="mt-4">
-                   <a id='lost-password'
-                      href="{% url 'password_reset' %}">Lost password?
-               </h5>
-               {% endcomment %}
+                <a href="{% url 'password_reset' %}"
+                    class="forgot btn btn-outline-danger mt-3 p-1">
+                I forgot my password</a>
             </div>
         </form>
     </div>
