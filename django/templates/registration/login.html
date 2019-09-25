@@ -4,6 +4,10 @@
 nbhosting login
 {% endblock %}
 
+{% block title %}
+login
+{% endblock %}
+
 {% block content %}
 
 <style>
@@ -60,7 +64,7 @@ $(function() {
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
-                There's no online registration yet, please ask
+                This site does not offer online registration, please ask
                 your teacher for an account.
             </div>
         </div>
@@ -76,7 +80,7 @@ $(function() {
                 {{ form.password.label_tag }}
                 {{ form.password }}
                 <input type="submit" value="Sign in"
-                    class="btn btn-lg btn-primary btn-block mt-3 mb-2 p-1">
+                    class="btn btn-lg btn-primary btn-block mt-3 mb-3 p-1">
                 {# propagate next if set #}
                 <input type="hidden" name="next" value="" />
                 <a href="{% url 'password_reset' %}"
