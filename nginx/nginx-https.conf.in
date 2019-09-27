@@ -20,7 +20,7 @@ http {
     # log into journalctl
     # from lifesaver SO answer
     # https://stackoverflow.com/questions/28394084/nginx-log-to-stderr/29005073
-    error_log syslog:server=unix:/dev/log   debug;  # replace with debug if needed
+    error_log syslog:server=unix:/dev/log  info;  # replace with debug if needed
     access_log syslog:server=unix:/dev/log;
 
 
