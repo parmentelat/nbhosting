@@ -242,7 +242,8 @@ class MonitoredJupyter:
         # last_activity may be 0 if no kernel is running inside that container
         # or None if we could not determine it properly
         if self.last_activity is None:
-            logger.error(f"Skipping running {self} with no known last_activity")
+            logger.info(f"Killing unreachable {self}")
+            self.container.kill()            
             return
         # check there has been activity in the last grace_idle_in_minutes
         idle_minutes = (int)((now - self.last_activity) // 60)
