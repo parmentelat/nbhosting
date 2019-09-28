@@ -1,3 +1,17 @@
+# 0.20.1 2019 Sep 28
+
+* change in monitor about containers that do match our naming policy but that cannot
+  be probed in terms of last activity; 
+    * prior to this change, such containers were left alone; this policy dated back
+      to when Jupyter (< 5 IIRC) had no API to probe for running kernels 
+      and their activity
+    * given that Jupyter-5 can be taken for granted, such containers can only be zombies
+      that the root context has lost connectivity to; starting with 0.20.1 such containers
+      are killed by monitor
+* by default monitor now runs every 10'
+* bugfix, error 502 was displaying error 404 (because 502.html was missing in the git repo)
+* nginx debug no longer turned on by default
+
 # 0.20.0 2019 Sep 25
 
 * new feature to reset one's password
