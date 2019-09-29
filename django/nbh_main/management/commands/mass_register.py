@@ -53,15 +53,6 @@ def default_last_name(email):
     return _default_name(email, 1, "unknown-last-name")
 
 
-#we're not yet parsing lines with quotes, so..
-#def sanitize(string):
-#    if len(string) <= 1:
-#        return string
-#    for quote in ("'", '"'):
-#        if string[0] == quote and string[-1] == quote:
-#            return string[1:-1]
-#    return string
-
 # a range of valid chars with letters, digits, - . _
 CRANGE = "[.\-\w]"
 # same with spaces
