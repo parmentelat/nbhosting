@@ -1,6 +1,20 @@
+# 0.21.0 2019 Sep 29
+
+* students repos use local mirror as their origin;
+  in classroom mode each student has a git repo:
+    * prior to this change student repos were cloned from the 
+      same - external - location as the local course master directory
+      in $NBHROOT/courses-git
+    * with this change, student repos use the local mirror repo 
+      in $NBHROOT/courses-git as their 'origin' remote
+  this will solve access to private repos (that would otherwise 
+  require undesirable extra config for each student); 
+  plus it makes syncing a lot faster of course
+* as a side-effect, autopull cycle is reduced to 5 minutes
+
 # 0.20.1 2019 Sep 28
 
-* change in monitor about containers that do match our naming policy but that cannot
+* change in monitor about containers **that** do match our naming policy but that cannot
   be probed in terms of last activity; 
     * prior to this change, such containers were left alone; this policy dated back
       to when Jupyter (< 5 IIRC) had no API to probe for running kernels 
