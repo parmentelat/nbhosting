@@ -129,6 +129,13 @@ def _open_notebook(request, course, student, notebook,
 
     subcommand = 'docker-view-student-course-notebook'
 
+    coursedir = CourseDir.objects.get(coursename=course)
+    if not coursedir.is_valid():
+        return error_page(
+            request, course, student, notebook,
+            f"no such course {course}"
+        )
+
     # build command
     command = ['nbh', '-d', sitesettings.nbhroot]
     if DEBUG:
@@ -141,19 +148,18 @@ def _open_notebook(request, course, student, notebook,
     # forcecopy has no effect in this case
     if init_student_git:
         command.append('-g')
+        # a student repo gets cloned from local course git
+        # for lower delays when updating, and removing issues
+        # like accessing private repos from the students space
+        ref_giturl = str(coursedir.git_dir)
+    else:
+        ref_giturl = coursedir.giturl
 
-    coursedir = CourseDir.objects.get(coursename=course)
-    if not coursedir.is_valid():
-        return error_page(
-            request, course, student, notebook,
-            f"no such course {course}"
-        )
-
-    logger.info(f"DEBUGGING image={coursedir.image} and giturl={coursedir.giturl}")
+    logger.info(f"DEBUGGING image={coursedir.image} and giturl={ref_giturl}")
 
     # add arguments to the subcommand
     command += [student, course, notebook_withext,
-                coursedir.image, coursedir.giturl]
+                coursedir.image, ref_giturl]
     logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
     completed_process = subprocess.run(
         command, universal_newlines=True,
