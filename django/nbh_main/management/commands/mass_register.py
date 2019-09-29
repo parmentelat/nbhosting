@@ -17,7 +17,7 @@ import smtplib
 
 from django.core.management.base import BaseCommand
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.template.loader import get_template, TemplateDoesNotExist
 
 from nbh_main.sitesettings import server_name, server_mode
@@ -212,7 +212,24 @@ def open_and_check_template(template_filename):
     return template
 
 
-def mass_register(input_filename, template_filename, dry_run):
+def create_group_if_needed(groupname):
+    if not groupname:
+        return
+    group, created = Group.objects.get_or_create(name=groupname)
+    return group
+
+
+def add_todos_in_group(todos, group, dry_run):
+    for todo in todos:
+        username = todo['username']
+        user = User.objects.get(username=username)
+        if dry_run:
+            print(f"would add user {username} in group {group.name}")
+        else:
+            group.user_set.add(user)
+
+
+def mass_register(input_filename, template_filename, dry_run, groupname):
     template = open_and_check_template(template_filename)
     todos, parse_error = parse(input_filename)
     logging.info(f"parsed {len(todos)} entries, checking")
@@ -234,10 +251,14 @@ def mass_register(input_filename, template_filename, dry_run):
         logging.info("no worries, bye")
         return
     done = create_users(checked, template, dry_run)
-    if not dry_run:
-        logging.info(f"{len(done)} new accounts created")
-    else:
+    if dry_run:
         logging.info(f"{len(done)} accounts NOT CREATED (dry-run)")
+    else:
+        logging.info(f"{len(done)} new accounts created")
+    group = create_group_if_needed(groupname)
+    print(f"group={group}")
+    if group:
+        add_todos_in_group(todos, group, dry_run)
 
 
 class Command(BaseCommand):
@@ -279,15 +300,23 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("-n", "--dry-run", default=False, action='store_true',
-                            help="just pretends")
-        parser.add_argument("-t", "--template", default="mass-register.mail",
-                            help="filename for mail body template - **searched** "
-                                 "together with regular django templates")
-        parser.add_argument("filename", nargs='?', default="mass-register.input",
-                            help="input file name")
+        parser.add_argument(
+            "-n", "--dry-run", default=False, action='store_true',
+            help="just pretends")
+        parser.add_argument(
+            "-t", "--template", default="mass-register.mail",
+            help="filename for mail body template - **searched** "
+                 "together with regular django templates")
+        parser.add_argument(
+            "-g", "--group", default=None, action='store',
+            help="name of a group where all users are added; "
+                 "group is created if needed; "
+                 "users are added in group even if user was already created")
+        parser.add_argument(
+            "filename", nargs=1, help="input file name")
 
     def handle(self, *args, **kwargs):
-        mass_register(kwargs['filename'],
+        mass_register(kwargs['filename'][0],
                       kwargs['template'],
-                      kwargs['dry_run'])
+                      kwargs['dry_run'],
+                      kwargs['group'])
