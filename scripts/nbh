@@ -472,13 +472,21 @@ function -git-repo-student-for-course() {
         sudo -u $student git clone $giturl $toplevel 1>&2
     elif [ ! -d $toplevel/.git ]; then
         -echo-stderr found student dir $toplevel without a .git needs rescue
-#        { sudo -u $student git clone --no-checkout $giturl .cloned;
-#          sudo -u $student mv -f .cloned/.git .git;
-#          sudo -u $student rmdir .cloned;
-#          sudo -u $student git reset --hard HEAD; } 1>&2
         cd $toplevel
-        sudo -u $student git clone $giturl . 1>%2
-    # else we should be good
+        sudo -u $student git clone $giturl . 1>&2
+    # else we should be good;
+    # however because of the change introduced in 0.21
+    # when needed, we overwrite the 'origin' remote url 
+    # to point at the local diretory under courses-git
+    # instead of using the external git repo
+    else
+        cd $toplevel
+        # some tracability, show only repos that need a change
+        current_url=$(sudo -u $student git config remote.origin.url)
+        if [ "$current_url" != "$giturl" ]; then
+            -echo-stderr fixing remote.origin.url for 0.21 in $toplevel
+            sudo -u $student git config remote.origin.url $giturl
+        fi
     fi
 }
 
