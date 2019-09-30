@@ -1,3 +1,8 @@
+# 0.21.1 2019 Sep 30
+
+* bugfix: there was a need to expose the local course's master repo, i.e. the one under
+  `courses-git`, so that containers can pull from there
+
 # 0.21.0 2019 Sep 29
 
 * students repos use local mirror as their origin;
