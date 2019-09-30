@@ -584,6 +584,7 @@ function docker-create-container-for-student-in-course() {
                  -v $COURSE_jupyter:/home/jovyan/.jupyter/custom:ro
                  -v $COURSE_modules:/home/jovyan/modules:ro
                  -v $COURSE_static:/home/jovyan/static:ro
+                 -v $COURSE_git:$COURSE_git:ro
 "
         # see start-in-dir-as-uid.sh for a note on setting the directories
         # below
