@@ -172,9 +172,9 @@ http {
         # we just need to route these inside the container
         # git-pull is for nb-gitpuller, which *we* issue, so for that one, in principle, we could
         # create one single rerouting prefix, but for now it's the only one it this category, so..
-        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs|notebooks|lab|terminals|git|git-pull)(.*)$ {
+        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs|notebooks|lab|terminals|git|git-pull)/(.*)$ {
             set $verb $1;
-            set $params $2;
+            set $params /$2;
             allow all;
             # we propagate the cookie we set earlier
             add_header Set-Cookie "docker_port=$cookie_docker_port;Path=/;Max-Age=31536000";
