@@ -116,7 +116,7 @@ def _open_notebook(request, course, student, notebook,
                    *, forcecopy, init_student_git): # pylint: disable=r0914
     """
     implement both edx_request and classroom_request
-    that behave almost exctly the same
+    that behave almost exactly the same
     """
     ok, explanation = authorized(request)
 
@@ -125,7 +125,14 @@ def _open_notebook(request, course, student, notebook,
             f"Access denied: {explanation}")
 
     # the ipynb extension is removed from the notebook name in urls.py
-    notebook_withext = notebook + ".ipynb"
+    if notebook.endswith('.md'):
+        is_genuine_notebook = False
+        notebook_with_ext = notebook
+        notebook_without_ext = notebook[:-3]
+    else:
+        is_genuine_notebook = True
+        notebook_without_ext = notebook
+        notebook_with_ext = notebook + ".ipynb"
 
     subcommand = 'docker-view-student-course-notebook'
 
@@ -158,7 +165,7 @@ def _open_notebook(request, course, student, notebook,
     logger.info(f"DEBUGGING image={coursedir.image} and giturl={ref_giturl}")
 
     # add arguments to the subcommand
-    command += [student, course, notebook_withext,
+    command += [student, course, notebook_with_ext,
                 coursedir.image, ref_giturl]
     logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
     completed_process = subprocess.run(
@@ -200,9 +207,12 @@ def _open_notebook(request, course, student, notebook,
         ########## forge a URL that nginx will intercept
         # port depends on scheme - we do not specify it
         # passing along course and student is for 'reset_from_origin'
-        url = (f"{scheme}://{host}/{actual_port}/notebooks/"
-               f"{notebook_withext}?token={jupyter_token}&"
-               f"course={course}&student={student}")
+        if is_genuine_notebook:
+            url = (f"{scheme}://{host}/{actual_port}/notebooks/"
+                   f"{notebook_with_ext}?token={jupyter_token}&"
+                   f"course={course}&student={student}")
+        else:
+            url = (f"{scheme}://{host}/{actual_port}/lab/tree/{notebook_with_ext}")
         logger.info(f"edxfront: redirecting to {url}")
 #        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
         return HttpResponseRedirect(url)
@@ -229,7 +239,7 @@ def share_notebook(request, course, student, notebook):
     """
 
     # the ipynb extension is removed from the notebook name in urls.py
-    notebook_withext = notebook + ".ipynb"
+    notebook_with_ext = notebook + ".ipynb"
     # compute hash from the input, so that a second run on the same notebook
     # will override any previsouly published static snapshot
     hasher = hashlib.sha1(bytes('{}-{}-{}'.format(course, student, notebook),
@@ -243,7 +253,7 @@ def share_notebook(request, course, student, notebook):
         command.append('-x')
     command.append(subcommand)
 
-    command += [student, course, notebook_withext, hash]
+    command += [student, course, notebook_with_ext, hash]
 
     logger.info(f"In {Path.cwd()}\n"
                 f"-> Running command {' '.join(command)}")
