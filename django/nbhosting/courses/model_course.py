@@ -212,6 +212,9 @@ class CourseDir(models.Model):
         if course_hash == user_hash:
             myqprint(f"OK student {user.username}")
             return
+        if self.does_current_hash_have(course_hash, user.username, user_hash):
+            myqprint(f"OK> student {user.username}")
+            return
         if not do_pull:
             print(f"!! {self.coursename}/{user.username} is on {user_hash}")
             return
@@ -221,6 +224,8 @@ class CourseDir(models.Model):
         new_hash = self.current_hash(user.username)
         if new_hash == course_hash:
             myqprint(f"OK {user.username} pulled to {course_hash}")
+        elif self.does_current_hash_have(course_hash, user.username, new_hash):
+            myqprint(f"OK> {user.username} pulled to {course_hash}")
         else:
             print(f"!! {user.username} still behind on {new_hash}")
 
@@ -465,6 +470,25 @@ class CourseDir(models.Model):
         return subprocess.run(
             command, capture_output=True).stdout.decode().strip()
         
+
+    def does_current_hash_have(self, course_hash, student, student_hash):
+        """
+        useful for checking that a student's repo is in sync with the course
+        
+        the course is on hash 'course_hash'
+        we need to check if the student is on a hash that
+        already has the course_hash integrated
+        
+        this is done by using 
+        git merge-base --is-ancestor course student
+        that should return 0 
+        """
+        directory = self.student_dir(student)
+        command=['git', '-C', str(directory), 
+                 'merge-base', '--is-ancestor', course_hash, student_hash]
+        command = " ".join(command)
+        return os.system(command) == 0
+
 
     def destroy_student_container(self, student):
         container_name = f"{self.coursename}-x-{student}"
