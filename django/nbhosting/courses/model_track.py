@@ -95,6 +95,9 @@ class Notebook:                                         # pylint: disable=r0903
             result +=  f'''{main_tooltip}<br/>'''
         result += f'''<span class='smaller'>{self.clean_path()}</span>"'''
         return result
+    
+    def onclick(self):
+        return (f'iframe_notebook("{self.clean_path()}");')
 
     def _read_embedded(self):
         try:
@@ -109,6 +112,18 @@ class Notebook:                                         # pylint: disable=r0903
                 f"failed to extract metadata for notebook {self.clean_path()} ")
             self._notebookname = self.clean_path()
             self._version = "n/a"
+            
+class DummyNotebook:
+    """
+    just a placeholder so that an empty section can do from the ninja template
+    section.first_notebook.decorate_a
+    """
+    
+    def decorate_a(self): 
+        return ""
+    
+    def onclick(self):
+        return ""
 
 
 class Section:                                          # pylint: disable=r0903
@@ -138,11 +153,7 @@ class Section:                                          # pylint: disable=r0903
 
 
     def first_notebook(self):
-        return self.notebooks[0]
-
-    # can't seem to use section.notebooks[0].decorate_a in template
-    def decorate_a(self):
-        return self.first_notebook().decorate_a("")
+        return self.notebooks[0] if self.notebooks else DummyNotebook()
 
     def spot_notebook(self, path):
         for notebook in self.notebooks:
@@ -192,7 +203,7 @@ class Track:
         return sum((len(section) for section in self.sections), 0)
     
     def first_notebook(self):
-        return self.sections[0].first_notebook()
+        return self.sections[0].first_notebook() if self.sections else DummyNotebook()
 
     def spot_notebook(self, path):
         # may be a Path instance

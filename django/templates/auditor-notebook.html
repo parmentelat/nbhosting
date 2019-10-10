@@ -496,13 +496,13 @@ iframe {
 
                 {% for section in track_obj.sections %}
                 <div class="section">
-                    <a {% autoescape off %}{{section.decorate_a}}{% endautoescape %}
+                    <a {% autoescape off %}{{section.first_notebook.decorate_a}}{% endautoescape %}
+onclick="{{section.first_notebook.onclick}}; select_track('{{track_obj.name}}', false);"
                     class="btn section-head btn-outline-primary"
-                    onclick="select_track('{{track_obj.name}}', true);"
                     >{{section.name}}</a>
                     {% for notebook_obj in section.notebooks %}
                     <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}
-onclick="iframe_notebook('{{notebook_obj.clean_path}}');select_track('{{track_obj.name}}', false);"
+onclick="{{notebook_obj.onclick}};select_track('{{track_obj.name}}', false);"
                     >
                         <div data-notebook="{{notebook_obj.clean_path}}"
                              data-notebook-title="{{notebook_obj.notebookname}}"
