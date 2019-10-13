@@ -2,7 +2,7 @@
 
 * better pull-students; a students that have committed their changes and then merged 
   upstream are now considered OK, while former code was just checking hashes were equal
-* markdown documents can be browsed, and be part of a section in a track (#96)
+* some work done towards #96, markdown documents can be part of a section in a track
 * fixed bug #97, clicking in a section now works as expected
 * some progress done towards #77, a group name can be passed along to mass-register,
 * and the groups-list management command allows to show groups
