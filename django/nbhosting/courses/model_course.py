@@ -216,7 +216,7 @@ class CourseDir(models.Model):
             myqprint(f"OK> student {user.username}")
             return
         if not do_pull:
-            print(f"!! {self.coursename}/{user.username} is on {user_hash}")
+            print(f"!! {self.coursename}/{user.username} is behind on {user_hash}")
             return
         if do_reset:
             os.system(f"sudo -u {user.username} git -C {user_workspace} reset --hard")
@@ -484,9 +484,12 @@ class CourseDir(models.Model):
         that should return 0 
         """
         directory = self.student_dir(student)
-        command=['git', '-C', str(directory), 
-                 'merge-base', '--is-ancestor', course_hash, student_hash]
-        command = " ".join(command)
+        # check that the course hash is present on the student side
+        command1 = ['git', '-C', str(directory), 
+                    'cat-file', '-e', course_hash, '2>/dev/null']
+        command2 = ['git', '-C', str(directory), 
+                    'merge-base', '--is-ancestor', course_hash, student_hash]
+        command = " ".join(command1) + ' && ' + " ".join(command2)
         return os.system(command) == 0
 
 
