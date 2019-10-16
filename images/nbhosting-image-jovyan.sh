@@ -32,6 +32,9 @@ pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install 
 # enable splitcell nbextension
 jupyter nbextension enable splitcell/splitcell
 
+# we may use jupytext in the future for smoother git pull from the students space
+pip install jupytext
+
 # auto-evaluated exercices
 pip install nbautoeval
 
