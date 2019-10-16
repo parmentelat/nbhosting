@@ -1,0 +1,71 @@
+#!/bin/bash
+
+COMMAND="$(basename $0)"
+USAGE="$COMMAND coursename username user_workspace course_hash user_hash"
+QUIET=""
+
+function die() { echo "$@"; exit 1; }
+
+function echoq() {
+    [ -n "$QUIET" ] && return
+    echo "$@"
+}
+
+function main() {
+
+    while getopts "qs" option; do
+        case $option in
+            q) QUIET="true" ;;
+        esac
+    done
+    shift $((OPTIND-1))
+    # reset OPTIND for subsequent calls to getopts
+    OPTIND=1
+
+    [[ "$#" == 5 ]] || die "$USAGE"
+    coursename=$1; shift
+    username=$1; shift
+    user_workspace=$1; shift
+    course_hash=$1; shift
+    user_hash=$1; shift
+
+    SUDO="sudo -u $username"
+    REDIRECT=""
+    [ -n "$QUIET" ] && REDIRECT=">& /dev/null"
+
+    cd $user_workspace
+
+    echo "1st attempt: regular git pull with fast forward"
+    $SUDO git pull --no-commit $REDIRECT && {
+        echoq "$coursename - $username: (1) regular git pull OK"
+        exit 0
+    }
+
+    # surprisingly enough, git pull has no -m option
+    $SUDO git fetch --all
+    ancestor=$(git merge-base origin/master $user_hash)
+    echoq "$coursename - $username: (2) after fetch --all"
+    function assess() {
+        # local changes
+        git diff --name-only > __LOCAL_CHANGES
+        git diff --name-only master origin/master > __UPSTREAM_CHANGES
+        comm -12 __LOCAL_CHANGES __UPSTREAM_CHANGES > __COMMON_CHANGES
+        grep '.ipynb$' __COMMON_CHANGES > __COMMON_CHANGES_IPYNB
+        grep -v '.ipynb$' __COMMON_CHANGES > __COMMON_CHANGES_OTHER
+    }
+    # xxx to be completed
+    #function meaningful_diff() {
+    #    local notebook="$1"
+    #}
+    assess
+    local notebook
+    for notebook in $(cat __COMMON_CHANGES_IPYNB); do
+        echo "$coursename - $username: (3) nbstripout $notebook"
+        nbstripout $notebook
+    done
+    assess
+    grep . __*
+    exit 1
+}
+
+main "$@"

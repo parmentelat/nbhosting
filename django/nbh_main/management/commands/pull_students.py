@@ -26,9 +26,7 @@ class Command(BaseCommand):
 
     Without the -p option, it simply checks that the students workspaces are
     on the same commit as the course's main git repo; with the -p option, it will first 
-    perform a git-pull in the selected students' workspaces; 
-    with the -r option it will also do a git reset --hard before pulling; 
-    -r without -p has no effect.
+    perform a git-pull in the selected students' workspaces.
     
     **Matching:**
     For selecting courses or students, you can use patterns with the following 
@@ -42,8 +40,8 @@ class Command(BaseCommand):
     example: `nbh-manage pull-students -kp mines` to avoid git-pulling, 
     and pull from all students who have a workspace in a course named in '*mines*' 
     
-    example: `nbh-manage pull-students -kpra mines` on the same courses, 
-    skip pulling in the course's area, but reset and pull for all staff members.
+    example: `nbh-manage pull-students -kpa mines` on the same courses, 
+    skip pulling in the course's area, but pull for all staff members.
 
     """
 
@@ -62,9 +60,6 @@ class Command(BaseCommand):
 
         parser.add_argument("-p", "--pull", action='store_true', default=False,
                             help="perform git pull in the students' workspaces")
-        parser.add_argument("-r", "--reset", action='store_true', default=False,
-                            help="perform git reset --hard in the "
-                                 "students' workspaces before pulling")
         
         parser.add_argument("-s", "--student",
                             dest='students', action='append', default=[],
@@ -90,7 +85,6 @@ class Command(BaseCommand):
         else:
             staff_selector = {'staff', 'student'}
         do_pull = kwargs['pull']
-        do_reset = kwargs['reset']
         quiet_mode = kwargs['quiet']
         pull_course = kwargs['pull_course']
 
@@ -123,6 +117,6 @@ class Command(BaseCommand):
                     staff_selector=staff_selector):
                 coursedir.update_user_workspace(
                     user, user_workspace=workspace, course_hash=course_hash,
-                    do_pull=do_pull, do_reset=do_reset,
+                    do_pull=do_pull,
                     quiet_mode=quiet_mode)
         return 0

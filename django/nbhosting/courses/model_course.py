@@ -183,16 +183,18 @@ class CourseDir(models.Model):
 
     def update_user_workspace(self, user:User, *,
                               course_hash=None, user_workspace=None, 
-                              quiet_mode=False, do_pull=False, do_reset=False):
+                              quiet_mode=False, do_pull=False):
         """
         allows to inspect or update a user's workspace
         
         if do_pull is False, the method only checks the user's current commit's hash
-        with the course's; do_reset is not used in this case
+        with the course's hash
         
-        if do_pull is True, this method will invoke git pull 
-        from within the user's directory; if in addition do_reset is set as well, 
-        then a 'git reset --hard' is issued prior to git pulling.
+        if do_pull is True, this method will for now invoke the nbh-pull-student
+        that for convenience is currently shipped as a standalone shell script
+        mostly nbh-pull-student this will do a git pull, but try to smoothly
+        accomodate our use cases where e.g. often differences are only
+        with python version..
         
         quiet_mode asks for a less verbose output
         
@@ -218,9 +220,15 @@ class CourseDir(models.Model):
         if not do_pull:
             print(f"!! {self.coursename}/{user.username} is behind on {user_hash}")
             return
-        if do_reset:
-            os.system(f"sudo -u {user.username} git -C {user_workspace} reset --hard")
-        os.system(f"sudo -u {user.username} git -C {user_workspace} pull")
+        # here we are in a position to try an reconcile the student's repo
+        # with upstream
+        # for now we go for an external shell script that is easier 
+        # to develop in incremental deployment mode
+        command = (f"nbh-pull-student {'-q' if quiet_mode else ''}"
+                   f" {self.coursename} {user.username} {user_workspace} "
+                   f" {course_hash} {user_hash}")
+        os.system(command)
+        # check again
         new_hash = self.current_hash(user.username)
         if new_hash == course_hash:
             myqprint(f"OK {user.username} pulled to {course_hash}")
