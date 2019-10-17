@@ -112,6 +112,54 @@ def classroom_request(request, course, student, notebook):
                           forcecopy=False, init_student_git=True)
 
 
+def locate_notebook(directory, notebook):
+    """
+    with jupytext in the picture, and with our needs
+    to be able to publish raw .md files, there is a need to 
+    be a little smarter and to locate an actual contents 
+    from the 'notebook' path
+    
+    returns a 4-uple
+        exists notebook_with_extension notebook_without_extension is_notebook
+    
+    if exists is False, then all the rest is None
+    otherwise
+      directory/notebook_with_extension is an existing file
+      
+    policy according to notebook's suffix
+    * if notebook ends up with .md
+      it is assumed to be existing
+    * if notebook does not end with anything
+      search for .py then .ipynb then .md
+    * if notebook ends in .ipynb
+      search for .ipynb then .py
+    * if notebook ends in .py
+      search for .py and then .ipynb
+    """
+    logger.info(f"locate_notebook with {directory} and {notebook}")
+    policies = {
+        '.md' : ['.md'],
+        '': ['.py', '.ipynb', '.md'],
+        '.ipynb': ['.ipynb', '.py'],
+        '.py': ['.py', '.ipynb'],
+    }
+    top = Path(directory)
+    p = top / notebook
+    suffix = p.suffix
+    stem = p.stem
+    if suffix not in policies:
+        return False, None, None, None
+    variants = policies[suffix]
+    for variant in variants:
+        s = p.parent / p.stem
+        c = p.parent / (p.stem + variant)
+        if c.exists():
+            return (True, str(c.relative_to(top)), 
+                    str(s.relative_to(top)), 
+                    variant != '.md')
+    return False, None, None, None
+    
+
 def _open_notebook(request, course, student, notebook,
                    *, forcecopy, init_student_git): # pylint: disable=r0914
     """
@@ -124,24 +172,28 @@ def _open_notebook(request, course, student, notebook,
         return HttpResponseForbidden(
             f"Access denied: {explanation}")
 
-    # the ipynb extension is removed from the notebook name in urls.py
-    if notebook.endswith('.md'):
-        is_genuine_notebook = False
-        notebook_with_ext = notebook
-        notebook_without_ext = notebook[:-3]
-    else:
-        is_genuine_notebook = True
-        notebook_without_ext = notebook
-        notebook_with_ext = notebook + ".ipynb"
-
-    subcommand = 'docker-view-student-course-notebook'
-
     coursedir = CourseDir.objects.get(coursename=course)
     if not coursedir.is_valid():
         return error_page(
             request, course, student, notebook,
             f"no such course {course}"
         )
+
+    # the ipynb extension is removed from the notebook name in urls.py
+    exists, notebook_with_ext, notebook_without_ext, is_genuine_notebook = \
+        locate_notebook(coursedir.git_dir, notebook)
+
+    # second attempt from the student's space
+    # in case the student has created it locally...
+    if not exists:
+        exists, notebook_with_ext, notebook_without_ext, is_genuine_notebook = \
+            locate_notebook(coursedir.student_dir(student), notebook)
+            
+    if not exists:
+        msg = f"notebook {notebook} not known in this course or student"
+        return error_page(request, course, student, msg)
+
+    subcommand = 'docker-view-student-course-notebook'
 
     # build command
     command = ['nbh', '-d', sitesettings.nbhroot]
