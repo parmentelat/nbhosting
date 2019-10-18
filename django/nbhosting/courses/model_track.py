@@ -124,6 +124,9 @@ class DummyNotebook:
     
     def onclick(self):
         return ""
+    
+    def clean_path(self):
+        return "dummy-notebook"
 
 
 class Section:                                          # pylint: disable=r0903
