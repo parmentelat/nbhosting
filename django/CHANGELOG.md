@@ -1,3 +1,16 @@
+# 0.22.0 2019 Oct 13
+
+* nbh-manage pull-students now has a logic that allows to merge 
+  notebooks changed both on the student's side and upstream by teachers
+  when a regular git pull does not do the trick, the logic is to
+  * do a nbstripout on notebooks changed on both ends
+  * create a commit with files changed on both ends
+  * merge origin/master on top of that
+* jupytext is added in all images
+* a notebook present only as a .jupytext/.py file can be opened
+  with the same URL as if it were a .ipynb (experimental)
+
+
 # 0.21.2 2019 Oct 13
 
 * better pull-students; a students that have committed their changes and then merged 
@@ -7,6 +20,7 @@
 * some progress done towards #77, a group name can be passed along to mass-register,
 * and the groups-list management command allows to show groups
 * gotten rid of nbgitpuller altogether - #98
+
 
 # 0.21.1 2019 Sep 30
 
