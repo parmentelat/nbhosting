@@ -30,22 +30,21 @@ function main() {
     user_hash=$1; shift
 
     SUDO="sudo -u $username"
-    REDIRECT=""
-    [ -n "$QUIET" ] && REDIRECT=">& /dev/null"
+    LOG=.nbh-git.log 
 
     cd $user_workspace
 
-    echo "1st attempt: regular git pull with fast forward"
-    $SUDO git pull --no-commit $REDIRECT && {
+    echoq "$coursename - $username: (1) regular git pull with fast forward"
+    $SUDO git pull --no-commit >& $LOG && {
         echoq "$coursename - $username: (1) regular git pull OK"
         exit 0
     }
 
     # surprisingly enough, git pull has no -m option
-    $SUDO git fetch --all
+    $SUDO git fetch --all >& $LOG
     ancestor=$(git merge-base origin/master $user_hash)
     echoq "$coursename - $username: (2) after fetch --all"
-    function assess() {
+    function assess_damages() {
         # local changes
         git diff --name-only > __LOCAL_CHANGES
         git diff --name-only master origin/master > __UPSTREAM_CHANGES
@@ -53,19 +52,29 @@ function main() {
         grep '.ipynb$' __COMMON_CHANGES > __COMMON_CHANGES_IPYNB
         grep -v '.ipynb$' __COMMON_CHANGES > __COMMON_CHANGES_OTHER
     }
-    # xxx to be completed
-    #function meaningful_diff() {
-    #    local notebook="$1"
-    #}
-    assess
+
+    function init-git-in-student-space() {
+        $SUDO git config user.name || $SUDO git config --global user.name "$username"
+        $SUDO git config user.email || $SUDO git config --global user.email "$username@nbhosting.io"
+    }
+    assess_damages
+    init-git-in-student-space
     local notebook
     for notebook in $(cat __COMMON_CHANGES_IPYNB); do
-        echo "$coursename - $username: (3) nbstripout $notebook"
-        nbstripout $notebook
+        echoq "$coursename - $username: (3) nbstripout $notebook"
+        $SUDO python3 -m nbstripout $notebook
     done
-    assess
-    grep . __*
-    exit 1
+    local common_changes="$(cat __COMMON_CHANGES)"
+    echo ==== git add > $LOG
+    $SUDO git add $common_changes >& $LOG
+    local commit_message="WIP - nbh is committing local changes in $common_changes"
+    echo ==== git commit > $LOG
+    $SUDO git commit -m"$commit_message" >& $LOG
+    echo ==== git merge > $LOG
+    $SUDO git merge origin/master -m"nbh is merging upstream" >& $LOG
+    local OK=$?
+    echoq "$coursename - $username: (4) upstream merge returned $OK"
+    exit $OK
 }
 
 main "$@"
