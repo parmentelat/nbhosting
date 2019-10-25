@@ -35,20 +35,23 @@ function main() {
     cd $user_workspace
 
     echoq "$coursename - $username: (1) regular git pull with fast forward"
-    $SUDO git pull --no-commit >& $LOG && {
+    $SUDO git pull --no-commit &>> $LOG && {
         echoq "$coursename - $username: (1) regular git pull OK"
         exit 0
     }
 
     # surprisingly enough, git pull has no -m option
-    $SUDO git fetch --all >& $LOG
+    $SUDO git fetch --all &>> $LOG
     ancestor=$(git merge-base origin/master $user_hash)
     echoq "$coursename - $username: (2) after fetch --all"
     function assess_damages() {
         # local changes
-        git diff --name-only > __LOCAL_CHANGES
-        git diff --name-only master origin/master > __UPSTREAM_CHANGES
+        git diff --name-only | sort > __LOCAL_CHANGES
+        # teacher changes
+        git diff --name-only master origin/master | sort > __UPSTREAM_CHANGES
+        # find common changes
         comm -12 __LOCAL_CHANGES __UPSTREAM_CHANGES > __COMMON_CHANGES
+        # split between notebooks and others
         grep '.ipynb$' __COMMON_CHANGES > __COMMON_CHANGES_IPYNB
         grep -v '.ipynb$' __COMMON_CHANGES > __COMMON_CHANGES_OTHER
     }
@@ -65,13 +68,13 @@ function main() {
         $SUDO python3 -m nbstripout $notebook
     done
     local common_changes="$(cat __COMMON_CHANGES)"
-    echo ==== git add > $LOG
-    $SUDO git add $common_changes >& $LOG
+    echo ==== git add &>> $LOG
+    $SUDO git add $common_changes &>> $LOG
     local commit_message="WIP - nbh is committing local changes in $common_changes"
-    echo ==== git commit > $LOG
-    $SUDO git commit -m"$commit_message" >& $LOG
-    echo ==== git merge > $LOG
-    $SUDO git merge origin/master -m"nbh is merging upstream" >& $LOG
+    echo ==== git commit &>> $LOG
+    $SUDO git commit -m"$commit_message" &>> $LOG
+    echo ==== git merge &>> $LOG
+    $SUDO git merge origin/master -m"nbh is merging upstream" &>> $LOG
     local OK=$?
     echoq "$coursename - $username: (4) upstream merge returned $OK"
     exit $OK
