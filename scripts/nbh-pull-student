@@ -23,27 +23,53 @@ function main() {
     OPTIND=1
 
     [[ "$#" == 5 ]] || die "$USAGE"
-    coursename=$1; shift
-    username=$1; shift
-    user_workspace=$1; shift
-    course_hash=$1; shift
-    user_hash=$1; shift
+    local coursename=$1; shift
+    local username=$1; shift
+    local user_workspace=$1; shift
+    local course_hash=$1; shift
+    local user_hash=$1; shift
 
-    SUDO="sudo -u $username"
-    LOG=.nbh-git.log 
+    local SUDO="sudo -u $username"
+    local LOG=.nbh-git.log 
+
+    local merge_message="nbh is merging upstream"
+
 
     cd $user_workspace
 
-    echoq "$coursename - $username: (1) regular git pull with fast forward"
-    $SUDO git pull --no-commit &>> $LOG && {
-        echoq "$coursename - $username: (1) regular git pull OK"
-        exit 0
+    function log-header() {
+        local date=$(date +'%Y-%m-%d:%H:%M')
+        echo "==== $date $@" &>> $LOG
+    }
+    function init-git-in-student-space() {
+        $SUDO git config user.name &>> /dev/null || $SUDO git config --global user.name "$username"
+        $SUDO git config user.email &>> /dev/null || $SUDO git config --global user.email "$username@nbhosting.io"
+    }
+
+    init-git-in-student-space
+
+    echoq "$coursename - $username: (1) fast-forward git pull"
+    log-header git pull fast-forward
+    $SUDO git pull --ff-only &>> $LOG && {
+                exit 0
     }
 
     # surprisingly enough, git pull has no -m option
+    # if the student has diverged, then it's perfectly possible 
+    # that git pull will work just fine although it's not a fast-forward
+    echoq "$coursename - $username: (2) auto-merge git pull"
+    log-header git pull with automerge
+    $SUDO git pull --no-edit &>> $LOG && $SUDO git commit --amend -m"$merge_message" && {
+        echoq "$coursename - $username: (1b) git pull OK"
+        exit 0
+    }
+
+    # when we reach this point it means that git pull did not work it out
+    # by itself so we have some student changes on the way
+    # so we compute the set of files that can be a problem
+    log-header git fetch --all
     $SUDO git fetch --all &>> $LOG
     ancestor=$(git merge-base origin/master $user_hash)
-    echoq "$coursename - $username: (2) after fetch --all"
     function assess_damages() {
         # local changes
         git diff --name-only | sort > __LOCAL_CHANGES
@@ -56,27 +82,29 @@ function main() {
         grep -v '.ipynb$' __COMMON_CHANGES > __COMMON_CHANGES_OTHER
     }
 
-    function init-git-in-student-space() {
-        $SUDO git config user.name || $SUDO git config --global user.name "$username"
-        $SUDO git config user.email || $SUDO git config --global user.email "$username@nbhosting.io"
-    }
     assess_damages
-    init-git-in-student-space
     local notebook
     for notebook in $(cat __COMMON_CHANGES_IPYNB); do
         echoq "$coursename - $username: (3) nbstripout $notebook"
         $SUDO python3 -m nbstripout $notebook
     done
     local common_changes="$(cat __COMMON_CHANGES)"
-    echo ==== git add &>> $LOG
+    if [ -z "$common_changes" ]; then
+        echoq "$coursename - $username: (3!) no common changes found ! -- aborting"
+        log-header "(3!) no common changes found ! -- aborting"
+        exit 1
+    fi
+
+    log-header git add
     $SUDO git add $common_changes &>> $LOG
     local commit_message="WIP - nbh is committing local changes in $common_changes"
-    echo ==== git commit &>> $LOG
+    log-header git commit -m$commit_message
     $SUDO git commit -m"$commit_message" &>> $LOG
-    echo ==== git merge &>> $LOG
-    $SUDO git merge origin/master -m"nbh is merging upstream" &>> $LOG
+    log-heaser git merge --commit -m$merge_message
+    $SUDO git merge origin/master --commit -m"$merge_message" &>> $LOG
     local OK=$?
-    echoq "$coursename - $username: (4) upstream merge returned $OK"
+    echoq "$coursename - $username: (3) upstream merge returned $OK"
+    log-header "(4) upstream merge returned $OK"
     exit $OK
 }
 
