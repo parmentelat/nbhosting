@@ -100,7 +100,7 @@ function main() {
     local commit_message="WIP - nbh is committing local changes in $common_changes"
     log-header git commit -m$commit_message
     $SUDO git commit -m"$commit_message" &>> $LOG
-    log-heaser git merge --commit -m$merge_message
+    log-header git merge --commit -m$merge_message
     $SUDO git merge origin/master --commit -m"$merge_message" &>> $LOG
     local OK=$?
     echoq "$coursename - $username: (3) upstream merge returned $OK"
