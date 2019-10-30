@@ -1,3 +1,8 @@
+# 0.22.1 2019 Oct 30
+
+* fine-grained improvements with pull-students, which now performs rather well
+* mass-register command can now be used to create groups from the same file format
+
 # 0.22.0 2019 Oct 13
 
 * nbh-manage pull-students now has a logic that allows to merge 
