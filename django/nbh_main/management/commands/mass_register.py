@@ -109,29 +109,34 @@ def parse(input_filename):
     return todos, parse_error
 
 
-def _spot_conflicting(field, field_value):
-    kwds = {field: field_value}
-    return User.objects.filter(**kwds)
-
-
-def check(todos):
-    checked = []
+def filter_todos(todos):
+    """
+    filter todos and returns 2 lists
+    * already existing and consistent
+    * new accounts altogether
+    some that exhibit partial conflicts (already existing,
+    but with email/username mismatching)
+    are discarded
+    """
+    olds = []
+    news = []
     for todo in todos:
         lineno = todo['lineno']
         email = todo['email']
         username = todo['username']
-        # we have no 'I forgot my password' feature yet
-        if _spot_conflicting('email', email):
-            logging.warning(f"line {lineno}, "
-                            f"email {email} already registered, ignoring")
-            continue
-        if _spot_conflicting('username', username):
-            logging.warning(
-                f"line {lineno}, "
-                f"username {username} already registered, pick another")
-            continue
-        checked.append(todo)
-    return checked
+        u_email = User.objects.filter(email=email)
+        u_username = User.objects.filter(username=username)
+        if u_email or u_username:
+            u_both = User.objects.filter(email=email, username=username)
+            if u_both:
+                olds.append(todo)
+            else:
+                logging.warning(
+                    f"line {lineno}, ignoring ambiguous pre-existing entry\n"
+                    f"email and username mismatch")
+        else:
+            news.append(todo)
+    return olds, news
 
 
 MAIL_SHOWED = False
@@ -232,15 +237,18 @@ def add_todos_in_group(todos, group, dry_run):
 def mass_register(input_filename, template_filename, dry_run, groupname):
     template = open_and_check_template(template_filename)
     todos, parse_error = parse(input_filename)
-    logging.info(f"parsed {len(todos)} entries, checking")
-    checked = check(todos)
-    logging.info(f"found {len(checked)} new entries to be created")
-    if not parse_error and (len(todos) == len(checked)):
-        go_ahead = True
-        prompt = "OK [y]/n ? "
-    else:
+    logging.info(f"parsed {len(todos)} entries, checking for news")
+    olds, news = filter_todos(todos)
+    logging.info(f"found  {len(olds)} old + {len(news)} new entries")
+    
+    proceed = (len(olds) + len(news)) == len(todos)
+    if parse_error or not proceed:
         go_ahead = False
         prompt = "OK y/[n] ? "
+    else:
+        go_ahead = True
+        prompt = "OK [y]/n ? "
+
     answer = input(prompt).lower()
     if not answer:
         # use go_ahead as computer earlier
@@ -250,15 +258,16 @@ def mass_register(input_filename, template_filename, dry_run, groupname):
     if not go_ahead:
         logging.info("no worries, bye")
         return
-    done = create_users(checked, template, dry_run)
+    done = create_users(news, template, dry_run)
     if dry_run:
         logging.info(f"{len(done)} accounts NOT CREATED (dry-run)")
     else:
         logging.info(f"{len(done)} new accounts created")
+
     group = create_group_if_needed(groupname)
     print(f"group={group}")
     if group:
-        add_todos_in_group(todos, group, dry_run)
+        add_todos_in_group(olds + news, group, dry_run)
 
 
 class Command(BaseCommand):
@@ -271,8 +280,8 @@ class Command(BaseCommand):
     * comments are supported when line starts with a #
     * non-comment lines:
       * must provide an email-address
-      * and my specify any of the following,
-        that is otherwise computed from the mail address
+      * and may specify any of the following,
+        that are otherwise computed from the mail address
 
         * username
         * password
@@ -297,6 +306,16 @@ class Command(BaseCommand):
     * server_name
     * web_address
 
+    ----
+    group management
+    
+    if the -g option is present, all the accounts present in 
+    the input file will be added to that group, which is created
+    if needed.
+    
+    It is safe to run mass-register several times on a given input file,
+    as only unexisting accounts are created; tis is useful too existing 
+    accounts in a group.    
     """
 
     def add_arguments(self, parser):
