@@ -10,7 +10,7 @@ from importlib.util import (
 import docker
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 from nbh_main.settings import NBHROOT, logger
 
@@ -40,8 +40,8 @@ class CourseDir(models.Model):
     staff_usernames = models.TextField(default="", blank=True)
 
     # this OTOH qualifies for a proper n-to-n thing
-    registered_users = models.ManyToManyField(
-        User, related_name='courses_registered'
+    registered_groups = models.ManyToManyField(
+        Group, related_name='courses_registered'
     )
 
     def __init__(self, *args, **kwds):
@@ -86,6 +86,21 @@ class CourseDir(models.Model):
     def _build_dir(self):
         return NBHROOT / "images" / self.coursename
     build_dir = property(_build_dir)
+
+
+    def relevant(self, user):
+        """
+        is this group relevant for a given user
+        
+        if the user is is no group, then this returns True
+        otherwise, it looks for an intersection between
+        the groups from the course and the groups from the user 
+        """
+        groups = user.groups.all()
+        if not groups:
+            return True
+        both = groups & self.registered_groups.all()
+        return bool(both)
 
 
     def customized(self, filename):

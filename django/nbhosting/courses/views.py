@@ -38,9 +38,19 @@ def auditor_list_courses(request):
     if pattern:
         course_dirs = [coursedir for coursedir in course_dirs 
                        if match(coursedir.coursename, pattern)]
+    # all=true - or anythong really means show all courses
+    ask_all_courses = request.GET.get('all', None)
+    show_all_courses = True
+    if ask_all_courses is None:
+        groups = request.user.groups.all()
+        if groups:
+            show_all_courses = False
+            course_dirs = [coursedir for coursedir in course_dirs
+                           if coursedir.relevant(request.user)]
     env = dict(
         course_dirs=course_dirs,
         nbh_version=nbh_version,
+        show_all_courses = show_all_courses,
     )
 
     return render(request, "auditor-courses.html", env)

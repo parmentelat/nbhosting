@@ -24,21 +24,32 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("patterns", nargs='*', type=str)
-        parser.add_argument("-l", "--long", action='store_true', default=False,
-                            help="show more info")
+        parser.add_argument(
+            "-l", "--list", action="count", default=0, dest="verbose",
+            help=("Give more output. Option is additive, and can be used up to 2 "
+                  "times."),
+        )
 
     def handle(self, *args, **kwargs):
 
         patterns = kwargs['patterns']
-        long = kwargs['long']
+        verbose = kwargs['verbose']
 
         def show_course(cd):
-            if not long:
+            if verbose == 0:
                 print(cd.coursename)
-            else:
+            elif verbose == 1:
                 autopull = "on" if cd.autopull else "off"
                 hash = cd.current_hash()
                 print(f"{cd.coursename:20s}\t{cd.image:30s}[AP {autopull:3s}]\t{hash}\t{cd.giturl}")
+            else:
+                autopull = "on" if cd.autopull else "off"
+                hash = cd.current_hash()
+                groups = cd.registered_groups.all()
+                groupnames = " + ".join(group.name for group in groups)
+                print(f"{cd.coursename:20s}\t{cd.image:30s}[AP {autopull:3s}]"
+                      f"\t{hash}\tRGS=[{groupnames}]\t{cd.giturl}")
+                
 
         all_coursedirs = sorted(
             CourseDir.objects.all(),

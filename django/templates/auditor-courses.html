@@ -13,11 +13,16 @@ all courses
 
 {% block breadcrumb %}
 <ol class="breadcrumb">
-{% if user.is_authenticated and user.is_staff %}
-  <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
-{% endif %}
+    {% if user.is_authenticated and user.is_staff %}
+    <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
+    {% endif %}
     <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
     <li class="breadcrumb-item active"><a href="/auditor/courses/">courses</a></li>
+    {%if not show_all_courses %}
+    <li class="breadcrumb-item">
+        <a href="/auditor/courses/?all=true">all courses</a>
+    </li>
+    {% endif %}
 </ol>
 {% endblock %}
 
