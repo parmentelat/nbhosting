@@ -54,9 +54,9 @@ def default_last_name(email):
 
 
 # a range of valid chars with letters, digits, - . _
-CRANGE = "[.\-\w]"
+CRANGE = r"[-.\w]"
 # same with spaces
-CRANGESP = "[.\-\w ']"
+CRANGESP = r"[-.\w ']"
 SP = "[ \t]"
 
 EMAIL = rf"{CRANGE}+@{CRANGE}+"
@@ -220,7 +220,7 @@ def open_and_check_template(template_filename):
 def create_group_if_needed(groupname):
     if not groupname:
         return
-    group, created = Group.objects.get_or_create(name=groupname)
+    group, _created = Group.objects.get_or_create(name=groupname)
     return group
 
 

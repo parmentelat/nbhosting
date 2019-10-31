@@ -217,7 +217,7 @@ class CourseDir(models.Model):
         pass them along for more efficiency
         """
         if course_hash is None:
-            course_hash = coursedir.current_hash()
+            course_hash = self.current_hash()
         if user_workspace is None:
             user_workspace = self.student_dir(user.username)
         user_hash = self.current_hash(user.username)
