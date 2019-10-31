@@ -1,3 +1,13 @@
+# 0.23.0 2019 Oct 31
+
+* change in data model (requires migration):
+  courses are attached to groups and no longer users
+* users in groups will by default only see the courses
+  that are attached to one of their groups; seeing all
+  courses remains an option through a bread crumb
+* course management page displays all users in all attached
+  groups
+
 # 0.22.1 2019 Oct 30
 
 * fine-grained improvements with pull-students, which now performs rather well
