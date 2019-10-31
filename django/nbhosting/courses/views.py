@@ -178,6 +178,29 @@ def staff_show_course(request, course):
                      for username in   coursedir.staff_usernames.split()]
     shorten_staffs.sort()
 
+    def enriched_group(group):
+        def student_name(user):
+            if not user.first_name and not user.last_name:
+                return user.username
+            else:
+                return f"{user.first_name} {user.last_name}"
+
+        result = {}
+        result['group'] = group
+        result['name'] = group.name
+        result['number_students'] = len(group.user_set.all())
+        result['student_names'] = [
+            student_name(user)
+            for user in group.user_set.all()
+        ]
+        print(result)
+        return result
+    
+    enriched_groups = [
+        enriched_group(group) 
+        for group in coursedir.registered_groups.all()]
+#    enriched_groups.sort(key=lambda eg: eg['number_students'])
+    
     env = dict(
         nbh_version=nbh_version,
         coursedir=coursedir,
@@ -188,6 +211,7 @@ def staff_show_course(request, course):
         shorten_staffs=shorten_staffs,
         giturl=coursedir.giturl,
         tracks=coursedir.tracks(),
+        enriched_groups=enriched_groups,
     )
     return render(request, "staff-course.html", env)
 

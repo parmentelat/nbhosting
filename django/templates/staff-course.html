@@ -99,6 +99,21 @@ div.tracks, div.staffs{
     margin: 4px;
     color: blue;
 }
+
+.registered-user {
+    background-color: #eef;
+    font-size: 40%;
+    border: 0.1px solid #888;
+    border-radius: 5px;
+    padding: 4px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 2px
+}
+
+.group-name {
+    color:blue;
+}
 </style>
 
 <!------------------------------>
@@ -136,10 +151,10 @@ div.tracks, div.staffs{
             </div> <!--section-->
 
             <div class="card">
-                <div class="card-block m-3">
+                <div class="card-block ml-3 mt-3">
                     <h2 class="card-title">{{how_many}} notebooks</h2>
                 </div>
-                <div class="card-block course-box m-3">
+                <div class="card-block course-box  ml-3 mb-3">
                     {% for notebook in notebooks %}
                     <a class='notebook'
                         href='/auditor/notebook/{{coursename}}/{{notebook}}'
@@ -152,14 +167,19 @@ div.tracks, div.staffs{
 
 
             <div class="card">
-                <div class="card-block m-3">
-                    <h2 class="card-title">{{how_many}} users</h2>
+                <div class="card-block ml-3 mt-3">
+                    <h2 class="card-title">{{how_many}} groups</h2>
                 </div>
-                <div class="card-block course-box m-3">
-                    {% for user in coursedir.registered_users.all %}
-                    <a class='registered-user'>
-                        {{user.first_name}} {{user.last_name}}
-                    </a>
+                <div class="card-block ml-3 mb-3">
+                    {% for enriched_group in enriched_groups %}
+                        <h4 class="group-name card-subtitle mb-2">
+                            group {{enriched_group.name}} - {{enriched_group.number_students}} students
+                        </h4>
+                        <div class="course-box">
+                        {% for student_name in enriched_group.student_names %}
+                            <span class="registered-user">{{student_name}}</span>
+                        {% endfor %}
+                        </div>
                     {% endfor %}
                 </div>
             </div>
