@@ -1,3 +1,8 @@
+# 0.23.2 2019 Nov 4
+
+* cosmetic tweaks in the staff course view 
+  when showing members of the groups attached to a course
+
 # 0.23.1 2019 Nov 4
 
 * close #100: logging out kills all containers running for this student
