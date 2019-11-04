@@ -102,7 +102,7 @@ div.tracks, div.staffs{
 
 .registered-user {
     background-color: #eef;
-    font-size: 40%;
+    font-size: 60%;
     border: 0.1px solid #888;
     border-radius: 5px;
     padding: 4px;
@@ -176,8 +176,11 @@ div.tracks, div.staffs{
                             group {{enriched_group.name}} - {{enriched_group.number_students}} students
                         </h4>
                         <div class="course-box">
-                        {% for student_name in enriched_group.student_names %}
-                            <span class="registered-user">{{student_name}}</span>
+                        {% for student_struct in enriched_group.student_structs %}
+                            <span class="registered-user"
+                                data-toggle="tooltip"
+                                title="{{student_struct.tooltip}}"
+                            >{{student_struct.display}}</span>
                         {% endfor %}
                         </div>
                     {% endfor %}

@@ -179,21 +179,23 @@ def staff_show_course(request, course):
     shorten_staffs.sort()
 
     def enriched_group(group):
-        def student_name(user):
-            if not user.first_name and not user.last_name:
-                return user.username
-            else:
-                return f"{user.first_name} {user.last_name}"
+        def student_struct(user):
+            return {
+                'display': user.username,
+                'tooltip': user.username 
+                             if not user.first_name and not user.last_name 
+                             else f"{user.first_name} {user.last_name}",
+            }
 
         result = {}
         result['group'] = group
         result['name'] = group.name
         result['number_students'] = len(group.user_set.all())
-        result['student_names'] = [
-            student_name(user)
+        result['student_structs'] = [
+            student_struct(user)
             for user in group.user_set.all()
         ]
-        print(result)
+        result['student_structs'].sort(key=lambda struct: struct['display'])
         return result
     
     enriched_groups = [
