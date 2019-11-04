@@ -1,3 +1,7 @@
+# 0.23.1 2019 Nov 4
+
+* close #100: logging out kills all containers running for this student
+
 # 0.23.0 2019 Oct 31
 
 * change in data model (requires migration):
