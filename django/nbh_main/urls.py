@@ -97,7 +97,7 @@ urlpatterns = [
     re_path(rf'^accounts/login/',
                         auth_views.LoginView.as_view(), name='login'),
     re_path(rf'^accounts/logout/',
-                        auth_views.LogoutView.as_view(), name='logout'),
+            nbh_main.views.logout, name='logout'),
     path(rf'accounts/',          include('django.contrib.auth.urls')),
     # this seems to create a lot of issues, like bottomless recursions
     # probably better to handle this in nginx

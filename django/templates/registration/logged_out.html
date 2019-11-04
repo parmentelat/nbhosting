@@ -1,16 +1,33 @@
 {% extends "nbhosting.html" %}
 
 {% block head_title %}
-nbhosting logged out
+nbhosting : bye
 {% endblock %}
 
 {% block title %}
-you have been logged out
+good bye
 {% endblock %}
 
 {% block content %}
 
-You have been logged out. Thank you for using nbhosting.
+<h3>You have been logged out</h3>
 
-<a href="/accounts/login/">Click here to log back in.</a>
+<p>
+{% if docker_ok %}
+    {% if nb_containers_after == 0 %}
+        {{nb_containers_before}} running docker containers have been killed for you.
+    {% else %}
+        There were {nb_containers_before}}  running when you logged out, 
+        and {{nb_containers_after}} are now still active.
+    {% endif %}
+{% else %}
+Docker exception when trying to clean up your containers (OK on devel boxes)<br/> {{docker_exception}}
+{% endif %}
+</p>
+
+<h4>Thank you for using nbhosting</h4>
+
+<h3><a href="/accounts/login/">Click here to log back in</a></h3>
+
+
 {% endblock %}
