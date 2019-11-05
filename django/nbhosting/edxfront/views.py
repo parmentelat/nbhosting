@@ -160,7 +160,7 @@ def locate_notebook(directory, notebook):
     return False, None, None, None
     
 
-def _open_notebook(request, course, student, notebook,
+def _open_notebook(request, coursename, student, notebook,
                    *, forcecopy, init_student_git): # pylint: disable=r0914
     """
     implement both edx_request and classroom_request
@@ -172,11 +172,11 @@ def _open_notebook(request, course, student, notebook,
         return HttpResponseForbidden(
             f"Access denied: {explanation}")
 
-    coursedir = CourseDir.objects.get(coursename=course)
+    coursedir = CourseDir.objects.get(coursename=coursename)
     if not coursedir.is_valid():
         return error_page(
-            request, course, student, notebook,
-            f"no such course {course}"
+            request, coursename, student, notebook,
+            f"no such course {coursename}"
         )
 
     # the ipynb extension is removed from the notebook name in urls.py
@@ -191,7 +191,7 @@ def _open_notebook(request, course, student, notebook,
             
     if not exists:
         msg = f"notebook {notebook} not known in this course or student"
-        return error_page(request, course, student, msg)
+        return error_page(request, coursename, student, msg)
 
     subcommand = 'docker-view-student-course-notebook'
 
@@ -217,7 +217,7 @@ def _open_notebook(request, course, student, notebook,
     logger.info(f"DEBUGGING image={coursedir.image} and giturl={ref_giturl}")
 
     # add arguments to the subcommand
-    command += [student, course, notebook_with_ext,
+    command += [student, coursename, notebook_with_ext,
                 coursedir.image, ref_giturl]
     logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
     completed_process = subprocess.run(
@@ -231,7 +231,7 @@ def _open_notebook(request, course, student, notebook,
                           completed_process.returncode,
                           completed_process.stderr)
         return error_page(
-            request, course, student, notebook, message)
+            request, coursename, student, notebook, message)
 
     try:
         action, _docker_name, actual_port, jupyter_token = completed_process.stdout.split()
@@ -245,10 +245,10 @@ def _open_notebook(request, course, student, notebook,
                            completed_process.stdout,
                            completed_process.stderr)
             return error_page(
-                request, course, student, notebook, message)
+                request, coursename, student, notebook, message)
 
         # remember that in events file for statistics
-        Stats(course).record_open_notebook(student, notebook, action, actual_port)
+        Stats(coursename).record_open_notebook(student, notebook, action, actual_port)
         # redirect with same proto (http or https) as incoming
         scheme = request.scheme
         # get the host part of the incoming URL
@@ -262,7 +262,7 @@ def _open_notebook(request, course, student, notebook,
         if is_genuine_notebook:
             url = (f"{scheme}://{host}/{actual_port}/notebooks/"
                    f"{notebook_with_ext}?token={jupyter_token}&"
-                   f"course={course}&student={student}")
+                   f"course={coursename}&student={student}")
         else:
             url = (f"{scheme}://{host}/{actual_port}/lab/tree/{notebook_with_ext}")
         logger.info(f"edxfront: redirecting to {url}")
@@ -275,7 +275,7 @@ def _open_notebook(request, course, student, notebook,
                    f"{type(exc): exc}")
         # logger.exception(message)
         return error_page(
-            request, course, student, notebook, message)
+            request, coursename, student, notebook, message)
 
 
 def share_notebook(request, course, student, notebook):
