@@ -111,12 +111,27 @@ For declaring somebody as staff, you need to somehow locate that person's hash, 
 
 Here's the general principle of how of works
 
+## silent mode (in an iframe, behind a MOOC system)
+
 * Open-edX forges a URL, like the one shown above, with `student` replaced with the hash of some student id
-* This is caught by nginx, that runs forefront; the `ipythonExercice/` prefix is routed to a django application, that primarily does this
+* This is caught by nginx, that runs forefront; the `notebookLazyCopy/` prefix is routed to a django application, that primarily does this
   * create a linux user if needed
   * create a copy of that notebook for the student if needed
   * spawns a (docker) jupyter instance for the couple (course, student)
-  * redirects to a (plain https, on port 443) URL that contains the (http/localhost) port number that the docker instance can be reached at
+  * redirects to a (plain https, on port 443) URL that contains the port number that the docker instance can be reached at (on localhost via http)
+
+***Note*** that `notebookLazyCopy` used to be named `ipythonExercice`, which is still supported for backward compatibility.
+
+## classroom mode 
+
+The classroom mode uses a similar approach, but uses a URL that
+mentions `notebookGitRepo/` instead of `notebookLazyCopy/`; the
+behaviour is mostly the same except for the policy used to create
+notebooks in the student space; when the visited notebook is missing
+there, `notebookGitRepo` triggers a git clone operation, instead of
+copying notebooks individually.
+
+## summary
 
 As a summary:
 
