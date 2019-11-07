@@ -491,7 +491,26 @@ function -git-repo-student-for-course() {
 }
 
 
-##########
+########## port numbers
+function port-in-use() {
+    local port=$1; shift
+    # port is in use iff that file can be opened
+    (echo < /dev/tcp/127.0.0.1/$port) &>/dev/null
+}
+function random-port() {
+    # avoid privileged range and start at 1025 
+    # go all the way to the top
+    python3 -c 'import random; print(random.randint(2**10+1, 2**16-1))'
+}
+function free-port() {
+    local port
+    while true; do
+        port=$(random-port)
+        port-in-use $port || { echo $port; return 0; }
+    done
+}
+
+
 # create a docker container
 # the student is expected to have been created with enroll-student-in-course
 # beforehand (so the unix account and homedir exists)
@@ -536,7 +555,7 @@ function docker-create-container-for-student-in-course() {
     -check-course-jupyter $course
 
     local jupyter_token=$container
-    # check if container container is already defined
+    # check if container is already defined
     if docker inspect --format "{{.Name}}" $container >& /dev/null ; then
         action="existing"
         # this is the case where docker inspect was successful
@@ -574,10 +593,12 @@ function docker-create-container-for-student-in-course() {
         #
         # compute student uid
         STUDENT_uid=$(id -u $student)
+        local port=$(free-port)
 
         command="docker create --name $container
-                 --publish 8888
+                 --publish published=8888,target=$port
                  --user root
+                 --rm
                  --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
                  -v $STUDENT_course:/home/jovyan/work
                  -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
@@ -600,8 +621,9 @@ function docker-create-container-for-student-in-course() {
                  --no-browser
                  --NotebookApp.notebook_dir=/home/jovyan/work
                  --NotebookApp.token=$jupyter_token
-
+                 --NotebookApp.base_url=/$port/
 "
+
         [ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
         # show command for manual debugging
         -echo-stderr XXXXXXXXXX $command

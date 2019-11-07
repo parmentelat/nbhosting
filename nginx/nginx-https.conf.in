@@ -50,15 +50,6 @@ http {
 
     ####################
 
-    # about cookies : running without cookies would be a plus
-    # because cookies is what causes most of the noise
-    # on forums at the beginning of each course
-    # in theory there should not be a need for cookies
-    # if we could take advantage of
-    # #c.NotebookApp.base_url = '/port-number/'
-    # rough attempts at getting rid of them failed miserably though
-    # so, more work seems to be needed...
-
     # from http://nginx.org/en/docs/http/websocket.html
     map $http_upgrade $connection_upgrade {
         default Upgrade;
@@ -150,11 +141,8 @@ http {
             set $notebook_path $2;
             allow all;
 
-            # from florian's implem: We set a cookie in order to keep the port for api/ and static/
-            add_header Set-Cookie "docker_port=$docker_port;Path=/;Max-Age=31536000";
-
             # use http & localhost here
-            proxy_pass http://127.0.0.1:$docker_port/$notebook_path$is_args$args;
+            proxy_pass http://127.0.0.1:$docker_port/$docker_port/$notebook_path$is_args$args;
             proxy_set_header Host $host;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
@@ -168,35 +156,6 @@ http {
             error_page 502 /assets/502.html;
         }
 
-        # this is (7) in the architecture diagram
-        # it's for URL's that are embedded inside notebooks or used by jupyter itself
-        # we just need to route these inside the container
-        # git-pull is for nb-gitpuller, which *we* issue, so for that one, in principle, we could
-        # create one single rerouting prefix, but for now it's the only one it this category, so..
-        location ~ ^/(api|nbextensions|static|nbconvert|files|custom|login|kernelspecs|notebooks|lab|terminals|git)/(.*)$ {
-            set $verb $1;
-            set $params /$2;
-            allow all;
-            # we propagate the cookie we set earlier
-            add_header Set-Cookie "docker_port=$cookie_docker_port;Path=/;Max-Age=31536000";
-
-            # locate port number from $cookie_docker_port
-            # which is how nginx allows to refer to the value 
-            # of the 'docker_port' cookie
-            # http://nginx.org/en/docs/http/ngx_http_core_module.html#variables
-            proxy_pass http://127.0.0.1:$cookie_docker_port/$verb$params$is_args$args;
-            proxy_set_header Host $host;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection $connection_upgrade;
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_read_timeout 300;
-            proxy_connect_timeout 300;
-            proxy_send_timeout 300;
-            proxy_intercept_errors on;
-            error_page 404 /assets/404.html;
-            error_page 502 /assets/502.html;
-        }
 
         # the static contents for the nbhosting django app itself
         location ~ ^/(assets|snapshots)(.*) {

@@ -171,7 +171,7 @@ class MonitoredJupyter:
         port = self.port_number()
         if not port:
             return
-        url = f"http://localhost:{port}/api/kernels?token={self.name}"
+        url = f"http://localhost:{port}/{port}/api/kernels?token={self.name}"
         self.last_activity = None
         try:
             async with aiohttp.ClientSession() as session:
@@ -195,47 +195,34 @@ class MonitoredJupyter:
             logger.exception(f"Cannot probe number of kernels with {self} - unhandled exception")
 
 
-    def remove_container(self):
-        """
-        just do docker rm, but protects against anything unexpected
-        so that rare errors like e.g. btrfs mishaps won't contaminate
-        the rest of the monitor logic
-        """
-        try:
-            self.container.remove(v=True)
-        except Exception:
-            logger.log_exc(f"docker failed to remove {self}")
-
-
+    # until 0.23 inclusive, we used to need to remove containers
+    # but now we trigger them with the --rm option so it's much simpler
+    
     async def co_run(self, idle, unused):
         """
         both timeouts in seconds
         """
         now = time.time()
         actual_hash = self.container.image.id
+        # 
+        # xxx this can be made a lot simpler
+        # if the general idea pans out
+        # 
         # stopped containers need to be handled a bit differently
         if self.container.status != 'running':
-            if actual_hash != self.image_hash:
-                logger.info(
-                    f"Removing (stopped & outdated) {self} "
-                    f"that has outdated hash {actual_hash[:15]} "
-                    f"vs expected {self.image_hash[:15]}")
-                self.remove_container()
-            else:
-                exited_time = self.exited_time()
-                unused_days = (int)((now - exited_time) // (24 * 3600))
-                unused_hours = (int)((now - exited_time) // (3600) % 24)
-                if (now - exited_time) > unused:
-                    logger.info(
-                        f"Removing (stopped & unused) {self} "
-                        f"that has been unused for {unused_days} days "
-                        f"{unused_hours} hours")
-                    self.remove_container()
-                else:
-                    logger.debug(
-                        f"Ignoring stopped {self} that "
-                        f"exited {unused_days} days {unused_hours} hours ago")
-                    self.figures.count_container(False)
+            # this should no longer happen
+            # except maybe during a transition period
+            exited_time = self.exited_time()
+            unused_days = (int)((now - exited_time) // (24 * 3600))
+            unused_hours = (int)((now - exited_time) // (3600) % 24)
+            logger.warning(
+                f"Removing (stopped - legacy?) {self} "
+                f"that has been unused for {unused_days} days "
+                f"{unused_hours} hours")
+            try:
+                self.container.remove(v=True)
+            except Exception as exc:
+                logger.error(f"docker failed to remove {self} - {type(exc)} - {exc}")
             return
         # count number of kernels and last activity
         await self.count_running_kernels()
@@ -243,7 +230,7 @@ class MonitoredJupyter:
         # or None if we could not determine it properly
         if self.last_activity is None:
             logger.info(f"Killing unreachable {self}")
-            self.container.kill()            
+            self.container.kill()
             return
         # check there has been activity in the last grace_idle_in_minutes
         idle_minutes = (int)((now - self.last_activity) // 60)
@@ -251,33 +238,16 @@ class MonitoredJupyter:
             logger.debug(
                 f"Sparing running {self} that had activity {idle_minutes} mn ago")
             self.figures.count_container(True, self.nb_kernels)
-        else:
-            if self.last_activity:
-                logger.info(
-                    f"Killing (running & idle) {self} "
-                    f"that has been idle for {idle_minutes} mn")
-            else:
-                logger.info(
-                    f"Killing (running and empty) {self} "
-                    f"that has no kernel attached")
-            # kill it
+        elif self.last_activity == 0:
+            logger.info(
+                f"Killing (running and empty) {self} "
+                f"that has no kernel attached")
             self.container.kill()
-            # keep track or that removal in events.raw
-            Stats(self.course).record_kill_jupyter(self.student)
-            # if that container does not run the expected image hash
-            # it is because the course image was upgraded in the meanwhile
-            # then we even remove the container so it will get re-created
-            # next time with the right image
-            if actual_hash != self.image_hash:
-                logger.info(
-                    f"Removing (just killed & outdated) {self} "
-                    f"that has outdated hash {actual_hash[:15]} "
-                    f"vs expected {self.image_hash[:15]}")
-                self.remove_container()
-            else:
-                # this counts for one dead container
-                self.figures.count_container(False)
-
+        else:
+            logger.info(
+                f"Killing (running & idle) {self} "
+                f"that has been idle for {idle_minutes} mn")
+            self.container.kill()
 
 
 class Monitor:
