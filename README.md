@@ -1,4 +1,10 @@
-# notebook hosting architecture
+# Foreword
+
+**Important Notice**
+
+**Since release 0.24, nbhosting no longer relies on cookies to route traffic to the docker containers.**
+
+# Jupyter notebook hosting architecture
 
 This git repo contains a collection of utilities, that together make up the architecture behind `nbhosting.inria.fr` that is designed as a notebook-serving infrastructure.
 
