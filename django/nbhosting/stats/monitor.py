@@ -197,8 +197,8 @@ class MonitoredJupyter:
 
     # until 0.23 inclusive, we used to need to remove containers
     # but now we trigger them with the --rm option so it's much simpler
-    
-    async def co_run(self, idle, unused):
+    #
+    async def co_run(self, idle):
         """
         both timeouts in seconds
         """
@@ -252,7 +252,7 @@ class MonitoredJupyter:
 
 class Monitor:
 
-    def __init__(self, period, idle, unused, debug):
+    def __init__(self, period, idle, debug):
         """
         All times in seconds
 
@@ -260,13 +260,10 @@ class Monitor:
           period: is how often the monitor runs
           grace: is how long an idle container is kept running before
             we kill its container (docker kill)
-          unused: is how long an unused container is kept on disk before
-            we remove it (docker rm)
           debug(bool): turn on more logs
         """
         self.period = period
         self.idle = idle
-        self.unused = unused
         if debug:
             logger.setLevel(logging.DEBUG)
 
@@ -313,7 +310,7 @@ class Monitor:
                     container, coursename, student,
                     figures, image_hash, low_level_api)
                 futures.append(monitored_jupyter.co_run(
-                    self.idle, self.unused))
+                    self.idle))
             # typically non-nbhosting containers
             except ValueError:
                 # ignore this container as we don't even know

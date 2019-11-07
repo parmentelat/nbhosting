@@ -2,13 +2,9 @@
 [Unit]
 Description=job that cyclically collects system and course data, and kills idle containers
 
-# the nbh-monitor script accepts options :
-# --period 10 : monitor cycle in minutes; this also sets the frequency
-#    at which counts.raw gets updated
-# --idle 20 : the idle timeout in minutes after which inactive containers
-#    get stopped
-# --unused : the unused timeout, in days: after that time, containers that have
-#    been stopped and no longer used get removed altogether
+# for complete help and default values, run
+# nbh-manage monitor --help
+#
 [Service]
 ExecStart=/bin/bash -c "python3 /usr/bin/nbh-manage monitor"
 

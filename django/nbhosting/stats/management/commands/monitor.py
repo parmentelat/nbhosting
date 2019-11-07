@@ -24,9 +24,6 @@ class Command(BaseCommand):
             help="timeout in minutes - kill containers idle more than that "
                  f"(default={DEFAULT_IDLE})")
         parser.add_argument(
-            "-u", "--unused", default=15, type=int, dest='unused',
-            help="timeout in days - remove containers unused more than that")
-        parser.add_argument(
             "-d", "--debug", action='store_true', default=False)
 
 
@@ -34,6 +31,5 @@ class Command(BaseCommand):
         monitor = Monitor(
             period=60 * kwargs['period'],
             idle=60 * kwargs['idle'],
-            unused=24*3600 * kwargs['unused'],
             debug=kwargs['debug'])
         monitor.run_forever()
