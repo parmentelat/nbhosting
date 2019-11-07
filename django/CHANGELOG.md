@@ -1,3 +1,10 @@
+# 0.24.0 2019 Nov 7
+
+* major rework of the overall routing scheme
+* no longer relies on cookies to route properly !
+* which in turn makes multi-course sessions a lot more reliable
+* see issue #102 and commit 8faa38 
+
 # 0.23.2 2019 Nov 4
 
 * cosmetic tweaks in the staff course view 
