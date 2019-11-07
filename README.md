@@ -62,9 +62,14 @@ Module List* setting, as illustrated below:
 
 ## Workflow / how to publish
 
-Workflow is entirely based on git : a course is defined from a git repo, typically remote and public. In order to publish a new version of your notebook, you need to push them to that reference repo, and then instruct nbhosting to pull the new stuff:
+Workflow is entirely based on git : a course is defined from a git repo, typically remote
+and public. In order to publish a new version of your notebooks, you need to push them to
+that reference repo, and then instruct nbhosting to pull the new stuff :
 
 ![](docs/nbhosting-git-pull.png)
+
+If you set a given course in *autopull* mode, nbhosting will then perform this pull
+operation on its own every 5 minutes.
 
 ## Docker image
 
