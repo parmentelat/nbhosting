@@ -1,3 +1,9 @@
+# 0.24.1 2019 Nov 8
+
+* simplified container creation code now that containers are 
+  deemed oneshot, and destroyed after their idle time
+* removed --unused option in monitor which is now meaningless
+
 # 0.24.0 2019 Nov 7
 
 * major rework of the overall routing scheme
