@@ -219,7 +219,7 @@ def _open_notebook(request, coursename, student, notebook,
     # add arguments to the subcommand
     command += [student, coursename, notebook_with_ext,
                 coursedir.image, ref_giturl]
-    logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
+    logger.info(f'edxfront is running: {" ".join(command)}')
     completed_process = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -272,7 +272,7 @@ def _open_notebook(request, coursename, student, notebook,
     except Exception as exc:
         message = (f"exception when parsing output of nbh {subcommand}\n"
                    f"{completed_process.stdout}\n"
-                   f"{type(exc): exc}")
+                   f"{type(exc)}: {exc}")
         # logger.exception(message)
         return error_page(
             request, coursename, student, notebook, message)

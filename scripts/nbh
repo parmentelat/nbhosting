@@ -45,7 +45,6 @@
 # for a quicker and safer mechanism, logger was clobbering output
 ########################################
 
-
 # nbh-driver
 COMMAND=$0
 
@@ -58,14 +57,13 @@ DEBUG=
 #MACHINES=/homefs/btrfs/machines
 
 ### various timeouts
-# how long to wait for the port number to show up after a start
-# this is 10 times .1s so 1s - proceed immediately
-timeout_wait_for_port="10 .1 0"
-
+# format is ticks period
+# so e.g. 10 0.3
+# means 10s and retry every 300ms
+#
 # how long should we wait for the container to answer http
-# trying to create 6 containers at the exact same time : 10 is not long enough
-# then we wait an extra safety timeout
-timeout_wait_for_http="20 1 3"
+# trying to create 6 containers at the exact same time : 10s is not long enough
+timeout_wait_for_http="12 .3"
 
 # implementation note
 #  don't do set -e, as it may cause the program to exit abruptly
@@ -80,7 +78,8 @@ function @declare-subcommand() {
 
 ############################## helpers
 function -echo-stderr() {
-    >&2 echo $(date "+%H:%M:%S") "$@"
+    local milli=$(date +"%N" | sed -e 's,\(...\).*,\1,')
+    >&2 echo $(date "+%H:%M:%S").$milli "$@"
 }
 
 function -die() {
@@ -381,7 +380,7 @@ function add-student-in-course() {
         }
         -echo-stderr "Ensuring $student is in group $group"
         groupmems -a $student -g $group &> /dev/null
-        # docker start would be way too intrusive !
+        # restarting docker would be way too intrusive !
         if [ $? != 0 -a "$group" == "docker" ]; then
             -echo-stderr "reloading docker service after adding $student into docker"
             systemctl reload docker
@@ -511,15 +510,20 @@ function free-port() {
 }
 
 
-# create a docker container
+####################
 # the student is expected to have been created with enroll-student-in-course
 # beforehand (so the unix account and homedir exists)
 #
-# write on stdout a single action word that is either
-# * stage1 action=created
-# * stage1 action=existing
-@declare-subcommand docker-create-container-for-student-in-course
-function docker-create-container-for-student-in-course() {
+# after 0.24 the 2-stages allocation scheme
+# (create and start) has been simplified
+#
+# possible resulting values for that phase (on stdout)
+# * failed-* none none none
+# * created container port jupyter-token
+# * running container port jupyter-token
+#
+@declare-subcommand docker-run-container-for-student-in-course
+function docker-run-container-for-student-in-course() {
     local USAGE="Usage: $COMMAND $FUNCNAME container student course image"
 
     [ "$#" -eq 4 ] || -die "$USAGE"
@@ -549,221 +553,154 @@ function docker-create-container-for-student-in-course() {
     docker inspect --type image $image >& /dev/null ||\
         -die image $image not known to docker
 
-    [ -n "$DEBUG" ] && set -x
-
     # update jupyter_notebook_config.py and the 2 custom files
     -check-course-jupyter $course
 
     local jupyter_token=$container
-    # check if container is already defined
+
+    # check if container is already running
     if docker inspect --format "{{.Name}}" $container >& /dev/null ; then
-        action="existing"
-        # this is the case where docker inspect was successful
-    else
-        action="created"
-        # this now is when docker inspect fails
-        -echo-stderr Creating docker container $container
-        # * map host free port to fixed 8888 in container
-        # * bind  mounts so that the user's data is on
-        #   the host filesystem
-        # * we mount the directory /home/jovyan/.jupyter as a whole
-        #   instead as mounting the 2 files custom.js and custom.css individually
-        #   this is an attempt to ease propagation of changes to any of these files
-        #   as otherwise a container restart is required for this to take effect
-        # * map jovyan uid to the student's
-        #   out of luck trying to use docker-stacks's native start.sh
-        #   that led to costly and useless chown's on /opt/conda; so instead we
-        #   * run the container as root
-        #   * in turn use our own script start-in-dir-as-uid.sh
-        #     from ../docker/images that does runuser to have jupyter
-        #     run as the right uid; of course this means it is a requirement
-        #     for the course images to contain that script
-        # * turn off this http header that otherwise would prevent
-        #   embedding in a FUN iframe
-        #   Content-Security-Policy: frame-ancestors 'self';
-        #        ... report-uri /api/security/csp-report
-        #   so set the web server's settings to clear the
-        #   Content-Security-Policy header it is too tedious on the command line
-        #   with quoting and all, so we use jupyter's config file instead in
-        #   jupyter/jupyter_notebook_config.py
-        # * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem the
-        #   default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
-        #   does not even make sense - $HOME is unset. Even if it was if would not
-        #   reside on the host filesystem.
-        #
-        # compute student uid
-        STUDENT_uid=$(id -u $student)
-        local port=$(free-port)
-
-        command="docker create --name $container
-                 --publish published=8888,target=$port
-                 --user root
-                 --rm
-                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
-                 -v $STUDENT_course:/home/jovyan/work
-                 -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
-                 -v $COURSE_jupyter:/home/jovyan/.jupyter/custom:ro
-                 -v $COURSE_modules:/home/jovyan/modules:ro
-                 -v $COURSE_static:/home/jovyan/static:ro
-                 -v $COURSE_git:$COURSE_git:ro
-"
-        # see start-in-dir-as-uid.sh for a note on setting the directories
-        # below
-        # note that setting the ip here is a workaround
-        # for a broken jupyter/docker-stacks version around late 2018
-        # probably not needed with more recent ones
-        command="$command
-                 -e PYTHONPATH=/home/jovyan/modules
-                 $image
-                 start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
-                 jupyter notebook
-                 --ip=0.0.0.0
-                 --no-browser
-                 --NotebookApp.notebook_dir=/home/jovyan/work
-                 --NotebookApp.token=$jupyter_token
-                 --NotebookApp.base_url=/$port/
-"
-
-        [ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
-        # show command for manual debugging
-        -echo-stderr XXXXXXXXXX $command
-        # we need a clean stdout : redirect stdout to stderr
-        >&2 $command
+        # sanity check mostly for smooth migration
+        # on sites running a pre-0.24 version
+        local running=$(docker inspect -f "{{.State.Running}}" $container)
+        if [ "$running" != true ]; then
+            echo failed-stopped-container container none none none
+            return 1
+        fi
+        port=$(cat $STUDENT_course/.port)
+        if [ "$running" != true ]; then
+            echo failed-cannot-retrieve-port container none none none
+            return 1
+        fi
+        local line="existing $container $port $jupyter_token"
+        [ -n "$DEBUG" ] && -echo-stderr $FUNCNAME writes line=$line
+        echo $line
+        return 0
     fi
 
-    -echo-stderr $FUNCNAME writes action=$action
-    echo $action
+    -echo-stderr Creating docker container $container
+    # * map host free port to fixed 8888 in container
+    # * bind mounts so that the user's data is on
+    #   the host filesystem
+    # * we mount the directory /home/jovyan/.jupyter as a whole
+    #   instead as mounting the 2 files custom.js and custom.css individually
+    #   this is an attempt to ease propagation of changes to any of these files
+    #   as otherwise a container restart is required for this to take effect
+    # * map jovyan uid to the student's
+    #   out of luck trying to use docker-stacks's native start.sh
+    #   that led to costly and useless chown's on /opt/conda; so instead we
+    #   * run the container as root
+    #   * in turn use our own script start-in-dir-as-uid.sh
+    #     from ../docker/images that does runuser to have jupyter
+    #     run as the right uid; of course this means it is a requirement
+    #     for the course images to contain that script
+    # * turn off this http header that otherwise would prevent
+    #   embedding in a FUN iframe
+    #   Content-Security-Policy: frame-ancestors 'self';
+    #        ... report-uri /api/security/csp-report
+    #   so set the web server's settings to clear the
+    #   Content-Security-Policy header it is too tedious on the command line
+    #   with quoting and all, so we use jupyter's config file instead in
+    #   jupyter/jupyter_notebook_config.py
+    # * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem the
+    #   default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
+    #   does not even make sense - $HOME is unset. Even if it was if would not
+    #   reside on the host filesystem.
+
+    # compute student uid
+    STUDENT_uid=$(id -u $student)
+    local port=$(free-port)
+    # store it
+    echo $port > $STUDENT_course/.port
+
+    # -d is for running in background (detached) mode
+    command="docker run -d --name $container
+                --publish published=8888,target=$port
+                --user root
+                --rm
+                --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
+                -v $STUDENT_course:/home/jovyan/work
+                -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
+                -v $COURSE_jupyter:/home/jovyan/.jupyter/custom:ro
+                -v $COURSE_modules:/home/jovyan/modules:ro
+                -v $COURSE_static:/home/jovyan/static:ro
+                -v $COURSE_git:$COURSE_git:ro
+"
+    # see start-in-dir-as-uid.sh for a note on setting the directories
+    # below
+    # note that setting the ip here is a workaround
+    # for a broken jupyter/docker-stacks version around late 2018
+    # probably not needed with more recent ones
+    command="$command
+                -e PYTHONPATH=/home/jovyan/modules
+                $image
+                start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
+                jupyter notebook
+                --ip=0.0.0.0
+                --no-browser
+                --NotebookApp.notebook_dir=/home/jovyan/work
+                --NotebookApp.token=$jupyter_token
+                --NotebookApp.base_url=/$port/
+"
+
+    [ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
+    # show command for manual debugging
+    -echo-stderr container command: $command
+    # we need a clean stdout : redirect stdout to stderr
+    >&2 $command
+
+    if ! -wait-for-http-on-port-token \
+        $port $jupyter_token $timeout_wait_for_http; then
+        # show docker logs on stderr
+         -echo-stderr "==================== dockers logs on that container over the last minute"
+         >&2 docker logs -t --since +1m $container
+        echo failed-timeout none none none
+        return 1 
+    fi
+
+    local line="created $container $port $jupyter_token"
+    [ -n "$DEBUG" ] && -echo-stderr $FUNCNAME writes line=$line
+    echo $line
     return 0
 }
 
-####################
-# xxx probably a lot of space for improvement here
-# retrieve port from output like this
-# map[8888/tcp:[{0.0.0.0 32774}]]
-function get-docker-container-port() {
-    local USAGE="Usage: $COMMAND $FUNCNAME container"
-    [ "$#" -eq 1 ] || -die $USAGE
 
-    local container=$1; shift
-    docker inspect --format '{{.NetworkSettings.Ports}}' $container | cut -d' ' -f 2 | sed -e 's,[^0-9],,g'
-}
-
-# if the container was just started it may take a little time
-# before we can know on what port it runs
-# PS: it's not even clear it's useful to do this loop...
-function -find-docker-port-number() {
-    local container=$1; shift
-    local ticks=$1; shift
-    local period=$1; shift
-    local extra=$1; shift
-    local counter=1
-    while [ $counter -le $ticks ]; do
-        -echo-stderr "Probing for port ($counter)"
-        docker_port=$(get-docker-container-port $container)
-        [ -n "$docker_port" ] && {
-            sleep $extra
-            echo $docker_port;
-            return 0;
-        }
-        counter=$(( $counter + 1))
-        sleep $period
-    done
-    -echo-stderr "find-docker-port-number failed after $counter iterations"
-    return 1
-}
-
-# in particular the actual timeout is unclear
 function -wait-for-http-on-port-token() {
     local port=$1; shift
     local token=$1; shift
-    local ticks=$1; shift
+    local timeout=$1; shift
     local period=$1; shift
-    local extra=$1; shift
     local counter=1
-    while [ $counter -le $ticks ]; do
-        -echo-stderr "Waiting for TCP ($counter) on port $port"
-        # first check if tcp port is up
-        if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2> /dev/null; then
-            # if so, check that http is ready
-            -echo-stderr "Checking for HTTP ($counter) on port $port"
-            curl "http://localhost:$port/tree?token=$token" >& /dev/null && {
-                # sleep an extra .5 s to be safe
-                sleep $extra
-                -echo-stderr HTTP OK
-                return 0
-            }
+    local start=$(date +%s)
+    local max=$(($start+$timeout))
+    local tcp_ok=""
+    local http_ok=""
+    while [ $(($(date +%s) <= $max)) == 1 ]; do
+        if [ -z "$tcp_ok" ]; then
+            if ! timeout $period bash -c "true < /dev/tcp/localhost/$port" 2> /dev/null; then
+                -echo-stderr "[$counter] TCP/$port down after $(($(date +%s)-$start))s"
+                sleep $period
+                continue
+            else
+                -echo-stderr "[$counter] TCP/$port up after $(($(date +%s)-$start))s"
+                tcp_ok="true"
+            fi
         fi
-        counter=$(( $counter + 1))
-        sleep $period
+        if [ -z "$http_ok" ]; then
+            # if so, check that http is ready
+            if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /dev/null; then
+                -echo-stderr "[$counter] HTTP/$port down after $(($(date +%s)-$start))s"
+                sleep $period
+                continue
+            else
+                -echo-stderr "[$counter] HTTP/$port up after $(($(date +%s)-$start))s"
+                tcp_ok="true"
+                return 0
+            fi
+        fi
     done
-    -echo-stderr "timeout expired after $counter iterations"
+    -echo-stderr "giving up on $port"
     return 1
-}
-
-
-####################
-# we create the container with docker create -p 8888
-# this way the container can be stopped and then restarted
-# with a fresh (unused) port each time
-#
-# possible resulting values for action
-# * stage2 action=failed-unknown-container
-# * stage2 action=failed-timeout
-# * stage2 action=running
-# * stage2 action=restarted
-
-@declare-subcommand docker-start-container
-function docker-start-container() {
-    local USAGE="Usage: $COMMAND $FUNCNAME container"
-    [ "$#" -eq 1 ] || -die $USAGE
-
-    local container="$1"; shift
-
-    [ -n "$DEBUG" ] && set -x
-
-    local jupyter_token=$container
-    # check if container container is already defined
-    if ! docker inspect --format "{{.Name}}" $container >& /dev/null; then
-        -echo-stderr "INTERNAL error: cannot start non-existent container $container"
-        action="failed-unknown-container"
-        echo $action $container 0 none
-        return
-    fi
-
-    ### at that point the docker is created
-    # start the container only if it needs to, and in that
-    # case wait until it's up and reachable
-    running=$(docker inspect -f "{{.State.Running}}" $container)
-    # refine action if this container was not just created
-    action=$([ "$running" == true ] && echo running || echo restarted)
-
-    # actually restart if needed
-    if [ "$running" != "true" ]; then
-        -echo-stderr Starting container $container
-        # prevent clobbering of stdout
-        >&2 docker start $container
-    fi
-
-    # figure out on what port it runs; wait for a second (10 times .1)
-    docker_port=$(-find-docker-port-number $container $timeout_wait_for_port)
-
-    # wait until the service actually serves HTTP requests
-    # we need to do this only if we have just started it
-    if [ "$running" != "true" ]; then
-        -wait-for-http-on-port-token \
-            $docker_port $jupyter_token $timeout_wait_for_http || {
-            # show docker logs on stderr
-            -echo-stderr "==================== dockers logs on that container over the last 2 minutes"
-            >&2 docker logs -t --since +2m $container
-            action="failed-timeout"
-        }
-    fi
-
-    # this is the only thing that goes on stdout
-    #
-    echo $action $docker_port $jupyter_token
-
-    [ -n "$DEBUG" ] && set +x
 }
 
 
@@ -819,24 +756,7 @@ function docker-view-student-course-notebook() {
     # create and start the container
     local container=$STUDENT_container
     # either existing of created
-    action1=$(docker-create-container-for-student-in-course $container $student $course $image)
-    line2=$(docker-start-container $container)
-
-    # report: the action depends on both stages
-    local action2=$(cut -d' ' -f1 <<< $line2)
-    local port=$(cut -d' ' -f2 <<< $line2)
-    local token=$(cut -d' ' -f3 <<< $line2)
-
-    case $action2 in
-        failed*)
-            action=$action2;;
-        *)
-            case $action1 in
-                created) action=$action1;;
-                *) action=$action2;;
-            esac;;
-    esac
-    echo $action $container $port $token
+    docker-run-container-for-student-in-course $container $student $course $image
 
     return 0
 }
@@ -883,7 +803,7 @@ function docker-view-student-course-jupyterdir() {
     # create and start the container
     local container=$STUDENT_container
     # either existing of created
-    action1=$(docker-create-container-for-student-in-course $container $student $course)
+    action1=$(docker-run-container-for-student-in-course $container $student $course)
     line2=$(docker-start-container $container)
 
     # report: the action depends on both stages
