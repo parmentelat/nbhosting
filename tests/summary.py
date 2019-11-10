@@ -39,8 +39,8 @@ def main():
     running = [ c for c in containers if c.status == 'running' and in_scope(c)]
     idle = [ c for c in containers if c.status != 'running' and in_scope(c)]
 
-    print(ban, "{} idle containers".format(len(idle)))
-    print(ban, "{} running containers".format(len(running)))
+    print(ban, f"{len(idle)} idle containers")
+    print(ban, f"{len(running)} running containers")
     for container in running:
         name = container.name
         course, student = name.split('-x-')
@@ -49,7 +49,7 @@ def main():
         monitored = MonitoredJupyter(container, course, student, figures)
         loop.run_until_complete(monitored.count_running_kernels())
         nb_kernels = figures.running_kernels
-        print("{:40s} {} kernels".format(container.name, nb_kernels))
+        print("{container.name:40s} {nb_kernels} kernels")
 
 if __name__ == '__main__':
     main()

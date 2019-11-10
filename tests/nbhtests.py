@@ -74,14 +74,14 @@ def main() -> bool:
 
     jobs = []
     for user in args.users:
-        student_name = "{}-{:04d}".format(args.base, user)
+        student_name = f"{args.base}-{user:04d}"
         if args.random:
             indices = [ random.choice(choices) ]
         else:
             indices = args.indices
         for index in indices:
-            command = "nbhtest.py -U {} -c {} -i {} -u {} -s {} &"\
-                      .format(args.topurl, course_gitdir, index, student_name, args.sleep)
+            command = (f"nbhtest.py -U {args.topurl} -c {course_gitdir} "
+                       f"-i {index} -u {student_name} -s {args.sleep} &")
             if args.dry_run:
                 print("dry-run:", command)
             else:

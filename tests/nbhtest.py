@@ -38,8 +38,7 @@ default_sleep_internal = 1
 def list_notebooks(course_gitdir):
     course_gitdir = Path(course_gitdir)
     if not course_gitdir.is_dir():
-        print("Could not browse for test notebooks in {}"
-              .format(course_gitdir))
+        print(f"Could not browse for test notebooks in {course_gitdir}")
         exit(1)
     paths = chain(course_gitdir.glob("w?/w*.ipynb"),
                   course_gitdir.glob("w?/fr*.ipynb"),
@@ -56,12 +55,15 @@ js_run_all = "Jupyter.notebook.execute_all_cells()"
 js_save = "Jupyter.notebook.save_checkpoint()"
 
 
-def pause(message, delay, previous_duration=None):
-    line = "{} - waiting for an extra {}s".format(message, delay)
-    if previous_duration:
-        line += " (previous op took {d:.02f})".format(d=previous_duration)
+def pause(mark, message, *, delay=0, duration=None, skip=0):
+    line = f"{mark}:{message}"
+    if delay: 
+        line += f" - waiting for {delay}s"
+    if duration:
+        line += f" (since beg. {duration - skip*delay:.02f})s"
     print(line)
-    time.sleep(delay)
+    if delay:
+        time.sleep(delay)
 
 
 class Artefact:
@@ -79,14 +81,13 @@ class Artefact:
         self.details = self.path / "details"
         for path in self.path, self.details:
             if not path.is_dir():
-                print("Creating {}".format(path))
+                print(f"Creating {path}")
                 path.mkdir()
 
     def filename(self, msg):
         self.mkdir()
         ext = "png" if self.kind == "screenshot" else "txt"
-        latest = self.path / "{user}-{course}-{index}-{msg}.{ext}"\
-                     .format(**locals(), **self.__dict__)
+        latest = self.path / f"{self.user}-{self.course}-{self.index}-{msg}.{ext}"
         # keep only the last file in one series
         if self.last is not None:
             details_last = self.details / self.last.name
@@ -110,6 +111,7 @@ def run(topurl, user, course, notebooks, index, delay):
     options = selenium.webdriver.ChromeOptions()
     options.add_argument('headless')
     options.add_argument('no-sandbox')
+    options.add_argument('start-maximized')
     # rpm -ql chromedriver
     # -> /usr/bin/chromedriver
     chrome_driver_binary = "/usr/bin/chromedriver"
@@ -121,10 +123,10 @@ def run(topurl, user, course, notebooks, index, delay):
     if topurl.endswith("/"):
         topurl = topurl[:-1]
     
-    url = "{topurl}/notebookLazyCopy/{course}/{nb}/{user}"\
-          .format(**locals())
+    url  = f"{topurl}/notebookLazyCopy/{course}/{nb}/{user}"
+    mark = f"{nb}/{user}"
 
-    print("fetching URL {url}".format(url=url))
+    print(f"fetching URL {url}")
     try:
         begin = time.time()
         scr = Artefact(user, course, index, 'screenshot')
@@ -135,22 +137,18 @@ def run(topurl, user, course, notebooks, index, delay):
         get_duration = time.time() - begin
         driver.save_screenshot(scr.filename('0get'))
         #
-        pause("about to clear", delay, get_duration)
-        begin = time.time()
+        pause(mark, "loaded", delay=delay, duration=get_duration, skip=0)
         driver.execute_script(js_clear_all_on_document_load)
         clear_duration = time.time() - begin
         driver.save_screenshot(scr.filename('1clear'))
         #
-        pause("about to execute ", delay, clear_duration)
-        begin = time.time()
+        pause(mark, "cleared ", delay=delay, duration=clear_duration, skip=1)
         driver.execute_script(js_run_all)
         exec_duration = time.time() - begin
         driver.save_screenshot(scr.filename('2exec'))
         #
-        pause("about to save", delay, exec_duration)
-        begin = time.time()
+        pause(mark, "executed", delay=delay, duration=exec_duration, skip=2)
         driver.execute_script(js_save)
-        save_duration = time.time() - begin
         driver.save_screenshot(scr.filename("3save"))
         #
         res = Artefact(user, course, index, 'contents')
@@ -159,13 +157,15 @@ def run(topurl, user, course, notebooks, index, delay):
                 "return $('#notification_kernel>span').html()")
             number_cells = driver.execute_script(
                 "return Jupyter.notebook.get_cells().length")
-            out_file.write("kernel area:[{kernel_area}]\n"
-                           "number of cells: {number_cells}\n"
-                           "get duration: {get_duration:.2f}\n"
-                           "clear duration: {clear_duration:.2f}\n"
-                           "trigger duration: {exec_duration:.2f}\n"
-                           "exec duration: {save_duration:.2f}\n"
-                           .format(**locals()))
+            save_duration = time.time() - begin
+            out_file.write(f"kernel area:[{kernel_area}]\n"
+                           f"number of cells: {number_cells}\n"
+                           f"delay between ops: {delay}\n"
+                           f"get duration: {get_duration:.2f}\n"
+                           f"clear duration: {clear_duration:.2f}\n"
+                           f"trigger duration: {exec_duration:.2f}\n"
+                           f"exec&save duration: {save_duration:.2f}\n")
+        pause(mark, "exec&saved", duration=save_duration, skip=3)
         driver.quit()
     except Exception as e:
         import traceback

@@ -33,8 +33,7 @@ class IntsRanges(argparse.Action):
     def __call__(self, parser, namespace, value, option_string=None):
         pieces = value.split('-')
         if not (0 < len(pieces) <= 3):
-            raise argparse.ArgumentError("wrong syntax in IntsRange with {}"
-                                         .format(value))
+            raise argparse.ArgumentError(f"wrong syntax in IntsRange with {value}")
         try:
             if len(pieces) == 1:
                 self.result.append(int(pieces[0]))
