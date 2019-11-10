@@ -9,11 +9,15 @@
 #
 # ditto on linux from
 # https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
+#
+# UPDATE 2019 Nov
+# we now use chromium instead of phantomjs
+# see install. instruction in AA-readme-tests.md
 
 """
 Testing utility for nbhosting
 
-This script uses selenium/phantomjs to
+This script uses chromium to
 * open one notebook
 * run all cells
 * save output in student space
@@ -26,7 +30,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
 # default location where to look for test notebooks
-default_course_gitdir = Path.home() / "git" / "flotpython3" 
+default_course_gitdir = Path.home() / "git" / "python3-s2" 
 default_topurl = "https://nbhosting-dev.inria.fr/"
 default_sleep_internal = 1
 
@@ -100,8 +104,16 @@ def run(topurl, user, course, notebooks, index, delay):
 
     # import here so we can get to run --help on a
     # regular non-selenium box
-    # pip3 install 
-    from selenium import webdriver
+
+    # from selenium import webdriver
+    import selenium.webdriver
+    options = selenium.webdriver.ChromeOptions()
+    options.add_argument('headless')
+    options.add_argument('no-sandbox')
+    # rpm -ql chromedriver
+    # -> /usr/bin/chromedriver
+    chrome_driver_binary = "/usr/bin/chromedriver"
+    driver = selenium.webdriver.Chrome(chrome_driver_binary, options=options)
 
     
     nb = notebooks[index]
@@ -113,7 +125,6 @@ def run(topurl, user, course, notebooks, index, delay):
           .format(**locals())
 
     print("fetching URL {url}".format(url=url))
-    driver = webdriver.PhantomJS() # or add to your PATH
     try:
         begin = time.time()
         scr = Artefact(user, course, index, 'screenshot')

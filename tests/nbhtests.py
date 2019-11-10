@@ -66,7 +66,7 @@ def main() -> bool:
 
     local = LocalNode(
         formatter=TerminalFormatter(
-            format="%H-%M-%S:@line@",
+            custom_format="%H-%M-%S:@line@",
             verbose=True
             ))
 
@@ -98,9 +98,8 @@ def main() -> bool:
     if args.dry_run:
         return True
 
-    overall = scheduler.orchestrate(
-        jobs_window = args.window
-    )
+    scheduler.jobs_window = args.window
+    overall = scheduler.orchestrate()
     if not overall:
         scheduler.debrief()
     print("nbhtests DONE")

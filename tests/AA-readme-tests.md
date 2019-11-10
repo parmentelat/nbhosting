@@ -4,8 +4,19 @@
   * no special requirement more than being installed and ready
 
 * one test box (typically darktek.pl.sophia.inria.fr)
-  * requires selenium - `pip install selenium`
-  * requires nepi-ng - `pip install asyncssh asynciojobs apssh`
+  * requires selenium - `pip3 install selenium`
+  * requires nepi-ng - `pip3 install asyncssh asynciojobs apssh`
+  * requires requests - `pip3 install requests`
+
+* courses
+  * check that course 'python3-s2' is defined in the nbhosting server, and that
+    on the test box there is a git repo by that name 
+
+
+**UPDATE 2019 Nov**
+
+* looks like phantomjs has been deprecated, so I had to do  
+  `dnf install chromium chromedriver`
 
 # Preparation
 
@@ -16,8 +27,6 @@ Optional but helpful
 and
 
     root@thermals ~ # nbh clear-tests
-
-
 
 # Typical use
 
@@ -84,11 +93,11 @@ Using an index range like this **without `-m`** will run these 3 notebooks for e
 
 ### use another course
 
-By default we use `~/git/flotpython3` as the root of the course tree; it is used in particular to make up the notebook names, so this needs to be in sync with what the test server sees. **NOTE** that in particular it should use the **same course name** as on the server.
+By default we use `~/git/python3-s2` as the root of the course tree; it is used in particular to make up the notebook names, so this needs to be in sync with what the test server sees. **NOTE** that in particular it should use the **same course name** as on the server.
 
 Use this to use another course tree.
 
-    -c ~/git/flotpython3
+    -c ~/git/python3-s2
 
 ### use another server
 
@@ -120,7 +129,7 @@ Which retrieves the relevant files from darktek in `./artefacts-darktek`.
 * The `.txt` files should exist for all students; they should show something like
 
 ```
-parmentelat ~/git/nbhosting/tests $ cat artefacts-darktek/student-0001-flotpython-8-contents-4contents.txt
+parmentelat ~/git/nbhosting/tests $ cat artefacts-darktek/student-0001-python3-s2-8-contents-4contents.txt
 kernel area:[]
 number of cells: 18
 ```
