@@ -9,14 +9,20 @@
   * requires requests - `pip3 install requests`
 
 * courses
-  * check that course 'python3-s2' is defined in the nbhosting server, and that
+  * check that course `python3-s2` is defined in the nbhosting server, and that
     on the test box there is a git repo by that name 
 
 
 **UPDATE 2019 Nov**
 
-* looks like phantomjs has been deprecated, so I had to do  
-  `dnf install chromium chromedriver`
+* phantomJS has been deprecated under selenium
+* so I had to do  
+  `dnf install chromium chromedriver chromium-libs-media`
+  `dnf install xorg-x11-fonts-misc xorg-x11-font-utils`
+* NOTE: I had to struggle quite some time for getting the fonts to work; I even went to
+  upgrading to fedora-30 in the mix, but not sure what actually fixed that issue; best
+  guess is that is was a matter of installing the x11 fonts and rebooting, but that would
+  need confirmation
 
 # Preparation
 
