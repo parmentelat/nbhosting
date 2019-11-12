@@ -14,15 +14,15 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from intsranges import IntsRanges
 
 import asyncio
-from asynciojobs import Scheduler, Sequence, Job
+from asynciojobs import Scheduler
 from apssh import LocalNode, SshJob
 from apssh.formatters import TerminalFormatter
 
 from nbhtest import (
-    pause,
-    list_notebooks,
-    default_course_gitdir, default_topurl,
-    default_sleep_internal
+    default_course_gitdir, 
+    default_topurl,
+    default_sleep_internal,
+    Contents,
     )
    
 default_window = 5
@@ -32,16 +32,11 @@ def main() -> bool:
     parser.add_argument("-U", "--url", default=default_topurl,
                         dest='topurl',
                         help="url to reach nbhosting server")
-    parser.add_argument("-c", "--course-gitdir", default=default_course_gitdir,
-                        help="""location of a git repo where to fetch notebooks;
-                                needed in order to generate relevant URLs""")
     parser.add_argument("-i", "--indices", default=[0], action=IntsRanges,
                         help="(cumulative) ranges of indices in the list of known notebooks"
                         " - run nbhtest with -l to see list")
     parser.add_argument("-u", "--users", default=[1], action=IntsRanges,
                         help="(cumulative) ranges of students indexes; e.g. -u 101-400 -u 501-600")
-    parser.add_argument("-m", "--random", action='store_true',
-                        help="if set, a random notebook index is used for each student")
     parser.add_argument("-b", "--base", default='student',
                         help="basename for students name")
     parser.add_argument("-p", "--period", default=20, type=float,
@@ -51,18 +46,12 @@ def main() -> bool:
     parser.add_argument("-w", "--window", default=default_window, type=int,
                         help="window depth for spawning the nbhtest instances")
     parser.add_argument("-n", "--dry-run", action='store_true')
-    args = parser.parse_args()
-
-    course_gitdir = args.course_gitdir
-    course, notebooks = list_notebooks(course_gitdir)
+    parser.add_argument("coursedirs", default=[default_course_gitdir],
+                        nargs='*',
+                        help="""a list of git repos where to fetch notebooks""")
     
-    # in random mode; what are the choices that we randomize on
-    if args.random:
-        if len(args.indices) > 1:
-            choices = args.indices
-        else:
-            choices = list(range(len(notebooks)))
-
+    args = parser.parse_args()
+    print(args.coursedirs)
 
     local = LocalNode(
         formatter=TerminalFormatter(
@@ -72,29 +61,23 @@ def main() -> bool:
 
     scheduler = Scheduler()
 
-    jobs = []
     for user in args.users:
         student_name = f"{args.base}-{user:04d}"
-        if args.random:
-            indices = [ random.choice(choices) ]
-        else:
-            indices = args.indices
-        for index in indices:
-            command = (f"nbhtest.py -U {args.topurl} -c {course_gitdir} "
-                       f"-i {index} -u {student_name} -s {args.sleep} &")
+        for index in args.indices:
+            command = (f"nbhtest.py -U {args.topurl} -u {student_name} "
+                       f"-s {args.sleep} ")
+            for coursedir in args.coursedirs:
+                command += f"{coursedir}:{index} "
+            command += " &"
             if args.dry_run:
                 print("dry-run:", command)
             else:
                 # schule this command to run
-                job = Sequence(
-                    SshJob(scheduler=scheduler,
-                           node=local,
-                           command = command,
-                    ),
-                    Job(asyncio.sleep(args.period))
-                )
-                jobs.append(job)
-
+                job = SshJob(
+                    scheduler=scheduler,
+                    node=local,
+                    commands = [command, f"sleep {args.period}"])
+                
     if args.dry_run:
         return True
 
