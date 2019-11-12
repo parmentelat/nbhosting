@@ -564,7 +564,12 @@ function docker-run-container-for-student-in-course() {
         # on sites running a pre-0.24 version
         local running=$(docker inspect -f "{{.State.Running}}" $container)
         if [ "$running" != true ]; then
-            echo failed-stopped-container container none none none
+            # this has to be a sequel of nbhosting <= 0.23
+            # as since 0.24 we run the containers with --rm
+            # so as a temporary measure, we remove the container
+            # so next time it will no longer be in the way
+            docker rm $container &
+            echo failed-stopped-container $container none none none
             return 1
         fi
         port=$(cat $STUDENT_course/.port)
