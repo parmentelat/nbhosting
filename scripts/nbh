@@ -450,6 +450,8 @@ function -lazy-copy-student-notebook-for-course() {
         -create-symlink-at-file "$student_notebook" $local /home/jovyan/static/$from_top
     done
 
+    [ -n "$DEBUG" ] && set +x
+
     # nothing else is required in the student's work area
     # the rest (modules/ for code, and static/)
     # will be bind-mounted in the docker container
