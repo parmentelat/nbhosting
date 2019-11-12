@@ -571,12 +571,12 @@ function docker-run-container-for-student-in-course() {
             # so as a temporary measure, we remove the container
             # so next time it will no longer be in the way
             docker rm $container &
-            echo failed-stopped-container $container none none none
+            echo failed-stopped-container none none none
             return 1
         fi
         port=$(cat $STUDENT_course/.port)
         if [ "$running" != true ]; then
-            echo failed-cannot-retrieve-port container none none none
+            echo failed-cannot-retrieve-port none none none
             return 1
         fi
         local line="existing $container $port $jupyter_token"
