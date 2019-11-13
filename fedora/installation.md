@@ -561,12 +561,16 @@ to be reinstalled manually**.
 A special case has to be considered when upgrading from a release <= 0.23 to another >= 0.24
 
 In a nutshell, there is a change of policy between these 2 releases :
-* in 0.23 and below, containers are created on need-by-need basis, and after some idle time - typically 30 minutes - those containers are killed, but not removed; actually they are removed after a much longer delay of inactivity - think 2 weeks;
-* in 0.24 and above on the contrary, containers are created when needed, but immediately removed after the short idle timeout
+* in 0.23 and below, containers are created on a need-by-need basis, and after some idle
+  time - typically 30 minutes - those containers are killed, but not removed; actually
+  they are removed after a much longer delay of inactivity - think 2 weeks;
+* in 0.24 and above on the contrary, containers are created when needed, but immediately
+  removed after the short idle timeout
 
 To put it in other words, this means that in nominal mode :
 * in 0.23, `docker ps -a` may have a long list of pending containers, while
-* in 0.24, `docker ps -a` is essentially empty, except for the occasional container that is being removed at that time
+* in 0.24, `docker ps -a` is essentially empty, except for the occasional container that
+  is being removed at that time
   
 When upgrading from 0.23 to 0.24: the new code has provisions to deal with the case where
 the required container exists and is stopped (which means there is a lingering sequel from
@@ -579,12 +583,14 @@ as it removes **ALL** stopped containers; adapt as needed if that's not the case
 
 Note that this cleanup command **can be launched with the nbhosting service still running**;
 it is likely to take quite some time though, depending on the number of stopped containers;   
-you can estimate that time by running `docker ps -a | wc -l` to figure how many they are.  
-for information on `nbhosting.inria.fr` we had about 700 lingering containers, and the
-cleanup has taken a few hours. 
+you can estimate that time by running `docker ps -a | wc -l` to figure how many they are.
+
+For your information, on `nbhosting.inria.fr` we had about 700 lingering containers, and
+the cleanup has taken a few hours. 
 
 Also note that this command, provided again that docker only serves nbhosting, is
-completety safe to run anytime in advance, so it can be anticipated.
+completety safe to run anytime in advance, and as many times as needed, since it is
+idempotent, so it can be anticipated.
 
 ```
 ### this should be run before upgrading to 0.24
