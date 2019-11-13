@@ -1,3 +1,10 @@
+# 0.24.2 2019 Nov 8
+
+* 0.24 is good to go 
+* minor tweak to smooth migration: stopped containers, sequels of a pre-0.23 deployment,
+  are killed before returning an error
+* tests are operational again, running on a headless chromium
+
 # 0.24.1 2019 Nov 8
 
 * simplified container creation code now that containers are 
