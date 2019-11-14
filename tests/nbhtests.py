@@ -51,7 +51,6 @@ def main() -> bool:
                         help="""a list of git repos where to fetch notebooks""")
     
     args = parser.parse_args()
-    print(args.coursedirs)
 
     local = LocalNode(
         formatter=TerminalFormatter(
