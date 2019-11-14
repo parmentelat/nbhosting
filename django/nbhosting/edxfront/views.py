@@ -214,8 +214,6 @@ def _open_notebook(request, coursename, student, notebook,
     else:
         ref_giturl = coursedir.giturl
 
-    logger.info(f"DEBUGGING image={coursedir.image} and giturl={ref_giturl}")
-
     # add arguments to the subcommand
     command += [student, coursename, notebook_with_ext,
                 coursedir.image, ref_giturl]
@@ -360,6 +358,13 @@ def jupyterdir_forward(request, course, student, jupyter_url):
         return HttpResponseForbidden(
             f"Access denied: verb not in {allowed_verbs} with {jupyter_url}")
 
+    coursedir = CourseDir.objects.get(coursename=course)
+    if not coursedir.is_valid():
+        return error_page(
+            request, coursename, student, notebook,
+            f"no such course {coursename}"
+        )
+
     # nbh's subcommand
     subcommand = 'docker-view-student-course-jupyterdir'
 
@@ -370,7 +375,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
     command.append(subcommand)
 
     # add arguments to the subcommand
-    command += [student, course]
+    command += [student, course, coursedir.image]
     logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
     completed_process = subprocess.run(
         command, universal_newlines=True,

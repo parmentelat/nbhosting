@@ -773,11 +773,12 @@ function docker-view-student-course-notebook() {
 
 @declare-subcommand docker-view-student-course-jupyterdir
 function docker-view-student-course-jupyterdir() {
-    local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course"
+    local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course image"
 
-    [ "$#" -eq 2 ] || -die $USAGE
+    [ "$#" -eq 3 ] || -die $USAGE
     local student=$1; shift
     local course=$1; shift
+    local image=$1; shift
 
     ## just in case is was never done before
     -check-course $course
@@ -810,24 +811,7 @@ function docker-view-student-course-jupyterdir() {
     # create and start the container
     local container=$STUDENT_container
     # either existing of created
-    action1=$(docker-run-container-for-student-in-course $container $student $course)
-    line2=$(docker-start-container $container)
-
-    # report: the action depends on both stages
-    local action2=$(cut -d' ' -f1 <<< $line2)
-    local port=$(cut -d' ' -f2 <<< $line2)
-    local token=$(cut -d' ' -f3 <<< $line2)
-
-    case $action2 in
-        failed*)
-            action=$action2;;
-        *)
-            case $action1 in
-                created) action=$action1;;
-                *) action=$action2;;
-            esac;;
-    esac
-    echo $action $container $port $token
+    docker-run-container-for-student-in-course $container $student $course $image
 
     return 0
 }
