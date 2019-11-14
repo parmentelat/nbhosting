@@ -423,7 +423,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
     except Exception as exc:
         message = (f"exception when parsing output of nbh {subcommand}\n"
                    f"{completed_process.stdout}\n"
-                   f"{type(exc): exc}")
+                   f"{type(exc)}: {exc}")
         # logger.exception(message)
         return error_page(
             request, course, student, "jupyterdir", message)
