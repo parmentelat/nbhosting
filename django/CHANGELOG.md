@@ -1,3 +1,7 @@
+# 0.24.4 2019 Nov 14
+
+* fix the jupyter classic/lab buttons
+
 # 0.24.3 2019 Nov 14
 
 * increase timeout when spawning containers from 12 to 20s
