@@ -1,4 +1,8 @@
-# 0.24.2 2019 Nov 8
+# 0.24.3 2019 Nov 14
+
+* increase timeout when spawning containers from 12 to 20s
+
+# 0.24.2 2019 Nov 13
 
 * 0.24 is good to go 
 * minor tweak to smooth migration: stopped containers, sequels of a pre-0.23 deployment,
