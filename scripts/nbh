@@ -694,7 +694,7 @@ function -wait-for-http-on-port-token() {
         fi
         if [ -z "$http_ok" ]; then
             # if so, check that http is ready
-            if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /dev/null; then
+            if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /tmp/wait-http-$port; then
                 -echo-stderr "HTTP/$port down after $(($(date +%s)-$start))s"
                 sleep $period
                 continue
@@ -705,7 +705,9 @@ function -wait-for-http-on-port-token() {
             fi
         fi
     done
-    -echo-stderr "giving up on $port"
+    -echo-stderr "beg giving up on $port - last curl attempt yielded this :"
+    >&2 cat /tmp/wait-http-$port 
+    -echo-stderr "end giving up on $port"
     return 1
 }
 
