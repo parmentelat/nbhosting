@@ -42,6 +42,13 @@ function 1c-100s-1n-heavy() {
 }
 
 
+# hammering still harder
+function 1c-100s-1n-extra() {
+   compute-coursedirs python3-s2 
+   ./nbhtests.py -u 1-200 -i 50 -p 5 -w 20 $coursedirs "$@"
+}
+
+
 
 check-artefacts
 "$@"
