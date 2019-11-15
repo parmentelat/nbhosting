@@ -659,7 +659,7 @@ function docker-run-container-for-student-in-course() {
     if ! -wait-for-http-on-port-token \
         $port $jupyter_token $timeout_wait_for_http; then
         # show docker logs on stderr
-         -echo-stderr "==================== dockers logs on that container over the last minute"
+         -echo-stderr "==================== docker logs on that container over the last minute"
          >&2 docker logs -t --since +1m $container
         echo failed-timeout none none none
         return 1 
@@ -677,7 +677,6 @@ function -wait-for-http-on-port-token() {
     local token=$1; shift
     local timeout=$1; shift
     local period=$1; shift
-    local counter=1
     local start=$(date +%s)
     local max=$(($start+$timeout))
     local tcp_ok=""
@@ -685,22 +684,22 @@ function -wait-for-http-on-port-token() {
     while [ $(($(date +%s) <= $max)) == 1 ]; do
         if [ -z "$tcp_ok" ]; then
             if ! timeout $period bash -c "true < /dev/tcp/localhost/$port" 2> /dev/null; then
-                -echo-stderr "[$counter] TCP/$port down after $(($(date +%s)-$start))s"
+                -echo-stderr "TCP/$port down after $(($(date +%s)-$start))s"
                 sleep $period
                 continue
             else
-                -echo-stderr "[$counter] TCP/$port up after $(($(date +%s)-$start))s"
+                -echo-stderr "TCP/$port up after $(($(date +%s)-$start))s"
                 tcp_ok="true"
             fi
         fi
         if [ -z "$http_ok" ]; then
             # if so, check that http is ready
             if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /dev/null; then
-                -echo-stderr "[$counter] HTTP/$port down after $(($(date +%s)-$start))s"
+                -echo-stderr "HTTP/$port down after $(($(date +%s)-$start))s"
                 sleep $period
                 continue
             else
-                -echo-stderr "[$counter] HTTP/$port up after $(($(date +%s)-$start))s"
+                -echo-stderr "HTTP/$port up after $(($(date +%s)-$start))s"
                 tcp_ok="true"
                 return 0
             fi
