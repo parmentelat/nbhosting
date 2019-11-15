@@ -679,30 +679,16 @@ function -wait-for-http-on-port-token() {
     local period=$1; shift
     local start=$(date +%s)
     local max=$(($start+$timeout))
-    local tcp_ok=""
-    local http_ok=""
     while [ $(($(date +%s) <= $max)) == 1 ]; do
-        if [ -z "$tcp_ok" ]; then
-            if ! timeout $period bash -c "true < /dev/tcp/localhost/$port" 2> /dev/null; then
-                -echo-stderr "TCP/$port down after $(($(date +%s)-$start))s"
-                sleep $period
-                continue
-            else
-                -echo-stderr "TCP/$port up after $(($(date +%s)-$start))s"
-                tcp_ok="true"
-            fi
-        fi
-        if [ -z "$http_ok" ]; then
-            # if so, check that http is ready
-            if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /tmp/wait-http-$port; then
-                -echo-stderr "HTTP/$port down after $(($(date +%s)-$start))s"
-                sleep $period
-                continue
-            else
-                -echo-stderr "HTTP/$port up after $(($(date +%s)-$start))s"
-                tcp_ok="true"
-                return 0
-            fi
+        # check that http is ready
+        if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /tmp/wait-http-$port; then
+            -echo-stderr "HTTP/$port down after $(($(date +%s)-$start))s"
+            sleep $period
+            continue
+        else
+            -echo-stderr "HTTP/$port up after $(($(date +%s)-$start))s"
+            tcp_ok="true"
+            return 0
         fi
     done
     -echo-stderr "beg giving up on $port - last curl attempt yielded this :"
