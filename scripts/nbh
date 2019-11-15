@@ -571,12 +571,12 @@ function docker-run-container-for-student-in-course() {
             # so as a temporary measure, we remove the container
             # so next time it will no longer be in the way
             docker rm $container &
-            echo failed-stopped-container none none none
+            echo failed-stopped-container $container none none
             return 1
         fi
         port=$(cat $STUDENT_course/.port)
         if [ "$running" != true ]; then
-            echo failed-cannot-retrieve-port none none none
+            echo failed-cannot-retrieve-port $container none none
             return 1
         fi
         local line="existing $container $port $jupyter_token"
@@ -661,7 +661,7 @@ function docker-run-container-for-student-in-course() {
         # show docker logs on stderr
          -echo-stderr "==================== docker logs on that container over the last minute"
          >&2 docker logs -t --since +1m $container
-        echo failed-timeout none none none
+        echo failed-timeout $container $port none
         return 1 
     fi
 
@@ -746,7 +746,7 @@ function docker-view-student-course-notebook() {
     ## in case the student is not known yet
     add-student-in-course $student $course || {
         # something wrong happened, typically /etc/login.defs misconfigured
-        echo failed none none none
+        echo failed-cannot-add-student-in-course $student $course none
         return 1
     }
 
@@ -786,16 +786,14 @@ function docker-view-student-course-jupyterdir() {
 
     getent passwd $student >& /dev/null || {
         -echo-stderr "refusing to open jupyterdir session for unknown student $student"
-        echo failed none none none
+        echo failed-unknown-student $student none none
         return 1
     }
-
-
 
     ## in case the student is not known yet
     add-student-in-course $student $course || {
         # something wrong happened, typically /etc/login.defs misconfigured
-        echo failed none none none
+        echo failed-cannot-add-student-in-course $student $course none
         return 1
     }
 
@@ -803,7 +801,7 @@ function docker-view-student-course-jupyterdir() {
     [ -d $STUDENT_course ] || {
         echo-stderr "refusing to open jupyterdir session for student $student"
         echo -stderr "who has not yet opened the $course course"
-        echo failed none none none
+        echo failed-student-has-no-workdir $student $course none
         return 1
     }
 
