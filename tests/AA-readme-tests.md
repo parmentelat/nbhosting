@@ -1,3 +1,35 @@
+# Important note
+
+as of 2019 nov 15, darktek is being decommissioned and goes into the r2lab room; 
+our new test box will thus be **`stupeflip`** (Command-2); 
+here's a summary of the steps I have taken to set it up,
+starting from a rther mundame fedora-29,
+in a hope to better understand that fonts thing
+
+```
+cd
+mkdir git
+cd git
+# populate with nbhosting + 5 courses
+git clone https://github.com/parmentelat/flotbioinfo.git bioinfo
+git clone https://github.com/flotpython/gittutorial.git mines-git-tuto
+git clone https://github.com/flotpython/primer mines-python-primer
+git clone https://github.com/parmentelat/nbhosting.git nbhosting
+git clone https://github.com/flotpython/slides.git python-slides
+git clone https://github.com/parmentelat/flotpython.git python3-s2
+
+pip3 install selenium
+dnf install -y chromedriver
+dnf install -y chromium
+```
+
+and at that point everything was working fine.. For good measure I added also
+
+```
+dnf install mathjax
+```
+
+
 # Setup
 
 * one test server (typically nbhosting-dev.inria.fr)
