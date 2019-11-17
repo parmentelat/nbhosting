@@ -379,7 +379,7 @@ function add-student-in-course() {
             groupadd $group
         }
         -echo-stderr "Ensuring $student is in group $group"
-        groupmems -a $student -g $group &> /dev/null
+        groupmems -a $student -g $group >& /dev/null
         # restarting docker would be way too intrusive !
         if [ $? != 0 -a "$group" == "docker" ]; then
             -echo-stderr "reloading docker service after adding $student into docker"
@@ -493,22 +493,15 @@ function -git-repo-student-for-course() {
 
 
 ########## port numbers
-function port-in-use() {
-    local port=$1; shift
-    # port is in use iff that file can be opened
-    (echo < /dev/tcp/127.0.0.1/$port) &>/dev/null
-}
-function random-port() {
-    # avoid privileged range and start at 1025 
-    # go all the way to the top
-    python3 -c 'import random; print(random.randint(2**10+1, 2**16-1))'
-}
 function free-port() {
-    local port
-    while true; do
-        port=$(random-port)
-        port-in-use $port || { echo $port; return 0; }
-    done
+    python3 << EOF
+import socket
+from contextlib import closing
+with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+    s.bind(('', 0))
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    print(s.getsockname()[1])
+EOF
 }
 
 
@@ -657,7 +650,7 @@ function docker-run-container-for-student-in-course() {
     >&2 $command
 
     if ! -wait-for-http-on-port-token \
-        $port $jupyter_token $timeout_wait_for_http; then
+        $container $port $jupyter_token $timeout_wait_for_http; then
         # show docker logs on stderr
          -echo-stderr "==================== docker logs on that container over the last minute"
          >&2 docker logs -t --since +1m $container
@@ -673,18 +666,23 @@ function docker-run-container-for-student-in-course() {
 
 
 function -wait-for-http-on-port-token() {
+    local container=$1; shift
     local port=$1; shift
     local token=$1; shift
     local timeout=$1; shift
     local period=$1; shift
     local start=$(date +%s)
     local max=$(($start+$timeout))
+    -echo-stderr "checking port agains ss"
+    ss --numeric --tcp --listening | egrep -q ":$port[ \t]"
+    [ "$?" == 0 ] || -echo-stderr "OOPS - ss says port $port is busy !"
     while [ $(($(date +%s) <= $max)) == 1 ]; do
         # check that http is ready
         if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /tmp/wait-http-$port; then
             -echo-stderr "HTTP/$port down after $(($(date +%s)-$start))s"
             sleep $period
             continue
+            docker inspect --format '{{.Name}}' $container >& /dev/null || echo "OOPS - $container is DEAD !!"
         else
             -echo-stderr "HTTP/$port up after $(($(date +%s)-$start))s"
             tcp_ok="true"
