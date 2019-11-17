@@ -1,3 +1,9 @@
+# 0.24.5 2019 Nov 17
+
+* attempted bugfix: prior code was not performing port allocation properly,
+  and so when a busy port was picked we were getting the infamous 'failed-timeout' 
+  error message
+
 # 0.24.4 2019 Nov 14
 
 * fix the jupyter classic/lab buttons
