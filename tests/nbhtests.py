@@ -43,6 +43,8 @@ def main() -> bool:
                         help="delay between 2 triggers of nbhtest")
     parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
+    parser.add_argument("-c", "--cut", default=False, 
+                        help="""just load the urls, don't do any further processing""")
     parser.add_argument("-w", "--window", default=default_window, type=int,
                         help="window depth for spawning the nbhtest instances")
     parser.add_argument("-n", "--dry-run", action='store_true')
@@ -65,6 +67,8 @@ def main() -> bool:
         for index in args.indices:
             command = (f"nbhtest.py -U {args.topurl} -u {student_name} "
                        f"-s {args.sleep} ")
+            if args.cut:
+                command += "-c "
             for coursedir in args.coursedirs:
                 command += f"{coursedir}:{index} "
             command += " &"
