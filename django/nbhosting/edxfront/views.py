@@ -34,10 +34,10 @@ def log_completed_process(completed_process, subcommand):
         # implement policy for stderr
         if field == 'stderr':
             # config has requested to not log stderr at all
-            if sitesettings.log_subprocess_stderr is None:
+            if sitesettings.DEBUG_log_subprocess_stderr is None:
                 continue
             # config requires stderr only for failed subprocesses
-            if sitesettings.log_subprocess_stderr is False \
+            if sitesettings.DEBUG_log_subprocess_stderr is False \
                and completed_process.returncode == 0:
                 continue
         logger.info(f"{header} - {field}")

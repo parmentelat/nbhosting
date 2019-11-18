@@ -20,15 +20,6 @@ ssl_certificate = "/root/ssl-certificate/bundle.crt"
 ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 
 
-# describes how to log stderr from sub processes
-# depending on its returncode
-# can be either:
-# None : never logs
-# True : always log
-# False : log when return code != 0
-log_subprocess_stderr = False
-
-
 # the location used by the application
 # typically where you have a big fat btrfs filesystem
 nbhroot = '/nbhosting'
@@ -80,6 +71,16 @@ allowed_devel_ips = [
 ######################################## django settings
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+
+# describes how to log stderr from (shell) sub processes
+# depending on its returncode
+# can be either:
+# None : never logs
+# True : always log
+# False : log when return code != 0
+
+DEBUG_log_subprocess_stderr = False
+
 
 # see e.g. https://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = 'your-actual-production-key-here'
