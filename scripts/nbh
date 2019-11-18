@@ -678,7 +678,7 @@ function -wait-for-http-on-port-token() {
     [ "$?" == 0 ] || -echo-stderr "OOPS - ss says port $port is busy !"
     while [ $(($(date +%s) <= $max)) == 1 ]; do
         # check that http is ready
-        if ! timeout $period curl "http://localhost:$port/tree?token=$token" >& /tmp/wait-http-$port; then
+        if ! timeout $period curl -s "http://localhost:$port/tree?token=$token" >& /tmp/wait-http-$port; then
             -echo-stderr "HTTP/$port down after $(($(date +%s)-$start))s"
             sleep $period
             continue
