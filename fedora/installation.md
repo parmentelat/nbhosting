@@ -608,13 +608,27 @@ git pull
 ./install.sh
 ```
 
+## note on upgrading to 0.25
 
-# miscell
+First, please note that as part of 0.25, the `systemd` service that used to be called
+`nbh-uwsgi` is now more simply `nbh-django`, which is easier to remember - see issue #103
 
-## mountpoint for docker images
+Some cleanup has been done in the `sitesettings.py` area; 
+you will **need to** review your own file according to the following changes
 
-* `/etc/docker/daemon.json` is the place where we define `/nbhosting/dockers` as being
-  `docker`'s workspace; this ***DOES NOT*** depend on the contents of `sitesettings.py`
+* `log_subprocess_stderr` has the same meaning but is renamed as 
+  `DEBUG_log_subprocess_stderr`; it is recommended to move its definition close 
+  to the definition of the plain django `DEBUG` variable - see issue #106
+* define the 2 new variables `monitor_idle` and `monitor_period` (in minutes)
+  - see issue #104
+* define new variable `dockerroot`, which ought to be `/nbhosting/dockers` 
+  if you are upgrading since that was previously the hard-wired default - see issue #105
 
+Generally speaking, a good way to approach these changes is to compare
 
+* `sitesettings.py.example` that comes with the git repo and reflects 
+  what your file should look like, and
+* `sitesettings.py` that contains your own settings.
 
+These two files should be almost identical, except of course 
+for the actual values for your site.
