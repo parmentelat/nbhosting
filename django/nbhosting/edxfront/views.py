@@ -1,4 +1,4 @@
-# pylint: disable=c0111, r1705, w1203
+# pylint: disable=c0111, r1705
 
 from pathlib import Path
 import subprocess
@@ -16,18 +16,18 @@ from nbhosting.stats.stats import Stats
 # Create your views here.
 
 
-def error_page(request, course, student, notebook, message=None):
+def error_page(request, course, student, notebook, message):
     return render(
         request, "error.html", dict(
             course=course, student=student,
             notebook=notebook, message=message))
 
 
-def log_completed_process(completed_process, subcommand):
+def log_completed_process(completed, subcommand):
     header = f"{10 * '='} {subcommand}"
-    logger.info(f"{header} returned ==> {completed_process.returncode}")
+    logger.info(f"{header} returned ==> {completed.returncode}")
     for field in ('stdout', 'stderr'):
-        text = getattr(completed_process, field, 'undef')
+        text = getattr(completed, field, 'undef')
         # nothing to show
         if not text:
             continue
@@ -38,11 +38,23 @@ def log_completed_process(completed_process, subcommand):
                 continue
             # config requires stderr only for failed subprocesses
             if sitesettings.DEBUG_log_subprocess_stderr is False \
-               and completed_process.returncode == 0:
+               and completed.returncode == 0:
                 continue
         logger.info(f"{header} - {field}")
         logger.info(text)
 
+
+def failed_command_message(command_str, completed, prefix=None):
+    result = ""
+    if prefix: 
+        result += f"{prefix}\n"
+    result += (
+        f"command {command_str}\n"
+        f"returned {completed.returncode}\n"
+        f"stdout:{completed.stdout}\n"
+        f"stderr:{completed.stderr}")
+    return result
+    
 
 # auth scheme here depends on the presence of META.HTTP_REFERER
 # if present, check that one of the fields in 'allowed_referer_domains' appears in referer
@@ -56,8 +68,7 @@ def authorized(request):
         domains = sitesettings.allowed_referer_domains
         result = any(domain in referer
                      for domain in domains)
-        explanation = "HTTP_REFERER = {}, allowed_referer_domains = {}"\
-                      .format(referer, domains)
+        explanation = f"HTTP_REFERER = {referer}, allowed_referer_domains = {domains}"
         return result, explanation
 
     # check REMOTE_ADDR against allowed_devel_ips
@@ -70,8 +81,8 @@ def authorized(request):
                 result = True
             if mode == 'match' and re.match(allowed, incoming_ip):
                 result = True
-        explanation = "REMOTE_ADDR = {}, allowed_devel_ips = {}"\
-                      .format(incoming_ip, allowed_devel_ips)
+        explanation = (f"REMOTE_ADDR = {incoming_ip}, "
+                       f"allowed_devel_ips = {allowed_devel_ips}")
         return result, explanation
 
 
@@ -146,7 +157,6 @@ def locate_notebook(directory, notebook):
     top = Path(directory)
     p = top / notebook
     suffix = p.suffix
-    stem = p.stem
     if suffix not in policies:
         return False, None, None, None
     variants = policies[suffix]
@@ -176,22 +186,22 @@ def _open_notebook(request, coursename, student, notebook,
     if not coursedir.is_valid():
         return error_page(
             request, coursename, student, notebook,
-            f"no such course {coursename}"
+            f"no such course `{coursename}'"
         )
 
     # the ipynb extension is removed from the notebook name in urls.py
-    exists, notebook_with_ext, notebook_without_ext, is_genuine_notebook = \
+    exists, notebook_with_ext, _, is_genuine_notebook = \
         locate_notebook(coursedir.git_dir, notebook)
 
     # second attempt from the student's space
     # in case the student has created it locally...
     if not exists:
-        exists, notebook_with_ext, notebook_without_ext, is_genuine_notebook = \
+        exists, notebook_with_ext, _, is_genuine_notebook = \
             locate_notebook(coursedir.student_dir(student), notebook)
             
     if not exists:
-        msg = f"notebook {notebook} not known in this course or student"
-        return error_page(request, coursename, student, msg)
+        msg = f"notebook `{notebook}' not known in this course or student"
+        return error_page(request, coursename, student, notebook, msg)
 
     subcommand = 'docker-view-student-course-notebook'
 
@@ -217,31 +227,24 @@ def _open_notebook(request, coursename, student, notebook,
     # add arguments to the subcommand
     command += [student, coursename, notebook_with_ext,
                 coursedir.image, ref_giturl]
-    logger.info(f'edxfront is running: {" ".join(command)}')
-    completed_process = subprocess.run(
+    command_str = " ".join(command)
+    logger.info(f'edxfront is running: {command_str}')
+    completed = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    log_completed_process(completed_process, subcommand)
+    log_completed_process(completed, subcommand)
 
-    if completed_process.returncode != 0:
-        message = "command {} returned {}\nstderr:{}"\
-                  .format(" ".join(command),
-                          completed_process.returncode,
-                          completed_process.stderr)
+    if completed.returncode != 0:
+        message = failed_command_message(command_str, completed)
         return error_page(
             request, coursename, student, notebook, message)
 
     try:
-        action, _docker_name, actual_port, jupyter_token = completed_process.stdout.split()
+        action, _docker_name, actual_port, jupyter_token = completed.stdout.split()
 
         if action.startswith("failed"):
-            message = ("failed to spawn notebook container\n"
-                       "command {}\nreturned with retcod={} action={}\n"
-                       "stdout:{}\n"
-                       "stderr:{}").format(
-                           " ".join(command), completed_process.returncode, action,
-                           completed_process.stdout,
-                           completed_process.stderr)
+            message = failed_command_message(
+                command_str, completed, prefix="failed to spawn notebook container")
             return error_page(
                 request, coursename, student, notebook, message)
 
@@ -264,12 +267,11 @@ def _open_notebook(request, coursename, student, notebook,
         else:
             url = (f"{scheme}://{host}/{actual_port}/lab/tree/{notebook_with_ext}")
         logger.info(f"edxfront: redirecting to {url}")
-#        return HttpResponse('<a href="{}">click to be redirected</h1>'.format(url))
         return HttpResponseRedirect(url)
 
     except Exception as exc:
         message = (f"exception when parsing output of nbh {subcommand}\n"
-                   f"{completed_process.stdout}\n"
+                   f"{completed.stdout}\n"
                    f"{type(exc)}: {exc}")
         # logger.exception(message)
         return error_page(
@@ -292,7 +294,7 @@ def share_notebook(request, course, student, notebook):
     notebook_with_ext = notebook + ".ipynb"
     # compute hash from the input, so that a second run on the same notebook
     # will override any previsouly published static snapshot
-    hasher = hashlib.sha1(bytes('{}-{}-{}'.format(course, student, notebook),
+    hasher = hashlib.sha1(bytes(f'{course}-{student}-{notebook}',
                                 encoding='utf-8'))
     hash = hasher.hexdigest()
 
@@ -304,24 +306,22 @@ def share_notebook(request, course, student, notebook):
     command.append(subcommand)
 
     command += [student, course, notebook_with_ext, hash]
-
+    command_str = " ".join(command)
+    
     logger.info(f"In {Path.cwd()}\n"
                 f"-> Running command {' '.join(command)}")
-    completed_process = subprocess.run(
+    completed = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    log_completed_process(completed_process, subcommand)
+    log_completed_process(completed, subcommand)
 
-    if completed_process.returncode != 0:
-        message = "command {} returned {}\nstderr:{}"\
-                  .format(" ".join(command),
-                          completed_process.returncode,
-                          completed_process.stderr)
+    if completed.returncode != 0:
+        message = failed_command_message(command_str, completed)
         return JsonResponse(dict(error=message))
 
     # expect docker-share-student-course-notebook
     # to write a url_path on its stdout
-    url_path = completed_process.stdout.strip()
+    url_path = completed.stdout.strip()
     logger.info(f"reading url_path={url_path}")
     # rebuild a full URL with proto and hostname,
     url = f"{request.scheme}://{request.get_host()}{url_path}"
@@ -361,8 +361,8 @@ def jupyterdir_forward(request, course, student, jupyter_url):
     coursedir = CourseDir.objects.get(coursename=course)
     if not coursedir.is_valid():
         return error_page(
-            request, coursename, student, notebook,
-            f"no such course {coursename}"
+            request, course, student, "n/a",
+            f"no such course {course}"
         )
 
     # nbh's subcommand
@@ -376,31 +376,24 @@ def jupyterdir_forward(request, course, student, jupyter_url):
 
     # add arguments to the subcommand
     command += [student, course, coursedir.image]
-    logger.info(f'In {Path.cwd()}\n-> Running command {" ".join(command)}')
-    completed_process = subprocess.run(
+    command_str = " ".join(command)
+    logger.info(f"Running command {command_str}")
+    completed = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    log_completed_process(completed_process, subcommand)
+    log_completed_process(completed, subcommand)
 
-    if completed_process.returncode != 0:
-        message = "command {} returned {}\nstderr:{}"\
-                  .format(" ".join(command),
-                          completed_process.returncode,
-                          completed_process.stderr)
+    if completed.returncode != 0:
+        message = failed_command_message(command_str, completed)
         return error_page(
             request, course, student, "jupyterdir", message)
 
     try:
-        action, _docker_name, actual_port, jupyter_token = completed_process.stdout.split()
+        action, _docker_name, actual_port, jupyter_token = completed.stdout.split()
 
         if action.startswith("failed"):
-            message = ("failed to spawn notebook container\n"
-                       "command {}\nreturned with retcod={} action={}\n"
-                       "stdout:{}\n"
-                       "stderr:{}").format(
-                           " ".join(command), completed_process.returncode, action,
-                           completed_process.stdout,
-                           completed_process.stderr)
+            message = failed_command_message(
+                command_str, completed, "failed to spawn notebook container")
             return error_page(
                 request, course, student, "jupyterdir", message)
 
@@ -427,7 +420,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
 
     except Exception as exc:
         message = (f"exception when parsing output of nbh {subcommand}\n"
-                   f"{completed_process.stdout}\n"
+                   f"{completed.stdout}\n"
                    f"{type(exc)}: {exc}")
         # logger.exception(message)
         return error_page(
