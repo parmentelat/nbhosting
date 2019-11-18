@@ -107,15 +107,25 @@ function update-docker {
     rsync -ai docker/daemon.json /etc/docker
 }
 
+# old name was nbh-uwsgi - see issue #103
+function remove-uwsgi-service() {
+    # if that service is not known, we're good
+    systemctl cat nbh-uwsgi >& /dev/null || return
+    systemctl stop nbh-uwsgi
+    systemctl disable nbh-uwsgi
+    rm -f /etc/systemd/system/nbh-uwsgi.service
+}
+
 function enable-services() {
-    rsync $rsopts systemd/nbh-uwsgi.service /etc/systemd/system/
+    remove-uwsgi-service
+    rsync $rsopts systemd/nbh-django.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
     systemctl daemon-reload
     systemctl enable docker
     systemctl enable nginx
-    systemctl enable nbh-uwsgi
+    systemctl enable nbh-django
     systemctl enable nbh-monitor
     systemctl enable nbh-autopull.timer
 }
@@ -128,7 +138,7 @@ function migrate-database() {
 function restart-services() {
     systemctl restart nbh-monitor
     systemctl restart nginx
-    systemctl restart nbh-uwsgi
+    systemctl restart nbh-django
     systemctl restart nbh-autopull.timer
 }
 
