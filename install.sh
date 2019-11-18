@@ -104,7 +104,8 @@ function update-nginx() {
 }
 
 function update-docker {
-    rsync -ai docker/daemon.json /etc/docker
+    sed -e "s/@dockerroot@/$dockerroot/" \
+    docker/daemon.json.in /etc/docker/daemon.json
 }
 
 # old name was nbh-uwsgi - see issue #103

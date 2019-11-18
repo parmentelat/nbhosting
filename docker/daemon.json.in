@@ -1,4 +1,4 @@
 {
   "storage-driver": "btrfs",
-  "graph": "/nbhosting/dockers"
+  "graph": "@dockerroot@"
 }

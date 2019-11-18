@@ -29,6 +29,11 @@ nbhroot = '/nbhosting'
 # running ./install.sh
 srcroot = '/root/nbhosting'
 
+# the location where docker is told to store its images and all other files
+# it should point into a btrfs partition
+# if you upgrade from 0.24 or earlier you should keep this default value
+# that was previously hard-wired
+dockerroot = '/nbhosting/dockers'
 
 ### upstream portals
 #
