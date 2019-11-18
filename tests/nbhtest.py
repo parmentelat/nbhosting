@@ -39,6 +39,9 @@ default_sleep_internal = 1
 
 
 class Contents:
+    """
+    models a coursedir that we scan so we can reference notebooks by their index
+    """
     
     def __init__(self, dir):
         self.dir = dir
@@ -101,7 +104,11 @@ class Notebook:
         notebooks = contents.notebooks
         self.course = course
         self.index = int(index)
-        self.nb_path = notebooks[self.index]
+        try:
+            self.nb_path = notebooks[self.index]
+        except IndexError:
+            self.nb_path = "unexisting-notebook"
+            print(f"Using {self.nb_path} for dangling index {index}")
         
     
     @property
