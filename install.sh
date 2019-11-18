@@ -104,8 +104,8 @@ function update-nginx() {
 }
 
 function update-docker {
-    sed -e "s/@dockerroot@/$dockerroot/" \
-    docker/daemon.json.in /etc/docker/daemon.json
+    sed -e "s,@dockerroot@,$dockerroot," \
+    docker/daemon.json.in > /etc/docker/daemon.json
 }
 
 # old name was nbh-uwsgi - see issue #103
@@ -122,8 +122,8 @@ function enable-services() {
     rsync $rsopts systemd/nbh-django.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
-    sed -e "s/@monitor_period@/$monitor_period/" \
-        -e "s/@monitor_idle@/$monitor_idle/" \
+    sed -e "s,@monitor_period@,$monitor_period," \
+        -e "s,@monitor_idle@,$monitor_idle," \
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
     systemctl enable docker
