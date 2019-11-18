@@ -80,12 +80,16 @@ class Contents:
             self.notebooks = notebooks
 
 
-js_clear_all_on_document_load = "$(function() { Jupyter.notebook.clear_all_output(); })"
+js_clear_all_on_document_load = "$(() => Jupyter.notebook.clear_all_output())"
 js_run_all = "Jupyter.notebook.execute_all_cells()"
 js_save = "Jupyter.notebook.save_checkpoint()"
 
 
 def pause(mark, message, *, sleep=0, duration=None, skip=0):
+    """
+    skip is a number of sleep periods that should not be accounted
+    for in the computed duration 
+    """
     line = f"{mark}:{message}"
     if sleep: 
         line += f" - waiting for {sleep}s"
@@ -198,7 +202,7 @@ def run(topurl, user, notebooks, sleep, cut):
             get_duration = time.time() - begin
             driver.save_screenshot(scr.filename('0get'))
             if cut:
-                pause(mark, "loaded", sleep=0, duration=get_duration, skip=0)
+                pause(mark, "loaded", sleep=sleep, duration=get_duration, skip=0)
                 return
             #
             pause(mark, "loaded", sleep=sleep, duration=get_duration, skip=0)
@@ -276,7 +280,7 @@ def main():
                         help="username for opening that notebook")
     parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
-    parser.add_argument("-c", "--cut", default=False, 
+    parser.add_argument("-c", "--cut", default=False, action='store_true',
                         help="""just load the urls, don't do any further processing""")
     parser.add_argument("notebooks", default=[f"{default_course_gitdir}:0"],
                         nargs='*',

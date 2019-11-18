@@ -43,7 +43,7 @@ def main() -> bool:
                         help="delay between 2 triggers of nbhtest")
     parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
-    parser.add_argument("-c", "--cut", default=False, 
+    parser.add_argument("-c", "--cut", default=False, action='store_true',
                         help="""just load the urls, don't do any further processing""")
     parser.add_argument("-w", "--window", default=default_window, type=int,
                         help="window depth for spawning the nbhtest instances")
