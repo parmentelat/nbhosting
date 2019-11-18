@@ -63,7 +63,7 @@ DEBUG=
 #
 # how long should we wait for the container to answer http
 # trying to create 6 containers at the exact same time : 10s is not long enough
-timeout_wait_for_http="20 .3"
+timeout_wait_for_http="5 .4"
 
 # implementation note
 #  don't do set -e, as it may cause the program to exit abruptly
