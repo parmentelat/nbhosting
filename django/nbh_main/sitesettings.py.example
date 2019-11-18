@@ -50,9 +50,9 @@ dockerroot = '/nbhosting/dockers'
 #    would allow to run as a companion to FUN
 # see jupyter/jupyter_notebook_config.py.in
 frame_ancestors = [
+    "https://*.fun-mooc.fr",
     # if you plan on using nbhosting in classroom mode, this is required
     "'self'",
-    "https://*.fun-mooc.fr",
 ]
 
 # the domains that are trusted
@@ -99,6 +99,7 @@ DEBUG_log_subprocess_stderr = False
 
 # see e.g. https://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = 'your-actual-production-key-here'
+
 
 # this is a native django setting
 # see https://docs.djangoproject.com/en/1.11/ref/settings/#allowed-hosts

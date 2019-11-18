@@ -653,6 +653,7 @@ function docker-run-container-for-student-in-course() {
         # show docker logs on stderr
          -echo-stderr "==================== docker logs on that container over the last minute"
          >&2 docker logs -t --since +1m $container
+         -echo-stderr "==================== docker logs end"
         echo failed-timeout $container $port none
         return 1 
     fi
@@ -1185,6 +1186,7 @@ function main() {
     fi
 
     # call subcommand
+    -echo-stderr Starting $COMMAND $fun "$@"
     $fun "$@"
 }
 
