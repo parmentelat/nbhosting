@@ -7,8 +7,9 @@ from django.core.management.base import BaseCommand
 """
 this management command is used by the installation script
 
-it extracts information store in sitesettings.py and exposes it in
-a shell source-able format, so that these values are available to a shell script
+it extracts information stored in sitesettings.py and exposes it in
+a shell source-able format, so that these values are available to
+the installation shell script
 """
 
 
@@ -25,6 +26,9 @@ def shell_escape(value):
 
 def expose_var_value(symbol, value):
     print(f"{symbol}={shell_escape(value)}")
+
+def expose_var_number(symbol, value):
+    print(f"{symbol}={value}")
 
 def expose_var_values(symbol, values):
     # expose list of strings as a bash array
@@ -54,5 +58,7 @@ class Command(BaseCommand):
                 continue
             if isinstance(value, str):
                 expose_var_value(symbol, value)
+            elif isinstance(value, (int, float)):
+                expose_var_number(symbol, value)
             elif isinstance(value, list) and all(isinstance(v, str) for v in value):
                 expose_var_values(symbol, value)

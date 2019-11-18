@@ -119,9 +119,11 @@ function remove-uwsgi-service() {
 function enable-services() {
     remove-uwsgi-service
     rsync $rsopts systemd/nbh-django.service /etc/systemd/system/
-    rsync $rsopts systemd/nbh-monitor.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
+    sed -e "s/@monitor_period@/$monitor_period/" \
+        -e "s/@monitor_idle@/$monitor_idle/" \
+        systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
     systemctl enable docker
     systemctl enable nginx

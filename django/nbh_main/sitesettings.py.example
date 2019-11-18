@@ -68,6 +68,14 @@ allowed_devel_ips = [
     ( 'match', '138\.96\.[0-9]+\.[0-9]+'),
 ]
 
+######################################## monitor policy
+# in minutes
+# monitor will run cyclically - every <period> minutes - 
+# and kill containers that have been idle for more than <idle> minutes
+# depends on your available resources and traffic of course
+monitor_idle = 30
+monitor_period = 10
+
 ######################################## django settings
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
