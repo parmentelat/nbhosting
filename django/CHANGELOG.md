@@ -1,3 +1,9 @@
+# 0.25.0 2019 Nov 18
+
+* fix nbh shell script so that failing calls get logged properly
+* more site-specific configuration options, issues ## 103 104 105 106
+* minor cleanup in the log initialization code
+
 # 0.24.5 2019 Nov 17
 
 * attempted bugfix: prior code was not performing port allocation properly,
