@@ -748,8 +748,6 @@ function docker-view-student-course-notebook() {
     local container=$STUDENT_container
     # either existing of created
     docker-run-container-for-student-in-course $container $student $course $image
-
-    return 0
 }
 
 
@@ -794,8 +792,6 @@ function docker-view-student-course-jupyterdir() {
     local container=$STUDENT_container
     # either existing of created
     docker-run-container-for-student-in-course $container $student $course $image
-
-    return 0
 }
 
 
