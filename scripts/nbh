@@ -167,7 +167,7 @@ function course-init() {
 
     -compute-course-globals $course
 
-    local log=$COURSE_logs/000.log
+    local log=$COURSE_logs/course-init.log
 
     function -course-init() {
         [ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
@@ -201,7 +201,7 @@ function course-update-from-git() {
     course=$1; shift
     -compute-course-globals $course
 
-    local log=$NBHROOT/logs/$course/update.log
+    local log=$NBHROOT/logs/$course/course-update.log
 
     # check the course is known
     [ -d $COURSE_git ] || -die "Cannot find git repo $COURSE_git"
@@ -314,7 +314,6 @@ function -compute-student-globals-in-course () {
     STUDENT_home=$NBHROOT/students/$student
     STUDENT_course=$STUDENT_home/$course
     STUDENT_modules=$STUDENT_course/modules
-    STUDENT_log=$NBHROOT/logs/$course/create-$student.log
 
     STUDENT_container="${course}-x-${student}"
 

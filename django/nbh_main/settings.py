@@ -32,8 +32,6 @@ from .loggers import init_loggers
 ########## production vs devel
 DEVEL = False
 if os.getuid() == 0:
-    # typically $NBHROOT/logs
-    LOGS_DIR = Path(sitesettings.nbhroot) / 'logs'
     # typically $HOME/nbhosting
     BASE_DIR = Path(sitesettings.srcroot)
 else:
@@ -41,8 +39,6 @@ else:
     # e.g. $HOME/git/nbhosting/django
     django_root = Path(__file__).parents[1]
     sitesettings.nbhroot = str(django_root / 'fake-root')
-    # some provisions for devel mode
-    LOGS_DIR = Path.cwd()
     # .parents[0] is dirname(f)
     # .parents[1] is dirname(dirname(f))
     BASE_DIR = Path(__file__).parents[1]
@@ -53,8 +49,7 @@ else:
 
 NBHROOT = Path(sitesettings.nbhroot).resolve()
 
-# this will create <root>/logs - and thus <root> - if needed
-init_loggers(LOGS_DIR, DEBUG)
+init_loggers(DEBUG)
 logger = logging.getLogger('nbhosting')
 monitor_logger = logging.getLogger('monitor')
 

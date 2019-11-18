@@ -6,12 +6,7 @@ import logging
 import logging.config
 from logging.handlers import TimedRotatingFileHandler
 
-def init_loggers(dir, debug):
-
-    # accept a path or a string
-    path = Path(dir)
-    # create if needed
-    dir.mkdir(parents=True, exist_ok=True)
+def init_loggers(debug):
 
     level = 'INFO' if not debug else 'DEBUG'
 
