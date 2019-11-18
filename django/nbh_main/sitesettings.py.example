@@ -22,7 +22,9 @@ ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 
 # the location used by the application
 # typically where you have a big fat btrfs filesystem
-nbhroot = '/nbhosting'
+# our main deployment at Inria uses /nbhosting/current that is
+# a symlink to either /nbhosting/prod or /nbhosting/dev
+nbhroot = '/nbhosting/current'
 
 # the location where the application is installed
 # i.e. the place where you have git clone'd it before
