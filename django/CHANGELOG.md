@@ -1,3 +1,13 @@
+# 0.25.1 2019 Nov 19
+
+* global timeout raises to 30s; it's a lot, but it turns out it is necessary; I suspect
+  some components in the image (jlab ?) may be in part responsible for slowing things down
+* bugfix in monitor: it was causing a few mishaps when it killed containers that were not
+  reachable because actually just taking off
+* refactored edxfront view for more consistent rendering in case of failures
+* various improvements in the tests area
+* bugfix in install script
+
 # 0.25.0 2019 Nov 18
 
 * fix nbh shell script so that failing calls get logged properly
