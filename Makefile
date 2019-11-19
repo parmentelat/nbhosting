@@ -27,7 +27,7 @@ GIT-FILES		= $(shell git ls-files)
 
 DEVBOX = root@nbhosting-dev.inria.fr
 PRODBOX = root@nbhosting.inria.fr
-TESTBOX = root@darktek.pl.sophia.inria.fr
+TESTBOX = root@stupeflip.pl.sophia.inria.fr
 
 ### push just the files that have changed
 syncdev:

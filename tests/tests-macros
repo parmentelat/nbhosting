@@ -39,14 +39,18 @@ function 1c-100s-1n() {
    ./nbhtests.py -u 1-100 -i 50 $coursedirs "$@"
 }
 
+# gently more demanding, exact same with -w10
+function 1c-100s-1n-w10() {
+   compute-coursedirs python3-s2 
+   ./nbhtests.py -u 1-100 -i 60 -w10 $coursedirs "$@"
+}
+
 # one course too, same total load of 100 students
 # but larger window, and -c so that it runs faster
 function 1c-100s-1n-w10-c() {
    compute-coursedirs python3-s2 
    ./nbhtests.py -u 1-100 -i 60 -w10 -c $coursedirs "$@"
 }
-
-
 
 # same but heavy duty, faster period, more simulataneous students
 function 1c-100s-1n-heavy() {
