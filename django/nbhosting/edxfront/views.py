@@ -258,7 +258,6 @@ def _open_notebook(request, coursename, student, notebook,
         if ':' in host:
             host, _ = host.split(':', 1)
         ########## forge a URL that nginx will intercept
-        # port depends on scheme - we do not specify it
         # passing along course and student is for 'reset_from_origin'
         if is_genuine_notebook:
             url = (f"{scheme}://{host}/{actual_port}/notebooks/"

@@ -685,7 +685,6 @@ function -wait-for-http-on-port-token() {
             docker inspect --format '{{.Name}}' $container >& /dev/null || echo "OOPS - $container is DEAD !!"
         else
             -echo-stderr "HTTP/$port up after $(($(date +%s)-$start))s"
-            tcp_ok="true"
             return 0
         fi
     done
