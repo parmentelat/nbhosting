@@ -47,6 +47,12 @@ Also note that
 
 """
 
+# not configurable for now
+# when we detect an unreachable container, we wait this amount of seconds
+# before we decide to kill it, to make sure it is not simply taking off
+# makes sense to pick something in the order of magnitude of the 
+# global timeout in scripts/nbh
+GRACE = 30
 
 class CourseFigures:
 
@@ -203,12 +209,9 @@ class MonitoredJupyter:
         both timeouts in seconds
         """
         now = time.time()
-        actual_hash = self.container.image.id
-        # 
-        # xxx this can be made a lot simpler
-        # if the general idea pans out
-        # 
-        # stopped containers need to be handled a bit differently
+        # ignore containers already marked as to remove
+        if self.container.status == 'removing':
+            return
         if self.container.status != 'running':
             # this should no longer happen
             # except maybe during a transition period
@@ -216,9 +219,9 @@ class MonitoredJupyter:
             unused_days = (int)((now - exited_time) // (24 * 3600))
             unused_hours = (int)((now - exited_time) // (3600) % 24)
             logger.warning(
-                f"Removing (stopped - legacy?) {self} "
+                f"Removing (not running - legacy?) {self} "
                 f"that has been unused for {unused_days} days "
-                f"{unused_hours} hours")
+                f"{unused_hours} hours - status={self.container.status}")
             try:
                 self.container.remove(v=True)
             except Exception as exc:
@@ -229,9 +232,16 @@ class MonitoredJupyter:
         # last_activity may be 0 if no kernel is running inside that container
         # or None if we could not determine it properly
         if self.last_activity is None:
-            logger.info(f"Killing unreachable {self}")
-            self.container.kill()
-            return
+            # an unreachable container may be one that is just taking off
+            # as unlikely as that sounds, it actually tends to happen much more
+            # often than I at least had foreseen at first
+            logger.info(f"unreachable (1) {self} - will try again in {GRACE}s")
+            await asyncio.sleep(GRACE)
+            await self.count_running_kernels()
+            if self.last_activity is None:
+                logger.info(f"Killing unreachable (2) {self}")
+                self.container.kill()
+                return
         # check there has been activity in the last grace_idle_in_minutes
         idle_minutes = (int)((now - self.last_activity) // 60)
         if (now - self.last_activity) < idle:
@@ -239,10 +249,14 @@ class MonitoredJupyter:
                 f"Sparing running {self} that had activity {idle_minutes} mn ago")
             self.figures.count_container(True, self.nb_kernels)
         elif self.last_activity == 0:
-            logger.info(
-                f"Killing (running and empty) {self} "
-                f"that has no kernel attached")
-            self.container.kill()
+            logger.info(f"running and empty (1) {self} - will try again in {GRACE}s")
+            await asyncio.sleep(GRACE)
+            await self.count_running_kernels()
+            if self.last_activity == 0:
+                logger.info(
+                    f"Killing (running and empty) (2) {self} "
+                    f"that has no kernel attached")
+                self.container.kill()
         else:
             logger.info(
                 f"Killing (running & idle) {self} "
