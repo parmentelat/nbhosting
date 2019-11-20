@@ -154,6 +154,7 @@ http {
             proxy_intercept_errors on;
             error_page 404 /assets/404.html;
             error_page 502 /assets/502.html;
+            error_page 504 /assets/504.html;
         }
 
 
@@ -163,5 +164,7 @@ http {
         }
 
         error_page 503 /assets/down.html;
+        error_page 502 /assets/502.html;
+        error_page 504 /assets/504.html;
     }
 }
