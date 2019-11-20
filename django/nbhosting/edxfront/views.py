@@ -15,12 +15,16 @@ from nbhosting.stats.stats import Stats
 
 # Create your views here.
 
-
-def error_page(request, course, student, notebook, message):
+# use header=True when you have a short message 
+# and want to use is as the header too
+def error_page(request, course, student, notebook, message, 
+               header="! nbhosting internal error !"):
+    if header is True:
+        header = message
     return render(
         request, "error.html", dict(
             course=course, student=student,
-            notebook=notebook, message=message))
+            notebook=notebook, message=message, header=header))
 
 
 def log_completed_process(completed, subcommand):
@@ -55,6 +59,23 @@ def failed_command_message(command_str, completed, prefix=None):
         f"stderr:{completed.stderr}")
     return result
     
+
+def failed_command_header(action):
+    if action == 'failed-garbage-collecting':
+        return 'Please try again later'
+    elif action == 'failed-stopped-container':
+        return 'Unexpected stopped container'
+    elif action == 'failed-cannot-retrieve-port': 
+        return 'Cannot retrieve port number'
+    elif action == 'failed-timeout': 
+        return 'Your container is taking too long to answer'
+    else:
+        # failed-cannot-add-student-in-course
+        # failed-unknown-student $student
+        # failed-cannot-add-student-in-course 
+        # failed-student-has-no-workdir
+        return action
+
 
 # auth scheme here depends on the presence of META.HTTP_REFERER
 # if present, check that one of the fields in 'allowed_referer_domains' appears in referer
@@ -186,7 +207,7 @@ def _open_notebook(request, coursename, student, notebook,
     if not coursedir.is_valid():
         return error_page(
             request, coursename, student, notebook,
-            f"no such course `{coursename}'"
+            f"no such course `{coursename}'", header=True,
         )
 
     # the ipynb extension is removed from the notebook name in urls.py
@@ -201,7 +222,8 @@ def _open_notebook(request, coursename, student, notebook,
             
     if not exists:
         msg = f"notebook `{notebook}' not known in this course or student"
-        return error_page(request, coursename, student, notebook, msg)
+        return error_page(request, coursename, student, notebook, 
+                          msg, header="notebook not found")
 
     subcommand = 'docker-view-student-course-notebook'
 
@@ -234,19 +256,15 @@ def _open_notebook(request, coursename, student, notebook,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     log_completed_process(completed, subcommand)
 
-    if completed.returncode != 0:
-        message = failed_command_message(command_str, completed)
-        return error_page(
-            request, coursename, student, notebook, message)
-
     try:
         action, _docker_name, actual_port, jupyter_token = completed.stdout.split()
-
-        if action.startswith("failed"):
+        
+        if completed.returncode != 0 or action.startswith("failed"):
             message = failed_command_message(
                 command_str, completed, prefix="failed to spawn notebook container")
+            header = failed_command_header(action)
             return error_page(
-                request, coursename, student, notebook, message)
+                request, coursename, student, notebook, message, header)
 
         # remember that in events file for statistics
         Stats(coursename).record_open_notebook(student, notebook, action, actual_port)
@@ -389,12 +407,13 @@ def jupyterdir_forward(request, course, student, jupyter_url):
 
     try:
         action, _docker_name, actual_port, jupyter_token = completed.stdout.split()
-
-        if action.startswith("failed"):
+        
+        if completed.returncode != 0 or action.startswith("failed"):
             message = failed_command_message(
-                command_str, completed, "failed to spawn notebook container")
+                command_str, completed, prefix="failed to spawn notebook container")
+            header = failed_command_header(action)
             return error_page(
-                request, course, student, "jupyterdir", message)
+                request, course, student, "n/a", message, header)
 
         # remember that in events file for statistics
         # not yet implemented on the Stats side
