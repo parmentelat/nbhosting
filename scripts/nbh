@@ -578,7 +578,7 @@ function docker-run-container-for-student-in-course() {
         fi
 
         port=$(cat $STUDENT_course/.port)
-        if [ "$running" != true ]; then
+        if [ -z "$port" ]; then
             echo failed-cannot-retrieve-port $container none none
             return 1
         fi
