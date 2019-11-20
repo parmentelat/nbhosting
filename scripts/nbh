@@ -552,12 +552,22 @@ function docker-run-container-for-student-in-course() {
 
     local jupyter_token=$container
 
-    # check if container is already running
+    # check if container is known to docker
     if docker inspect --format "{{.Name}}" $container >& /dev/null ; then
+        # if yes, check its status
+        local status=$(docker inspect -f "{{.State.Status}}" $container)
+        
+        if [ "$status" == "removing" ]; then
+            # out of luck here, we're trying to open a notebook
+            # while monitor has just killed the container
+            # tell the user to try again later
+            echo failed-garbage-collecting $container none none
+            return 1
+        fi
+
         # sanity check mostly for smooth migration
         # on sites running a pre-0.24 version
-        local running=$(docker inspect -f "{{.State.Running}}" $container)
-        if [ "$running" != true ]; then
+        if [ "$status" != running ]; then
             # this has to be a sequel of nbhosting <= 0.23
             # as since 0.24 we run the containers with --rm
             # so as a temporary measure, we remove the container
@@ -566,11 +576,13 @@ function docker-run-container-for-student-in-course() {
             echo failed-stopped-container $container none none
             return 1
         fi
+
         port=$(cat $STUDENT_course/.port)
         if [ "$running" != true ]; then
             echo failed-cannot-retrieve-port $container none none
             return 1
         fi
+
         local line="existing $container $port $jupyter_token"
         [ -n "$DEBUG" ] && -echo-stderr $FUNCNAME writes line=$line
         echo $line
