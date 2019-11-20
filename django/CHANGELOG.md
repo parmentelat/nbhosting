@@ -1,3 +1,9 @@
+# 0.25.2 2019 Nov 20
+
+* another corner case handled more gracefully, when a notebook is opened at a point
+  where the container is being removed
+* nicer and more informative error pages
+
 # 0.25.1 2019 Nov 19
 
 * global timeout raises to 30s; it's a lot, but it turns out it is necessary; I suspect
