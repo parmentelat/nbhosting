@@ -685,7 +685,7 @@ function -wait-for-http-on-port-token() {
     local period=$1; shift
     local start=$(date +%s)
     local max=$(($start+$timeout))
-    -echo-stderr "checking port agains ss"
+    -echo-stderr "checking port against ss"
     ss --numeric --tcp --listening | egrep -q ":$port[ \t]"
     [ "$?" == 0 ] || -echo-stderr "OOPS - ss says port $port is busy !"
     while [ $(($(date +%s) <= $max)) == 1 ]; do
