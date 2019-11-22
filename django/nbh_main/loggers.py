@@ -15,11 +15,11 @@ def init_loggers(debug):
         'disable_existing_loggers' : False,
         'formatters': {
             'standard': {
-                'format': '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s',
+                'format': '%(asctime)s.%(msecs)03d %(levelname)s %(filename)s:%(lineno)d %(message)s',
                 'datefmt': '%m-%d %H:%M:%S'
             },
             'shorter': {
-                'format': '%(asctime)s %(levelname)s %(message)s',
+                'format': '%(asctime)s.%(msecs)03d %(levelname)s %(message)s',
                 'datefmt': '%d %H:%M:%S'
             },
         },
@@ -41,7 +41,7 @@ def init_loggers(debug):
             'stdout': {
                 'level': level,
                 'class': 'logging.StreamHandler',
-                'formatter': 'shorter',
+                'formatter': 'standard',
                 'stream': sys.stdout,
             }
         },
