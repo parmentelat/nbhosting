@@ -12,12 +12,6 @@ set -x
 git config user.email || git config --global user.email "default.user@nbhosting.io" 
 git config user.name  || git config --global user.name "Nbhosting User"
 
-# jupyterlab git extension
-jupyter labextension install @jupyterlab/git && pip install --upgrade jupyterlab-git && jupyter serverextension enable --py jupyterlab_git
-
-# update conda
-conda update -n base conda
-
 # the nbgitpuller thingy - turned off
 # pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
 
@@ -41,3 +35,5 @@ pip install nbautoeval
 # the ipythontutor magic
 pip install ipythontutor
 
+# jupyterlab git extension
+jupyter labextension install @jupyterlab/git && pip install --upgrade jupyterlab-git && jupyter serverextension enable --py jupyterlab_git
