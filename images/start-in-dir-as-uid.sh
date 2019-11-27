@@ -29,6 +29,7 @@
 #   and similar
 
 
+COMMAND=$0
 USAGE="Usage: $0 dir uid command .. to .. run"
 REQUIRE="Usage: $0 needs to be run as root"
 
@@ -39,6 +40,12 @@ uid=$1; shift
 
 [ "$UID" -eq 0 ] || { printf $REQUIRE ; exit 1; }
 
+function -echo-stdout() {
+    local milli=$(date +"%N" | sed -e 's,\(...\).*,\1,')
+    echo $(date "+%H:%M:%S").$milli $COMMAND "$@"
+}
+
+-echo-stdout "checking for uid $uid"
 # create uid if missing
 # do not create homedir; this is because 
 if getent passwd $uid; then
@@ -55,7 +62,7 @@ cd $dir
 # doing chown -R is overkill, and in fact a substantial fraction
 # of the contents is bind-mounted anyway
 # so instead we spot the files that are on the same filesystem
-echo ======================================== checking for permissions in $dir
+-echo-stdout checking for permissions in $dir
 find . -mount | xargs chown $uid
 #echo after chwown
 #find . -mount | xargs ls -ld
@@ -64,7 +71,7 @@ find . -mount | xargs chown $uid
 # use runuser, that will pass the environment as-is
 # only need to tweak HOME just in case
 ##########
-echo $0 exec-ing as uid "$uid" in $(pwd)
+-echo-stdout exec-ing as uid "$uid" in $(pwd)
 echo "$@"
 
 exec runuser --user $login -- env HOME=/home/jovyan "$@"
