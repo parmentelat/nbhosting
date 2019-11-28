@@ -626,7 +626,7 @@ function docker-run-container-for-student-in-course() {
 
     # -d is for running in background (detached) mode
     command="docker run -d --name $container
-                --publish published=8888,target=$port
+                -p $port:8888
                 --user root
                 --rm
                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
