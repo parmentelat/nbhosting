@@ -371,21 +371,23 @@ function add-student-in-course() {
     # always chown that homedir for safety
     chown -R $student:$student $STUDENT_home
 
-    # add user to both groups docker and course
-    for group in docker $course; do
-        # check group existence
-        getent group $group >& /dev/null || {
-            -echo-stderr Creating group $group
-            groupadd $group
-        }
-        -echo-stderr "Ensuring $student is in group $group"
-        groupmems -a $student -g $group >& /dev/null
-        # restarting docker would be way too intrusive !
-        if [ $? != 0 -a "$group" == "docker" ]; then
-            -echo-stderr "reloading docker service after adding $student into docker"
-            systemctl reload docker
-        fi
-    done
+# no longer required with podman ?
+# at least, there is no podman group 
+##    # add user to both groups docker and course
+#    for group in docker $course; do
+#        # check group existence
+#        getent group $group >& /dev/null || {
+#            -echo-stderr Creating group $group
+#            groupadd $group
+#        }
+#        -echo-stderr "Ensuring $student is in group $group"
+#        groupmems -a $student -g $group >& /dev/null
+#        # restarting docker would be way too intrusive !
+#        if [ $? != 0 -a "$group" == "docker" ]; then
+#            -echo-stderr "reloading docker service after adding $student into docker"
+#            systemctl reload docker
+#        fi
+#    done
 
     return 0
 
@@ -454,7 +456,7 @@ function -lazy-copy-student-notebook-for-course() {
 
     # nothing else is required in the student's work area
     # the rest (modules/ for code, and static/)
-    # will be bind-mounted in the docker container
+    # will be bind-mounted in the container
 }
 
 
@@ -530,7 +532,7 @@ function docker-run-container-for-student-in-course() {
     # course name - should exist as $NBHROOT/courses/$course
     # i.e. should have gone through course-init and update-course
     local course=$1; shift
-    # image name as known to docker
+    # image name as known to podman
     local image="$1"; shift
 
     -compute-course-globals $course
@@ -545,18 +547,18 @@ function docker-run-container-for-student-in-course() {
         [ -d $static_toplevel ] || -echo-stderr WARNING $static_toplevel dir not found
     done
 
-    docker inspect --type image $image >& /dev/null ||\
-        -die image $image not known to docker
+    podman inspect --type image $image >& /dev/null ||\
+        -die image $image not known to podman
 
     # update jupyter_notebook_config.py and the 2 custom files
     -check-course-jupyter $course
 
     local jupyter_token=$container
 
-    # check if container is known to docker
-    if docker inspect --format "{{.Name}}" $container >& /dev/null ; then
+    # check if container is known to podman
+    if podman inspect --format "{{.Name}}" $container >& /dev/null ; then
         # if yes, check its status
-        local status=$(docker inspect -f "{{.State.Status}}" $container)
+        local status=$(podman inspect -f "{{.State.Status}}" $container)
         
         if [ "$status" == "removing" ]; then
             # out of luck here, we're trying to open a notebook
@@ -568,12 +570,15 @@ function docker-run-container-for-student-in-course() {
 
         # sanity check mostly for smooth migration
         # on sites running a pre-0.24 version
-        if [ "$status" != running ]; then
+        # the 'created' status has been observed only on transient
+        # containers while troubleshooting podman runs hanging
+        if [ "$status" != running -a "#status" != "created" ]; then
             # this has to be a sequel of nbhosting <= 0.23
             # as since 0.24 we run the containers with --rm
             # so as a temporary measure, we remove the container
             # so next time it will no longer be in the way
-            docker rm $container &
+            -echo-stderr "removing container $container for compatibility"
+            podman rm $container &
             echo failed-stopped-container $container none none
             return 1
         fi
@@ -590,7 +595,7 @@ function docker-run-container-for-student-in-course() {
         return 0
     fi
 
-    -echo-stderr Creating docker container $container
+    -echo-stderr Creating podman container $container
     # * map host free port to fixed 8888 in container
     # * bind mounts so that the user's data is on
     #   the host filesystem
@@ -625,11 +630,14 @@ function docker-run-container-for-student-in-course() {
     # store it
     echo $port > $STUDENT_course/.port
 
+    # this is really important on fedora-31, this variable somehow leaked from 
+    # systemd and caused podman run to stupidly hang
+    unset NOTIFY_SOCKET
     # -d is for running in background (detached) mode
-    command="docker run -d --name $container
-                -p $port:8888
+    command="podman run --name $container
+                -p $port:8888 
                 --user root
-                --rm
+                --rm --detach
                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
                 -v $STUDENT_course:/home/jovyan/work
                 -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
@@ -675,10 +683,10 @@ function docker-run-container-for-student-in-course() {
 
     if ! -wait-for-http-on-port-token \
         $container $port $jupyter_token $timeout_wait_for_http; then
-        # show docker logs on stderr
-         -echo-stderr "==================== docker logs on that container over the last minute"
-         >&2 docker logs -t --since +1m $container
-         -echo-stderr "==================== docker logs end"
+        # show podman logs on stderr
+         -echo-stderr "==================== podman logs on that container over the last minute"
+         >&2 podman logs -t --since +1m $container
+         -echo-stderr "==================== podman logs end"
         echo failed-timeout $container $port none
         return 1 
     fi
@@ -707,7 +715,7 @@ function -wait-for-http-on-port-token() {
             -echo-stderr "HTTP/$port down after $(($(date +%s)-$start))s"
             sleep $period
             continue
-            docker inspect --format '{{.Name}}' $container >& /dev/null || echo "OOPS - $container is DEAD !!"
+            podman inspect --format '{{.Name}}' $container >& /dev/null || echo "OOPS - $container is DEAD !!"
         else
             -echo-stderr "HTTP/$port up after $(($(date +%s)-$start))s"
             rm -f /tmp/wait-http-$port

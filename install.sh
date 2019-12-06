@@ -103,9 +103,17 @@ function update-nginx() {
 
 }
 
-function update-docker {
-    sed -e "s,@dockerroot@,$dockerroot," \
-    docker/daemon.json.in > /etc/docker/daemon.json
+#function update-docker {
+#    mkdir -p $dockerroot
+#    sed -e "s,@dockerroot@,$dockerroot," \
+#    docker/daemon.json.in > /etc/docker/daemon.json
+#}
+
+function update-podman {
+    # I have not been able to get the btrfs driver to work at all
+    mkdir -p $podmanroot
+    sed -i -e "s|^graphroot\w*=.*|graphroot = $podmanroot|" \
+        /etc/containers/storage.conf
 }
 
 # old name was nbh-uwsgi - see issue #103
@@ -117,8 +125,17 @@ function remove-uwsgi-service() {
     rm -f /etc/systemd/system/nbh-uwsgi.service
 }
 
+function turn-off-docker-service() {
+    # if that service is not known, we're good
+    systemctl cat docker >& /dev/null || return
+    systemctl is-enabled docker && systemctl disable docker
+}
+
 function enable-services() {
+# clean up leftovers from past releases
     remove-uwsgi-service
+    turn-off-docker-service
+# set up what we do need    
     rsync $rsopts systemd/nbh-django.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
@@ -127,10 +144,13 @@ function enable-services() {
         -e "s,@monitor_lingering@,$monitor_lingering," \
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
-    systemctl enable docker
+    systemctl enable io.podman.socket
+    systemctl enable io.podman.service
     systemctl enable nginx
     systemctl enable nbh-django
-    systemctl enable nbh-monitor
+# not yet working
+#    systemctl enable nbh-monitor
+    systemctl disable nbh-monitor; systemctl stop nbh-monitor
     systemctl enable nbh-autopull.timer
 }
 
@@ -140,7 +160,7 @@ function migrate-database() {
 }
 
 function restart-services() {
-    systemctl restart nbh-monitor
+#    systemctl restart nbh-monitor
     systemctl restart nginx
     systemctl restart nbh-django
     systemctl restart nbh-autopull.timer
@@ -157,7 +177,7 @@ function default-main() {
     update-images
 
     update-nginx
-    update-docker
+    update-podman
     enable-services
     migrate-database
     restart-services

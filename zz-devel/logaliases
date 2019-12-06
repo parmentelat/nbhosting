@@ -40,30 +40,13 @@ function refresh() {
 
 ########## stolen from comp-miscell.ish
 function jou-nginx()		{ jou -f nginx; }
-function jou-uwsgi()	        { jou -f nbh-uwsgi; }
+function jou-django()	        { jou -f nbh-django; }
 function jou-monitor()	        { jou -f nbh-monitor; }
 function jou-docker()		{ jou -f docker; }
-function jou-all()		{ jou -f nginx docker nbh-uwsgi nbh-monitor; }
+function jou-podman()		{ jou -f io.podman; }
+function jou-all()		{ jou -f nginx io.podman docker nbh-django nbh-monitor; }
 
 ##########
-function logs-all() {
-    -logs $(find /nbhosting/current/logs -type f)
-}
-
-function -logs() {
-    logs="$@"
-    echo ++++++++++
-    ls -l $logs
-    echo ++++++++++
-    echo -n "OK ? "; read _
-    tail -f $logs
-}
-
-function logs() {
-    cd /nbhosting/current/logs
-    echo "current directory is now $(pwd)"
-}
-
 function logs-jup() {
     local USAGE="Usage: $FUNCNAME course student"
     [[ -n "$@" ]] || { echo $usage; return 1; }
