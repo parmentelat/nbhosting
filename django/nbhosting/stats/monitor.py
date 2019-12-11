@@ -20,7 +20,7 @@ import asyncio
 import aiohttp
 from aiohttp import ClientConnectionError
 
-import docker
+import podman
 
 from nbh_main.settings import sitesettings
 # redirect into monitor.log

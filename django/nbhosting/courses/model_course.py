@@ -8,7 +8,7 @@ import itertools
 from importlib.util import (
     spec_from_file_location, module_from_spec)
 
-import docker
+import podman
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -426,17 +426,17 @@ class CourseDir(models.Model):
                 print(toplevel, file=raw)
 
 
-    def image_hash(self, docker_proxy):
+    def image_hash(self, podman_proxy):
         """
         the hash of the image that should be used for containers
         in this course
         or None if something goes wrong
         """
         try:
-            return docker_proxy.images.get(self.image).id
-        except docker.errors.ImageNotFound:
+            return podman_proxy.images.get(self.image).id
+        except podman.ImageNotFound:
             logger.error(f"Course {self.coursename} "
-                         f"uses unknown docker image {self.image}")
+                         f"uses unknown podman image {self.image}")
         except:
             logger.exception("Can't figure image hash")
             return
@@ -444,7 +444,7 @@ class CourseDir(models.Model):
 
     def build_image(self, force=False, dry_run=False):
         """
-        locates Dockerfile and triggers docker build
+        locates Dockerfile and triggers podman build
         """
         force_tag = "" if not force else "--no-cache"
         build_dir = self.build_dir
@@ -471,7 +471,7 @@ class CourseDir(models.Model):
         show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {build_dir}",
                      dry_run=dry_run)
         show_and_run(f"cd {build_dir}; "
-                     f"docker build {force_tag} -f Dockerfile -t {image} .",
+                     f"podman build {force_tag} -f Dockerfile -t {image} .",
                      dry_run=dry_run)
 
 
@@ -521,15 +521,15 @@ class CourseDir(models.Model):
 
     def destroy_student_container(self, student):
         container_name = f"{self.coursename}-x-{student}"
-        client = docker.from_env()
-        try:
-            container = client.containers.get(container_name)
-        except docker.errors.NotFound:
-            logger.info(f"nothing to do - container {container_name} not found")
-            return
-        if container.status == 'running':
-            logger.info(f"killing {container_name}")
-            container.kill()
+        with podman.Client() as proxy:
+            try:
+                container = proxy.containers.get(container_name)
+            except podman.ContainerNotFound:
+                logger.info(f"nothing to do - container {container_name} not found")
+                return
+            if container.status == 'running':
+                logger.info(f"killing {container_name}")
+                container.kill()
         logger.info(f"removing {container_name}")
         container.remove()
         logger.info("DONE")
