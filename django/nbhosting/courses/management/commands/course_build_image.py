@@ -51,6 +51,5 @@ class Command(BaseCommand):
             if not coursedir.is_valid():
                 logger.error(f"no such course {coursename}")
                 return
-            coursedir.build_image(force)
             logger.info(f"{40*'='} building image for {coursename}")
             coursedir.build_image(force, dry_run)
