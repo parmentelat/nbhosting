@@ -243,7 +243,7 @@ function course-update-from-git() {
         ##### notebooks
         # temporary; making sure we do clean stuff up properly
         rm -rf $COURSE_notebooks/*
-        $rsync --prune-empty-dirs --include='*.ipynb' --include='*.md' --include='*/' --exclude='*' \
+        $rsync --prune-empty-dirs --include='*.ipynb' --include='*.md' --include='*.py' --include='*/' --exclude='*' \
             $COURSE_git/ $COURSE_notebooks/
         ##### modules
         [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
