@@ -215,7 +215,7 @@ dnf -y install uwsgi uwsgi-plugin-python3
 ```bash
 pip3 install --upgrade pip setuptools
 pip3 install --upgrade Django django-extensions
-pip3 install jsonpickle nbformat
+pip3 install jsonpickle nbformat jupytext
 # for nbh-monitor
 pip3 install aiohttp docker
 ```

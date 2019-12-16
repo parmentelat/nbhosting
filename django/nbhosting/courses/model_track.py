@@ -5,7 +5,7 @@ from collections import defaultdict
 from typing import List
 
 import jsonpickle
-import nbformat
+import jupytext
 
 from nbh_main.settings import logger
 
@@ -101,15 +101,15 @@ class Notebook:                                         # pylint: disable=r0903
 
     def _read_embedded(self):
         try:
-            with self.absolute().open() as feed:
-                nbo = nbformat.read(feed, nbformat.NO_CONVERT)
-                self._notebookname = (
-                    nbo['metadata'].get('notebookname', self.clean_path()))
-                self._version = (
-                    nbo['metadata'].get('version', '0.1'))
-        except:
-            logger.exception(
-                f"failed to extract metadata for notebook {self.clean_path()} ")
+            nbo = jupytext.read(self.absolute())
+            self._notebookname = (
+                nbo['metadata'].get('notebookname', self.clean_path()))
+            self._version = (
+                nbo['metadata'].get('version', '0.1'))
+        except Exception as exc:
+            logger.warning(
+                f"failed to extract metadata for notebook {self.clean_path()}\n"
+                f"because of exception {type(exc)}: {exc}")
             self._notebookname = self.clean_path()
             self._version = "n/a"
             
