@@ -187,7 +187,11 @@ def locate_notebook(directory, notebook):
         if c.exists():
             return (True, str(c.relative_to(top)), 
                     str(s.relative_to(top)), 
-                    variant != '.md')
+                    # with jupytext in the picture,
+                    # any .md file can be opened as a notebook
+                    # variant != '.md'
+                    True
+                    )
     return False, None, None, None
     
 
