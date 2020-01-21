@@ -243,6 +243,7 @@ function course-update-from-git() {
         ##### notebooks
         # temporary; making sure we do clean stuff up properly
         rm -rf $COURSE_notebooks/*
+        # xxx would be nice to use sitesettings.notebook_extensions
         $rsync --prune-empty-dirs --include='*.ipynb' --include='*.md' --include='*.py' --include='*/' --exclude='*' \
             $COURSE_git/ $COURSE_notebooks/
         ##### modules
@@ -868,6 +869,7 @@ function course-clear-staff() {
     # 'student' is used by FUN's studio
     for staff in "$@" student; do
         -compute-student-globals-in-course $staff $course
+        # xxx same here about using sitesettings.notebook_extensions
         notebooks=$(find $STUDENT_course -name '*.ipynb')
         if [ -z "$notebooks" ]; then
             echo "=== no notebook found in $STUDENT_course"

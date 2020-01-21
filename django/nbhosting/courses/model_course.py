@@ -3,6 +3,7 @@
 import os
 from pathlib import Path                                # pylint: disable=w0611
 import subprocess
+import itertools
 
 from importlib.util import (
     spec_from_file_location, module_from_spec)
@@ -12,7 +13,7 @@ import docker
 from django.db import models
 from django.contrib.auth.models import User, Group
 
-from nbh_main.settings import NBHROOT, logger
+from nbh_main.settings import NBHROOT, logger, sitesettings
 
 from nbhosting.utils import show_and_run
 
@@ -133,7 +134,9 @@ class CourseDir(models.Model):
 
     @staticmethod
     def _probe_notebooks_in_dir(root):
-        absolute_notebooks = root.glob("**/*.ipynb")
+        absolute_notebooks = itertools.chain(
+            *(root.glob(f"**/*.{extension}") 
+              for extension in sitesettings.notebook_extensions))
         # relative notebooks without extension
         return (
             notebook.relative_to(root).with_suffix("")

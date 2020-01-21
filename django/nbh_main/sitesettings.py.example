@@ -6,6 +6,10 @@
 # in the same directory as settings.py
 ####################
 
+# filename extensions that are expected to possibly hold notebooks
+# since using jupytext, this is no longer limited to '.ipynb'
+notebook_extensions = ['ipynb', 'py', 'md']
+
 # as of 0.18.0 only 'https' is supported for server_mode
 # this means the system will accept ONLY https requests
 # i.e. http incoming requests are redirected to https

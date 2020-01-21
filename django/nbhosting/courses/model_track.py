@@ -7,7 +7,7 @@ from typing import List
 import jsonpickle
 import jupytext
 
-from nbh_main.settings import logger
+from nbh_main.settings import logger, sitesettings
 
 # as of 2019 aug, we don't worry at all about untracked notebooks
 # that can be entirely managed through a regular jupyter app
@@ -69,7 +69,9 @@ class Notebook:                                         # pylint: disable=r0903
     # a Path instance does not seem
     # to please the templating engine
     def clean_path(self):
-        clean = str(self.path).replace(".ipynb", "")
+        clean = str(self.path)
+        for extension in sitesettings.notebook_extensions:
+            clean = clean.replace(f".{extension}", "")
         return clean
 
     def classes(self):

@@ -167,6 +167,13 @@ def locate_notebook(directory, notebook):
       search for .ipynb then .py
     * if notebook ends in .py
       search for .py and then .ipynb
+      
+    xxx possibly this could make simpler, especially with notebooks
+    that only save themselves under a single format - as dual-format
+    is a real pain in terms of updating a student's space
+    most likely it should use sitesettings.notebook_extensions
+    but it's safer to keep it that way until the bulk of 2019/2020 
+    courses is not over
     """
     logger.info(f"locate_notebook with {directory} and {notebook}")
     policies = {
