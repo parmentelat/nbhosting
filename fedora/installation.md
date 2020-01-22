@@ -3,8 +3,11 @@
 ## Purpose
 
 * this document is about setting up `nbhosting` from metal, i.e. right after a fresh install.
-* date: July 12 2017 - revised July 1 2019
-* based on fedora 29
+* date: originaly written in July 12 2017
+* revised July 1 2019
+  * based on fedora 29
+* revised: January 2020
+  * based on fedora 31
 
 
 ## Requirements
@@ -37,6 +40,32 @@ Depending on the scope of your deployment, you will need
  leveraging several physical servers. In line with this assumption, all the pieces come as
  a single monolitihic bundle, that takes care of all the pieces (nginx, django in uwsgi)
  from a single point of installation and control.
+
+ ## cgroups
+
+ docker-ce won't work with cgroups v2 that is the default on fedora31; if f31 is your
+ target, you will need to run the following to turn off cgroups v2 and enable cgroups v1
+ instead ([see also this page](https://linuxconfig.org/how-to-install-docker-on-fedora-31))
+ 
+```bash
+# dnf install -y grubby
+# grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
+# sudo shutdown -r now
+```
+
+## podman
+
+as an aside, I gave a shot at replacing docker with podman; for one thing podman uses
+cgroups v2, plus the docker runtime really sucks in our case, so performance improvements
+could be expected.
+
+as of this writing (jan 2020), I have a `podman` branch that is almost working, but for
+one painful issue : a simple API call to list running containers takes a huge amount of
+time, think 2 minutes for one container; for more info [see this issue on github], it
+appears that all that time is spent calculating the amount of disk space involved...
+
+long story short I have left this branch on the side, and am running docker on a
+cgroups-v1 f31 intead for now (see above)
 
 ****
 
