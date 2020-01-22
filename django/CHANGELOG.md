@@ -1,3 +1,14 @@
+# 0.26.0 2020 Jan 22
+
+* **NEW mandatory SETTING**; you need to define `notebook_extensions` in `sitesettings.py`
+* more jupytext-friendly; the extensions declared in that new setting 
+  are considered as possible notebooks, that can be opened directly  
+  **NOTE** that at this point there remains some places where the assumed value
+  of `["ipynb", "py", "md"]` is hard-wired
+* some provisions made for finer-grained logging of container warmup sequence
+* bugfix #107
+* still based on docker; an attempt to move to podman is [currently stalled because of an issue with the Python API](https://github.com/containers/python-podman/issues/72)
+
 # 0.25.3 2019 Nov 20
 
 * another corner case handled more gracefully, when a notebook is opened at a point
