@@ -85,6 +85,16 @@ define([
         let seconds = Jupyter.notebook.minimum_autosave_interval/1000;
     	console.log(`${hello} speed up autosave -> ${seconds}s`)
     }
+	
+	let turn_off_extension_buttons = function() {
+		// the nbdime button is very intrusive and provides little value if at all
+		$("[data-jupyter-action='nbdime:diff-notebook-checkpoint']").hide();
+		// split-cell button; it does not take much space 
+		// but can be confusing
+		$("[data-jupyter-action='auto:toggle-cell-style']").hide()
+		// same for hide-input
+		$("[data-jupyter-action='hide_input:toggle-cell-input-display']").hide()
+	}
 
     // edxfront/views.py passes along course and student as params in the GET URL
     // so all we need to do is forge the initial URL in notebookLazyCopy/
@@ -269,6 +279,7 @@ define([
             redefine_enter_in_command_mode(Jupyter);
             add_reset_and_share_buttons(Jupyter);
             speed_up_autosave(Jupyter);
+			turn_off_extension_buttons();
         }
     })
     nb_promises.notebook_loaded.then(function(appname){
@@ -276,4 +287,3 @@ define([
         show_metadata_in_header(Jupyter);
     })
 })
-
