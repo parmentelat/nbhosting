@@ -67,10 +67,10 @@ define([
         		    let cell = Jupyter.notebook.get_selected_cell();
         		    if (cell instanceof codecell.CodeCell) {
             			// code cell -> like usual Enter
-            			Jupyter.notebook.edit_mode()
+            			Jupyter.notebook.edit_mode();
         		    } else {
             			// source cell -> like shift-enter
-            			Jupyter.notebook.execute_cell_and_select_below()
+            			Jupyter.notebook.execute_cell_and_select_below();
         		    }
     		    }
             }
@@ -83,17 +83,22 @@ define([
     let speed_up_autosave = function(Jupyter) {
     	Jupyter.notebook.minimum_autosave_interval = 20000;
         let seconds = Jupyter.notebook.minimum_autosave_interval/1000;
-    	console.log(`${hello} speed up autosave -> ${seconds}s`)
+    	console.log(`${hello} speed up autosave -> ${seconds}s`);
     }
 	
 	let turn_off_extension_buttons = function() {
+		let turned_off = [];
 		// the nbdime button is very intrusive and provides little value if at all
+		turned_off.push("nbdime");
 		$("[data-jupyter-action='nbdime:diff-notebook-checkpoint']").hide();
 		// split-cell button; it does not take much space 
 		// but can be confusing
-		$("[data-jupyter-action='auto:toggle-cell-style']").hide()
+		turned_off.push("split-cell");
+		$("[data-jupyter-action='auto:toggle-cell-style']").hide();
 		// same for hide-input
-		$("[data-jupyter-action='hide_input:toggle-cell-input-display']").hide()
+		turned_off.push("hide-input");
+		$("[data-jupyter-action='hide_input:toggle-cell-input-display']").hide();
+		console.log(`${hello} turned off buttons for extensions ${turned_off}`);
 	}
 
     // edxfront/views.py passes along course and student as params in the GET URL
@@ -272,18 +277,19 @@ define([
 
     // run the parts in a promise
     base_promises.app_initialized.then(function(appname) {
-        //console.log(`base_promises sent appname=${appname}`);
+        console.log(`${hello} base_promises sent appname=${appname}`);
         if (appname === 'NotebookApp') {
             hack_header_for_nbh(Jupyter);
             inactivate_non_code_cells(Jupyter);
             redefine_enter_in_command_mode(Jupyter);
             add_reset_and_share_buttons(Jupyter);
             speed_up_autosave(Jupyter);
-			turn_off_extension_buttons();
         }
     })
     nb_promises.notebook_loaded.then(function(appname){
-        //console.log(`nb_promises sent appname=${appname}`);
-        show_metadata_in_header(Jupyter);
+        console.log(`${hello} nb_promises sent appname=${appname}`);
+		show_metadata_in_header(Jupyter);
+		// without the delay this won't have any effect
+		setTimeout(turn_off_extension_buttons, 1000);
     })
 })
