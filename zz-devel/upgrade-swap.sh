@@ -170,7 +170,7 @@ function call-subcommand() {
     case $(type -t -- $fun) in
 	function)
 	    shift ;;
-	*)  -die "$fun not a valid subcommand - use either pull-from-prod / pull-from-dev / swap-ip / swap-ssl / swap-contents " ;;
+	*)  -die "$fun not a valid subcommand - use either status / pull-from-prod / pull-from-dev / swap-ip / swap-ssl / swap-contents " ;;
     esac
     # call subcommand
     $fun "$@"
