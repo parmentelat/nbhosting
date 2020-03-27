@@ -643,6 +643,16 @@ function docker-run-container-for-student-in-course() {
     # note that setting the ip here is a workaround
     # for a broken jupyter/docker-stacks version around late 2018
     # probably not needed with more recent ones
+    #
+    # SECURITY notice: as of 2020 03 27, I replace
+    #            --NotebookApp.token=$jupyter_token
+    # with the last 3 settings below (token, password and disable_check_csrf)
+    # so that recent chrome browsers with the new SameSite policy can
+    # still open a notebook
+    # it is clearly an example of when a change that aims at improving
+    # security ends up being totally counter-productive, as I have been
+    # unable so far to find a less aggressive way to make our users
+    # get their service, but this approach is clearly way less secure than before...
     command="$command
                 -e PYTHONPATH=/home/jovyan/modules
                 $image
@@ -651,8 +661,10 @@ function docker-run-container-for-student-in-course() {
                 --ip=0.0.0.0
                 --no-browser
                 --NotebookApp.notebook_dir=/home/jovyan/work
-                --NotebookApp.token=$jupyter_token
                 --NotebookApp.base_url=/$port/
+                --NotebookApp.token=''
+                --NotebookApp.password=''
+                --NotebookApp.disable_check_xsrf=True
 "
 
     [ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
