@@ -1,3 +1,8 @@
+# 0.27.0 2020 Mar 27
+
+* fix for #111 and the SameSite cookie policy pushed in recent chromes  
+  hopefully temporary
+
 # 0.26.0 2020 Jan 22
 
 * **NEW mandatory SETTING**; you need to define `notebook_extensions` in `sitesettings.py`
