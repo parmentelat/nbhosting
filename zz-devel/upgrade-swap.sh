@@ -40,6 +40,23 @@ function -die() {
 }
 
 #####
+function -sanity-check() {
+    local function=$1; shift
+    local service=$1; shift
+    echo -n "checking for service $service to be active .. "
+    if ! systemctl is-active $service >& /dev/null ; then
+        echo KO
+        echo "WARNING: $function should be run from a node that has $service active"
+        echo "this does not seem to be the case..."
+        echo -n "type 'yes' to proceed : "
+        read answer
+        [ "$answer" == "yes" ] || { echo "bye ..." ; exit 1; }
+    else 
+        echo OK
+    fi
+
+}
+
 
 function -pull-from() {
 
@@ -68,9 +85,11 @@ function -pull-from() {
 }
 
 function pull-from-prod() {
+    -sanity-check pull-from-prod nbhosting-dev-addr
     -pull-from prod "$@"
 }
 function pull-from-dev() {
+    -sanity-check pull-from-dev nbhosting-addr
     -pull-from dev "$@"
 }
 
