@@ -39,6 +39,9 @@ srcroot = '/root/nbhosting'
 # it should point into a btrfs partition
 # if you upgrade from 0.24 or earlier you should keep this default value
 # that was previously hard-wired
+# IMPORTANT NOTE you need to realize that changing this value
+# also means restarting from an empty 'docker images' so
+# you will need to rebuild them all
 dockerroot = '/nbhosting/dockers'
 
 ### upstream portals
