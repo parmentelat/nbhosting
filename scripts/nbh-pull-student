@@ -95,6 +95,7 @@ function main() {
         exit 1
     fi
 
+    local nb_common_changes=$(wc -w <<< $common_changes)
     log-header git add
     $SUDO git add $common_changes &>> $LOG
     local commit_message="WIP - nbh is committing local changes in $common_changes"
@@ -104,7 +105,14 @@ function main() {
     $SUDO git merge origin/master --commit -m"$merge_message" &>> $LOG
     local OK=$?
     echoq "$coursename - $username: (3) upstream merge returned $OK"
-    log-header "(4) upstream merge returned $OK"
+    log-header "(3) upstream merge returned $OK"
+    # abort merge if failed
+    if [ $OK != 0 ]; then
+        echoq "$coursename - $username: (4) git merge --abort"
+        log-header "(4) git merge --abort"
+        echoq "$coursename - $username: (4) to redo manually, do git merge origin/master"
+        $SUDO git merge --abort
+    fi
     exit $OK
 }
 
