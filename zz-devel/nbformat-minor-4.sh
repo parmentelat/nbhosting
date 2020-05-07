@@ -11,7 +11,8 @@
 
 function one-file() {
     local filename="$1"; shift
-
+    # avoid running twice
+    [ -f "$filename.nbf" ] && return
     sed -i.nbf -e 's/\("nbformat_minor":\) \([0-9]\)/\1 4/' "$filename"
 }
 
