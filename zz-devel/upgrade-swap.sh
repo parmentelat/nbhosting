@@ -120,24 +120,21 @@ function swap-ip() {
 # nginx is configured to use a servername and related
 # certificate file
 
-function swap-ssl() {
+function swap-sitesettings() {
     mode=$1; shift
 
     [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
 
-    cd /root/nbhosting/django/nbh_main
+#    cd /root/nbhosting/django/nbh_main
+    cd /root
 
     if [ "$mode" == "become-prod" ]; then
         sed -i.swapped \
-            -e 's,^server_name *=.*,server_name = "nbhosting.inria.fr",' \
-            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate/bundle.crt",' \
-            -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key",' \
+            -e 's,^production_box *=.*,production_box = True,' \
             sitesettings.py
     elif [ "$mode" == "become-dev" ]; then
         sed -i.swapped \
-            -e 's,^server_name *=.*,server_name = "nbhosting-dev.inria.fr",' \
-            -e 's,^ssl_certificate *=.*,ssl_certificate = "/root/ssl-certificate-dev/bundle.crt",' \
-            -e 's,^ssl_certificate_key *=.*,ssl_certificate_key = "/root/ssl-certificate-dev/nbhosting-dev.inria.fr.key",' \
+            -e 's,^production_box *=.*,production_box = False,' \
             sitesettings.py
     else
         echo ignoring unknown mode $mode
@@ -173,8 +170,8 @@ function status() {
         systemctl is-active $service
         systemctl is-enabled $service
     done
-    echo '===== configuration ====='
-    egrep '^(server_name|ssl_certificate)' $CONFIG
+    echo '===== sitesettings configuration ====='
+    egrep '^(production_box)' $CONFIG
     echo '===== data space ====='
     ls -l /nbhosting/current
 }
@@ -189,7 +186,7 @@ function call-subcommand() {
     case $(type -t -- $fun) in
 	function)
 	    shift ;;
-	*)  -die "$fun not a valid subcommand - use either status / pull-from-prod / pull-from-dev / swap-ip / swap-ssl / swap-contents " ;;
+	*)  -die "$fun not a valid subcommand - use either status / pull-from-prod / pull-from-dev / swap-ip / swap-sitesettings / swap-contents " ;;
     esac
     # call subcommand
     $fun "$@"
