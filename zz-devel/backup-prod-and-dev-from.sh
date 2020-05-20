@@ -5,7 +5,7 @@ sources="/nbhosting/prod /nbhosting/dev"
 function local_backup() {
     for source in $sources; do
         local dest=$source.$(hostname -s)
-        rsync -a $source/ $dest/
+        rsync -a --delete $source/ $dest/
     done
 }
 
@@ -14,7 +14,7 @@ function remote_backup() {
     for source in $sources; do
         local remote=$(cut -d. -f1 <<< $hostname)
         local dest=$source.$remote
-        rsync -a $hostname:$source/ $dest
+        rsync -a --delete $hostname:$source/ $dest
     done
 }
 
