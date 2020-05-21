@@ -188,7 +188,7 @@ dnf install -y iptables-services
 systemctl mask firewalld.service
 systemctl enable iptables.service
 cd /root/nbhosting
-cp etc/sysconfig/iptables /etc/sysconfig/iptables
+cp fedora/etc/sysconfig/iptables /etc/sysconfig/iptables
 ```
 
 ## turn off SElinux
@@ -206,7 +206,7 @@ cp etc/selinux/config /etc/selinux/config
 
 ```bash
 cd /root/nbhosting
-cp etc/sudoers.d/99-nbhosting /etc/sudoers.d/
+cp fedora/etc/sudoers.d/99-nbhosting /etc/sudoers.d/
 chmod 440 /etc/sudoers.d/99-nbhosting
 ```
 
@@ -519,7 +519,7 @@ as far as `systemd` and `journactl` are concerned:
 
 * `nginx`
   * fedora's nginx service as-is
-* `nbh-uwsgi`
+* `nbh-django`
   * the django app runs inside nginx through uwsgi
 * `nbh-monitor`
   * monitor performs housecleaning (kill idle containers), and on the side also gathers raw data for statistics
@@ -532,7 +532,7 @@ Additional logs go into
 * `$NBHROOT/logs/monitor.log`
 * `$NBHROOT/logs/nginx-{error,access}.log`
 * also each docker container can be probed for its logs
-  * `docker logs flotpython-x-thestudentid`
+  * `docker logs` *`thecoursename`*`-x-`*`thestudenthash`*
 
 ## visual stats
 
@@ -552,7 +552,6 @@ Additional logs go into
   is `anonymous`.
 * this is a convenient way to check the course is up and running - in particular, make
   sure you have built the image for that course !
-
 
 # upgrading
 
