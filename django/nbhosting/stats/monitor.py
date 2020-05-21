@@ -94,6 +94,7 @@ class MonitoredJupyter:
         #
         self.nb_kernels = None
         self.last_activity = 0.
+        self.inspection = None
 
     def __str__(self):
         details = f" [{self.nb_kernels}k]" if self.nb_kernels is not None else ""
@@ -161,10 +162,15 @@ class MonitoredJupyter:
 
 
     # docker does not seem to expose an asynchronous way to do this
-    def exited_time(self):
-        inspect = self.low_level_api.inspect_container(self.name)
-        finished_str = inspect['State']['FinishedAt']
-        return self.parse_docker_time(finished_str)
+    def inspect(self):
+        # run only once
+        if self.inspection is None:
+            self.inspection = self.low_level_api.inspect_container(self.name)
+            
+    def creation_time(self):
+        self.inspect()
+        started_str = self.inspection['State']['StartedAt']
+        return self.parse_docker_time(started_str)
 
 
     async def count_running_kernels(self):
@@ -204,7 +210,7 @@ class MonitoredJupyter:
     # until 0.23 inclusive, we used to need to remove containers
     # but now we trigger them with the --rm option so it's much simpler
     #
-    async def co_run(self, idle):
+    async def co_run(self, idle, lingering):
         """
         both timeouts in seconds
         """
@@ -213,20 +219,9 @@ class MonitoredJupyter:
         if self.container.status == 'removing':
             return
         if self.container.status != 'running':
-            # this should no longer happen
-            # except maybe during a transition period
-            exited_time = self.exited_time()
-            unused_days = (int)((now - exited_time) // (24 * 3600))
-            unused_hours = (int)((now - exited_time) // (3600) % 24)
-            logger.warning(
-                f"Removing (not running - legacy?) {self} "
-                f"that has been unused for {unused_days} days "
-                f"{unused_hours} hours - status={self.container.status}")
-            try:
-                self.container.remove(v=True)
-            except Exception as exc:
-                logger.error(f"docker failed to remove {self} - {type(exc)} - {exc}")
+            logger.warning("Ignoring non-running container {self}")
             return
+        
         # count number of kernels and last activity
         await self.count_running_kernels()
         # last_activity may be 0 if no kernel is running inside that container
@@ -257,16 +252,34 @@ class MonitoredJupyter:
                     f"Killing (running and empty) (2) {self} "
                     f"that has no kernel attached")
                 self.container.kill()
+                return
         else:
             logger.info(
                 f"Killing (running & idle) {self} "
                 f"that has been idle for {idle_minutes} mn")
             self.container.kill()
+            return
+        
+        # if students accidentally leave stuff running in the background
+        # last_activity may be misleading
+        # so we kill all caontainers older than <lingering>
+        # the unit here is seconds but the front CLI has it in hours
+        created_time = self.creation_time()
+        ellapsed = int(now - created_time)
+        if ellapsed > lingering:
+            created_days = (int)(ellapsed // (24 * 3600))
+            created_hours = (int)((ellapsed // 3600) % 24)
+            logger.warning(
+                f"Removing lingering {self} "
+                f"that was created {created_days} days "
+                f"{created_hours} hours ago (idle_minutes={idle_minutes})")
+            self.container.kill()
+            return
 
 
 class Monitor:
 
-    def __init__(self, period, idle, debug):
+    def __init__(self, period, idle, lingering, debug):
         """
         All times in seconds
 
@@ -278,6 +291,7 @@ class Monitor:
         """
         self.period = period
         self.idle = idle
+        self.lingering = lingering
         if debug:
             logger.setLevel(logging.DEBUG)
 
@@ -324,7 +338,7 @@ class Monitor:
                     container, coursename, student,
                     figures, image_hash, low_level_api)
                 futures.append(monitored_jupyter.co_run(
-                    self.idle))
+                    self.idle, self.lingering))
             # typically non-nbhosting containers
             except ValueError:
                 # ignore this container as we don't even know

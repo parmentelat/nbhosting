@@ -94,13 +94,17 @@ allowed_devel_ips = [
 # in minutes
 # monitor will run cyclically - every <period> minutes - 
 # and kill containers that have been idle for more than <idle> minutes
+# in addition containers older than <lingering> hours will get killed 
+# no matter what else
 # depends on your available resources and traffic of course
 if production_box:
-    monitor_idle = 120
-    monitor_period = 5
+    monitor_idle = 120       # minutes
+    monitor_period = 5       # minutes
+    monitor_lingering = 24   # hours
 else:
-    monitor_idle = 5
-    monitor_period = 2
+    monitor_idle = 5         # minutes
+    monitor_period = 2       # minutes
+    monitor_lingering = 1    # hours
 
 ######################################## django settings
 # SECURITY WARNING: don't run with debug turned on in production!

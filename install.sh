@@ -124,6 +124,7 @@ function enable-services() {
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
     sed -e "s,@monitor_period@,$monitor_period," \
         -e "s,@monitor_idle@,$monitor_idle," \
+        -e "s,@monitor_lingering@,$monitor_lingering," \
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
     systemctl enable docker

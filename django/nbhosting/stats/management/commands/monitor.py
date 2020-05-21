@@ -8,6 +8,7 @@ from nbhosting.stats.monitor import Monitor
 
 DEFAULT_PERIOD = 10
 DEFAULT_IDLE = 30
+DEFAULT_LINGERING = 24
 
 class Command(BaseCommand):
 
@@ -24,6 +25,10 @@ class Command(BaseCommand):
             help="timeout in minutes - kill containers idle more than that "
                  f"(default={DEFAULT_IDLE})")
         parser.add_argument(
+            "-l", "--lingering", default=DEFAULT_LINGERING, type=int, dest='lingering',
+            help="timeout in hours - kill containers older than that "
+                 f"(default={DEFAULT_LINGERING})")
+        parser.add_argument(
             "-d", "--debug", action='store_true', default=False)
 
 
@@ -31,5 +36,6 @@ class Command(BaseCommand):
         monitor = Monitor(
             period=60 * kwargs['period'],
             idle=60 * kwargs['idle'],
+            lingering=3600 * kwargs['lingering'],
             debug=kwargs['debug'])
         monitor.run_forever()
