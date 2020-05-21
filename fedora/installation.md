@@ -43,9 +43,10 @@ Depending on the scope of your deployment, you will need
 
  ## cgroups
 
- docker-ce won't work with cgroups v2 that is the default on fedora31; if f31 is your
- target, you will need to run the following to turn off cgroups v2 and enable cgroups v1
- instead ([see also this page](https://linuxconfig.org/how-to-install-docker-on-fedora-31))
+ `docker-ce` won't work with cgroups v2 that is the default on fedora31; if you target
+ Fedora 31, you will need to run the following to turn off cgroups v2 and enable cgroups
+ v1 instead ([see also this
+ page](https://linuxconfig.org/how-to-install-docker-on-fedora-31))
  
 ```bash
 # dnf install -y grubby
@@ -242,17 +243,15 @@ dnf -y install uwsgi uwsgi-plugin-python3
 ```
 
 ```bash
-pip3 install --upgrade pip setuptools
-pip3 install --upgrade Django django-extensions
-pip3 install jsonpickle nbformat jupytext
-# for nbh-monitor
-pip3 install aiohttp docker
+pip3 install --upgrade pip setuptools wheel
 ```
 
+Other pip-managed requirements are handled automatically when running `install.sh`
 
 ## SSL certificates
 
-The default config has it that the SSL certificate used by the main entry point (in our case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`. 
+The example config has it that the SSL certificate used by the main entry point (in our
+case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`.
 
 You can of course pick any other location that you want, but you will later on need the
 location of your certificate and key; in our case we installed them in:

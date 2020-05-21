@@ -24,10 +24,16 @@ setup(
     description = "An infrastructure for hosting notebooks behind an open-edX MOOC platform, or for registered students like in a classroom",
     long_description = long_description,
     install_requires = [
+        'pip',
+        'setuptools',
+        'wheel',
         'django',
         'django_extensions',
-        'nbformat',
         'jsonpickle',
+        'nbformat',
+        'jupytext',
+        # monitor
+        'aiohttp',
         'docker',
     ],
     setup_requires = [],

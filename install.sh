@@ -42,7 +42,7 @@ function check-sitesettings() {
 
 function update-python-libraries() {
     # find_packages() requires to run in the right dir
-    (cd django; ./setup.py install)
+    pip install django
 }
 
 function update-bins() {
