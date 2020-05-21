@@ -6,6 +6,9 @@
 # in the same directory as settings.py
 ####################
 
+# this will get patched by upgrade-swap.sh
+production_box = True
+
 # filename extensions that are expected to possibly hold notebooks
 # since using jupytext, this is no longer limited to '.ipynb'
 notebook_extensions = ['ipynb', 'py', 'md']
@@ -19,9 +22,14 @@ notebook_extensions = ['ipynb', 'py', 'md']
 server_mode = "https"
 
 # for the nginx config
-server_name = "nbhosting.inria.fr"
-ssl_certificate = "/root/ssl-certificate/bundle.crt"
-ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
+if production_box:
+    server_name = "nbhosting.inria.fr"
+    ssl_certificate = "/root/ssl-certificate/bundle.crt"
+    ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
+else:
+    server_name = "nbhosting-dev.inria.fr"
+    ssl_certificate = "/root/ssl-certificate-dev/bundle.crt"
+    ssl_certificate_key = "/root/ssl-certificate-dev/nbhosting-dev.inria.fr.key"
 
 
 # the location used by the application
@@ -37,12 +45,12 @@ srcroot = '/root/nbhosting'
 
 # the location where docker is told to store its images and all other files
 # it should point into a btrfs partition
-# if you upgrade from 0.24 or earlier you should keep this default value
-# that was previously hard-wired
 # IMPORTANT NOTE you need to realize that changing this value
 # also means restarting from an empty 'docker images' so
 # you will need to rebuild them all
 dockerroot = '/nbhosting/dockers'
+# this is used by the podman branch
+podmanroot = '/nbhosting/containers'
 
 ### upstream portals
 #
@@ -87,12 +95,16 @@ allowed_devel_ips = [
 # monitor will run cyclically - every <period> minutes - 
 # and kill containers that have been idle for more than <idle> minutes
 # depends on your available resources and traffic of course
-monitor_idle = 30
-monitor_period = 10
+if production_box:
+    monitor_idle = 120
+    monitor_period = 5
+else:
+    monitor_idle = 5
+    monitor_period = 2
 
 ######################################## django settings
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = not production_box
 
 # describes how to log stderr from (shell) sub processes
 # depending on its returncode
@@ -101,7 +113,7 @@ DEBUG = False
 # True : always log
 # False : log when return code != 0
 
-DEBUG_log_subprocess_stderr = False
+DEBUG_log_subprocess_stderr = not production_box
 
 
 # see e.g. https://www.miniwebtool.com/django-secret-key-generator/
@@ -111,11 +123,6 @@ SECRET_KEY = 'your-actual-production-key-here'
 # this is a native django setting
 # see https://docs.djangoproject.com/en/1.11/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = [
-    '138.96.112.37',                    # thermals
-    'nbhosting-dev.inria.fr',           #
-    'thermals.pl.sophia.inria.fr',      #
-    '138.96.19.2',                      # nbhosting
-    'nbhosting.inria.fr',               #
-    'nbhosting.pl.sophia.inria.fr',     #
-    'localhost',                        # for devel
+    # as per django's expectations
+    # a list of hostname's or IP address as strings
 ]
