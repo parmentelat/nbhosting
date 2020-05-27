@@ -7,7 +7,7 @@ set -x
 
 apt-get update
 
-pip install -U pip setuptools
+pip install -U pip setuptools wheels
 
 # --------
 # this is to increase the ulimit -n (max nb of open files)
