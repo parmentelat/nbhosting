@@ -426,15 +426,15 @@ class CourseDir(models.Model):
                 print(toplevel, file=raw)
 
 
-    def image_hash(self, podman_proxy):
+    def image_hash(self, podman_api):
         """
         the hash of the image that should be used for containers
         in this course
         or None if something goes wrong
         """
         try:
-            return podman_proxy.images.get(self.image).id
-        except podman.ImageNotFound:
+            return podman.images.inspect(podman_api, self.image)['Id']
+        except podman.errors.ImageNotFound:
             logger.error(f"Course {self.coursename} "
                          f"uses unknown podman image {self.image}")
         except:

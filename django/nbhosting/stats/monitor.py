@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 
-#>>> client = docker.APIClient(base_url='unix://var/run/docker.sock')
-#>>> inspect = client.inspect_container('x-physique-x-b2f513e3b29901e453578b3af8f97568')
-#>>> inspect['State']['FinishedAt']
-#'2018-10-08T08:05:22.08653639Z'
-
-
 # pylint: disable=c0111, r0903, r0913, r0914, w1202, w1203, w0703
 
 import os
@@ -15,6 +9,8 @@ import json
 import subprocess
 import logging
 import re
+
+from typing import Dict 
 
 import asyncio
 import aiohttp
@@ -28,6 +24,27 @@ from nbh_main.settings import monitor_logger as logger
 from nbhosting.courses.model_course import CourseDir
 
 from nbhosting.stats.stats import Stats
+
+# podman containers come in 2 flavours
+# 
+# first call to list_containers() returns a list of dicts with keys
+# ['Command', 'Created', 'Exited', 'ExitedAt', 'ExitCode', 'Id', 'Image', 'IsInfra',
+#  'Labels', 'Mounts', 'Names', 'Namespaces', 'Pid', 'Pod', 'PodName',
+#  'Ports', 'Size', 'StartedAt', 'State']
+
+HighlevelContainer = Dict
+
+# further call to containers.inspect() returns these keys
+# ['AppArmorProfile', 'Args', 'BoundingCaps', 'Config', 'ConmonPidFile', 'Created',
+#  'Dependencies', 'Driver', 'EffectiveCaps', 'ExecIDs', 'ExitCommand', 'GraphDriver',
+#  'HostConfig', 'HostnamePath', 'HostsPath', 'Id', 'Image', 'ImageName', 'IsInfra',
+#  'LogPath', 'LogTag', 'MountLabel', 'Mounts', 'Name', 'Namespace', 'NetworkSettings',
+#  'OCIConfigPath', 'OCIRuntime', 'Path', 'Pod', 'ProcessLabel', 'ResolvConfPath',
+#  'RestartCount', 'Rootfs', 'State', 'StaticDir']
+
+LowlevelContainer = Dict
+
+podman_url = "unix://localhost/run/podman/podman.sock"
 
 """
 This processor is designed to be started as a systemd service
@@ -78,41 +95,48 @@ class MonitoredJupyter:
     # container is an instance of
     #
     def __init__(self,
-                 container: docker.models.containers.Container,
+                 container: HighlevelContainer,
                  course: str,
                  student: str,
                  figures: CourseFigures,
                  # the hash of the expected image - may be None
                  image_hash: str,
-                 low_level_api: docker.APIClient):
+                 podman_api: podman.ApiConnection):
         self.container = container
         self.course = course
         self.student = student
         self.figures = figures
         self.image_hash = image_hash
-        self.low_level_api = low_level_api
+        self.podman_api = podman_api
         #
         self.nb_kernels = None
         self.last_activity = 0.
-        self.inspection = None
+        self.inspection: LowlevelContainer = None
 
     def __str__(self):
         details = f" [{self.nb_kernels}k]" if self.nb_kernels is not None else ""
         return f"container {self.name}{details}"
 
-    # docker containers have a value 'name', so it's confusing
-    # to access it through a method
     @property
     def name(self):
-        return self.container.name
+        return self.container['Names'][0]
 
     def port_number(self):
         try:
-            return int(self.container.attrs['NetworkSettings']
-                       ['Ports']['8888/tcp'][0]['HostPort'])
+            return self.container['Ports'][0]['hostPort']
         except Exception:
             logger.exception(f"Cannot locate port number for {self}")
             return 0
+
+    # podman does not seem to expose an asynchronous way to do this
+    def inspect(self):
+        # run only once
+        if self.inspection is None:
+            self.inspection = podman.containers.inspect(self.podman_api, self.name)
+            
+    def creation_time(self):
+        return self.container['Created']
+
 
     @staticmethod
     def parse_docker_time(time_string):
@@ -161,18 +185,6 @@ class MonitoredJupyter:
             return time.time()
 
 
-    # docker does not seem to expose an asynchronous way to do this
-    def inspect(self):
-        # run only once
-        if self.inspection is None:
-            self.inspection = self.low_level_api.inspect_container(self.name)
-            
-    def creation_time(self):
-        self.inspect()
-        started_str = self.inspection['State']['StartedAt']
-        return self.parse_docker_time(started_str)
-
-
     async def count_running_kernels(self):
         """
         updates:
@@ -206,19 +218,20 @@ class MonitoredJupyter:
         except Exception:
             logger.exception(f"Cannot probe number of kernels with {self} - unhandled exception")
 
+    
+    def kill_container(self):
+        podman.containers.kill(self.podman_api, self.name)
 
-    # until 0.23 inclusive, we used to need to remove containers
-    # but now we trigger them with the --rm option so it's much simpler
-    #
+
     async def co_run(self, idle, lingering):
         """
         both timeouts in seconds
         """
         now = time.time()
         # ignore containers already marked as to remove
-        if self.container.status == 'removing':
+        if self.container['State'] == 'removing':
             return
-        if self.container.status != 'running':
+        if self.container['State'] != 'running':
             logger.warning("Ignoring non-running container {self}")
             return
         
@@ -235,7 +248,7 @@ class MonitoredJupyter:
             await self.count_running_kernels()
             if self.last_activity is None:
                 logger.info(f"Killing unreachable (2) {self}")
-                self.container.kill()
+                self.kill_container()
                 return
         # check there has been activity in the last grace_idle_in_minutes
         idle_minutes = (int)((now - self.last_activity) // 60)
@@ -251,13 +264,13 @@ class MonitoredJupyter:
                 logger.info(
                     f"Killing (running and empty) (2) {self} "
                     f"that has no kernel attached")
-                self.container.kill()
+                self.kill_container()
                 return
         else:
             logger.info(
                 f"Killing (running & idle) {self} "
                 f"that has been idle for {idle_minutes} mn")
-            self.container.kill()
+            self.kill_container()
             return
         
         # if students accidentally leave stuff running in the background
@@ -273,7 +286,7 @@ class MonitoredJupyter:
                 f"Removing lingering {self} "
                 f"that was created {created_days} days "
                 f"{created_hours} hours ago (idle_minutes={idle_minutes})")
-            self.container.kill()
+            self.kill_container()
             return
 
 
@@ -285,8 +298,7 @@ class Monitor:
 
         Parameters:
           period: is how often the monitor runs
-          grace: is how long an idle container is kept running before
-            we kill its container (docker kill)
+          grace: is how long an idle container is kept running before we kill it
           debug(bool): turn on more logs
         """
         self.period = period
@@ -297,25 +309,32 @@ class Monitor:
 
 
     def run_once(self):
+        try:
+            with podman.ApiConnection(podman_url) as podman_api:
+                return self._run_once_on_api(podman_api)
+        except Exception:
+            logger.exception(
+                "Cannot create connection to the podman API - skipping")
+            return
+
+    def _run_once_on_api(self, podman_api):
+
         # initialize all known courses - we want data on all courses
         # even if they don't run any container yet
-        logger.debug("scanning courses")
+        logger.info(f"monitor cycle with period={self.period//60}' "
+                    f"idle={self.idle//60}' "
+                    f"lingering={self.lingering//3600}h")
         figures_by_course = {c.coursename : CourseFigures()
                              for c in CourseDir.objects.all()}
         coursedirs_by_name = {c.coursename : c
                               for c in CourseDir.objects.all()}
+        hash_by_course = {c.coursename : c.image_hash(podman_api)
+                          for c in CourseDir.objects.all()}
 
-        try:
-            proxy = docker.from_env(version='auto')
-            logger.debug("scanning containers")
-            containers = proxy.containers.list(all=True)
-            hash_by_course = {c.coursename : c.image_hash(proxy)
-                              for c in CourseDir.objects.all()}
-            low_level_api = docker.APIClient(base_url='unix://var/run/docker.sock')
-        except Exception:
-            logger.exception(
-                "Cannot gather containers list at the docker daemon - skipping")
-            return
+        # seems to return None when no container is found
+        containers = podman.containers.list_containers(podman_api) or []
+        logger.debug(f"found {len(hash_by_course)} courses "
+                     f"and {len(containers)} containers")
 
         # a list of async futures
         futures = []
@@ -323,9 +342,10 @@ class Monitor:
             try:
                 # refresh data from docker server, in case
                 # we've taken too long to reach here since
-                # the point when we issued proxy.containers.list()
-                container.reload()
-                name = container.name
+                # the point when we issued podman_api.containers.list()
+                # xxx removed when going to podman
+                # container.reload()
+                name = container['Names'][0]
                 # too much spam ven in debug mode
                 # logger.debug(f"dealing with container {container}")
                 coursename, student = name.split('-x-')
@@ -336,7 +356,7 @@ class Monitor:
                        or f"hash not found for course {coursename}"
                 monitored_jupyter = MonitoredJupyter(
                     container, coursename, student,
-                    figures, image_hash, low_level_api)
+                    figures, image_hash, podman_api)
                 futures.append(monitored_jupyter.co_run(
                     self.idle, self.lingering))
             # typically non-nbhosting containers
@@ -352,7 +372,7 @@ class Monitor:
             except Exception:
                 logger.exception(f"monitor has to ignore {container}")
         # ds stands for disk_space
-        docker_root = proxy.info()['DockerRootDir']
+        docker_root = podman.system.info(podman_api)['store']['graphRoot']
         nbhroot = sitesettings.nbhroot
         system_root = "/"
         spaces = {}

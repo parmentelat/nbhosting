@@ -148,9 +148,7 @@ function enable-services() {
     systemctl enable io.podman.service
     systemctl enable nginx
     systemctl enable nbh-django
-# not yet working
-#    systemctl enable nbh-monitor
-    systemctl disable nbh-monitor; systemctl stop nbh-monitor
+    systemctl enable nbh-monitor
     systemctl enable nbh-autopull.timer
 }
 
@@ -160,7 +158,7 @@ function migrate-database() {
 }
 
 function restart-services() {
-#    systemctl restart nbh-monitor
+    systemctl restart nbh-monitor
     systemctl restart nginx
     systemctl restart nbh-django
     systemctl restart nbh-autopull.timer

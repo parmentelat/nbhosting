@@ -61,7 +61,7 @@ note that pulling docker-stacks image from dockerhub is not taken care of by thi
             show_and_run(f"cp {path} {work_dir}", dry_run=dry_run)
         force_tag = "" if not force else "--no-cache"
         build_command = f"cd {work_dir}; "
-        build_command += f"docker build {force_tag}"
+        build_command += f"podman build {force_tag}"
         build_command += f" -f {dockerfile.name} -t {image_name} ."
         show_and_run(build_command, dry_run=dry_run)
 
