@@ -519,22 +519,6 @@ class CourseDir(models.Model):
         return os.system(command) == 0
 
 
-    def destroy_student_container(self, student):
-        container_name = f"{self.coursename}-x-{student}"
-        with podman.Client() as proxy:
-            try:
-                container = proxy.containers.get(container_name)
-            except podman.ContainerNotFound:
-                logger.info(f"nothing to do - container {container_name} not found")
-                return
-            if container.status == 'running':
-                logger.info(f"killing {container_name}")
-                container.kill()
-        logger.info(f"removing {container_name}")
-        container.remove()
-        logger.info("DONE")
-
-
     # useful when a shell-written feature is needed from python
     # we don't provide for calling nbh-manage, because in this case
     # it means the code is in python, so using imports is preferrable
