@@ -5,6 +5,8 @@
 # you can run any of the inside functions with e.g.
 #
 
+ENGINE=podman
+
 # terminology
 # (*) course refers to a course name as found under NBHROOT/courses
 # (*) student refers to a UNIX login name, and is identical
@@ -371,24 +373,6 @@ function add-student-in-course() {
     # always chown that homedir for safety
     chown -R $student:$student $STUDENT_home
 
-# no longer required with podman ?
-# at least, there is no podman group 
-##    # add user to both groups docker and course
-#    for group in docker $course; do
-#        # check group existence
-#        getent group $group >& /dev/null || {
-#            -echo-stderr Creating group $group
-#            groupadd $group
-#        }
-#        -echo-stderr "Ensuring $student is in group $group"
-#        groupmems -a $student -g $group >& /dev/null
-#        # restarting docker would be way too intrusive !
-#        if [ $? != 0 -a "$group" == "docker" ]; then
-#            -echo-stderr "reloading docker service after adding $student into docker"
-#            systemctl reload docker
-#        fi
-#    done
-
     return 0
 
 }
@@ -519,8 +503,8 @@ EOF
 # * created container port jupyter-token
 # * running container port jupyter-token
 #
-@declare-subcommand docker-run-container-for-student-in-course
-function docker-run-container-for-student-in-course() {
+@declare-subcommand run-container-for-student-in-course
+function run-container-for-student-in-course() {
     local USAGE="Usage: $COMMAND $FUNCNAME container student course image"
 
     [ "$#" -eq 4 ] || -die "$USAGE"
@@ -781,7 +765,7 @@ function container-view-student-course-notebook() {
     # create and start the container
     local container=$STUDENT_container
     # either existing of created
-    docker-run-container-for-student-in-course $container $student $course $image
+    run-container-for-student-in-course $container $student $course $image
 }
 
 
@@ -825,7 +809,7 @@ function container-view-student-course-jupyterdir() {
     # create and start the container
     local container=$STUDENT_container
     # either existing of created
-    docker-run-container-for-student-in-course $container $student $course $image
+    run-container-for-student-in-course $container $student $course $image
 }
 
 
@@ -862,7 +846,7 @@ function container-share-student-course-notebook-in-hash() {
     local absolute_path=/var/nginx/nbhosting/$url_path
     -mkdir-for-file-as-student $absolute_path nginx
 
-    docker exec $STUDENT_container \
+    $ENGINE exec $STUDENT_container \
         jupyter nbconvert --to html  --stdout "$guest_notebook" \
         > $absolute_path
 
@@ -904,46 +888,8 @@ function course-clear-staff() {
 }
 
 
-#
-# once a course is over it is safe to remove all containers
-# attached to that course
-#
-# NOTES:
-# * because dockerd handles one request at a time
-#   and so effectively sequentialize all these destruction requests
-#   this is likely to take hours or even days..
-# * also the way to locate containers is based on the course name
-#   in a somewhat inclusive way; it can be a bit inaccurate if I
-#   have for instance 2 courses python and thepython
-#   but only stopped containers will be removed
-#   so it is not too big a deal
-# * by default, only containers that have exited
-#   more than one month ago are removed
-#   with the -a option, all such containers are removed
-
-@declare-subcommand admin-docker-rm-course-containers
-function admin-docker-rm-course-containers() {
-    local USAGE="Usage: $FUNCNAME course"
-    [ "$#" -eq 1 ] || -die $USAGE
-    local course=$1; shift
-    local pattern="${course}-x-"
-    while true; do
-        local focus=$(docker ps -a \
-            --filter 'status=exited' \
-            --filter "name=$pattern" \
-            --format '{{.Names}}' \
-            | head -1)
-        # we're done
-        [ -z "$focus" ] && break
-        # otherwise remove it
-        #echo $FUNCNAME removing container $focus
-        docker rm $focus
-    done
-}
-
-
-@declare-subcommand admin-docker-list-kernels
-function admin-docker-list-kernels() {
+@declare-subcommand admin-list-kernels
+function admin-list-kernels() {
     local USAGE="Usage: $FUNCNAME course [containers]"
     [ "$#" -ge 1 ] || -die $USAGE
 
@@ -952,12 +898,12 @@ function admin-docker-list-kernels() {
     containers="$@"
     if [[ -z "$containers" ]]; then
         pattern="${course}-x-"
-        containers=$(docker ps \
+        containers=$($ENGINE ps \
                             --filter "name=$pattern" \
                             --format '{{.Names}}')
     fi
     for container in $containers; do
-        port=$(docker port $container | cut -d: -f2)
+        port=$($ENGINE port $container | cut -d: -f2)
         echo ========== $container;
         curl -k --silent http://localhost:$port/api/kernels?token=$container | \
             python3 -c "import sys, pprint, json; pprint.pprint(json.loads(sys.stdin.read()))"
@@ -1022,10 +968,9 @@ function course-rename() {
 
     # check all containers are down
     echo "Checking for remaining containers"
-    local alive=$(docker ps -a --format '{{.Names}}' | grep "^${old_course}-x" | wc -l)
+    local alive=$($ENGINE ps -a --format '{{.Names}}' | grep "^${old_course}-x" | wc -l)
     if [ $alive != 0 ]; then
         local message="Found $alive containers for $old_course"
-        message="$message - Delete with nbh admin-docker-rm-course-containers"
         -die $message
     fi
     -rename-dir $old_git $new_git
@@ -1050,8 +995,8 @@ function course-rename() {
 
 function count-docker() {
     echo ========== CONTAINERS
-    local running=$(docker ps | grep -v '^CONTAINER' | wc -l)
-    local total=$(docker ps -a | grep -v '^CONTAINER' | wc -l)
+    local running=$($ENGINE ps | grep -v '^CONTAINER' | wc -l)
+    local total=$($ENGINE ps -a | grep -v '^CONTAINER' | wc -l)
     echo "$running running / $total total containers"
 }
 
@@ -1091,34 +1036,34 @@ function admin-counts() {
 }
 
 
-@declare-subcommand admin-docker-enter
-function admin-docker-enter() {
+@declare-subcommand admin-container-enter
+function admin-container-enter() {
     local USAGE="Usage: $FUNCNAME container"
     [ "$#" -eq 1 ] || -die $USAGE
     local container=$1; shift
 
-    docker exec -ti $container /bin/bash
+    $ENGINE exec -ti $container /bin/bash
 }
 
 
 ############################## devel/tests/-oriented
 
-@declare-subcommand admin-docker-kill-all
-function admin-docker-kill-all() {
-    containers=$(docker ps --format '{{.Names}}')
+@declare-subcommand admin-container-kill-all
+function admin-container-kill-all() {
+    containers=$($ENGINE ps --format '{{.Names}}')
     for c in $containers; do
         echo "Killing $c"
-        docker kill $c
+        $ENGINE kill $c
     done
 }
 
 
-@declare-subcommand admin-docker-rm-all
-function admin-docker-rm-all() {
-    containers=$(docker ps -a --format '{{.Names}}')
+@declare-subcommand admin-container-rm-all
+function admin-container-rm-all() {
+    containers=$($ENGINE ps -a --format '{{.Names}}')
     for c in $containers; do
         echo "Removing $c"
-        docker rm $c
+        $ENGINE rm $c
     done
 }
 
@@ -1135,16 +1080,16 @@ function clear-etc-passwd() {
 
 # run on the box that is about to become the production box
 function prepare-swap() {
-    admin-docker-kill-all
-    admin-docker-rm-all
+    admin-container-kill-all
+    admin-container-rm-all
     clear-etc-passwd
     echo "WARNING: this script does not take care of the courses area"
 }
 
 
 function list-tests() {
-    echo ==================== "(all)" dockers
-    docker ps -a --format {{.Names}} | grep -- '-x-student-'
+    echo ==================== "(all)" containers
+    $ENGINE ps -a --format {{.Names}} | grep -- '-x-student-'
     echo ==================== users
     grep student- /etc/passwd
     echo ==================== user dirs
@@ -1156,14 +1101,19 @@ function clear-tests() {
         user=$(basename $userdir)
         for coursedir in $(ls -d $userdir/* 2>/dev/null); do
             course=$(basename $coursedir)
-            docker=${course}-x-${user}
-            echo killing $docker
-            docker kill $docker >& /dev/null
-            echo removing $docker
-            docker rm $docker >& /dev/null
+            container=${course}-x-${user}
+            $ENGINE inspect --type container $container >& /dev/null && {
+                echo killing $container
+                $ENGINE kill $container >& /dev/null
+            }
+#            echo removing $container
+#            $ENGINE rm $container >& /dev/null
         done
-        echo deleting user $user
-        del-student $user
+        getent passwd $user >& /dev/null && {
+            echo deleting user $user
+            del-student $user
+        }
+        rm -rf $userdir
     done
 }
 

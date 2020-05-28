@@ -1,7 +1,9 @@
 # Important note
 
-as of 2019 nov 15, darktek is being decommissioned and goes into the r2lab room; 
-our new test box will thus be **`stupeflip`** (Command-2); 
+* re-run in 2020 may w/ fedora 31
+
+* as of 2019 nov 15, stupeflip is being decommissioned and goes into the r2lab room; 
+our new test box will thus be **`stupeflip`**; 
 here's a summary of the steps I have taken to set it up,
 starting from a rther mundame fedora-29,
 in a hope to better understand that fonts thing
@@ -18,7 +20,6 @@ git clone https://github.com/parmentelat/nbhosting.git nbhosting
 git clone https://github.com/flotpython/slides.git python-slides
 git clone https://github.com/parmentelat/flotpython.git python3-s2
 
-pip3 install selenium
 dnf install -y chromedriver
 dnf install -y chromium
 ```
@@ -26,7 +27,7 @@ dnf install -y chromium
 and at that point everything was working fine.. For good measure I added also
 
 ```
-dnf install mathjax
+dnf install -y mathjax
 ```
 
 
@@ -35,7 +36,7 @@ dnf install mathjax
 * one test server (typically nbhosting-dev.inria.fr)
   * no special requirement more than being installed and ready
 
-* one test box (typically darktek.pl.sophia.inria.fr)
+* one test box (typically stupeflip.pl.sophia.inria.fr)
   * requires selenium - `pip3 install selenium`
   * requires nepi-ng - `pip3 install asyncssh asynciojobs apssh`
   * requires requests - `pip3 install requests`
@@ -48,9 +49,11 @@ dnf install mathjax
 **UPDATE 2019 Nov**
 
 * phantomJS has been deprecated under selenium
-* so I had to do  
-  `dnf install chromium chromedriver chromium-libs-media`
-  `dnf install xorg-x11-fonts-misc xorg-x11-font-utils`
+* so I had to do
+  ```
+  dnf install chromium chromedriver chromium-libs-media
+  dnf install xorg-x11-fonts-misc xorg-x11-font-utils
+  ```
 * NOTE: I had to struggle quite some time for getting the fonts to work; I even went to
   upgrading to fedora-30 in the mix, but not sure what actually fixed that issue; best
   guess is that is was a matter of installing the x11 fonts and rebooting, but that would
@@ -70,10 +73,10 @@ and
 
 ### fire from a linux box
 
-I have used the root account on `darktek.pl.sophia.inria.fr`:
+I have used the root account on `stupeflip.pl.sophia.inria.fr`:
 
 ```
-root@darktek ~ #
+root@stupeflip ~ #
 cd git/nbhosting/
 git pull
 cd tests
@@ -96,11 +99,11 @@ nbh status-btrfs
 
 on your mac
 
-    ~/git/nbhosting/tests (devel $=) $ rm -rf artefacts-darktek
+    ~/git/nbhosting/tests (devel $=) $ rm -rf artefacts-stupeflip
 
 on the linux worker
 
-    root@darktek ~/git/nbhosting/tests (devel=) # rm -rf artefacts    
+    root@stupeflip ~/git/nbhosting/tests (devel=) # rm -rf artefacts    
 
 
 ### check it out
@@ -112,7 +115,7 @@ dry run first to check your sitesettings
 
 ### my first 100-students batch - one notebook per student
 
-    root@darktek ~/git/nbhosting/tests # ./nbhtests -m -u 1-100
+    root@stupeflip ~/git/nbhosting/tests # ./nbhtests -m -u 1-100
 
 
 Because we have set `-m`, then **only one** notebook is rando**m**ly picked for each student (among the complete set found in that course); one can add `-i 0-11` if the notebooks are to be selected in a specific, narrower range.
@@ -120,7 +123,7 @@ Because we have set `-m`, then **only one** notebook is rando**m**ly picked for 
 ### several notebooks per student
 
 ```
-root@darktek ~/git/nbhosting/tests # ./nbhtests -i 1-3 -u 1-100
+root@stupeflip ~/git/nbhosting/tests # ./nbhtests -i 1-3 -u 1-100
 ```
 
 Using an index range like this **without `-m`** will run these 3 notebooks for each of the 100 students.
@@ -153,13 +156,13 @@ Default for the test server is `https://nbhosting-dev.inria.fr/`, can be changed
 
 ### get them back
 
-from my local (macbook pro) laptop, I can gather the results back from darktek by doing
+from my local (macbook pro) laptop, I can gather the results back from stupeflip by doing
 
 ```
-parmentelat ~/git/nbhosting/tests $ ./darktek.fetch
+parmentelat ~/git/nbhosting/tests $ ./stupeflip.fetch
 ```
 
-Which retrieves the relevant files from darktek in `./artefacts-darktek`.
+Which retrieves the relevant files from stupeflip in `./artefacts-stupeflip`.
 **Beware** however that this is cumulative.
 
 ### what to expect
@@ -167,7 +170,7 @@ Which retrieves the relevant files from darktek in `./artefacts-darktek`.
 * The `.txt` files should exist for all students; they should show something like
 
 ```
-parmentelat ~/git/nbhosting/tests $ cat artefacts-darktek/student-0001-python3-s2-8-contents-4contents.txt
+parmentelat ~/git/nbhosting/tests $ cat artefacts-stupeflip/student-0001-python3-s2-8-contents-4contents.txt
 kernel area:[]
 number of cells: 18
 ```
