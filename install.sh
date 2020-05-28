@@ -112,7 +112,7 @@ function update-nginx() {
 function update-podman {
     # I have not been able to get the btrfs driver to work at all
     mkdir -p $podmanroot
-    sed -i -e "s|^graphroot\w*=.*|graphroot = $podmanroot|" \
+    sed -i -e "s|^graphroot\s*=.*|graphroot = \"$podmanroot\"|" \
         /etc/containers/storage.conf
 }
 
