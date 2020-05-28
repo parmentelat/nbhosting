@@ -89,7 +89,7 @@ Filesystem     Type   Size  Used Avail Use% Mounted on
 /dev/sda3      btrfs  1.1T   28G  1.1T   3% /nbhosting
 ```
 
-see also
+see also (xxx was torn down meanwhile xxx)
 
 ```
 nbh status-btrfs
@@ -115,18 +115,17 @@ dry run first to check your sitesettings
 
 ### my first 100-students batch - one notebook per student
 
-    root@stupeflip ~/git/nbhosting/tests # ./nbhtests -m -u 1-100
+    root@stupeflip ~/git/nbhosting/tests # ./nbhtests -u 1-100
 
 
-Because we have set `-m`, then **only one** notebook is rando**m**ly picked for each student (among the complete set found in that course); one can add `-i 0-11` if the notebooks are to be selected in a specific, narrower range.
+The `-m` option allowed to pick a random notebook but that was overly complex, it was removed  
 
 ### several notebooks per student
 
 ```
 root@stupeflip ~/git/nbhosting/tests # ./nbhtests -i 1-3 -u 1-100
 ```
-
-Using an index range like this **without `-m`** will run these 3 notebooks for each of the 100 students.
+Using an index range like this will run these 3 notebooks for each of the 100 students.
 
 ### unattended mode
 
@@ -154,16 +153,23 @@ Default for the test server is `https://nbhosting-dev.inria.fr/`, can be changed
 
 # Dealing with results
 
+### renaming
+
+once the test job is over on the linux worker, rename your artefacts 
+directory to have it reflect the options used, e.g.
+
+```
+┗━ ▶︎ mv artefacts artefacts-10u-1n-period10-podmanf32
+```
+
 ### get them back
 
-from my local (macbook pro) laptop, I can gather the results back from stupeflip by doing
-
 ```
-parmentelat ~/git/nbhosting/tests $ ./stupeflip.fetch
+$ ./stupeflip.fetch 10u-1n-period10-podmanf32
 ```
 
-Which retrieves the relevant files from stupeflip in `./artefacts-stupeflip`.
-**Beware** however that this is cumulative.
+Which retrieves the relevant files from stupeflip in the same dirname
+**Beware** however that this is cumulative; hence the choice of a relevant name for each batch
 
 ### what to expect
 

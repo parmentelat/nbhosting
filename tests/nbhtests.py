@@ -9,7 +9,6 @@ in a single process, so let's keep it simple
 """
 
 import time
-import random
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from intsranges import IntsRanges
 

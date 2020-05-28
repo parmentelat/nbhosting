@@ -27,7 +27,6 @@ import sys, os
 import time
 from pathlib import Path
 import json
-import random
 from itertools import chain
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
