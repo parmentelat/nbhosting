@@ -236,7 +236,7 @@ def _open_notebook(request, coursename, student, notebook,
         return error_page(request, coursename, student, notebook, 
                           msg, header="notebook not found")
 
-    subcommand = 'docker-view-student-course-notebook'
+    subcommand = 'container-view-student-course-notebook'
 
     # build command
     command = ['nbh', '-d', sitesettings.nbhroot]
@@ -326,7 +326,7 @@ def share_notebook(request, course, student, notebook):
                                 encoding='utf-8'))
     hash = hasher.hexdigest()
 
-    subcommand = 'docker-share-student-course-notebook-in-hash'
+    subcommand = 'container-share-student-course-notebook-in-hash'
 
     command = ['nbh', '-d', sitesettings.nbhroot]
     if DEBUG:
@@ -394,7 +394,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
         )
 
     # nbh's subcommand
-    subcommand = 'docker-view-student-course-jupyterdir'
+    subcommand = 'container-view-student-course-jupyterdir'
 
     # build command
     command = ['nbh', '-d', sitesettings.nbhroot]

@@ -733,8 +733,8 @@ function -wait-for-http-on-port-token() {
 # in classroom mode, we run this with the -g option so that a git repo
 # gets created in the student's workspace
 
-@declare-subcommand docker-view-student-course-notebook
-function docker-view-student-course-notebook() {
+@declare-subcommand container-view-student-course-notebook
+function container-view-student-course-notebook() {
     local USAGE="Usage: $COMMAND $FUNCNAME [-f] [-g] student course notebook image giturl"
 
     local forcecopy=""
@@ -787,8 +787,8 @@ function docker-view-student-course-notebook() {
 
 # ENTRY POINT: another entrypoint to edxfront.views in classroom mode
 
-@declare-subcommand docker-view-student-course-jupyterdir
-function docker-view-student-course-jupyterdir() {
+@declare-subcommand container-view-student-course-jupyterdir
+function container-view-student-course-jupyterdir() {
     local USAGE="Usage: $COMMAND $FUNCNAME [-f] student course image"
 
     [ "$#" -eq 3 ] || -die $USAGE
@@ -835,8 +835,8 @@ function docker-view-student-course-jupyterdir() {
 #
 # write a single line that is the path to use to reach the snapshot
 #
-@declare-subcommand docker-share-student-course-notebook-in-hash
-function docker-share-student-course-notebook-in-hash() {
+@declare-subcommand container-share-student-course-notebook-in-hash
+function container-share-student-course-notebook-in-hash() {
     local USAGE="Usage: $COMMAND $FUNCNAME student course notebook hash"
     [ "$#" -eq 4 ] || -die $USAGE
     local student=$1; shift
