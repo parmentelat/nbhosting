@@ -232,11 +232,10 @@ class MonitoredJupyter:
         both timeouts in seconds
         """
         now = time.time()
-        # ignore containers already marked as to remove
-        if self.container['State'] == 'removing':
-            return
+        # ignore non running containers
         if self.container['State'] != 'running':
-            logger.warning(f"Ignoring non-running container {self}")
+            logger.warning(f"Ignoring non-running container {self} "
+                           f"- state={self.container['State']}")
             return
         
         # count number of kernels and last activity
@@ -339,7 +338,7 @@ class Monitor:
                           for c in CourseDir.objects.all()}
 
         # seems to return None when no container is found
-        containers = podman.containers.list_containers(podman_api) or []
+        containers = podman.containers.list_containers(podman_api, all=True) or []
         logger.debug(f"found {len(hash_by_course)} courses "
                      f"and {len(containers)} containers")
 
