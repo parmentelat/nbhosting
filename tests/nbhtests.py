@@ -8,14 +8,17 @@ and there is no clear advantage in running all the open-notebook instances
 in a single process, so let's keep it simple
 """
 
+import sys
 import time
+from pathlib import Path
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from intsranges import IntsRanges
-
 import asyncio
+
 from asynciojobs import Scheduler
 from apssh import LocalNode, SshJob
 from apssh.formatters import TerminalFormatter
+
+from intsranges import IntsRanges
 
 from nbhtest import (
     default_course_gitdir, 
@@ -51,6 +54,7 @@ def main() -> bool:
                         nargs='*',
                         help="""a list of git repos where to fetch notebooks""")
     
+    signature = "".join(sys.argv[1:])
     args = parser.parse_args()
 
     local = LocalNode(
@@ -87,6 +91,14 @@ def main() -> bool:
     overall = scheduler.orchestrate()
     if not overall:
         scheduler.debrief()
+    untagged = Path("artefacts")
+    tagged = Path(f"artefacts{signature}")
+    if tagged.exists():
+        print(f"NOT RENAMING because {tagged} exists; command to run is")
+        print(f"mv {untagged} {tagged}")
+    else:
+        print(f"renaming {untagged} into {tagged}")
+        untagged.rename(tagged)
     print("nbhtests DONE")
     return overall
 
