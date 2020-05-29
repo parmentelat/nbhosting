@@ -7,7 +7,6 @@ from django.db import models
 # so no need to change the ORM or to store anything in the DB
 
 import podman
-
 podman_url = "unix://localhost/run/podman/podman.sock"
 
 class Student:
@@ -29,7 +28,7 @@ class Student:
         
         with podman.ApiConnection(podman_url) as podman_api:
             # not specifying all=True means only the running ones
-            containers = podman.containers.list_containers()
+            containers = podman.containers.list_containers(podman_api)
         # keep only this student's containers
         # the drawback of using sparse=True however 
         # is that the container structures are not fully filled

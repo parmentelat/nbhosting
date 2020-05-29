@@ -9,6 +9,7 @@ from importlib.util import (
     spec_from_file_location, module_from_spec)
 
 import podman
+podman_url = "unix://localhost/run/podman/podman.sock"
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -439,7 +440,6 @@ class CourseDir(models.Model):
                          f"uses unknown podman image {self.image}")
         except:
             logger.exception("Can't figure image hash")
-            return
 
 
     def build_image(self, force=False, dry_run=False):

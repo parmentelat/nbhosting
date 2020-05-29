@@ -17,6 +17,7 @@ import aiohttp
 from aiohttp import ClientConnectionError
 
 import podman
+podman_url = "unix://localhost/run/podman/podman.sock"
 
 from nbh_main.settings import sitesettings
 # redirect into monitor.log
@@ -46,8 +47,6 @@ LowlevelContainer = Dict
 #  'OCIConfigPath', 'OCIRuntime', 'Path', 'Pod', 'ProcessLabel', 'ResolvConfPath',
 #  'RestartCount', 'Rootfs', 'State', 'StaticDir']
 
-
-podman_url = "unix://localhost/run/podman/podman.sock"
 
 """
 This processor is designed to be started as a systemd service
@@ -223,7 +222,9 @@ class MonitoredJupyter:
 
     
     def kill_container(self):
-        podman.containers.kill(self.podman_api, self.name)
+        # using a new connection each time turns out much more robust
+        with podman.ApiConnection(podman_url) as podman_api:
+            podman.containers.kill(podman_api, self.name)
 
 
     async def co_run(self, idle, lingering):
