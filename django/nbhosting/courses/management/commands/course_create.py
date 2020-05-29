@@ -13,7 +13,8 @@ class Command(BaseCommand):
     help = """
     this command lets you create a course from a git repo
 
-    by default, the coursename is used as the docker image name, but you can use the -i option to declare that you'd prefer to use another image instead
+    by default, the coursename is used as the container image name, 
+    but you can use the -i option to declare that you'd prefer to use another image instead
     """
 
     def add_arguments(self, parser):

@@ -14,6 +14,9 @@ import re
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
+print("this code was written for docker and needs to be modified for podman")
+exit(1)
+
 import docker
 
 from nbhosting.stats.monitor import MonitoredJupyter, CourseFigures

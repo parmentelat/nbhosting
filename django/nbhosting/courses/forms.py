@@ -23,7 +23,7 @@ class UpdateCourseForm(forms.Form):
         label='image',
         required=False,
         help_text="""
-            the name of the docker image used to spawn student containers for
+            the name of the container image used to spawn student containers for
             that course; you have the option to use one of the built-in
             nbhosting images  <code>nbhosting/minimal-notebook</code> and
             <code>nbhosting/scipy-notebook</code>; or, you may just refer to the

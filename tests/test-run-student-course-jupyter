@@ -1,5 +1,8 @@
 #!/bin/bash -x
 
+echo this code was written for docker and needs to be modified for podman
+exit 1
+
 # xxx this needs to be updated
 # nbh-run-student-course-jupyter was dead code and has gone
 # see commit ba12932 for its last appearance

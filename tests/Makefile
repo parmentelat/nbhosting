@@ -3,10 +3,6 @@
 # with e.g. 10 parallel jobs with
 # make -j 10 clear-tests
 
-# the thing is the docker daemon works as a bootleneck
-# so it doesn't work as well as it should, but it's a bit better
-# than purely sequential though
-
 ENGINE = podman
 
 # all the container here are test containers

@@ -162,8 +162,8 @@ d3.json(url_counts).then(function (incoming) {
     var	total_containers      = running_containers.map(function(num, index){
         return num+frozen_containers[index];})
     let running_kernels       = incoming.running_kernels;
-    let docker_ds_percents    = incoming.docker_ds_percents;
-    let docker_ds_frees       = incoming.docker_ds_frees;
+    let container_ds_percents = incoming.container_ds_percents;
+    let container_ds_frees    = incoming.container_ds_frees;
     let nbhosting_ds_percents = incoming.nbhosting_ds_percents;
     let nbhosting_ds_frees    = incoming.nbhosting_ds_frees;
     let system_ds_percents    = incoming.system_ds_percents;
@@ -190,9 +190,9 @@ d3.json(url_counts).then(function (incoming) {
   	          layout);
 
 
-    let docker_ds_percents_data = {
-        x: timestamps, y: docker_ds_percents,
-        name : '% of free disk space - docker fs',
+    let container_ds_percents_data = {
+        x: timestamps, y: container_ds_percents,
+        name : '% of free disk space - containers fs',
     }
     let nbhosting_ds_percents_data = {
         x: timestamps, y: nbhosting_ds_percents,
@@ -206,13 +206,13 @@ d3.json(url_counts).then(function (incoming) {
     layout_100.yaxis = {range : [0, 100]};
     turn_off_clock('plotly-ds-percent');
     Plotly.newPlot('plotly-ds-percent',
-                   [docker_ds_percents_data, nbhosting_ds_percents_data, system_ds_percents_data],
+                   [container_ds_percents_data, nbhosting_ds_percents_data, system_ds_percents_data],
 		   layout_100);
 
 
-    let docker_ds_frees_data = {
-        x: timestamps, y: docker_ds_frees,
-        name : 'free disk space - docker fs (in MiB)',
+    let container_ds_frees_data = {
+        x: timestamps, y: container_ds_frees,
+        name : 'free disk space - containers fs (in MiB)',
     }
     let nbhosting_ds_frees_data = {
         x: timestamps, y: nbhosting_ds_frees,
@@ -224,7 +224,7 @@ d3.json(url_counts).then(function (incoming) {
     }
     turn_off_clock('plotly-ds-free');
     Plotly.newPlot('plotly-ds-free',
-                   [docker_ds_frees_data, nbhosting_ds_frees_data, system_ds_frees_data],
+                   [container_ds_frees_data, nbhosting_ds_frees_data, system_ds_frees_data],
 		   layout);
 
     let load1s_data = {

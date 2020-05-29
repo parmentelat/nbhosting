@@ -1,6 +1,6 @@
-# docker images
+# container images
 
-This document describes how to manage the docker image built for each course.
+This document describes how to manage the image built for each course.
 
 # the `docker-stacks` images
 
@@ -15,7 +15,7 @@ This being said, as of March 2019, the scipy-notebook image is lingering behind 
 
 See also [`docker-stacks.md`](docker-stacks.md) in the current directory for additional notes on the various images.
 
-# nbhosting, docker, and uids
+# nbhosting, images, and uids
 
 In order to get each user-created notebook properly stored in the host, i.e. with the right uid, there currently (dec. 2017) is a need to tweak the images as provided by docker-stacks.
 
@@ -70,7 +70,7 @@ nbh-manage course-build-image mycourse
 ```
 
 Whatever the option among the 2 discussed above, the important thing is for a course to pick a name that is
-* **a valid docker image name**
+* **a valid container image name**
 * that is built **on top** of one of the **core nbhosting images**, as these contain crucial utilities.
 
 
@@ -87,17 +87,16 @@ The logic implemented for rolling out images has 2 aspects, whether it is at run
 
 ### image-building time
 
-* note that there may be a need to explicitly call `docker pull` beforehand, if an upgrade of the base images is desired.
+* note that there may be a need to explicitly call `podman pull` beforehand, if an upgrade of the base images is desired.
 
 * assuming the course's imagename matches its name (otherwise, course-build-image will cowardly refuse to do anything), a Dockerfile is searched as described above.
 
-In any case, the docker-building command is run in a directory that contains:
+In any case, the image-building command is run in a directory that contains:
 
 * the dockerfile as located above,
-* ***note: this is no longer supported: all the contents of `course/docker-image` if that's where the dockerfile was found,***
 * and in any case the `start-in-dir-as-uid.sh` script, in the current `images/` subdir of `nbhosting`, as this is a key part of the whole business.
 
-Your docker file **MUST** copy `start-in-dir-as-uid.sh` in the images's `/usr/local/bin`; it **must** also run as root; `because start-in-dir-as-uid.sh` needs this privilege in order to setuid as the actual student uid; see as an example [the dockerfile for the python MOOC](https://github.com/parmentelat/flotpython/blob/master/docker-image/nbhosting.Dockerfile).
+Your dockerfile **MUST** copy `start-in-dir-as-uid.sh` in the images's `/usr/local/bin`; it **must** also run as root; `because start-in-dir-as-uid.sh` needs this privilege in order to setuid as the actual student uid; see as an example [the dockerfile for the python MOOC](https://github.com/parmentelat/flotpython/blob/master/nbhosting/Dockerfile).
 
 **Final note** in the `Dockerfile` for `python3-s2` we have chosen to use the ***latest*** version of `scipy-notebook` image. This is on purpose, but not necessarily the best practice if you want to be on the safe side, and be resilient to hasty upgrades on dockerhub; so you may what to use a specific image hash instead.
 
@@ -105,7 +104,7 @@ Your docker file **MUST** copy `start-in-dir-as-uid.sh` in the images's `/usr/lo
 
 The objectives that we had here, and that are fulfilled with this implementation, are that:
 
-* each course can provide its own docker-image specification,
-* the administrator can also override this with a home-cooked docker image specification - this is for example for running course based on material that was not written for nbhosting, like e.g. DataScienceHandbook (it's true that a git fork could work around that issue, but well)
-* we can still leverage docker's image building tools
+* each course can provide its own image specification,
+* the administrator can also override this with a home-cooked container image specification - this is for example for running course based on material that was not written for nbhosting, like e.g. DataScienceHandbook (it's true that a git fork could work around that issue, but well)
+* we can leverage dockerhub images and standard building tools
 * and easily roll out upgraded course images with minimal impact for students.

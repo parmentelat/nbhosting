@@ -161,7 +161,7 @@ function swap-contents() {
 }
 
 # ignore unrelevant  nbh-autopull
-SERVICES="nbhosting-addr nbhosting-dev-addr nbh-django nbh-monitor nginx docker"
+SERVICES="nbhosting-addr nbhosting-dev-addr nbh-django nbh-monitor nginx"
 CONFIG=$HOME/nbhosting/django/nbh_main/sitesettings.py
 
 function status() {

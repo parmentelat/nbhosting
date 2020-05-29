@@ -10,7 +10,7 @@ note that `ipythonExercice` should be replaced with `notebookLazyCopy` in recent
 
   * Unix id, home dir for student mary
   * copy of that notebook in the student's homedir
-  * docker instance: public port 8000 is bound to internal port 8888 (all docker instances run on 8888)
+  * container: public port 8000 is bound to internal port 8888 (all containers run on 8888)
 
 3. django then answers with a HTTP redirect like
 
@@ -18,12 +18,12 @@ note that `ipythonExercice` should be replaced with `notebookLazyCopy` in recent
  
 4. browser complies with redirect, talks to nginx again
 
-5. nginx figures it needs to proxy to local port 8000 (Set-cookie `docker_port=8000`)
+5. nginx figures it needs to proxy to local port 8000 
 
 6. jupyter serves raw notebook data that contains further hrefs to `/static/` and `/api/` and the like
 
-7. browser asks for hrefs like `/static/` with cookie `docker_port=8000`
+7. browser asks for hrefs like `/8000/static/`
 
-8. nginx forwards to right docker
+8. nginx forwards to right container
 
 9. answer to `/static/`  and similar

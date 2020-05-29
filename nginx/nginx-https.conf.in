@@ -131,18 +131,18 @@ http {
 
         # edxfront.views.edx_request will redirect to a URL
         # that reads port-number/jupyter_url
-        # this needs to be passed along to that docker/jupyter instance
+        # this needs to be passed along to that container
         # for max. range we start at 2000
         # when the browser follows that redirect, it issues the request
         # labeled as (4) in the architecture diagram
         location ~ ^/([1-9][0-9]*)/(.*)$ {
             if ($down) { return 503; }
-            set $docker_port $1;
+            set $container_port $1;
             set $notebook_path $2;
             allow all;
 
             # use http & localhost here
-            proxy_pass http://127.0.0.1:$docker_port/$docker_port/$notebook_path$is_args$args;
+            proxy_pass http://127.0.0.1:$container_port/$container_port/$notebook_path$is_args$args;
             proxy_set_header Host $host;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;

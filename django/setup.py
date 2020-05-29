@@ -34,7 +34,7 @@ setup(
         'jupytext',
         # monitor
         'aiohttp',
-        'docker',
+        'podman',
     ],
     setup_requires = [],
     tests_require = [],

@@ -103,12 +103,6 @@ function update-nginx() {
 
 }
 
-#function update-docker {
-#    mkdir -p $dockerroot
-#    sed -e "s,@dockerroot@,$dockerroot," \
-#    docker/daemon.json.in > /etc/docker/daemon.json
-#}
-
 function update-podman {
     # I have not been able to get the btrfs driver to work at all
     mkdir -p $podmanroot
@@ -125,6 +119,7 @@ function remove-uwsgi-service() {
     rm -f /etc/systemd/system/nbh-uwsgi.service
 }
 
+# in case of any upgrade from a docker-powered nbhosting
 function turn-off-docker-service() {
     # if that service is not known, we're good
     systemctl cat docker >& /dev/null || return
@@ -144,8 +139,9 @@ function enable-services() {
         -e "s,@monitor_lingering@,$monitor_lingering," \
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
-    systemctl enable io.podman.socket
-    systemctl enable io.podman.service
+    # required for remote access only ?
+    #systemctl enable io.podman.socket
+    #systemctl enable io.podman.service
     systemctl enable nginx
     systemctl enable nbh-django
     systemctl enable nbh-monitor

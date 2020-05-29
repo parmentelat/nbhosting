@@ -11,7 +11,7 @@ ENGINE=podman
 # (*) course refers to a course name as found under NBHROOT/courses
 # (*) student refers to a UNIX login name, and is identical
 # to the names used under NBHROOT when referring to a student
-# (*) container is the name of a container as known to docker
+# (*) container is the name of a container as per the container runtime
 #
 # conventions
 # (*) functions designed to be exposed to the outside
@@ -587,22 +587,14 @@ function run-container-for-student-in-course() {
     #   instead as mounting the 2 files custom.js and custom.css individually
     #   this is an attempt to ease propagation of changes to any of these files
     #   as otherwise a container restart is required for this to take effect
-    # * map jovyan uid to the student's
+    # * map jovyan uid to the student's; 
     #   out of luck trying to use docker-stacks's native start.sh
     #   that led to costly and useless chown's on /opt/conda; so instead we
     #   * run the container as root
     #   * in turn use our own script start-in-dir-as-uid.sh
-    #     from ../docker/images that does runuser to have jupyter
+    #     from ../images that does runuser to have jupyter
     #     run as the right uid; of course this means it is a requirement
-    #     for the course images to contain that script
-    # * turn off this http header that otherwise would prevent
-    #   embedding in a FUN iframe
-    #   Content-Security-Policy: frame-ancestors 'self';
-    #        ... report-uri /api/security/csp-report
-    #   so set the web server's settings to clear the
-    #   Content-Security-Policy header it is too tedious on the command line
-    #   with quoting and all, so we use jupyter's config file instead in
-    #   jupyter/jupyter_notebook_config.py
+    #     for the course images to contain that script, hence the nbhosting/ images
     # * set NBAUTOEVAL_LOG to a file that ends up on the host filesystem the
     #   default for NBAUTOEVAL_LOG is $HOME/.nbautoeval, which in this context
     #   does not even make sense - $HOME is unset. Even if it was if would not
@@ -912,14 +904,14 @@ function admin-list-kernels() {
 
 ####################
 
-@declare-subcommand list-courses
-function list-courses() {
-    local USAGE="Usage: $FUNCNAME"
-    [ "$#" -eq 0 ] || -die $USAGE
-
-    cd $NBHROOT/courses || exit 0
-    ls
-}
+#@declare-subcommand list-courses
+#function list-courses() {
+#    local USAGE="Usage: $FUNCNAME"
+#    [ "$#" -eq 0 ] || -die $USAGE
+#
+#    cd $NBHROOT/courses || exit 0
+#    ls
+#}
 
 
 ####################
@@ -993,7 +985,7 @@ function course-rename() {
 
 ############################## admin helpers
 
-function count-docker() {
+function count-containers() {
     echo ========== CONTAINERS
     local running=$($ENGINE ps | grep -v '^CONTAINER' | wc -l)
     local total=$($ENGINE ps -a | grep -v '^CONTAINER' | wc -l)
@@ -1031,7 +1023,7 @@ function count-tree() {
 @declare-subcommand admin-counts
 function admin-counts() {
     count-users "$@"
-    count-docker "$@"
+    count-containers "$@"
     count-tree "$@"
 }
 

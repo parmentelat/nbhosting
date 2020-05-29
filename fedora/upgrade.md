@@ -137,5 +137,5 @@ The way we build our images - based on the latest scipy stack image - means that
 ### btrfs volumes
 
 Once a box *loses* its development function, a lot of btrfs volumes are left
-over that may need to be cleaned up; removing all docker containers and images
+over that may need to be cleaned up; removing all containers and images
 is one way to do that, it might take some time though.

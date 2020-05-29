@@ -14,10 +14,10 @@
 
 Depending on the scope of your deployment, you will need
 
-* primarily as much memory as you can get; `nbhosting` uses docker to spawn one
+* primarily as much memory as you can get; `nbhosting` spawns one
   jupyter-powered container per tuple (student x course), so even if these are killed
   after a 15 minutes-ish amount of idle time, that may require substantial amount;
-* in terms of disk space, 1 Tb will already lead you rather far, thanks to docker's
+* in terms of disk space, 1 Tb will already lead you rather far, thanks to COW
   imaging capabilities.
 
 ## SSL
@@ -38,56 +38,43 @@ Depending on the scope of your deployment, you will need
  on the underlying infrastructure. In particular, it assumes that you have a **dedicated**
  fedora box for running the complete service. In this respect it has no provision for
  leveraging several physical servers. In line with this assumption, all the pieces come as
- a single monolitihic bundle, that takes care of all the pieces (nginx, django in uwsgi)
+ a single monolithic bundle, that takes care of all the pieces (nginx, django in uwsgi)
  from a single point of installation and control.
-
- ## cgroups
-
- `docker-ce` won't work with cgroups v2 that is the default on fedora31; if you target
- Fedora 31, you will need to run the following to turn off cgroups v2 and enable cgroups
- v1 instead ([see also this
- page](https://linuxconfig.org/how-to-install-docker-on-fedora-31))
- 
-```bash
-# dnf install -y grubby
-# grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
-# sudo shutdown -r now
-```
 
 ## podman
 
-as an aside, I gave a shot at replacing docker with podman; for one thing podman uses
-cgroups v2, plus the docker runtime really sucks in our case, so performance improvements
-could be expected.
+as of this writing (may 2020), the `podman` branch that is working nicely, and is going 
+through intensive testing before we roll it out
 
-as of this writing (jan 2020), I have a `podman` branch that is almost working, but for
-one painful issue : a simple API call to list running containers takes a huge amount of
-time, think 2 minutes for one container; for more info [see this issue on github], it
-appears that all that time is spent calculating the amount of disk space involved...
+## cgroups
 
-long story short I have left this branch on the side, and am running docker on a
-cgroups-v1 f31 intead for now (see above)
+podman can use cgroupsv2, any kernel-booting option for configuring cgroupsv1 can be
+dismantled
 
 ****
 
 # disk partitioning
 
-We use `btrfs` as the underlying filesystem for docker; the requirement is thus to have
-`/nbhosting` mounted on a `btrfs` partition somehow.
+We use `btrfs` as the underlying filesystem for containers; the requirement is thus to have
+`/nbhosting` mounted on a `btrfs` partition somehow. 
+
+**Note** that since the switch to using podman, this is probably no longer a hard constraint.
 
 
 ##### Optional Note
 
-It might make more sense to actually cut **2 separate btrfs partitions**, instead of a
-single one like it is exposed below; having a completely separate btrfs partition for
-hosting the docker images and containers may turn out to be more convenient, especially
-when a reset is needed. Remember that it takes less than a second to create a new btrfs
-filesystem on a partition, while it can take hours to properly remove images and
-containers using docker one by one, so there's that. This being said, the current
-production box on `nbhosting.inria.fr` has this single btrfs partition scheme, so a
-dual-partition setup can be considered optional. The location where docker images uses
-disk space is hard-wired as `/nbhosting/dockers` (and, as of this writing, is not
-reconfigurable).
+It might make more sense to actually cut **2 separate btrfs
+partitions**, instead of a single one like it is exposed below; having
+a completely separate btrfs partition for hosting the images and
+containers may turn out to be more convenient, especially when a reset
+is needed. Remember that it takes less than a second to create a new
+btrfs filesystem on a partition, while it can take hours to properly
+remove images and containers cleaning, so there's that. This being
+said, the current production box on `nbhosting.inria.fr` has this
+single btrfs partition scheme, so a dual-partition setup can be
+considered optional. The location where container images use disk space
+is hard-wired as `/nbhosting/containers`; it is configurable, 
+but make sure to pick the right location before building all your images.
 
 
 ## system *vs* application
@@ -151,9 +138,9 @@ The data that should be backed up is the one in
 
 ## disposable data
 
-* `/nbhosting/dockers/`
+* `/nbhosting/containers/`
 
-   will be handed over to docker as its main area for storing images and snapshots, basically all the copy-on-write powered images
+   will be handed over to podman as its main area for storing images and snapshots, basically all the copy-on-write powered images
 
 ****
 
@@ -161,21 +148,29 @@ The data that should be backed up is the one in
 
 After a base installation of fedora, please do the following:
 
-## install docker-ce 
-
-**Warning** the docker stack as published by fedora has stopped being upgraded a few years
-back, make sure to use docker-ce as published by docker
+## install prerequisites
 
 ```
-dnf -y install dnf-plugins-core
-dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-dnf install docker-ce docker-ce-cli containerd.io
-```
-
-## install git and download `nbhosting` sources
-
-```
+dnf -y install podman
 dnf -y install git
+```
+
+## install podman-py
+
+As of this writing (May 2020) podman-py is in a very early development stage; 
+hopefully this will be availaible through pip at some point
+
+```
+cd /root
+git clone https://github.com/parmentelat/podman-py
+cd podman-py
+git checkout nbhosting
+pip install -e .
+```
+
+## download `nbhosting` sources
+
+```
 cd /root
 git clone https://github.com/parmentelat/nbhosting.git
 ```
@@ -209,11 +204,6 @@ cp etc/selinux/config /etc/selinux/config
 cd /root/nbhosting
 cp fedora/etc/sudoers.d/99-nbhosting /etc/sudoers.d/
 chmod 440 /etc/sudoers.d/99-nbhosting
-```
-
-## docker setup
-```
-systemctl enable docker
 ```
 
 ## reboot
@@ -333,10 +323,10 @@ and `[nbh_main]` categories. This is the tool we'll use to prepare courses and i
 
 ## Preparing core images
 
-### pull docker images (step A)
+### pull container images (step A)
 
 ```
-docker pull  jupyter/minimal-notebook; docker pull jupyter/scipy-notebook
+podman pull  jupyter/minimal-notebook; podman pull jupyter/scipy-notebook
 ```
 
 This will fetch at dockerhub the 2 images that are used to create our own core images
@@ -347,7 +337,7 @@ This will fetch at dockerhub the 2 images that are used to create our own core i
 nbh-manage build-core-images
 ```
 
-This will rebuild docker images `nbhosting/minimal-notebook` and
+This will rebuild images `nbhosting/minimal-notebook` and
 `nbhosting/scipy-notebook` on top of the publically available ones that we pulled in step
 A.
 
@@ -362,7 +352,7 @@ Create a course named `python3` from git repo `https://github.com/flotpython/cou
 nbh-manage course-create python3 https://github.com/flotpython/course.git
 ```
 
-**Note** if you want to attach that course to a docker image whose name is **not the course name**, you can add a `-i` or `--image` option (can be tweaked later of course)
+**Note** if you want to attach that course to an image whose name is **not the course name**, you can add a `-i` or `--image` option (can be tweaked later of course)
 
 ```bash
 nbh-manage course-create -i nbhosting/scipy-notebook python3 https://github.com/flotpython/course.git
@@ -370,25 +360,25 @@ nbh-manage course-create -i nbhosting/scipy-notebook python3 https://github.com/
 
 ### course image (step 2 : build course image)
 
-The docker image name to use with a course is modifiable in the web UI - you
+The image name to use with a course is modifiable in the web UI - you
 need staff privileges of course. 
 
 #### option 1 : use a core image
 
 nbhosting comes with predefined images, that are built on top of publically
 available images (see step B above). If you'd like your course to use one of
-these, use e.g. `nbhosting/minimal-notebook` as the docker image name for this course.
+these, use e.g. `nbhosting/minimal-notebook` as the image name for this course.
 
 ***Note*** that it is **not recommended** to use dockerhub images *as is*, as it will
 cause very poor overall performance. FYI the recipes to build our core images are located in the `images` subdir in the git repo.
 
 #### option 2 : piggyback
 
-If your nbhosting instance already hosts a course, say `python3`, and you want to host course `mycourse` with the same image as `python3`, you can just use that as your docker image name.
+If your nbhosting instance already hosts a course, say `python3`, and you want to host course `mycourse` with the same image as `python3`, you can just use that as your image name.
 
 #### option 3 : your own image
 
-Otherwise, your docker image name should match the course name (which is the default of course), and you can rebuild that image from the shell with
+Otherwise, your image name should match the course name (which is the default of course), and you can rebuild that image from the shell with
 
 ```
 nbh-manage course-build-image mycourse
@@ -430,7 +420,7 @@ So for example, you can trigger updates from git, and image builds, from the web
 There are a few settings available for a course; as of this writing:
 
 * a boolean `autopull` flag; when enabled, nbhosting will pull from git every hour or so;
-* docker image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however images are big and tedious to build, so you could want to share another course's image
+* image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however images are big and tedious to build, so you could want to share another course's image
 * students that are considered *staff*; corresponding hashes will be ignored when building usage statistics
 
 By experience, these first 3 settings seem to make more sense on a nbhosting
@@ -530,8 +520,8 @@ Additional logs go into
 * `$NBHROOT/logs/nbhosting.log`
 * `$NBHROOT/logs/monitor.log`
 * `$NBHROOT/logs/nginx-{error,access}.log`
-* also each docker container can be probed for its logs
-  * `docker logs` *`thecoursename`*`-x-`*`thestudenthash`*
+* also each container can be probed for its logs
+  * `podman logs` *`thecoursename`*`-x-`*`thestudenthash`*
 
 ## visual stats
 
@@ -551,6 +541,22 @@ Additional logs go into
   is `anonymous`.
 * this is a convenient way to check the course is up and running - in particular, make
   sure you have built the image for that course !
+
+
+# podman as a replacement to docker
+
+We chose to drop docker; the docker daemon is acting as a bottleneck
+and impeds performance; plus, it's becoming harder and harder to get
+`docker-ce` distributions, and this gets in the way.
+
+So welcome podman, that is available right out of the vanilla repo on
+f32+ (nbhosting might not work well on top of podman on f31) ; it does
+support cgroup-v2, and has a compatible CLI interface; so add to that
+the fact that our fedora-29 deployment is exhibiting really weird and
+odd behaviour, replacing docker with podman is definitely worth it.
+
+One can even (not needed) install the `podman-docker` rpm so that you
+can keep on running the `docker` command and talk to podman instead.
 
 # upgrading
 
@@ -574,88 +580,27 @@ to a more recent release. Consider the following scenario:
 * a month later, you pull a new release that has 12 variables
   in `sitesettings.py.example`
 
-In this case, you need to identify the 2 new variables, and define them in your `sitesettings.py` (even if you are fine with the defaults as set in the example file)
+In this case, you need to identify the 2 new variables, and define
+them in your `sitesettings.py` (even if you are fine with the defaults
+as set in the example file)
 
 
 ## note on fedora upgrades
 
-If you upgrade to a more recent fedora, as always `dnf` will take care of the packages
-that it knows about, but **won't automatically install the `pip` dependencies, that need
-to be reinstalled manually**. 
+If you upgrade to a more recent fedora, as always `dnf` will take care
+of the packages that it knows about, but **won't automatically install
+the `pip` dependencies, that need to be reinstalled manually**
 
-## note on upgrading to 0.24
+Likewise, when upgrading from say f31 to f32, python3 will move from
+3.7 to 3.8; so pip dependencies will restart from scratch;
+`install.sh` should do all the heavylifting in this case, but check
+for the installation pf `podman-py` that might need manual
+intervention if installed from sources.
 
-A special case has to be considered when upgrading from a release <= 0.23 to another >= 0.24
+## note on upgrading from docker to podman
 
-In a nutshell, there is a change of policy between these 2 releases :
-* in 0.23 and below, containers are created on a need-by-need basis, and after some idle
-  time - typically 30 minutes - those containers are killed, but not removed; actually
-  they are removed after a much longer delay of inactivity - think 2 weeks;
-* in 0.24 and above on the contrary, containers are created when needed, but immediately
-  removed after the short idle timeout
+This one-shot move might be a little more awkward than usual; double-check
 
-To put it in other words, this means that in nominal mode :
-* in 0.23, `docker ps -a` may have a long list of pending containers, while
-* in 0.24, `docker ps -a` is essentially empty, except for the occasional container that
-  is being removed at that time
-  
-When upgrading from 0.23 to 0.24: the new code has provisions to deal with the case where
-the required container exists and is stopped (which means there is a lingering sequel from
-0.23); however operations should not rely on that, particularly if a vast number of
-lingering containers were still idling about. 
-
-So the recommended way to upgrade is to start with running the following command; note
-that this assumes that your docker deployment has no other purpose than serving nbhosting,
-as it removes **ALL** stopped containers; adapt as needed if that's not the case.
-
-Note that this cleanup command **can be launched with the nbhosting service still running**;
-it is likely to take quite some time though, depending on the number of stopped containers;   
-you can estimate that time by running `docker ps -a | wc -l` to figure how many they are.
-
-For your information, on `nbhosting.inria.fr` we had about 700 lingering containers, and
-the cleanup has taken a few hours. 
-
-Also note that this command, provided again that docker only serves nbhosting, is
-completety safe to run anytime in advance, and as many times as needed, since it is
-idempotent, so it can be anticipated.
-
-```
-### this should be run before upgrading to 0.24
-### it can be safely run while the service is up and running
-###
-### purpose is to remove all stopped containers
-### note that this command may take a loooooog time to complete
-
-docker ps -aq --no-trunc -f status=exited | xargs docker rm
-```
-
-Once this has completed, you can safely upgrade the usual way :
-```
-git pull
-./install.sh
-```
-
-## note on upgrading to 0.25
-
-First, please note that as part of 0.25, the `systemd` service that used to be called
-`nbh-uwsgi` is now more simply `nbh-django`, which is easier to remember - see issue #103
-
-Some cleanup has been done in the `sitesettings.py` area; 
-you will **need to** review your own file according to the following changes
-
-* `log_subprocess_stderr` has the same meaning but is renamed as 
-  `DEBUG_log_subprocess_stderr`; it is recommended to move its definition close 
-  to the definition of the plain django `DEBUG` variable - see issue #106
-* define the 2 new variables `monitor_idle` and `monitor_period` (in minutes)
-  - see issue #104
-* define new variable `dockerroot`, which ought to be `/nbhosting/dockers` 
-  if you are upgrading since that was previously the hard-wired default - see issue #105
-
-Generally speaking, a good way to approach these changes is to compare
-
-* `sitesettings.py.example` that comes with the git repo and reflects 
-  what your file should look like, and
-* `sitesettings.py` that contains your own settings.
-
-These two files should be almost identical, except of course 
-for the actual values for your site.
+* that you rebuild all images after having tweaked `podmanroot`
+* optionnally that you clean up the previous containers image location
+  (`/nbhosting/dockers` by default)

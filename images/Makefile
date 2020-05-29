@@ -7,7 +7,7 @@ all: $(ALL)
 
 define image_target
 $1:
-	docker build $(BUILDOPTS) -f $1.Dockerfile -t $1 .
+	podman build $(BUILDOPTS) -f $1.Dockerfile -t $1 .
 endef
 
 $(foreach image, $(KNOWN), $(eval $(call image_target, $(image))))

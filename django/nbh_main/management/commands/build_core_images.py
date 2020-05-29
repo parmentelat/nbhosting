@@ -11,7 +11,6 @@ class Command(BaseCommand):
     help = """
 rebuild nbhosting core images
 
-note that pulling docker-stacks image from dockerhub is not taken care of by this command
 """
     def add_arguments(self, parser):
         parser.add_argument(
@@ -19,7 +18,7 @@ note that pulling docker-stacks image from dockerhub is not taken care of by thi
             help="simply show what would be done")
         parser.add_argument(
             "-f", "--force", action='store_true', default=False,
-            help="rebuild docker image unconditionnally")
+            help="rebuild image unconditionnally")
         parser.add_argument(
             "name", nargs="*",
             help="typically 'scipy' or 'minimal', rebuild all if not provided")

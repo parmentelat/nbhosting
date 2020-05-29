@@ -1,4 +1,0 @@
-{
-  "storage-driver": "btrfs",
-  "graph": "@dockerroot@"
-}

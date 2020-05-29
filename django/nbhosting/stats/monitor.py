@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# pylint: disable=c0111, r0903, r0913, r0914, w1202, w1203, w0703
+# pylint: disable=c0111, r0903, r0913, r0914, w1202, w0703
 
 import os
 import time
@@ -26,15 +26,19 @@ from nbhosting.courses.model_course import CourseDir
 from nbhosting.stats.stats import Stats
 
 # podman containers come in 2 flavours
-# 
+ 
 # first call to list_containers() returns a list of dicts with keys
+
+HighlevelContainer = Dict
+
 # ['Command', 'Created', 'Exited', 'ExitedAt', 'ExitCode', 'Id', 'Image', 'IsInfra',
 #  'Labels', 'Mounts', 'Names', 'Namespaces', 'Pid', 'Pod', 'PodName',
 #  'Ports', 'Size', 'StartedAt', 'State']
 
-HighlevelContainer = Dict
-
 # further call to containers.inspect() returns these keys
+
+LowlevelContainer = Dict
+
 # ['AppArmorProfile', 'Args', 'BoundingCaps', 'Config', 'ConmonPidFile', 'Created',
 #  'Dependencies', 'Driver', 'EffectiveCaps', 'ExecIDs', 'ExitCommand', 'GraphDriver',
 #  'HostConfig', 'HostnamePath', 'HostsPath', 'Id', 'Image', 'ImageName', 'IsInfra',
@@ -42,7 +46,6 @@ HighlevelContainer = Dict
 #  'OCIConfigPath', 'OCIRuntime', 'Path', 'Pod', 'ProcessLabel', 'ResolvConfPath',
 #  'RestartCount', 'Rootfs', 'State', 'StaticDir']
 
-LowlevelContainer = Dict
 
 podman_url = "unix://localhost/run/podman/podman.sock"
 
@@ -139,16 +142,16 @@ class MonitoredJupyter:
 
 
     @staticmethod
-    def parse_docker_time(time_string):
+    def parse_time(time_string):
         """
-        turn a docker string for a time into an epoch number
+        turn a string for a time into an epoch number
         # example #'2018-10-08T08:05:22.08653639Z'
         # sometimes there is no sub-second part
         """
         # normalize
         normalized = time_string.replace('Z', 'UTC')
         # discard all sub-second data
-        normalized = re.sub("\.[0-9]+", "", normalized)
+        normalized = re.sub(r"\.[0-9]+", "", normalized)
         struct_time = time.strptime(normalized, "%Y-%m-%dT%H:%M:%S%Z")
         return calendar.timegm(struct_time)
 
@@ -178,7 +181,7 @@ class MonitoredJupyter:
         """
         try:
             last_activity = kernel_data['last_activity']
-            return MonitoredJupyter.parse_docker_time(last_activity)
+            return MonitoredJupyter.parse_time(last_activity)
         except Exception:
             logger.exception(f"last_time failed with kernel_data = {kernel_data}")
             # to stay on the safe side, return current time
@@ -232,7 +235,7 @@ class MonitoredJupyter:
         if self.container['State'] == 'removing':
             return
         if self.container['State'] != 'running':
-            logger.warning("Ignoring non-running container {self}")
+            logger.warning(f"Ignoring non-running container {self}")
             return
         
         # count number of kernels and last activity
@@ -306,15 +309,18 @@ class Monitor:
         self.lingering = lingering
         if debug:
             logger.setLevel(logging.DEBUG)
+        self._graphroot = None
 
 
     def run_once(self):
         try:
             with podman.ApiConnection(podman_url) as podman_api:
                 return self._run_once_on_api(podman_api)
+        except podman.errors.InternalServerError as exc:
+            logger.error(f"{exc} - skipping rest of monitor cycle")
         except Exception:
             logger.exception(
-                "Cannot create connection to the podman API - skipping")
+                "Something wrong happened during monitor cycle - skipping")
             return
 
     def _run_once_on_api(self, podman_api):
@@ -340,12 +346,11 @@ class Monitor:
         futures = []
         for container in containers:
             try:
-                # refresh data from docker server, in case
-                # we've taken too long to reach here since
-                # the point when we issued podman_api.containers.list()
-                # xxx removed when going to podman
-                # container.reload()
                 name = container['Names'][0]
+                # refresh data from the container runtime, in case
+                # we've taken too long to reach here since
+                # the point when we issued list_containers()
+                # container = podman.containers.inspect(podman_api, name)
                 # too much spam ven in debug mode
                 # logger.debug(f"dealing with container {container}")
                 coursename, student = name.split('-x-')
@@ -372,11 +377,12 @@ class Monitor:
             except Exception:
                 logger.exception(f"monitor has to ignore {container}")
         # ds stands for disk_space
-        docker_root = podman.system.info(podman_api)['store']['graphRoot']
+        if self._graphroot is None:
+            self._graphroot = podman.system.info(podman_api)['store']['graphRoot']
         nbhroot = sitesettings.nbhroot
         system_root = "/"
         spaces = {}
-        for name, root in (('docker', docker_root),
+        for name, root in (('container', self._graphroot),
                            ('nbhosting', nbhroot),
                            ('system', system_root)):
             spaces[name] = {}
@@ -415,7 +421,7 @@ class Monitor:
                 figures.running_kernels,
                 nb_student_homes,
                 load1, load5, load15,
-                spaces['docker']['percent'], spaces['docker']['free'],
+                spaces['container']['percent'], spaces['container']['free'],
                 spaces['nbhosting']['percent'], spaces['nbhosting']['free'],
                 spaces['system']['percent'], spaces['system']['free'],
             )

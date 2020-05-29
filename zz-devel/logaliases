@@ -42,9 +42,7 @@ function refresh() {
 function jou-nginx()		{ jou -f nginx; }
 function jou-django()	        { jou -f nbh-django; }
 function jou-monitor()	        { jou -f nbh-monitor; }
-function jou-docker()		{ jou -f docker; }
-function jou-podman()		{ jou -f io.podman; }
-function jou-all()		{ jou -f nginx io.podman docker nbh-django nbh-monitor; }
+function jou-all()		{ jou -f nginx nbh-django nbh-monitor; }
 
 ##########
 function logs-jup() {
@@ -54,10 +52,10 @@ function logs-jup() {
     [[ -n "$@" ]] || { echo $usage; return 1; }
     student=$1; shift;
     [[ -z "$@" ]] || { echo $usage; return 1; }
-    docker logs -f ${course}-x-${student};
+    podman logs -f ${course}-x-${student};
 }
 
-alias counts="nbh docker-counts"
+alias counts="nbh count-containers"
 
 ########################################
 [ $(type -t ls 2> /dev/null) == alias ] && unalias ls

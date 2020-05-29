@@ -2,7 +2,7 @@
 
 **Important Notice**
 
-**Since release 0.24, nbhosting no longer relies on cookies to route traffic to the docker containers.**
+**Since release 0.24, nbhosting no longer relies on cookies to route traffic to the containers.**
 
 # Jupyter notebook hosting architecture
 
@@ -40,7 +40,7 @@ Here's what a student would see;
 
 In a nushell:
 
-* the first time a student tries to open a notebook, nbhosting transparently creates her an account, together with a docker container;
+* the first time a student tries to open a notebook, nbhosting transparently creates her an account, together with a container;
 * the first time a student opens a given notebook, this notebook is **copied** from the master course contents (more on this below) **into her container**; from that point on, her work for that notebook is independant from the master course
 * containers are automatically stopped (i.e. frozen) when the student is inactive, to preserve computing resources; as a consequence, a student may have to wait 5 to 10 seconds when she shows up the first time or after idle time.
 
@@ -77,9 +77,9 @@ that reference repo, and then instruct nbhosting to pull the new stuff :
 If you set a given course in *autopull* mode, nbhosting will then perform this pull
 operation on its own every 5 minutes.
 
-## Docker image
+## Container image
 
-Each course is deployed based on a specific docker image; for customization,
+Each course is deployed based on a specific image; for customization,
 create a file named `nbhosting/Dockerfile` in your course repo.
 Note that some magic recipes need to be applied in your image for proper
 deployment, you should copy the beginning of [the code for our Python
@@ -128,8 +128,8 @@ Here's the general principle of how of works
 * This is caught by nginx, that runs forefront; the `notebookLazyCopy/` prefix is routed to a django application, that primarily does this
   * create a linux user if needed
   * create a copy of that notebook for the student if needed
-  * spawns a (docker) jupyter instance for the couple (course, student)
-  * redirects to a (plain https, on port 443) URL that contains the port number that the docker instance can be reached at (on localhost via http)
+  * spawns a jupyter container for the couple (course, student)
+  * redirects to a (plain https, on port 443) URL that contains the port number that the container can be reached at (on localhost via http)
 
 ***Note*** that `notebookLazyCopy` used to be named `ipythonExercice`, which is still supported for backward compatibility.
 

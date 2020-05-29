@@ -1,4 +1,4 @@
-# pylint: disable=c0111, w1203
+# pylint: disable=c0111
 
 import os
 from pathlib import Path                                # pylint: disable=w0611

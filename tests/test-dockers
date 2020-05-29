@@ -1,7 +1,10 @@
 # -*- shell-script -*-
 
+echo this code was written for docker and needs to be modified for podman
+exit 1
+
 #
-# Usage: test-images [-p period] number-from number-until
+# Usage: test-dockers [-p period] number-from number-until
 #
 # as many times as there are integers between <from> and <until>,
 # will spawn every <period> seconds a docker container named <image>-<i>

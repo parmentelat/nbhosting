@@ -43,13 +43,12 @@ nbhroot = '/nbhosting/current'
 # running ./install.sh
 srcroot = '/root/nbhosting'
 
-# the location where docker is told to store its images and all other files
+# the location where the container runtime storage is 
+# configured to store its images and all other files
 # it should point into a btrfs partition
 # IMPORTANT NOTE you need to realize that changing this value
-# also means restarting from an empty 'docker images' so
+# also means restarting from an empty 'podman images' so
 # you will need to rebuild them all
-dockerroot = '/nbhosting/dockers'
-# this is used by the podman branch
 podmanroot = '/nbhosting/containers'
 
 ### upstream portals

@@ -11,7 +11,7 @@ from nbh_main.settings import logger, NBHROOT
 class Command(BaseCommand):
 
     help = """
-    rebuild docker image for that course
+    rebuild container image for that course
 
     NOTE that courses that override
     their image so as to use another course's
@@ -26,7 +26,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "-f", "--force", action='store_true', default=False,
             help="""when set, this option causes build to be forced;
-            that is to say, docker build is invoked with the --no-cache option.
+            that is to say, podman build is invoked with the --no-cache option.
             Of course this means a longer execution time""")
         parser.add_argument(
             "-a", "--all", action='store_true', default=False,

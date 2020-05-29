@@ -268,7 +268,7 @@ def _open_notebook(request, coursename, student, notebook,
     log_completed_process(completed, subcommand)
 
     try:
-        action, _docker_name, actual_port, jupyter_token = completed.stdout.split()
+        action, _container_name, actual_port, jupyter_token = completed.stdout.split()
         
         if completed.returncode != 0 or action.startswith("failed"):
             message = failed_command_message(
@@ -347,8 +347,7 @@ def share_notebook(request, course, student, notebook):
         message = failed_command_message(command_str, completed)
         return JsonResponse(dict(error=message))
 
-    # expect docker-share-student-course-notebook
-    # to write a url_path on its stdout
+    # expect the subcommand to write a url_path on its stdout
     url_path = completed.stdout.strip()
     logger.info(f"reading url_path={url_path}")
     # rebuild a full URL with proto and hostname,
@@ -417,7 +416,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
             request, course, student, "jupyterdir", message)
 
     try:
-        action, _docker_name, actual_port, jupyter_token = completed.stdout.split()
+        action, _container_name, actual_port, jupyter_token = completed.stdout.split()
         
         if completed.returncode != 0 or action.startswith("failed"):
             message = failed_command_message(
