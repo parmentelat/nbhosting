@@ -298,10 +298,9 @@ def _open_notebook(request, coursename, student, notebook,
         return HttpResponseRedirect(url)
 
     except Exception as exc:
-        message = (f"exception when parsing output of nbh {subcommand}\n"
-                   f"{completed.stdout}\n"
+        prefix = (f"exception when parsing output of nbh {subcommand}\n"
                    f"{type(exc)}: {exc}")
-        # logger.exception(message)
+        message = failed_command_message(command_str, completed, prefix=prefix)
         return error_page(
             request, coursename, student, notebook, message)
 
@@ -354,7 +353,9 @@ def share_notebook(request, course, student, notebook):
     url = f"{request.scheme}://{request.get_host()}{url_path}"
     return JsonResponse(dict(url_path=url_path, url=url))
 
-# pylint: disable=r0914
+
+# we must use course as an argument name because of the way urls.py works
+# but it's clearer if we can use coursename as a parameter name, so....
 def jupyterdir_forward(request, course, student, jupyter_url):
 
     """
@@ -365,6 +366,10 @@ def jupyterdir_forward(request, course, student, jupyter_url):
     * make sure the student container is ready to answer http requests
     and then returns a http redirect to /port/<notebook_path>
     """
+    return _jupyterdir_forward(request, course, student, jupyter_url)
+
+# pylint: disable=r0914
+def _jupyterdir_forward(request, coursename, student, jupyter_url):
 
     logger.info(f"jupyterdir_forward: jupyter_url={jupyter_url}")
     logger.info(f"jupyterdir_forward: GET={request.GET}")
@@ -385,11 +390,11 @@ def jupyterdir_forward(request, course, student, jupyter_url):
         return HttpResponseForbidden(
             f"Access denied: verb not in {allowed_verbs} with {jupyter_url}")
 
-    coursedir = CourseDir.objects.get(coursename=course)
+    coursedir = CourseDir.objects.get(coursename=coursename)
     if not coursedir.is_valid():
         return error_page(
-            request, course, student, "n/a",
-            f"no such course {course}"
+            request, coursename, student, "n/a",
+            f"no such coursename {coursename}"
         )
 
     # nbh's subcommand
@@ -402,7 +407,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
     command.append(subcommand)
 
     # add arguments to the subcommand
-    command += [student, course, coursedir.image]
+    command += [student, coursename, coursedir.image]
     command_str = " ".join(command)
     logger.info(f"Running command {command_str}")
     completed = subprocess.run(
@@ -413,7 +418,7 @@ def jupyterdir_forward(request, course, student, jupyter_url):
     if completed.returncode != 0:
         message = failed_command_message(command_str, completed)
         return error_page(
-            request, course, student, "jupyterdir", message)
+            request, coursename, student, "jupyterdir", message)
 
     try:
         action, _container_name, actual_port, jupyter_token = completed.stdout.split()
@@ -423,11 +428,11 @@ def jupyterdir_forward(request, course, student, jupyter_url):
                 command_str, completed, prefix="failed to spawn notebook container")
             header = failed_command_header(action)
             return error_page(
-                request, course, student, "n/a", message, header)
+                request, coursename, student, "n/a", message, header)
 
         # remember that in events file for statistics
         # not yet implemented on the Stats side
-        # Stats(course).record_open_notebook(student, notebook, action, actual_port)
+        # Stats(coursename).record_open_notebook(student, notebook, action, actual_port)
         # redirect with same proto (http or https) as incoming
         scheme = request.scheme
         # get the host part of the incoming URL
@@ -440,16 +445,15 @@ def jupyterdir_forward(request, course, student, jupyter_url):
         # passing along course and student is for 'reset_from_origin'
         url = (f"{scheme}://{host}/{actual_port}/{jupyter_url}"
                f"?token={jupyter_token}"
-               f"&course={course}&student={student}")
+               f"&course={coursename}&student={student}")
         for k, v in request.GET.items():
             url += f"&{k}={v}"
         logger.info(f"jupyterdir_forward: redirecting to {url}")
         return HttpResponseRedirect(url)
 
     except Exception as exc:
-        message = (f"exception when parsing output of nbh {subcommand}\n"
-                   f"{completed.stdout}\n"
+        prefix = (f"exception when parsing output of nbh {subcommand}\n"
                    f"{type(exc)}: {exc}")
-        # logger.exception(message)
+        message = failed_command_message(command_str, completed, prefix=prefix)
         return error_page(
-            request, course, student, "jupyterdir", message)
+            request, coursename, student, "jupyterdir", message)
