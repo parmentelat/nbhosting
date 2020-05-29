@@ -215,7 +215,7 @@ class MonitoredJupyter:
         # this somehow tends to happen a lot sometimes
         # until we figure it out, let's make it less conspicuous
         except ClientConnectionError as exc:
-            logger.info(f"{self} could not be reached for last activity, url={url}, {type(exc)}: {exc}")
+            logger.info(f"could not reach warming up {url} for last activity")
 
         except Exception:
             logger.exception(f"Cannot probe number of kernels with {self} - unhandled exception")
