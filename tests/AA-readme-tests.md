@@ -122,14 +122,16 @@ The `-m` option allowed to pick a random notebook but that was overly complex, i
 
 ### several notebooks per student
 
-```
-root@stupeflip ~/git/nbhosting/tests # ./nbhtests -i 1-3 -u 1-100
-```
+    ./nbhtests -i 1-3 -u 1-100
+    
 Using an index range like this will run these 3 notebooks for each of the 100 students.
 
-### unattended mode
+### logging 
 
-    nohup ./nbhtests -m -u 1-100 -p 10 >& TESTS.log & exit
+the output of nbhtests itself is interesting and should be recorded; to this end, use
+`nbhtests-log` 
+
+    ./nbhtests-log -u 1-100 -w 10
 
 ### use another course
 

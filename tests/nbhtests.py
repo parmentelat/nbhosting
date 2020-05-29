@@ -24,8 +24,9 @@ from nbhtest import (
     default_course_gitdir, 
     default_topurl,
     default_sleep_internal,
+    default_go_between_notebooks,
     Contents,
-    )
+)
    
 default_window = 5
 
@@ -45,6 +46,8 @@ def main() -> bool:
                         help="delay between 2 triggers of nbhtest")
     parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
+    parser.add_argument("-g", "--go", default=default_go_between_notebooks, type=float,
+                        help="go/wait  duration between 2 consecutive notebooks")
     parser.add_argument("-c", "--cut", default=False, action='store_true',
                         help="""just load the urls, don't do any further processing""")
     parser.add_argument("-w", "--window", default=default_window, type=int,
@@ -67,12 +70,12 @@ def main() -> bool:
 
     for user in args.users:
         student_name = f"{args.base}-{user:04d}"
-        for index in args.indices:
+        for coursedir in args.coursedirs:
             command = (f"nbhtest.py -U {args.topurl} -u {student_name} "
-                       f"-s {args.sleep} ")
+                       f"-s {args.sleep} -g {args.go} ")
             if args.cut:
                 command += "-c "
-            for coursedir in args.coursedirs:
+            for index in args.indices:
                 command += f"{coursedir}:{index} "
             command += " &"
             if args.dry_run:

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-"a wrapper around nbhtests that captures the tests output"
+# a wrapper around nbhtests that captures the tests output
 
 [ -d "artefacts" ] || mkdir artefacts
 

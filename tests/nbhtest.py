@@ -35,7 +35,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 default_course_gitdir = Path.home() / "git" / "python3-s2" 
 default_topurl = "https://nbhosting-dev.inria.fr/"
 default_sleep_internal = 1
-
+default_go_between_notebooks = 5
 
 class Contents:
     """
@@ -149,7 +149,7 @@ class Artefact:
         return str(latest)
 
 
-def run(topurl, user, notebooks, sleep, cut):
+def run(topurl, user, notebooks, sleep, go, cut):
     """
     fetch - as this user - 
     notebook indexed by index relative to that course dir
@@ -160,7 +160,7 @@ def run(topurl, user, notebooks, sleep, cut):
     # regular non-selenium box
 
     # from selenium import webdriver
-    print("driver creation")
+    print(f"driver creation for {user}")
     import selenium.webdriver
     options = selenium.webdriver.ChromeOptions()
     options.add_argument('headless')
@@ -245,6 +245,7 @@ def run(topurl, user, notebooks, sleep, cut):
     
     fetch_one_notebook(notebook0, False)
     for other in others:
+        time.sleep(go)
         fetch_one_notebook(other, True)
     driver.quit()
 
@@ -279,6 +280,8 @@ def main():
                         help="username for opening that notebook")
     parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
+    parser.add_argument("-g", "--go", default=default_go_between_notebooks, type=float,
+                        help="duration between 2 consecutive notebooks")
     parser.add_argument("-c", "--cut", default=False, action='store_true',
                         help="""just load the urls, don't do any further processing""")
     parser.add_argument("notebooks", default=[f"{default_course_gitdir}:0"],
@@ -299,7 +302,7 @@ def main():
             contents.print()
     else:
         notebook_objs = [Notebook(notebook_arg) for notebook_arg in args.notebooks]
-        run(args.topurl, args.user, notebook_objs, args.sleep, args.cut)
+        run(args.topurl, args.user, notebook_objs, args.sleep, args.go, args.cut)
 
 if __name__ == '__main__':
     main()
