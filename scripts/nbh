@@ -531,8 +531,10 @@ function run-container-for-student-in-course() {
         [ -d $static_toplevel ] || -echo-stderr WARNING $static_toplevel dir not found
     done
 
-    podman inspect --type image $image >& /dev/null ||\
-        -die image $image not known to podman
+    podman inspect --type image $image >& /dev/null || { 
+        echo failed-unknown-image $container none none
+        -die image $image not known to podman;
+    }
 
     # update jupyter_notebook_config.py and the 2 custom files
     -check-course-jupyter $course
@@ -556,7 +558,7 @@ function run-container-for-student-in-course() {
         # on sites running a pre-0.24 version
         # the 'created' status has been observed only on transient
         # containers while troubleshooting podman runs hanging
-        if [ "$status" != running -a "#status" != "created" ]; then
+        if [ "$status" != "running" -a "$status" != "created" ]; then
             # this has to be a sequel of nbhosting <= 0.23
             # as since 0.24 we run the containers with --rm
             # so as a temporary measure, we remove the container
@@ -573,8 +575,19 @@ function run-container-for-student-in-course() {
             return 1
         fi
 
+        # still need to wait for it; in classroom mode in particular
+        # it is frequent that students quickly click on another notebook
+        if ! -wait-for-http-on-port-token \
+            $container $port $jupyter_token $timeout_wait_for_http; then
+            # show podman logs on stderr
+            -echo-stderr "==================== podman logs on that container over the last minute"
+            >&2 podman logs -t --since +1m $container
+            -echo-stderr "==================== podman logs end"
+            echo failed-timeout $container $port none
+            return 1 
+        fi
+        
         local line="existing $container $port $jupyter_token"
-        [ -n "$DEBUG" ] && -echo-stderr $FUNCNAME writes line=$line
         echo $line
         return 0
     fi
