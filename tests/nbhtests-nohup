@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# a wrapper around nbhtests that ONLY capture the tests output in unattended mode
+
+[ -d "artefacts" ] || mkdir artefacts
+
+nohup nbhtests "$@" >& artefacts/LOG 
