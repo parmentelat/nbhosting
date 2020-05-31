@@ -139,9 +139,8 @@ function enable-services() {
         -e "s,@monitor_lingering@,$monitor_lingering," \
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
-    # required for remote access only ?
-    #systemctl enable io.podman.socket
-    #systemctl enable io.podman.service
+    # this is for the Python API (used in monitor mostly)
+    systemctl enable podman.socket
     systemctl enable nginx
     systemctl enable nbh-django
     systemctl enable nbh-monitor
@@ -154,8 +153,9 @@ function migrate-database() {
 }
 
 function restart-services() {
-    systemctl restart nbh-monitor
     systemctl restart nginx
+    systemctl restart podman.socket
+    systemctl restart nbh-monitor
     systemctl restart nbh-django
     systemctl restart nbh-autopull.timer
 }
