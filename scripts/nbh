@@ -713,6 +713,7 @@ function -wait-for-http-on-port-token() {
     done
     -echo-stderr "beg giving up on $port - last curl attempt yielded this :"
     >&2 cat /tmp/wait-http-$port 
+    rm -f /tmp/wait-http-$port
     -echo-stderr "end giving up on $port"
     return 1
 }
