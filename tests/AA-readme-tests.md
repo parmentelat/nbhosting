@@ -133,6 +133,11 @@ the output of nbhtests itself is interesting and should be recorded; to this end
 
     ./nbhtests-log -u 1-100 -w 10
 
+
+### unattended mde
+
+    ./nbhtests-nohup -u 1-100 -w 10 & exit
+
 ### use another course
 
 By default we use `~/git/python3-s2` as the root of the course tree; it is used in particular to make up the notebook names, so this needs to be in sync with what the test server sees. **NOTE** that in particular it should use the **same course name** as on the server.
