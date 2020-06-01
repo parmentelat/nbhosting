@@ -1112,8 +1112,10 @@ function clear-tests() {
                 echo killing $container
                 $ENGINE kill $container >& /dev/null
             }
-#            echo removing $container
-#            $ENGINE rm $container >& /dev/null
+            $ENGINE inspect --type container $container >& /dev/null && {
+                echo removing $container
+                $ENGINE rm $container >& /dev/null
+            }
         done
         getent passwd $user >& /dev/null && {
             echo deleting user $user
