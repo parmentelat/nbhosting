@@ -135,6 +135,10 @@ class MonitoredJupyter:
         # run only once
         if self.inspection is None:
             self.inspection = podman.containers.inspect(self.podman_api, self.name)
+
+    def reload(self):
+        # refresh no matter what
+        self.inspection = podman.containers.inspect(self.podman_api, self.name)
             
     def creation_time(self):
         return self.container['Created']
@@ -226,16 +230,32 @@ class MonitoredJupyter:
         with podman.ApiConnection(podman_url) as podman_api:
             podman.containers.kill(podman_api, self.name)
 
+    # this should not be needed in theory, but...
+    # under heavy load we sometimes observe containers
+    # that end up as 'stopped'
+    def remove_container(self):
+        with podman.ApiConnection(podman_url) as podman_api:
+            podman.containers.remove(podman_api, self.name)
+            
 
     async def co_run(self, idle, lingering):
         """
         both timeouts in seconds
         """
         now = time.time()
+        self.reload()
+        state = self.inspection['State']['Status']
+        
+        if state in ('stopped', 'configured'):
+            logger.info(f"BLIP weirdo (1) {self.name} - removing")
+            logger.info(f"BLIP weirdo (1) detailed state was {self.inspection['State']}")
+            self.remove_container()
+            return
+        
         # ignore non running containers
-        if self.container['State'] != 'running':
-            logger.warning(f"Ignoring non-running container {self} "
-                           f"- state={self.container['State']}")
+        if state != 'running':
+            logger.info(f"BLIP weirdo (2) {self.name} - ignoring")
+            logger.info(f"BLIP weirdo (2) detailed state was {self.inspection['State']}")
             return
         
         # count number of kernels and last activity
