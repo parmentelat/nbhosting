@@ -3,7 +3,7 @@
 from collections import defaultdict
 from pathlib import Path
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
+from datetime import datetime, timedelta
 
 def average(dir, criteria):
     txt_filenames = Path(dir).glob("*.txt")
@@ -41,8 +41,38 @@ def count_booms(dir):
             print(f" {fs[0]}")
         else:
             print()
+            
+def duration(dir):
+    FORMAT = "%H-%M-%S"
+    def has_time(line):
+        try:
+            timestamp, rest = line.split(":", 1)
+            return datetime.strptime(timestamp, FORMAT)
+        except:
+            pass
+    beg = None
+    try:
+        with (dir / "LOG").open() as feed:
+            for line in feed:
+                the_time = has_time(line)
+                if not the_time:
+                    continue
+                if beg is None:
+                    beg = the_time
+                    continue
+                end = the_time
+            delta = end - beg
+            if delta <= timedelta(0):
+                delta += timedelta(hour=24)
+            print(f"duration was {delta}")
+    except:
+        pass
+            
                    
 def summary(dir):
+    dir = Path(dir)
+    print(f"{10*'-'} {dir}")
+    duration(dir)
     for criteria in ('get', 'clear', 'trigger', 'save'):
         average(dir, criteria)
     count_booms(dir)
