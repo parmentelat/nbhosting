@@ -1,3 +1,16 @@
+# 0.27.1 2020 Jun 02
+
+* pull-student will abort merge if that failed
+* maintenance release for the docker version
+* new setting 'lingering' in monitor; kill any container older than that, no matter the activity
+* install the django app using `pip install` instead of `setup.py install`
+* reviewed install dependencies
+* unified sitesettings template for production and devel boxes
+* more robust install script wrt sudoers and iptables
+* minor updates in fedora installation doc
+* pin version of jupyterlab to be == 1 until our deps - mainly the git ext - support more recent releases
+* minor improvements in upgrade-swap
+
 # 0.27.0 2020 Mar 27
 
 * fix for #111 and the SameSite cookie policy pushed in recent chromes  
