@@ -37,6 +37,7 @@ def duration(dir):
 def average(dir, criteria):
     txt_filenames = Path(dir).glob("*.txt")
     numbers = []
+    all_numbers = []
     for txt_filename in txt_filenames:
         with open(txt_filename) as feed:
             for line in feed:
@@ -51,7 +52,7 @@ def average(dir, criteria):
         print(f"nothing to show about {criteria}")
         return
     array = np.array(numbers)
-    print(f"({len(array)} items) {criteria:12} avg={array.mean():.2f} with var={array.var():.2f} ")
+    print(f"({len(array)} items) {criteria:12} avg={array.mean():.2f} with std.dev={np.sqrt(array.var()):.2f} ")
                  
                  
 def count_booms(dir, verbose):
