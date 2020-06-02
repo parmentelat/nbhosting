@@ -1,59 +1,68 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
-"""
-a rough utility to count 
-. known containers
-. running containers
-. kernels per (running) container
-
-it is overlapping monitor but with a troubleshooting-oriented display
-"""
-
-import asyncio
-import re
-
+from collections import defaultdict
+from pathlib import Path
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-print("this code was written for docker and needs to be modified for podman")
-exit(1)
 
-import docker
-
-from nbhosting.stats.monitor import MonitoredJupyter, CourseFigures
-
-loop = asyncio.get_event_loop()
+def average(dir, criteria):
+    txt_filenames = Path(dir).glob("*.txt")
+    number = 0
+    total = 0
+    for txt_filename in txt_filenames:
+        with open(txt_filename) as feed:
+            for line in feed:
+                if criteria in line:
+                    try:
+                        _, itemstr = line.strip().split(":")
+                        total += float(itemstr)
+                        number +=1 
+                    except Exception as exc:
+                        print(f"warning: skipping line {line}", end="")
+                        
+    average = total / number if number else 0
+    print(f"the average of {criteria} in {dir} (on {number} items) is {average} ")
+                 
+                 
+def count_booms(dir):
+    by_size = defaultdict(list)
+    counter = 0
+    for boom in Path(dir).glob("*boom*"):
+        counter += 1
+        size = boom.stat().st_size
+        by_size[size].append(boom)
+    if not counter:
+        print("no boom")
+        return
+    print(f"boom happened {counter} times")
+    for s, fs in by_size.items():
+        print(f"   {s} -> {len(fs)} booms", end="")
+        if (len(fs) == 1):
+            print(f" {fs[0]}")
+        else:
+            print()
+                   
+def summary(dir):
+    for criteria in ('get', 'clear', 'trigger', 'save'):
+        average(dir, criteria)
+    count_booms(dir)
 
 def main():
-
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("patterns", nargs='*')
+    parser.add_argument("dirs", default=None, type=str, nargs="*",
+                        help="""
+                        the artefacts directory where to search the .txt files.
+                        By default all subdirs named in 'artefacts*'""")
     args = parser.parse_args()
     
-    def in_scope(container):
-        if not args.patterns:
-            return True
-        else:
-            return any(re.match(pattern, container.name)
-                       for pattern in args.patterns)
-
-    ban = 10 * '*'
-    proxy = docker.from_env()
-    containers = proxy.containers.list(all=True)
-    running = [ c for c in containers if c.status == 'running' and in_scope(c)]
-    idle = [ c for c in containers if c.status != 'running' and in_scope(c)]
-
-    print(ban, f"{len(idle)} idle containers")
-    print(ban, f"{len(running)} running containers")
-    for container in running:
-        name = container.name
-        course, student = name.split('-x-')
-        # create one figures instance per container
-        figures = CourseFigures()
-        monitored = MonitoredJupyter(container, course, student, figures)
-        loop.run_until_complete(monitored.count_running_kernels())
-        nb_kernels = figures.running_kernels
-        print("{container.name:40s} {nb_kernels} kernels")
-
+    dirs = args.dirs
+    if not dirs:
+        dirs = Path(".").glob("artefacts*")
+        dirs = [dir for dir in dirs if dir.is_dir()]
+    for dir in dirs:
+        summary(dir)
+    
 if __name__ == '__main__':
     main()
-          
+                        
+    
