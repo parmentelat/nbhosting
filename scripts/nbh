@@ -1125,6 +1125,17 @@ function clear-tests() {
     done
 }
 
+# WARNING: this is for tests only
+# the setting will be overridden by install.sh from the value
+# specified in sitesettings.py
+function test-set-monitor-idle() {
+    local idle=$1; shift
+    sed -i -e s"|--idle [0-9]*|--idle ${idle}|" /etc/systemd/system/nbh-monitor.service
+    systemctl daemon-reload
+    systemctl cat nbh-monitor.service
+    systemctl restart nbh-monitor
+}
+
 
 ######### main driver stub
 USAGE="$COMMAND [-d nbhroot] [-x] subcommand ...
