@@ -9,9 +9,11 @@ in a single process, so let's keep it simple
 """
 
 import sys
+import os
 import time
 from pathlib import Path
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from urllib.parse import urlparse
 import asyncio
 
 from asynciojobs import Scheduler
@@ -28,7 +30,9 @@ from nbhtest import (
     Contents,
 )
    
+default_period = 20
 default_window = 5
+default_idle = 5 # this is the default on the dev box
 
 def main() -> bool:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
@@ -42,7 +46,7 @@ def main() -> bool:
                         help="(cumulative) ranges of students indexes; e.g. -u 101-400 -u 501-600")
     parser.add_argument("-b", "--base", default='student',
                         help="basename for students name")
-    parser.add_argument("-p", "--period", default=20, type=float,
+    parser.add_argument("-p", "--period", default=default_period, type=float,
                         help="delay between 2 triggers of nbhtest")
     parser.add_argument("-s", "--sleep", default=default_sleep_internal, type=float,
                         help="delay in seconds to sleep between actions inside nbhtest")
@@ -52,6 +56,8 @@ def main() -> bool:
                         help="""just load the urls, don't do any further processing""")
     parser.add_argument("-w", "--window", default=default_window, type=int,
                         help="window depth for spawning the nbhtest instances")
+    parser.add_argument("--idle", default=None, 
+                        help="monitor idle setting")
     parser.add_argument("-n", "--dry-run", action='store_true')
     parser.add_argument("coursedirs", default=[default_course_gitdir],
                         nargs='*',
@@ -65,6 +71,11 @@ def main() -> bool:
             custom_format="%H-%M-%S:@line@",
             verbose=True
             ))
+
+    if args.idle is not None:
+        hostname = urlparse(args.topurl).netloc
+        command = f"ssh root@{hostname} nbh test-set-monitor-idle {args.idle}"
+        os.system(command)
 
     scheduler = Scheduler()
 
@@ -81,7 +92,7 @@ def main() -> bool:
             if args.dry_run:
                 print("dry-run:", command)
             else:
-                # schule this command to run
+                # schedule this command to run
                 job = SshJob(
                     scheduler=scheduler,
                     node=local,
