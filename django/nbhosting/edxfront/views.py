@@ -69,6 +69,8 @@ def failed_command_header(action):
         return 'Cannot retrieve port number'
     elif action == 'failed-timeout': 
         return 'Your container is taking too long to answer'
+    elif action == 'failed-unknown-image':
+        return 'Image not found for course'
     else:
         # failed-cannot-add-student-in-course
         # failed-unknown-student $student
