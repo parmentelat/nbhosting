@@ -14,19 +14,19 @@ alias syt='systemctl status'
 
 alias joc=journalctl
 
-function jou() {
-    local usage="jou [journalctl-options] unit [.. unit]"
-    options=""
-    while [[ "$1" =~ ^-.* ]]; do
-	options="$options $1"; shift
-    done
-    [[ -n $@ ]] || { echo $usage; return; }
-    units=""
-    for unit in "$@"; do
-	units="$units --unit $unit"
-    done
-    journalctl $options $units
-}
+#function jou() {
+#    local usage="jou [journalctl-options] unit [.. unit]"
+#    options=""
+#    while [[ "$1" =~ ^-.* ]]; do
+#	options="$options $1"; shift
+#    done
+#    [[ -n $@ ]] || { echo $usage; return; }
+#    units=""
+#    for unit in "$@"; do
+#	units="$units --unit $unit"
+#    done
+#    journalctl $options $units
+#}
 ##########
 
 here=$(dirname $(readlink -f $BASH_SOURCE))
@@ -39,10 +39,10 @@ function refresh() {
 }
 
 ########## stolen from comp-miscell.ish
-function jou-nginx()		{ jou -f nginx; }
-function jou-django()	        { jou -f nbh-django; }
-function jou-monitor()	        { jou -f nbh-monitor; }
-function jou-all()		{ jou -f nginx nbh-django nbh-monitor; }
+function jou-nginx()		{ journalctl -u nginx "$@" ; }
+function jou-django()	        { journalctl -u nbh-django "$@" ; }
+function jou-monitor()	        { journalctl -u nbh-monitor "$@" ; }
+function jou-all()		{ journalctl -u nginx -u nbh-django -u nbh-monitor "$@" ; }
 
 ##########
 function logs-jup() {
