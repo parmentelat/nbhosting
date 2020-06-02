@@ -1,3 +1,23 @@
+# 0.30.1 2020 Jun 02
+
+* beta-release for a podman-powered version to run on f32
+  * to be assessed: heavy-duty tests have exhibited containers ending up
+    in weird states, like `stopped` or even sometimes `configured`; current monitor
+    has provisions to remove those, and logging them with a BLIP mark; hopefully
+    this won't happen with actual loads
+* more robust error handling when the course image cannot be found; which is helpful
+  to troubleshoot misconfigured deployments
+* error 502 should essentially be gone; when a user quickly selects a new notebook, 
+  because the container was already running we redirected right away and skipped waiting
+  for the http port to be up; that was wrong
+* slightly improved tests framework
+  * nbhtests allows to set monitor idle time
+  * summary.py can anayse an artefacts/ subdir and show interesting stats
+  * nbhtests-log anf nbhtests-nohup are useful wrappers to capture LOG and run unattended
+  * artefacts automatically renamed as per nbhtests options
+  * slight changes in the testing logic; when several notebooks are passed to nbhtest,
+    add an idle timer between successive hits
+
 # 0.27.1 2020 Jun 02
 
 * pull-student will abort merge if that failed
