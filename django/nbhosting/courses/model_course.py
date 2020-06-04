@@ -427,19 +427,20 @@ class CourseDir(models.Model):
                 print(toplevel, file=raw)
 
 
-    def image_hash(self, podman_api):
+    def image_hash(self):
         """
         the hash of the image that should be used for containers
         in this course
         or None if something goes wrong
         """
-        try:
-            return podman.images.inspect(podman_api, self.image)['Id']
-        except podman.errors.ImageNotFound:
-            logger.error(f"Course {self.coursename} "
-                         f"uses unknown podman image {self.image}")
-        except:
-            logger.exception("Can't figure image hash")
+        with podman.ApiConnection(podman_url) as podman_api:
+            try:
+                return podman.images.inspect(podman_api, self.image)['Id']
+            except podman.errors.ImageNotFound:
+                logger.error(f"Course {self.coursename} "
+                            f"uses unknown podman image {self.image}")
+            except:
+                logger.exception("Can't figure image hash")
 
 
     def build_image(self, force=False, dry_run=False):

@@ -20,7 +20,6 @@ import podman
 podman_url = "unix://localhost/run/podman/podman.sock"
 
 from nbh_main.settings import sitesettings
-# redirect into monitor.log
 from nbh_main.settings import monitor_logger as logger
 from nbhosting.courses.model_course import CourseDir
 
@@ -102,14 +101,12 @@ class MonitoredJupyter:
                  student: str,
                  figures: CourseFigures,
                  # the hash of the expected image - may be None
-                 image_hash: str,
-                 podman_api: podman.ApiConnection):
+                 image_hash: str):
         self.container = container
         self.course = course
         self.student = student
         self.figures = figures
         self.image_hash = image_hash
-        self.podman_api = podman_api
         #
         self.nb_kernels = None
         self.last_activity = 0.
@@ -134,11 +131,13 @@ class MonitoredJupyter:
     def inspect(self):
         # run only once
         if self.inspection is None:
-            self.inspection = podman.containers.inspect(self.podman_api, self.name)
+            with podman.ApiConnection(podman_url) as podman_api:
+                self.inspection = podman.containers.inspect(podman_api, self.name)
 
     def reload(self):
         # refresh no matter what
-        self.inspection = podman.containers.inspect(self.podman_api, self.name)
+        with podman.ApiConnection(podman_url) as podman_api:
+            self.inspection = podman.containers.inspect(podman_api, self.name)
             
     def creation_time(self):
         return self.container['Created']
@@ -335,15 +334,16 @@ class Monitor:
     def run_once(self):
         try:
             with podman.ApiConnection(podman_url) as podman_api:
-                return self._run_once_on_api(podman_api)
+                return self._run_once()
         except podman.errors.InternalServerError as exc:
-            logger.error(f"{exc} - skipping rest of monitor cycle")
+            reporter = logger.exception if sitesettings.DEBUG else logger.error
+            reporter(f"{exc} - skipping rest of monitor cycle")
         except Exception:
             logger.exception(
                 "Something wrong happened during monitor cycle - skipping")
             return
 
-    def _run_once_on_api(self, podman_api):
+    def _run_once(self):
 
         # initialize all known courses - we want data on all courses
         # even if they don't run any container yet
@@ -354,11 +354,12 @@ class Monitor:
                              for c in CourseDir.objects.all()}
         coursedirs_by_name = {c.coursename : c
                               for c in CourseDir.objects.all()}
-        hash_by_course = {c.coursename : c.image_hash(podman_api)
+        hash_by_course = {c.coursename : c.image_hash()
                           for c in CourseDir.objects.all()}
 
         # seems to return None when no container is found
-        containers = podman.containers.list_containers(podman_api, all=True) or []
+        with podman.ApiConnection(podman_url) as podman_api:
+            containers = podman.containers.list_containers(podman_api, all=True) or []
         logger.debug(f"found {len(hash_by_course)} courses "
                      f"and {len(containers)} containers")
 
@@ -381,7 +382,7 @@ class Monitor:
                        or f"hash not found for course {coursename}"
                 monitored_jupyter = MonitoredJupyter(
                     container, coursename, student,
-                    figures, image_hash, podman_api)
+                    figures, image_hash)
                 futures.append(monitored_jupyter.co_run(
                     self.idle, self.lingering))
             # typically non-nbhosting containers
@@ -398,7 +399,8 @@ class Monitor:
                 logger.exception(f"monitor has to ignore {container}")
         # ds stands for disk_space
         if self._graphroot is None:
-            self._graphroot = podman.system.info(podman_api)['store']['graphRoot']
+            with podman.ApiConnection(podman_url) as podman_api:
+                self._graphroot = podman.system.info(podman_api)['store']['graphRoot']
         nbhroot = sitesettings.nbhroot
         system_root = "/"
         spaces = {}
