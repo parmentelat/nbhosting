@@ -110,6 +110,22 @@ function update-podman {
         /etc/containers/storage.conf
 }
 
+function update-limits() {
+# not effective
+    local limits_conf=/etc/security/limits.d/nbhosting-nofile.conf
+    cat > $limits_conf << EOF
+* soft nofile 1048576    
+EOF
+# from https://bugzilla.redhat.com/show_bug.cgi?id=1829596
+    local sysctl_config=/etc/sysctl.d/98-nbhosting.conf
+    cat > $sysctl_config << EOF
+fs.inotify.max_queued_events = 1048576
+fs.inotify.max_user_instances = 1048576
+fs.inotify.max_user_watches = 1048576
+EOF
+    sysctl --load $sysctl_config
+}
+
 # old name was nbh-uwsgi - see issue #103
 function remove-uwsgi-service() {
     # if that service is not known, we're good
@@ -165,6 +181,7 @@ function default-main() {
     update-uwsgi
     update-assets
     update-images
+    update-limits
 
     update-nginx
     update-podman

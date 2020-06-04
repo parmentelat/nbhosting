@@ -7,6 +7,7 @@ Description=job that cyclically collects system and course data, and kills idle 
 #
 [Service]
 ExecStart=/bin/bash -c "python3 /usr/bin/nbh-manage monitor --period @monitor_period@ --idle @monitor_idle@ --lingering @monitor_lingering@"
+LimitNOFILE=32768
 
 [Install]
 WantedBy=multi-user.target

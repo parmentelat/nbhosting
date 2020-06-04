@@ -12,6 +12,7 @@ KillSignal=SIGINT
 Restart=always
 StandardError=syslog
 NotifyAccess=all
+LimitNOFILE=32768
 
 [Install]
 WantedBy=multi-user.target
