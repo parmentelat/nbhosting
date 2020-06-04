@@ -140,11 +140,9 @@ function enable-services() {
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
     # this is for the Python API (used in monitor mostly)
-    systemctl enable podman.socket
+    systemctl enable podman.socket 
     systemctl enable nginx
-    systemctl enable nbh-django
-    systemctl enable nbh-monitor
-    systemctl enable nbh-autopull.timer
+    systemctl enable nbh-django nbh-monitor nbh-autopull.timer
 }
 
 function migrate-database() {
@@ -153,11 +151,9 @@ function migrate-database() {
 }
 
 function restart-services() {
-    systemctl restart nginx
     systemctl restart podman.socket
-    systemctl restart nbh-monitor
-    systemctl restart nbh-django
-    systemctl restart nbh-autopull.timer
+    systemctl restart nginx
+    systemctl restart nbh-monitor nbh-django nbh-autopull.timer
 }
 
 function default-main() {
