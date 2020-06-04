@@ -37,7 +37,6 @@ def duration(dir):
 def average(dir, criteria):
     txt_filenames = Path(dir).glob("*.txt")
     numbers = []
-    all_numbers = []
     for txt_filename in txt_filenames:
         with open(txt_filename) as feed:
             for line in feed:
