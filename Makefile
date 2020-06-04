@@ -1,22 +1,5 @@
-LIBRARY = nbhosting
-
-VERSION = $(shell python3 django/setup.py --version)
-VERSIONTAG = $(LIBRARY)-$(VERSION)
-GIT-TAG-ALREADY-SET = $(shell git tag | grep '^$(VERSIONTAG)$$')
-# to check for uncommitted changes
-GIT-CHANGES = $(shell echo $$(git diff HEAD | wc -l))
-
-# we don't push to pypi, just set a release tag
-release:
-	@if [ $(GIT-CHANGES) != 0 ]; then echo "You have uncommitted changes - cannot publish"; false; fi
-	@if [ -n "$(GIT-TAG-ALREADY-SET)" ] ; then echo "tag $(VERSIONTAG) already set"; false; fi
-	@if ! grep -q ' $(VERSION)' django/CHANGELOG.md ; then echo no mention of $(VERSION) in CHANGELOG.md; false; fi
-	@echo "You are about to release $(VERSION) - OK (Ctrl-c if not) ? " ; read _
-	git tag $(VERSIONTAG)
-	#./setup.py sdist upload -r pypi
-
-version:
-	@echo $(VERSION)
+pypi:
+	$(MAKE) -C django pypi
 
 ####################
 RSYNC_COND_DRY_RUN	:= $(if $(findstring n,$(MAKEFLAGS)),--dry-run,)

@@ -1,0 +1,35 @@
+# derived from name in setup.py
+
+PYPI_NAME = $(shell python setup.py --name)
+VERSION = $(shell python setup.py --version)
+
+########## for uploading onto pypi
+# updated in May 2020 to use twine for uploads
+# run pip install twine if needed
+# to initialize twine credentials
+# keyring set upload.pypi.org parmentelat
+# keyring set test.pypi.org parmentelat
+
+VERSIONTAG = $(PYPI_NAME)-$(VERSION)
+GIT-TAG-ALREADY-SET = $(shell git tag | grep '^$(VERSIONTAG)$$')
+# to check for uncommitted changes
+GIT-CHANGES = $(shell echo $$(git diff HEAD | wc -l))
+
+# run this only once the sources are in on the right tag
+pypi: cleanpypi
+	@if [ $(GIT-CHANGES) != 0 ]; then echo "You have uncommitted changes - cannot publish"; false; fi
+	@if [ -n "$(GIT-TAG-ALREADY-SET)" ] ; then echo "tag $(VERSIONTAG) already set"; false; fi
+	@if ! grep -q ' $(VERSION)' CHANGELOG.md ; then echo no mention of $(VERSION) in CHANGELOG.md; false; fi
+	@echo "You are about to release $(VERSION) - OK (Ctrl-c if not) ? " ; read _
+	git tag $(VERSIONTAG)
+	./setup.py sdist bdist_wheel
+	twine upload dist/*
+
+testpypi: cleanpypi
+	./setup.py sdist bdist_wheel
+	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+cleanpypi:
+	rm -rf build dist
+
+.PHONY: pypi testpypi cleanpypi
