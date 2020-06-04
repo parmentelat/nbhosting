@@ -1,3 +1,12 @@
+# 0.30.2 2020 Jun 04
+
+* podman-ready release, tested on f32 with cgroupv2
+* comes with sysctl settings on the fs.inotify area that makes the system
+  much more resistant to heavy load
+* sets max. # of open files in ulimit and systemd service files while at it
+* all ApiConnection instances are now volatile
+* test summary show std. dev. instead of variance
+
 # 0.30.1 2020 Jun 02
 
 * beta-release for a podman-powered version to run on f32
