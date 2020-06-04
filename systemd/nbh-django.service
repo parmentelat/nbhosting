@@ -2,10 +2,6 @@
 [Unit]
 Description=the nbhosting django app as a uwsgi instance
 
-# this is the regular way to define our service
-# see also a fedora27-specific version
-# in file nbh-uwsgi.service.f27
-
 [Service]
 # this is wrong because of the hard-wired path
 # plus, there is no indication that it is really useful though, so..

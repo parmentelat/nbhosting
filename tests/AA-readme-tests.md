@@ -2,13 +2,13 @@
 
 * re-run in 2020 may w/ fedora 31
 
-* as of 2019 nov 15, stupeflip is being decommissioned and goes into the r2lab room; 
-our new test box will thus be **`stupeflip`**; 
+* as of 2019 nov 15, stupeflip is being decommissioned and goes into the r2lab room;
+our new test box will thus be **`stupeflip`**;
 here's a summary of the steps I have taken to set it up,
 starting from a rther mundame fedora-29,
 in a hope to better understand that fonts thing
 
-```
+```bash
 cd
 mkdir git
 cd git
@@ -26,10 +26,9 @@ dnf install -y chromium
 
 and at that point everything was working fine.. For good measure I added also
 
-```
+```bash
 dnf install -y mathjax
 ```
-
 
 # Setup
 
@@ -43,17 +42,18 @@ dnf install -y mathjax
 
 * courses
   * check that course `python3-s2` is defined in the nbhosting server, and that
-    on the test box there is a git repo by that name 
+    on the test box there is a git repo by that name
 
-
-**UPDATE 2019 Nov**
+## UPDATE 2019 Nov
 
 * phantomJS has been deprecated under selenium
 * so I had to do
-  ```
+
+  ```bash
   dnf install chromium chromedriver chromium-libs-media
   dnf install xorg-x11-fonts-misc xorg-x11-font-utils
   ```
+
 * NOTE: I had to struggle quite some time for getting the fonts to work; I even went to
   upgrading to fedora-30 in the mix, but not sure what actually fixed that issue; best
   guess is that is was a matter of installing the x11 fonts and rebooting, but that would
@@ -63,19 +63,23 @@ dnf install -y mathjax
 
 Optional but helpful
 
-    root@thermals ~ # nbh list-tests
+```bash
+root@thermals ~ # nbh list-tests
+```
 
 and
 
-    root@thermals ~ # nbh clear-tests
+```bash
+root@thermals ~ # nbh clear-tests
+```
 
 # Typical use
 
-### fire from a linux box
+## fire from a linux box
 
 I have used the root account on `stupeflip.pl.sophia.inria.fr`:
 
-```
+```bash
 root@stupeflip ~ #
 cd git/nbhosting/
 git pull
@@ -83,7 +87,8 @@ cd tests
 ```
 
 ### record disk usage beforehand
-```
+
+```bash
 root@thermals ~/nbhosting/tests (master *$=) # df -hT /nbhosting/
 Filesystem     Type   Size  Used Avail Use% Mounted on
 /dev/sda3      btrfs  1.1T   28G  1.1T   3% /nbhosting
@@ -91,7 +96,7 @@ Filesystem     Type   Size  Used Avail Use% Mounted on
 
 see also (xxx was torn down meanwhile xxx)
 
-```
+```bash
 nbh status-btrfs
 ```
 
@@ -99,43 +104,52 @@ nbh status-btrfs
 
 on your mac
 
-    ~/git/nbhosting/tests (devel $=) $ rm -rf artefacts-stupeflip
+```bash
+~/git/nbhosting/tests (devel $=) $ rm -rf artefacts-stupeflip
+```
 
 on the linux worker
 
-    root@stupeflip ~/git/nbhosting/tests (devel=) # rm -rf artefacts    
-
+```bash
+root@stupeflip ~/git/nbhosting/tests (devel=) # rm -rf artefacts
+```
 
 ### check it out
 
 dry run first to check your sitesettings
 
-    ./nbhtests -n
-
+```bash
+./nbhtests -n
+```
 
 ### my first 100-students batch - one notebook per student
 
-    root@stupeflip ~/git/nbhosting/tests # ./nbhtests -u 1-100
-
+```bash
+root@stupeflip ~/git/nbhosting/tests # ./nbhtests -u 1-100
+```
 
 The `-m` option allowed to pick a random notebook but that was overly complex, it was removed  
 
 ### several notebooks per student
 
-    ./nbhtests -i 1-3 -u 1-100
-    
+```bash
+./nbhtests -i 1-3 -u 1-100
+```
+
 Using an index range like this will run these 3 notebooks for each of the 100 students.
 
-### logging 
+### logging
 
 the output of nbhtests itself is interesting and should be recorded; to this end, use
-`nbhtests-log` 
+`nbhtests-log`
 
-    ./nbhtests-log -u 1-100 -w 10
-
+```bash
+./nbhtests-log -u 1-100 -w 10
+```
 
 ### unattended mde
 
+```bash
     ./nbhtests-nohup -u 1-100 -w 10 & exit
 
 ### use another course
@@ -162,17 +176,17 @@ Default for the test server is `https://nbhosting-dev.inria.fr/`, can be changed
 
 ### renaming
 
-once the test job is over on the linux worker, rename your artefacts 
+once the test job is over on the linux worker, rename your artefacts
 directory to have it reflect the options used, e.g.
 
-```
-┗━ ▶︎ mv artefacts artefacts-10u-1n-period10-podmanf32
+```bash
+mv artefacts artefacts-10u-1n-period10-podmanf32
 ```
 
 ### get them back
 
-```
-$ ./stupeflip.fetch 10u-1n-period10-podmanf32
+```bash
+./stupeflip.fetch 10u-1n-period10-podmanf32
 ```
 
 Which retrieves the relevant files from stupeflip in the same dirname
@@ -182,7 +196,7 @@ Which retrieves the relevant files from stupeflip in the same dirname
 
 * The `.txt` files should exist for all students; they should show something like
 
-```
+```bash
 parmentelat ~/git/nbhosting/tests $ cat artefacts-stupeflip/student-0001-python3-s2-8-contents-4contents.txt
 kernel area:[]
 number of cells: 18

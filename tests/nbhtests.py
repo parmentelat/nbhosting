@@ -93,7 +93,7 @@ def main() -> bool:
                 print("dry-run:", command)
             else:
                 # schedule this command to run
-                job = SshJob(
+                _job = SshJob(
                     scheduler=scheduler,
                     node=local,
                     commands = [command, f"sleep {args.period}"])

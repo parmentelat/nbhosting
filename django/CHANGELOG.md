@@ -7,7 +7,7 @@
     this won't happen with actual loads
 * more robust error handling when the course image cannot be found; which is helpful
   to troubleshoot misconfigured deployments
-* error 502 should essentially be gone; when a user quickly selects a new notebook, 
+* error 502 should essentially be gone; when a user quickly selects a new notebook,
   because the container was already running we redirected right away and skipped waiting
   for the http port to be up; that was wrong
 * slightly improved tests framework
@@ -39,7 +39,7 @@
 # 0.26.0 2020 Jan 22
 
 * **NEW mandatory SETTING**; you need to define `notebook_extensions` in `sitesettings.py`
-* more jupytext-friendly; the extensions declared in that new setting 
+* more jupytext-friendly; the extensions declared in that new setting
   are considered as possible notebooks, that can be opened directly  
   **NOTE** that at this point there remains some places where the assumed value
   of `["ipynb", "py", "md"]` is hard-wired
@@ -73,7 +73,7 @@
 # 0.24.5 2019 Nov 17
 
 * attempted bugfix: prior code was not performing port allocation properly,
-  and so when a busy port was picked we were getting the infamous 'failed-timeout' 
+  and so when a busy port was picked we were getting the infamous 'failed-timeout'
   error message
 
 # 0.24.4 2019 Nov 14
@@ -86,14 +86,14 @@
 
 # 0.24.2 2019 Nov 13
 
-* 0.24 is good to go 
+* 0.24 is good to go
 * minor tweak to smooth migration: stopped containers, sequels of a pre-0.23 deployment,
   are killed before returning an error
 * tests are operational again, running on a headless chromium
 
 # 0.24.1 2019 Nov 8
 
-* simplified container creation code now that containers are 
+* simplified container creation code now that containers are
   deemed oneshot, and destroyed after their idle time
 * removed --unused option in monitor which is now meaningless
 
@@ -102,11 +102,11 @@
 * major rework of the overall routing scheme
 * no longer relies on cookies to route properly !
 * which in turn makes multi-course sessions a lot more reliable
-* see issue #102 and commit 8faa38 
+* see issue #102 and commit 8faa38
 
 # 0.23.2 2019 Nov 4
 
-* cosmetic tweaks in the staff course view 
+* cosmetic tweaks in the staff course view
   when showing members of the groups attached to a course
 
 # 0.23.1 2019 Nov 4
@@ -130,7 +130,7 @@
 
 # 0.22.0 2019 Oct 13
 
-* nbh-manage pull-students now has a logic that allows to merge 
+* nbh-manage pull-students now has a logic that allows to merge
   notebooks changed both on the student's side and upstream by teachers
   when a regular git pull does not do the trick, the logic is to
   * do a nbstripout on notebooks changed on both ends
@@ -140,17 +140,15 @@
 * a notebook present only as a .jupytext/.py file can be opened
   with the same URL as if it were a .ipynb (experimental)
 
-
 # 0.21.2 2019 Oct 13
 
-* better pull-students; a students that have committed their changes and then merged 
+* better pull-students; a students that have committed their changes and then merged
   upstream are now considered OK, while former code was just checking hashes were equal
 * some work done towards #96, markdown documents can be part of a section in a track
 * fixed bug #97, clicking in a section now works as expected
 * some progress done towards #77, a group name can be passed along to mass-register,
 * and the groups-list management command allows to show groups
 * gotten rid of nbgitpuller altogether - #98
-
 
 # 0.21.1 2019 Sep 30
 
@@ -161,26 +159,26 @@
 
 * students repos use local mirror as their origin;
   in classroom mode each student has a git repo:
-    * prior to this change student repos were cloned from the 
-      same - external - location as the local course master directory
-      in $NBHROOT/courses-git
-    * with this change, student repos use the local mirror repo 
-      in $NBHROOT/courses-git as their 'origin' remote
-  this will solve access to private repos (that would otherwise 
-  require undesirable extra config for each student); 
+  * prior to this change student repos were cloned from the
+    same - external - location as the local course master directory
+    in $NBHROOT/courses-git
+  * with this change, student repos use the local mirror repo
+    in $NBHROOT/courses-git as their 'origin' remote
+  this will solve access to private repos (that would otherwise
+  require undesirable extra config for each student);
   plus it makes syncing a lot faster of course
 * as a side-effect, autopull cycle is reduced to 5 minutes
 
 # 0.20.1 2019 Sep 28
 
 * change in monitor about containers **that** do match our naming policy but that cannot
-  be probed in terms of last activity; 
-    * prior to this change, such containers were left alone; this policy dated back
-      to when Jupyter (< 5 IIRC) had no API to probe for running kernels 
-      and their activity
-    * given that Jupyter-5 can be taken for granted, such containers can only be zombies
-      that the root context has lost connectivity to; starting with 0.20.1 such containers
-      are killed by monitor
+  be probed in terms of last activity;
+  * prior to this change, such containers were left alone; this policy dated back
+    to when Jupyter (< 5 IIRC) had no API to probe for running kernels
+    and their activity
+  * given that Jupyter-5 can be taken for granted, such containers can only be zombies
+    that the root context has lost connectivity to; starting with 0.20.1 such containers
+    are killed by monitor
 * by default monitor now runs every 10'
 * bugfix, error 502 was displaying error 404 (because 502.html was missing in the git repo)
 * nginx debug no longer turned on by default
@@ -191,7 +189,7 @@
 
 # 0.19.1 2019 Sep 22
 
-* new management command nbh-manage pull-students 
+* new management command nbh-manage pull-students
 * courses-list -l also shows git hash
 * core images with a cleaner separation between what is done by root and jovyan;
   allows to resurrect ijavascript kernel
@@ -214,7 +212,7 @@
 # 0.18.0 2019 Aug 26
 
 * drop support for http #94
-* an attempt at addressing #93 - error 502 - 
+* an attempt at addressing #93 - error 502 -
   by increasing some timeouts on the nginx side
 
 # 0.17.6 2019 Aug 26
@@ -244,14 +242,13 @@
 
 # 0.17.0 2019 Aug 12
 
-* one can write a URL in `/auditor/notebook/course@classic` 
-  - or `course@jlab` - for direct access to jupyter app
+* one can write a URL in `/auditor/notebook/course@classic`- or `course@jlab` -
+  for direct access to jupyter app
 * more consistent UI when switching between tracks or jupyter apps
-* as a side effect, we no longer show untracked notebooks 
+* as a side effect, we no longer show untracked notebooks
   in track mode, use a jupyter app to manage them
 * togglers to go fullscreen can be used independently
   e.g. control-clicking the left one will only hide left panel
-
 
 # 0.16.7 2019 Aug 2
 
@@ -267,7 +264,7 @@
 # 0.16.5 2019 Aug 1
 
 * courses-list -l
-* course-create with no image name uses coursename 
+* course-create with no image name uses coursename
 
 # 0.16.4 2019 July 27
 
@@ -291,7 +288,7 @@
 * UI: toggle buttons now toggle left and top at the same time
 * updated install doc
 * some CSS jupyter tweaks are now restricted to not apply in slideshow mode
-* * light cleanup in nbh sript
+* light cleanup in nbh sript
 
 # 0.15.2 2019 Jun 16
 
@@ -320,22 +317,22 @@
 
 # 0.13.1 2019 May 3
 
-* toplevel url in https://nbhosting.inria.fr/ works now
+* toplevel url in <https://nbhosting.inria.fr/> works now
 * new all-in-one command nbh-manage create-course
 * nicer staff courses page
 
 # 0.13.0 2019 Apr 20
 
-* IMPORTANT fix about the way to configure docker-ce; change in 0.12.1 was incomplete, 
+* IMPORTANT fix about the way to configure docker-ce; change in 0.12.1 was incomplete,
   so docker would not be configured to use disk space under NBHROOT
 * location of the database has changed as well, now searched under NBHROOT too
-* globally more robust in terms of parametrization of NBHROOT, 
-  as our dev box now actually uses an alternate location 
+* globally more robust in terms of parametrization of NBHROOT,
+  as our dev box now actually uses an alternate location
   so as to ease up pivoting when swapping dev and prod
 
 # 0.12.2 2019 Apr 18
 
-* fix regression introduced when dealing with filenames with spaces; 
+* fix regression introduced when dealing with filenames with spaces;
   was resulting in duplicated .ipynb extensions all over the place
 * more consistent color scheme for the UI
   blue is for track-based; green for file-based; red for managements and orange for stats

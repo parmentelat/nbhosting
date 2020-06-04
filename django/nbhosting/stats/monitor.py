@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # pylint: disable=c0111, r0903, r0913, r0914, w1202, w0703
 
@@ -218,7 +218,7 @@ class MonitoredJupyter:
 
         # this somehow tends to happen a lot sometimes
         # until we figure it out, let's make it less conspicuous
-        except ClientConnectionError as exc:
+        except ClientConnectionError as _exc:
             logger.info(f"could not reach warming up {url} for last activity")
 
         except Exception:

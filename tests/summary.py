@@ -11,7 +11,7 @@ def duration(dir):
     FORMAT = "%H-%M-%S"
     def has_time(line):
         try:
-            timestamp, rest = line.split(":", 1)
+            timestamp, _rest = line.split(":", 1)
             return datetime.strptime(timestamp, FORMAT)
         except:
             pass
@@ -45,7 +45,7 @@ def average(dir, criteria):
                         _, itemstr = line.strip().split(":")
                         item = float(itemstr)
                         numbers.append(item)
-                    except Exception as exc:
+                    except Exception as _exc:
                         print(f"warning: skipping line {line}", end="")
     if not numbers:
         print(f"nothing to show about {criteria}")
