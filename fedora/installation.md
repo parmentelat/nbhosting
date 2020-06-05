@@ -41,10 +41,25 @@ Depending on the scope of your deployment, you will need
  a single monolithic bundle, that takes care of all the pieces (nginx, django in uwsgi)
  from a single point of installation and control.
 
-## podman
+## podman and its Python API
 
-as of this writing (may 2020), the `podman` branch that is working nicely, and is going 
-through intensive testing before we roll it out
+starting with 0.30, nbhosting runs on top of podman and no longer supports docker.
+
+**at this particular point in time (June 2020)** :
+
+* we depend on a homebrewed version of the `podman-py` module that implements the Python
+  API over libpod
+* that is not available at pypi yet
+* so a separate installation is required
+* also note that rpm podman >= 1.9.2 is required
+
+```bash
+# install podman-py from sources for now
+git clone git@github.com:parmentelat/podman-py.git
+cd podman-py
+git checkout nbhosting
+pip install .
+```
 
 ## cgroups
 
