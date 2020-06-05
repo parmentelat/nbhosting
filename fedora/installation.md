@@ -2,35 +2,36 @@
 
 ## Purpose
 
-* this document is about setting up `nbhosting` from metal, i.e. right after a fresh install.
+* this document is about setting up `nbhosting` from metal, i.e. right after a fresh
+  install.
 * date: originaly written in July 12 2017
 * revised July 1 2019
   * based on fedora 29
 * revised: January 2020
   * based on fedora 31
 
-
 ## Requirements
 
 Depending on the scope of your deployment, you will need
 
-* primarily as much memory as you can get; `nbhosting` spawns one
-  jupyter-powered container per tuple (student x course), so even if these are killed
-  after a 15 minutes-ish amount of idle time, that may require substantial amount;
+* primarily as much memory as you can get; `nbhosting` spawns one jupyter-powered
+  container per tuple (student x course), so even if these are killed after a fixed amount
+  of idle time (monitor's *idle* setting), that may require a substantial amount of
+  memory;
 * in terms of disk space, 1 Tb will already lead you rather far, thanks to COW
   imaging capabilities.
 
 ## SSL
 
-*  the application can in theory run under simply `http` in devel mode, but for any real
-   deployment you're going to run as an iframe-embedded site for a main site that runs
-   https (like e.g. `fun-mooc.fr`). In such a case running `nbhosting` behind `http` just
-   won't work, as the browser won't allow it; it is thus assumed that you have a proper
-   certificate and private key available
+* the application can in theory run under simply `http` in devel mode, but for any real
+  deployment you're going to run as an iframe-embedded site for a main site that runs
+  https (like e.g. `fun-mooc.fr`). In such a case running `nbhosting` behind `http` just
+  won't work, as the browser won't allow it; it is thus assumed that you have a proper
+  certificate and private key available
 
 * in case of a reinstallation
   * ***don't forget*** to back up SSL certificate and especially ***the private key***
-  * which in the case of ` nbhosting.inria.fr` is stored in dir `/root/ssl-certificate/`
+  * which in the case of `nbhosting.inria.fr` is stored in dir `/root/ssl-certificate/`
 
 ## Packaging
 
@@ -63,18 +64,17 @@ pip install .
 
 ## cgroups
 
-podman can use cgroupsv2, any kernel-booting option for configuring cgroupsv1 can be
-dismantled
+podman can use cgroupsv2, which is the default on fedora>=31; no need to mess with
+kernel-booting options (like the ones that would be required to run docker)
 
 ****
 
 # disk partitioning
 
 We use `btrfs` as the underlying filesystem for containers; the requirement is thus to have
-`/nbhosting` mounted on a `btrfs` partition somehow. 
+`/nbhosting` mounted on a `btrfs` partition somehow.
 
 **Note** that since the switch to using podman, this is probably no longer a hard constraint.
-
 
 ##### Optional Note
 
@@ -88,9 +88,8 @@ remove images and containers cleaning, so there's that. This being
 said, the current production box on `nbhosting.inria.fr` has this
 single btrfs partition scheme, so a dual-partition setup can be
 considered optional. The location where container images use disk space
-is hard-wired as `/nbhosting/containers`; it is configurable, 
+is hard-wired as `/nbhosting/containers`; it is configurable,
 but make sure to pick the right location before building all your images.
-
 
 ## system *vs* application
 
@@ -165,17 +164,17 @@ After a base installation of fedora, please do the following:
 
 ## install prerequisites
 
-```
+```bash
 dnf -y install podman
 dnf -y install git
 ```
 
 ## install podman-py
 
-As of this writing (May 2020) podman-py is in a very early development stage; 
+As of this writing (May 2020) podman-py is in a very early development stage;
 hopefully this will be availaible through pip at some point
 
-```
+```bash
 cd /root
 git clone https://github.com/parmentelat/podman-py
 cd podman-py
@@ -185,7 +184,7 @@ pip install -e .
 
 ## download `nbhosting` sources
 
-```
+```bash
 cd /root
 git clone https://github.com/parmentelat/nbhosting.git
 ```
@@ -211,7 +210,7 @@ cd /root/nbhosting
 cp etc/selinux/config /etc/selinux/config
 ```
 
-## `sudo` 
+## `sudo`
 
 * it is required that `sudo` allows non-tty apps to issue calls to `sudo`; by default on fedora, it is the case, but it turns out our local IT used to have a policy in place that requires a terminal (see `requiretty` as a sudo configuration clause). To address this, consider creating the following file:
 
@@ -225,7 +224,7 @@ chmod 440 /etc/sudoers.d/99-nbhosting
 
 In order to apply changes (esp. regarding selinux, and iptables)
 
-*************************
+****
 
 # application install
 
@@ -261,14 +260,14 @@ case `nbhosting.inria.fr`) be located in `/root/ssl-certificate/`.
 You can of course pick any other location that you want, but you will later on need the
 location of your certificate and key; in our case we installed them in:
 
-```
+```python
 ssl_certificate = "/root/ssl-certificate/bundle.crt"
 ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
 ```
 
 ## initial configuration
 
-```
+```bash
 cd /root/nbhosting/django/nbh_main
 cp sitesettings.py.example sitesettings.py
 ```
@@ -286,24 +285,22 @@ Then edit the file with the details that describe your site specifics; you can f
 * define the frontends that you accept to be an iframe of,
 * ...
 
-
 ## applying a configuration
 
 Every time that you change `sitesettings.py`, you need to apply them by doing
 
-```
+```bash
 cd /root/nbhosting
 ./install.sh
 ```
 
 that will also take care of everything, like starting the services.
 
-
 ## admin (create super user)
 
 Initialize the admin superuser; this is what will allow to enter the admin web interface:
 
-```
+```bash
 cd /root/nbhosting/django
 python3 manage.py migrate
 python3 manage.py createsuperuser
@@ -311,14 +308,11 @@ python3 manage.py createsuperuser
 
 You should be good to go; point your browser at your domain name
 
-https://mynbhosting.example.org
+<https://mynbhosting.example.org>
 
 and enter with the login/password you just enabled with `createsuperuser`
 
-
 ## reconfiguring
-
-
 
 # administering the system
 
@@ -327,7 +321,7 @@ and enter with the login/password you just enabled with `createsuperuser`
 There's a single command `nbh-manage` that's an entry point into all the features exposed
 to the CLI; see the list with
 
-```
+```bash
 nbh-manage help
 ```
 
@@ -340,7 +334,7 @@ and `[nbh_main]` categories. This is the tool we'll use to prepare courses and i
 
 ### pull container images (step A)
 
-```
+```bash
 podman pull  jupyter/minimal-notebook; podman pull jupyter/scipy-notebook
 ```
 
@@ -348,14 +342,13 @@ This will fetch at dockerhub the 2 images that are used to create our own core i
 
 ### build core images (step B)
 
-```
+```bash
 nbh-manage build-core-images
 ```
 
 This will rebuild images `nbhosting/minimal-notebook` and
 `nbhosting/scipy-notebook` on top of the publically available ones that we pulled in step
 A.
-
 
 ## Managing courses
 
@@ -376,7 +369,7 @@ nbh-manage course-create -i nbhosting/scipy-notebook python3 https://github.com/
 ### course image (step 2 : build course image)
 
 The image name to use with a course is modifiable in the web UI - you
-need staff privileges of course. 
+need staff privileges of course.
 
 #### option 1 : use a core image
 
@@ -395,7 +388,7 @@ If your nbhosting instance already hosts a course, say `python3`, and you want t
 
 Otherwise, your image name should match the course name (which is the default of course), and you can rebuild that image from the shell with
 
-```
+```bash
 nbh-manage course-build-image mycourse
 ```
 
@@ -404,7 +397,6 @@ nbh-manage course-build-image mycourse
   * in the course git repo, under `nbhosting/Dockerfile` or (re)defined locally,
     in `nbhosting`'s root directory (default for that is `/nbhosting`), in a
     file called `local/mycourse/Dockerfile`
-
 
 ### refreshing course contents
 
@@ -423,7 +415,7 @@ nbh-manage course-pull-from-git mycourse
 The breadcrumb track is designed to give a staff admin access to functions targetting
 administrative (red buttons) or regular consultation (blue buttons) features.
 
-![](crumbs.png)
+![crumbs](crumbs.png)
 
 So for example, you can trigger updates from git, and image builds, from the web UI at the
 (red) course page.
@@ -453,32 +445,37 @@ and that is why there are defined **from (files in) the course repo itself**.
 
 #### autopull, image and staff
 
-This is configurable from the Web UI; go the the course management page, and click the orange `edit details for yourcoursename` button
-
+This is configurable from the Web UI; go the the course management page, and click the
+orange `edit details for yourcoursename` button
 
 #### static mappings
-static mappings allow you to define symlinks that work from anywhere in the notebooks tree; for example, if you define the following 2 mappings
+static mappings allow you to define symlinks that work from anywhere in the notebooks
+tree; for example, if you define the following 2 mappings
 
-```
+```text
 data -> data
 rise.css -> media/rise.css
 ```
 
-then in every student work dir (i.e. every directory that contains at least one student notebook), the platform will create symbolic links named `data` and `rise.css`, that point at **read-only** snapshots of `data` and `media/rise.css`, from the git repo toplevel.
+then in every student work dir (i.e. every directory that contains at least one student
+notebook), the platform will create symbolic links named `data` and `rise.css`, that point
+at **read-only** snapshots of `data` and `media/rise.css`, from the git repo toplevel.
 
 For legacy reasons, the default static mappings are defined as
 
-```
+```text
 data -> data
 media -> media
 ```
 
-but can be redefined in each course git repo in `nbhosting/static-mappings` - with the format used above.
+but can be redefined in each course git repo in `nbhosting/static-mappings` - with the
+format used above.
 
 #### tracks
 
-when run in classroom mode, we have no MOOC structure to guide our students, so
-the following mechanism allows to define some structuration. This is done through the notion of **tracks**.
+when run in classroom mode, we have no MOOC structure to guide our students, so the
+following mechanism allows to define some structuration. This is done through the notion
+of **tracks**.
 
 A track has a name, and defines essentially sections of notebooks. Each course
 is expected to expose at least one default track; unless redefined, this default
@@ -495,7 +492,6 @@ A course can define his own tracks, by writing a Python module in
 flotpython/slides](https://github.com/flotpython/slides/blob/master/nbhosting/tracks.py).
 The ` tracks()` function is expected to return a dictionary, whose
 keys are taken as the names for all available tracks.
-
 
 ### when ?
 
@@ -551,12 +547,12 @@ Additional logs go into
   * cpu load
 
 ## rain check
+
 * it is also possible to open any of the notebooks: go to the admin page for a given
   course; clicking any of the notebooks will open it as if opened by a student whose name
   is `anonymous`.
 * this is a convenient way to check the course is up and running - in particular, make
   sure you have built the image for that course !
-
 
 # podman as a replacement to docker
 
@@ -577,7 +573,7 @@ can keep on running the `docker` command and talk to podman instead.
 
 ## upgrading nbhosting
 
-```
+```bash
 cd /root/nbhosting
 git pull
 ./install.sh
@@ -585,12 +581,12 @@ git pull
 
 ***Caveat***
 
-Be aware that the contents of the example file (`sitesettings.py.example`) 
-is **not loaded as defaults**, and so you **must** define all the expected variables 
+Be aware that the contents of the example file (`sitesettings.py.example`)
+is **not loaded as defaults**, and so you **must** define all the expected variables
 in your `sitesettings.py`. This means that some care might be needed when updating
 to a more recent release. Consider the following scenario:
 
-* you install as described above; 
+* you install as described above;
   you end up with 10 variables in your `sitesettings.py` file
 * a month later, you pull a new release that has 12 variables
   in `sitesettings.py.example`
@@ -598,7 +594,6 @@ to a more recent release. Consider the following scenario:
 In this case, you need to identify the 2 new variables, and define
 them in your `sitesettings.py` (even if you are fine with the defaults
 as set in the example file)
-
 
 ## note on fedora upgrades
 
