@@ -4,6 +4,7 @@
 
 import os
 import time
+from datetime import datetime
 import calendar
 import json
 import subprocess
@@ -142,6 +143,10 @@ class MonitoredJupyter:
     def creation_time(self):
         return self.container['Created']
 
+
+    def last_activity_human(self):
+        timestamp = self.last_activity or 0
+        return f"{datetime.fromtimestamp(timestamp):%H:%M}"
 
     @staticmethod
     def parse_time(time_string):
