@@ -39,6 +39,10 @@ class Command(BaseCommand):
             kwds['image'] = image if image else coursename
             created = CourseDir.objects.create(
                 coursename=coursename, giturl=git_url, **kwds)
-            created.run_nbh_subprocess('course-init', git_url)
-            created.pull_from_git()
+            ok = (created.run_nbh_subprocess('course-init', git_url)
+                  and created.pull_from_git())
+            if not ok:
+                logger.error(f"Could not create course {coursename}")
+                logger.warning(f"Double-check (remove if exists) git repo {created.git_dir}")
+                created.delete()
             return 0
