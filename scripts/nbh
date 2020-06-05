@@ -1036,8 +1036,8 @@ function count-tree() {
 # provide some info on the various pieces
 @declare-subcommand admin-counts
 function admin-counts() {
-    count-users "$@"
     count-containers "$@"
+    count-users "$@"
     count-tree "$@"
 }
 
