@@ -24,7 +24,7 @@ function ensure-uid-1000() {
 }
 
 # rsync options
-rsopts=-rltpv
+rsopts=-rltpi
 
 # create the /var/log/nbhosting symlink
 function log-symlink() {
