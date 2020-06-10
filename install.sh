@@ -169,7 +169,13 @@ function migrate-database() {
 function restart-services() {
     systemctl restart podman.socket
     systemctl restart nginx
-    systemctl restart nbh-monitor nbh-django nbh-autopull.timer
+    systemctl restart nbh-monitor nbh-autopull.timer
+    # DON'T restart the nbh-django service routinely !!!
+    if systemctl is-active nbh-django >& /dev/null; then
+        systemctl reload nbh-django
+    else
+        systemctl start nbh-django
+    fi
 }
 
 function default-main() {
