@@ -1,3 +1,13 @@
+# 0.30.3 2020 Jun 10
+
+* modify install.sh to not restart the nbh-django service, this is too
+  intrusive and messes with the containers
+* new management command nbh-manage containers [-c] to display containers
+  and kernels and last activity
+* more robust course-create, 
+  rolls back DB insertion if git clone doesn't go through
+* doc has a section on installing podman-py
+
 # 0.30.2 2020 Jun 04
 
 * podman-ready release, tested on f32 with cgroupv2
