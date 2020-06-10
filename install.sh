@@ -123,7 +123,7 @@ fs.inotify.max_queued_events = 1048576
 fs.inotify.max_user_instances = 1048576
 fs.inotify.max_user_watches = 1048576
 EOF
-    sysctl --load $sysctl_config
+    sysctl --load $sysctl_config > /dev/null
 }
 
 # old name was nbh-uwsgi - see issue #103
