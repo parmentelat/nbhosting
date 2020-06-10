@@ -10,6 +10,7 @@ ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/nbhosting.ini
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
 Restart=always
+KillMode=process
 StandardError=syslog
 NotifyAccess=all
 LimitNOFILE=32768
