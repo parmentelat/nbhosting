@@ -1,3 +1,7 @@
+# 0.30.4 2020 Jun 10
+
+* use systemd setting to fix the containers being killed upon restart of django
+
 # 0.30.3 2020 Jun 10
 
 * modify install.sh to not restart the nbh-django service, this is too
