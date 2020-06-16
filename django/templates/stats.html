@@ -105,6 +105,7 @@ let layout = {
     showlegend : true,
     legend : legend_layout,
 };
+let percent_layout = {yaxis: {range: [0., 100.] }}
 
 function tick(bucket_key){
     return bucket_key
@@ -134,9 +135,10 @@ d3.json(url_metrics).then(function (incoming) {
     let uni_students_data =   { x : d_timestamps, y : d_uni_students,
 			        name: 'unique students / day'};
     turn_off_clock('plotly-students');
-    Plotly.newPlot('plotly-students',
-		   [total_students_data, uni_students_data, new_students_data],
-		   layout);
+    Plotly.newPlot(
+        'plotly-students',
+        [total_students_data, uni_students_data, new_students_data],
+        layout);
 
     let new_notebooks_data =   { x : d_timestamps, y : d_new_notebooks,
 			         name: 'new notebooks / day'};
@@ -145,9 +147,10 @@ d3.json(url_metrics).then(function (incoming) {
     let total_notebooks_data = { x : e_timestamps, y : e_total_notebooks,
     			       	 name: 'notebooks read at least once'};
     turn_off_clock('plotly-notebooks');
-    Plotly.newPlot('plotly-notebooks',
-		   [ uni_notebooks_data, new_notebooks_data, total_notebooks_data],
-		   layout);
+    Plotly.newPlot(
+        'plotly-notebooks',
+        [ uni_notebooks_data, new_notebooks_data, total_notebooks_data],
+        layout);
 });
 //////////////////////////////////////////////////
 let url_counts="/staff/stats/monitor_counts/{{coursename}}";
@@ -171,6 +174,8 @@ d3.json(url_counts).then(function (incoming) {
     let load1s                = incoming.load1s;
     let load5s                = incoming.load5s;
     let load15s               = incoming.load15s;
+    let memory_total          = incoming.memory_totals;
+    let memory_free           = incoming.memory_frees;
 
     let running_containers_data = {
 	x : timestamps, y : running_containers,
@@ -185,9 +190,10 @@ d3.json(url_counts).then(function (incoming) {
 	name : "running kernels"
     }
     turn_off_clock('plotly-containers-kernels');
-    Plotly.newPlot('plotly-containers-kernels',
-		  [running_containers_data, total_containers_data, running_kernels_data],
-  	          layout);
+    Plotly.newPlot(
+        'plotly-containers-kernels',
+        [running_containers_data, total_containers_data, running_kernels_data],
+        layout);
 
 
     let container_ds_percents_data = {
@@ -205,9 +211,10 @@ d3.json(url_counts).then(function (incoming) {
     let layout_100 = JSON.parse(JSON.stringify(layout));
     layout_100.yaxis = {range : [0, 100]};
     turn_off_clock('plotly-ds-percent');
-    Plotly.newPlot('plotly-ds-percent',
-                   [container_ds_percents_data, nbhosting_ds_percents_data, system_ds_percents_data],
-		   layout_100);
+    Plotly.newPlot(
+        'plotly-ds-percent',
+        [container_ds_percents_data, nbhosting_ds_percents_data, system_ds_percents_data],
+        layout_100);
 
 
     let container_ds_frees_data = {
@@ -223,9 +230,10 @@ d3.json(url_counts).then(function (incoming) {
         name : 'free disk space - system fs (in MiB)',
     }
     turn_off_clock('plotly-ds-free');
-    Plotly.newPlot('plotly-ds-free',
-                   [container_ds_frees_data, nbhosting_ds_frees_data, system_ds_frees_data],
-		   layout);
+    Plotly.newPlot(
+        'plotly-ds-free',
+        [container_ds_frees_data, nbhosting_ds_frees_data, system_ds_frees_data],
+        layout);
 
     let load1s_data = {
         x: timestamps, y: load1s,
@@ -240,10 +248,26 @@ d3.json(url_counts).then(function (incoming) {
         name : '100 x load past 15 minutes',
     }
     turn_off_clock('plotly-cpu-load');
-    Plotly.newPlot('plotly-cpu-load',
-                   [load1s_data, load5s_data, load15s_data],
-		   layout);
+    Plotly.newPlot(
+        'plotly-cpu-load',
+        [load1s_data, load5s_data, load15s_data],
+        layout);
 
+    // compute percentage
+    let memory_used_percent = memory_free.map(
+        function(free, index) {
+            let total=memory_total[index];
+            return 100*(total-free)/total;
+        });
+    let memory_used_data = {
+        x: timestamps, y: memory_used_percent,
+        name: 'Free Memory',
+    }
+    turn_off_clock('plotly-memory');
+    Plotly.newPlot(
+        'plotly-memory', 
+        [memory_used_data,],
+        {...layout, ...percent_layout});
 });
 //////////////////////////////////////////////////
 let url_usage="/staff/stats/material_usage/{{coursename}}";

@@ -78,6 +78,10 @@ def show_stats(request, course):
               'title' : 'CPU loads',
               'hide' : True,
             },
+            {'div_id' : 'plotly-memory',
+             'title' : 'Memory Usage in %',
+             'hide' : True,
+             },
         ]
     ))
 

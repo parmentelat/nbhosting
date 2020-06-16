@@ -436,6 +436,22 @@ class Monitor:
             load1, load5, load15 = 0, 0, 0
             logger.exception(f"monitor cannot compute cpu loads")
 
+        # memory from /proc/meminfo
+        try:
+            def handle_line(line):
+                label, value, unit = line.split()
+                if unit == 'kB':
+                    return int(value) * 1024
+                logger.warning(f"unexpected unit {unit} in meminfo")
+                return 0
+            with open("/proc/meminfo") as feed:
+                total_line = feed.readline()
+                free_line  = feed.readline()
+                total_mem = handle_line(total_line)
+                free_mem = handle_line(free_line)
+        except:
+            logger.exception("failed to probe memory")
+            total_mem, free_mem = 0, 0
 
         # run the whole stuff
         asyncio.get_event_loop().run_until_complete(
@@ -451,6 +467,7 @@ class Monitor:
                 spaces['container']['percent'], spaces['container']['free'],
                 spaces['nbhosting']['percent'], spaces['nbhosting']['free'],
                 spaces['system']['percent'], spaces['system']['free'],
+                total_mem, free_mem,
             )
 
     def run_forever(self):
