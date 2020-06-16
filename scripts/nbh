@@ -638,6 +638,8 @@ function run-container-for-student-in-course() {
                 -v $COURSE_static:/home/jovyan/static:ro
                 -v $COURSE_git:$COURSE_git:ro
 "
+# this one is for podman
+    [ -n "$DEBUG" ] && command="$command --log-level=debug"
     # see start-in-dir-as-uid.sh for a note on setting the directories
     # below
     # note that setting the ip here is a workaround
@@ -666,7 +668,7 @@ function run-container-for-student-in-course() {
                 --NotebookApp.password=''
                 --NotebookApp.disable_check_xsrf=True
 "
-
+# this one id for jupyter
     [ -n "$DEBUG" ] && command="$command --log-level=DEBUG"
     # show command for manual debugging
     -echo-stderr container command: $command
