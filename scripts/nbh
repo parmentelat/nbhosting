@@ -622,6 +622,9 @@ function run-container-for-student-in-course() {
     # this is really important on fedora-31, this variable somehow leaked from 
     # systemd and caused podman run to stupidly hang
     unset NOTIFY_SOCKET
+    # this one is to prevent the conmon process from being added in the systemd cgroup
+    # https://github.com/containers/libpod/issues/6549
+    unset INVOCATION_ID
     # -d is for running in background (detached) mode
     command="podman run --name $container
                 -p $port:8888 
