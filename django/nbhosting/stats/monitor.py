@@ -338,8 +338,7 @@ class Monitor:
 
     def run_once(self):
         try:
-            with podman.ApiConnection(podman_url) as podman_api:
-                return self._run_once()
+            return self._run_once()
         except podman.errors.InternalServerError as exc:
             reporter = logger.exception if sitesettings.DEBUG else logger.error
             reporter(f"{exc} - skipping rest of monitor cycle")
@@ -349,21 +348,24 @@ class Monitor:
             return
 
     def _run_once(self):
+        figures_by_course = {c.coursename : CourseFigures()
+                             for c in CourseDir.objects.all()}
+        disk_spaces, loads, memory = self._gather_system_facts(figures_by_course)
+        self._scan_containers(figures_by_course)
+        self._write_results(figures_by_course, disk_spaces, loads, memory)
+                
+    def _scan_containers(self, figures_by_course):
 
         # initialize all known courses - we want data on all courses
         # even if they don't run any container yet
         logger.info(f"monitor cycle with period={self.period//60}' "
                     f"idle={self.idle//60}' "
                     f"lingering={self.lingering//3600}h")
-        figures_by_course = {c.coursename : CourseFigures()
-                             for c in CourseDir.objects.all()}
-        coursedirs_by_name = {c.coursename : c
-                              for c in CourseDir.objects.all()}
         hash_by_course = {c.coursename : c.image_hash()
                           for c in CourseDir.objects.all()}
 
-        # seems to return None when no container is found
         with podman.ApiConnection(podman_url) as podman_api:
+            # returns None when no container is found !
             containers = podman.containers.list_containers(podman_api, all=True) or []
         logger.debug(f"found {len(hash_by_course)} courses "
                      f"and {len(containers)} containers")
@@ -402,26 +404,34 @@ class Monitor:
                             f"can't find image hash for {coursename}")
             except Exception:
                 logger.exception(f"monitor has to ignore {container}")
+                                
+        # run the whole stuff
+        #asyncio.run(asyncio.gather(*futures))
+        asyncio.get_event_loop().run_until_complete(
+            asyncio.gather(*futures))
+
+    
+    def _gather_system_facts(self, figures_by_course):
         # ds stands for disk_space
         if self._graphroot is None:
             with podman.ApiConnection(podman_url) as podman_api:
                 self._graphroot = podman.system.info(podman_api)['store']['graphRoot']
         nbhroot = sitesettings.nbhroot
         system_root = "/"
-        spaces = {}
+        disk_spaces = {}
         for name, root in (('container', self._graphroot),
                            ('nbhosting', nbhroot),
                            ('system', system_root)):
-            spaces[name] = {}
+            disk_spaces[name] = {}
             try:
                 stat = os.statvfs(root)
-                spaces[name]['percent'] = round(100 * stat.f_bfree / stat.f_blocks)
+                disk_spaces[name]['percent'] = round(100 * stat.f_bfree / stat.f_blocks)
                 # unit is MiB
-                spaces[name]['free'] = round((stat.f_bfree * stat.f_bsize) / (1024**2))
+                disk_spaces[name]['free'] = round((stat.f_bfree * stat.f_bsize) / (1024**2))
 
             except Exception:
-                spaces[name]['free'] = 0
-                spaces[name]['percent'] = 0
+                disk_spaces[name]['free'] = 0
+                disk_spaces[name]['percent'] = 0
                 logger.exception(
                     f"monitor cannot compute disk space {name} on {root}")
 
@@ -436,10 +446,12 @@ class Monitor:
             load1, load5, load15 = 0, 0, 0
             logger.exception(f"monitor cannot compute cpu loads")
 
+        loads = dict(load1=load1, load5=load5, load15=load15)
+
         # memory from /proc/meminfo
         try:
             def handle_line(line):
-                label, value, unit = line.split()
+                _label, value, unit = line.split()
                 if unit == 'kB':
                     return int(value) * 1024
                 logger.warning(f"unexpected unit {unit} in meminfo")
@@ -453,9 +465,14 @@ class Monitor:
             logger.exception("failed to probe memory")
             total_mem, free_mem = 0, 0
 
-        # run the whole stuff
-        asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(*futures))
+        memory = dict(memory_total=total_mem, memory_free=free_mem)
+
+        return disk_spaces, loads, memory
+
+    def _write_results(self, figures_by_course, 
+                       disk_spaces, loads, memory):
+        coursedirs_by_name = {c.coursename : c
+                              for c in CourseDir.objects.all()}
         # write results
         for coursename, figures in figures_by_course.items():
             nb_student_homes = coursedirs_by_name[coursename].nb_student_homes()
@@ -463,11 +480,11 @@ class Monitor:
                 figures.running_containers, figures.frozen_containers,
                 figures.running_kernels,
                 nb_student_homes,
-                load1, load5, load15,
-                spaces['container']['percent'], spaces['container']['free'],
-                spaces['nbhosting']['percent'], spaces['nbhosting']['free'],
-                spaces['system']['percent'], spaces['system']['free'],
-                total_mem, free_mem,
+                loads['load1'], loads['load5'], loads['load15'],
+                disk_spaces['container']['percent'], disk_spaces['container']['free'],
+                disk_spaces['nbhosting']['percent'], disk_spaces['nbhosting']['free'],
+                disk_spaces['system']['percent'], disk_spaces['system']['free'],
+                memory['memory_total'], memory['memory_free'],
             )
 
     def run_forever(self):

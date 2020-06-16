@@ -154,7 +154,7 @@ class Stats:
         try:
             with path.open("a") as f:
                 f.write(f"{timestamp} {coursename} {student} {notebook} {action} {port}\n")
-        except Exception as e:
+        except Exception as exc:
             logger.exception(f"Cannot store stats line into {path}")
 
     def record_open_notebook(self, student, notebook, action, port):
