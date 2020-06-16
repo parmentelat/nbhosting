@@ -132,13 +132,15 @@ class MonitoredJupyter:
     def inspect(self):
         # run only once
         if self.inspection is None:
-            with podman.ApiConnection(podman_url) as podman_api:
-                self.inspection = podman.containers.inspect(podman_api, self.name)
+            self.reload()
 
     def reload(self):
         # refresh no matter what
-        with podman.ApiConnection(podman_url) as podman_api:
-            self.inspection = podman.containers.inspect(podman_api, self.name)
+        try:
+            with podman.ApiConnection(podman_url) as podman_api:
+                self.inspection = podman.containers.inspect(podman_api, self.name)
+        except podman.errors.InternalServerError:
+            logger.error(f"error 500 with {self.name}")
             
     def creation_time(self):
         return self.container['Created']
@@ -248,6 +250,11 @@ class MonitoredJupyter:
         """
         now = time.time()
         self.reload()
+        # inspection remains None on InternalServerError
+        if self.inspection is None:
+            logger.info(f"BLIP weirdo (0) {self.name} - cannot inspect - ignored")
+            return
+
         state = self.inspection['State']['Status']
         
         if state in ('stopped', 'configured'):
@@ -375,12 +382,6 @@ class Monitor:
         for container in containers:
             try:
                 name = container['Names'][0]
-                # refresh data from the container runtime, in case
-                # we've taken too long to reach here since
-                # the point when we issued list_containers()
-                # container = podman.containers.inspect(podman_api, name)
-                # too much spam ven in debug mode
-                # logger.debug(f"dealing with container {container}")
                 coursename, student = name.split('-x-')
                 figures_by_course.setdefault(coursename, CourseFigures())
                 figures = figures_by_course[coursename]
