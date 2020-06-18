@@ -155,7 +155,7 @@ class Stats:
             with path.open("a") as f:
                 f.write(f"{timestamp} {coursename} {student} {notebook} {action} {port}\n")
         except Exception as exc:
-            logger.exception(f"Cannot store stats line into {path}")
+            logger.exception(f"Cannot store stats line into {path}, {type (exc)}")
 
     def record_open_notebook(self, student, notebook, action, port):
         """
@@ -190,25 +190,26 @@ class Stats:
     ]
 
     def record_monitor_known_counts_line(self):
-        timestamp = time.strftime(time_format, time.gmtime())
+        # timestamp = time.strftime(time_format, time.gmtime())
         path = self.monitor_counts_path()
         try:
             with path.open('a') as f:
                 f.write("# " + " ".join(self.known_counts) + "\n")
-        except Exception as e:
-            logger.exception("Cannot store headers line into {}".format(path))
+        except Exception as exc:
+            logger.exception(f"Cannot store headers line into {path}, {type(exc)}")
 
     def record_monitor_counts(self, *args):
         timestamp = time.strftime(time_format, time.gmtime())
         path = self.monitor_counts_path()
         if len(args) > len(self.known_counts):
-            logger.error("two many arguments to counts line - dropped {} from {}"
-                         .format(args, path))
+            logger.error(f"two many arguments to counts line "
+                         f"- dropped {args} from {path}")
         try:
             with path.open('a') as f:
-                f.write("{} {}\n".format(timestamp, " ".join(str(arg) for arg in args)))
-        except Exception as e:
-            logger.exception("Cannot store counts line into {}".format(path))
+                payload = " ".join(str(arg) for arg in args)
+                f.write(f"{timestamp} {payload}\n")
+        except Exception as exc:
+            logger.exception(f"Cannot store counts line into {path}, {type(exc)}")
 
     ####################
     def daily_metrics(self):
@@ -238,7 +239,7 @@ class Stats:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
                     try:
-                        timestamp, coursename, student, notebook, action, port = line.split()
+                        timestamp, _coursename, student, notebook, action, _port = line.split()
                         # if action is 'killing' then notebook is '-'
                         # which should not be counted as a notebook of course
                         # so let's ignore these lines altogether
@@ -261,11 +262,11 @@ class Stats:
                             timestamp,
                             current_figures.nb_total_students(),
                             current_figures.nb_total_notebooks())
-                    except Exception as e:
-                        logger.exception("{}:{}: skipped misformed events line :{}"
-                                         .format(events_path, lineno, line))
+                    except Exception as exc:
+                        logger.exception(f"{events_path}:{lineno}: "
+                                         f"skipped misformed events line {type(exc)}:{line}")
                         continue
-        except Exception as e:
+        except Exception as _exc:
             logger.exception("unexpected exception in daily_metrics")
         finally:
             current_figures.wrap()
@@ -322,8 +323,9 @@ class Stats:
                         # each line should have at most len(known_counts)
                         # and should all contain integers
                         if len(values) > max_counts:
-                            logger.error("{}:{}: counts line has too many fields - {} > {}"
-                                         .format(counts_path, lineno, len(values), max_counts))
+                            logger.error(f"{counts_path}:{lineno}: "
+                                         f"counts line has too many fields " 
+                                         f"- {len(values)} > {max_counts}")
                             continue
                         ivalues = [int(v) for v in values]
                         for count, ivalue in zip(known_counts, ivalues):
@@ -333,14 +335,14 @@ class Stats:
                         if missing > 0:
                             for count in known_counts[-missing:]:
                                 counts[count].append(None)
-                    except Exception as e:
-                        logger.exception("{}:{}: skipped misformed counts line - {}"
-                                         .format(counts_path, lineno, line))
+                    except Exception as _exc:
+                        logger.exception(f"{counts_path}:{lineno}: "
+                                         f"skipped misformed counts line - {line}")
         except:
             pass
         finally:
             # add as many keys (with an extra 's') as we have known keys
-            result = { "{}s".format(count) : counts[count] for count in self.known_counts }
+            result = { f"{count}s" : counts[count] for count in self.known_counts }
             # do not forget the timestamps
             result['timestamps'] = timestamps
             return result
@@ -374,15 +376,14 @@ class Stats:
                        CourseDir.objects.get(coursename=self.coursename).staff_usernames.split()}
         try:
             with events_path.open() as f:
-                for lineno, line in enumerate(f, 1):
+                for _lineno, line in enumerate(f, 1):
                     date, _, student, notebook, action, *_ = line.split()
                     # action 'killing' needs to be ignored
                     if action in ('killing',):
                         continue
                     # ignore staff or other artefact users
                     if student in staff_names or artefact_user(student):
-                        logger.debug("ignoring staff or artefact student {}"
-                                     .format(student))
+                        logger.debug(f"ignoring staff or artefact student {student}")
                         continue
                     # animated data must be taken care of before anything else
                     previous, next, changed = nbstudents_per_notebook_buckets.prepare(date)
@@ -393,9 +394,8 @@ class Stats:
                     set_by_notebook[notebook].add(student)
                     set_by_student[student].add(notebook)
                     raw_counts[notebook, student] += 1
-        except Exception as e:
-            logger.exception("could not read {} to count students per notebook"
-                             .format(events_path))
+        except Exception as _exc:
+            logger.exception(f"could not read {events_path} to count students per notebook")
 
         finally:
             nbstudents_per_notebook = [
@@ -441,14 +441,3 @@ class Stats:
                              'zmin' : zmin, 'zmax' : zmax,
                 },
             }
-
-if __name__ == '__main__':
-    import sys
-    coursename = 'fp' if len(sys.argv) == 1 else sys.argv[1]
-    d = Stats(coursename).daily_metrics()
-    for cat, cat_dict in d.items():
-        print("---------- {cat}".format(**locals()))
-        for k, v in cat_dict.items():
-            print(" {k} -> {len_v} items".
-                  format(k=k, len_v=len(v)))
-    #d = Stats(coursename).monitor_counts()
