@@ -33,100 +33,144 @@ class Command(BaseCommand):
 
         parser.add_argument("-c", "--continuous", default=False, action='store_true')
         parser.add_argument("-p", "--period", default=DEFAULT_PERIOD, type=int)
+        parser.add_argument("-i", "--idle", default=True, action='store_false')
         parser.add_argument("patterns", nargs='*')
-        args = parser.parse_args()
+        # args = parser.parse_args()
     
-    def in_scope(self, container):
+
+    def in_scope(self, container_or_monitored):
+        """
+        Parameter can be either a container (a dict as returned by podman)
+        or a MonitoredJupyter object
+        """
         if not self.patterns:
             return True
         else:
-            return any(re.match(pattern, container['Names'][0])
+            name = (container_or_monitored['Names'][0] 
+                    if 'Names' in container_or_monitored
+                    else container_or_monitored.name)
+            return any(re.match(pattern, name)
                     for pattern in self.patterns)
 
 
-    BANNER = 10 * '*'
+    BANNER = 8 * '*'
 
-    def one_time(self, details):
+    def run_once(self, show_details, show_idle=False):
         try:
-            self._one_time(details)
+            self._run_once(show_details, show_idle)
         except Exception as exc:
             print(self.BANNER, f"OOPS {type(exc)}, {exc}",
-                  end="\n" if details else "")
+                  end="\n" if show_details else "")
     
-    def _one_time(self, details):
+    def _run_once(self, show_details, show_idle):
+        """
+        The total number of containers is split like this:
+        * total = stopped + running
+          running = idle (0 kernels) + active (>= 1 kernel)
         
-        patterns = self.patterns
-
-        if details:
-            ban = self.BANNER
-            sep = "\n"
-        else:
-            ban = sep = ""
+        Parameters:
+          show_details: if True, print one line per container 
+            with last activity and # of kernels
+          show_idle: if True, compute the number of containers
+            that have no kernel
+        """
+        
         with podman.ApiConnection(podman_url) as api:
             containers = podman.containers.list_containers(api)
-            #print(containers[0])
-            all_running = [ c for c in containers if c['State'] == 'running']
-            selected_running = [c for c in all_running if self.in_scope(c)]
-            all_idle = [ c for c in containers if c['State'] != 'running']
-            selected_idle = [c for c in all_idle if self.in_scope(c)]
 
-            if not self.patterns:
-                print(ban, f"total {len(selected_running)}/{len(selected_idle)} "
-                           f"running/idle containers", end=sep)
-            else:
-                print(ban, f"{len(selected_running)}/{len(all_running)}"
-                           f" selected/total running containers", end=sep)
-                print(ban, f"{len(selected_idle)}/{len(all_idle)}"
-                           f" selected/total idle containers", end=sep)
+        all_running = [ c for c in containers if c['State'] == 'running']
+        all_stopped = [ c for c in containers if c['State'] != 'running']
+
+        def monitored(container):
+            name = container['Names'][0]
+            course, student = name.split('-x-')
+            # create one figures instance per container
+            figures = CourseFigures()
+            return MonitoredJupyter(container, course, student, figures, None)
             
-            if not details:
-                return
+        running_monitoreds = [monitored(container) for container in all_running]
 
-            def monitored(container):
-                name = container['Names'][0]
-                course, student = name.split('-x-')
-                # create one figures instance per container
-                figures = CourseFigures()
-                mon = MonitoredJupyter(container, course, student, figures, None)
-                loop.run_until_complete(mon.count_running_kernels())
-                nb_kernels = figures.running_kernels
-                return mon
-                
-            running_monitoreds = [monitored(container) for container in selected_running]
-            idle_monitoreds = [monitored(container) for container in selected_idle]
+        if show_details or show_idle:
+            # probe them to fill las_activity and number_kernels
+            futures = [mon.count_running_kernels() for mon in running_monitoreds]
+            #loop.run_until_complete(asyncio.gather(*futures))
+            for future in futures:
+                loop.run_until_complete(future)
+
+        if show_details:
+
             running_monitoreds.sort(key=lambda mon: mon.last_activity or 0, reverse=True)
             now = time.time()
             width = max((len(c.name) for c in running_monitoreds), default=10)
-            for mon in running_monitoreds:
+            for index, mon in enumerate(running_monitoreds, 1):
                 if mon.nb_kernels:
                     # xxx this somehow shows up UTC
                     # maybe it simply needs USE_TZ = True in the django settings
                     la = mon.last_activity_human()
                     ellapsed = int(now - mon.last_activity) // 60
-                    print(f"{mon.name:>{width}s} [{mon.nb_kernels:>2d}k] "
-                        f"last active {la} - {ellapsed:>3d} min ago")
+                    print(f"{index:<3d}{mon.name:>{width}s} [{mon.nb_kernels:>2d}k] "
+                            f"last active {la} - {ellapsed:>3d} min ago")
                 else:
-                    print(f"{mon.name:>{width}s} [-0-] ")
+                    print(f"{index:<3d}{mon.name:>{width}s} [-0-] ")
+
+        if show_details:
+            ban = self.now()
+            sep = "\n"
+        else:
+            ban = sep = ""
+            
+        def print_line(stopped, monitoreds, msg):
+            if show_idle:
+                nb_stopped = len(stopped)
+                nb_idle = sum((mon.nb_kernels == 0) for mon in monitoreds)
+                nb_active = sum((mon.nb_kernels > 0) for mon in monitoreds)
+                total_kernels = sum(mon.nb_kernels for mon in monitoreds)
+                total = nb_stopped + nb_idle + nb_active
+                print(self.now(),
+                      f"{msg} {nb_stopped} stopped + "
+                      f"({nb_idle} idle + {nb_active} active) "
+                      f"= {total} containers"
+                      f" with {total_kernels} kernels", end=sep)
+            else:
+                nb_stopped = len(stopped)
+                nb_running = len(monitoreds)
+                total = nb_stopped + nb_running
+                print(self.now(),
+                      f"{msg} {nb_stopped} stopped + "
+                      f"{nb_running} running = {total} "
+                      f"containers", end=sep)
+                
+                
+        print_line(all_stopped, running_monitoreds, "ALL")
+        if self.patterns:
+            selected_stopped = [c for c in all_stopped if self.in_scope(c)]
+            selected_running = [mon for mon in running_monitoreds 
+                                if self.in_scope(mon)]
+            if self.continuous:
+                print()
+            print_line(selected_stopped, selected_running, "SEL")
+            
+    def now(self):
+        return f"{datetime.now():%H:%M:%S}"
 
     def handle(self, *args, **kwargs):
 
         self.patterns = kwargs['patterns']
         self.period = kwargs['period']
         self.continuous = kwargs['continuous']
+        self.idle = kwargs['idle']
         # using -p implies -c
         if self.period != DEFAULT_PERIOD:
             self.continuous = True
 
 
         if not self.continuous:
-            self.one_time(details=True)
+            self.run_once(show_details=True, show_idle=self.idle)
         else:
             try:
                 while True:
-                    print(f"{datetime.now():%H:%M:%S} ", end="")
-                    sys.stdout.flush()
-                    self.one_time(details=False)
-                    print(f" {datetime.now():%H:%M:%S} (w {self.period:d}s)", end=""); 
+                    self.run_once(show_details=False, show_idle=self.idle)
+                    print(f" {self.now()} (w {self.period:d}s)", end=""); 
                     sys.stdout.flush()
                     time.sleep(self.period)
                     print("")
