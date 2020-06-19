@@ -245,6 +245,13 @@ class MonitoredJupyter:
             
 
     async def co_run(self, idle, lingering):
+        try:
+            await self._co_run(idle, lingering)
+        except Exception as exc:
+            logger.error(f"unexpected error {type(exc)} "
+                         f"when dealing with {self.name} - ignored\n...exception={exc}")
+
+    async def _co_run(self, idle, lingering):
         """
         both timeouts in seconds
         """
