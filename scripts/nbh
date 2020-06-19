@@ -629,6 +629,7 @@ function run-container-for-student-in-course() {
                 -p $port:8888 
                 --user root
                 --rm --detach
+                --memory=5g
                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
                 -v $STUDENT_course:/home/jovyan/work
                 -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
