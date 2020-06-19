@@ -261,7 +261,7 @@ d3.json(url_counts).then(function (incoming) {
         });
     let memory_used_data = {
         x: timestamps, y: memory_used_percent,
-        name: 'Free Memory',
+        name: 'Used Memory (%)',
     }
     turn_off_clock('plotly-memory');
     Plotly.newPlot(
