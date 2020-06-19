@@ -1,3 +1,13 @@
+# 0.30.5 2020 Jun 19
+
+* hard-wired memory limit on a container = 5g  
+  test framework tweaked so we can provide our own test notebooks  
+  new such test for memory exhaustion
+* stats page has a new section on system memory used
+* conmon process no longer in the systemd cgroup, runs in a cgroup of its own
+* more robust monitor for podman
+* smarter nbh-manage containers
+
 # 0.30.4 2020 Jun 10
 
 * use systemd setting to fix the containers being killed upon restart of django
