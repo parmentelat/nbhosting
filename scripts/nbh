@@ -625,7 +625,6 @@ function run-container-for-student-in-course() {
     # this one is to prevent the conmon process from being added in the systemd cgroup
     # https://github.com/containers/libpod/issues/6549
     unset INVOCATION_ID
-    # -d is for running in background (detached) mode
     command="podman run --name $container
                 -p $port:8888 
                 --user root
@@ -637,6 +636,7 @@ function run-container-for-student-in-course() {
                 -v $COURSE_modules:/home/jovyan/modules:ro
                 -v $COURSE_static:/home/jovyan/static:ro
                 -v $COURSE_git:$COURSE_git:ro
+                -e PYTHONPATH=/home/jovyan/modules
 "
 # this one is for podman
     [ -n "$DEBUG" ] && command="$command --log-level=debug"
@@ -656,7 +656,6 @@ function run-container-for-student-in-course() {
     # unable so far to find a less aggressive way to make our users
     # get their service, but this approach is clearly way less secure than before...
     command="$command
-                -e PYTHONPATH=/home/jovyan/modules
                 $image
                 start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
                 jupyter notebook

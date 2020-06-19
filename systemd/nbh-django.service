@@ -10,6 +10,9 @@ ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/nbhosting.ini
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
 Restart=always
+# default is to kill the whole cgroup, which at some point at least included conmon
+# that default behaviour has the catastrophic effect that a restart of the django service
+# will cause all containers to die !
 KillMode=process
 StandardError=syslog
 NotifyAccess=all
