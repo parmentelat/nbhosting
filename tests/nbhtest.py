@@ -44,7 +44,13 @@ class Contents:
     
     def __init__(self, dir):
         self.dir = dir
-        self.coursename = Path(dir).stem
+        # check existence
+        coursedir = Path(self.dir)
+        if not coursedir.is_dir():
+            print(f"Directory not found - Could not browse for test notebooks in {self.dir}")
+            exit(1)
+        self.coursename = Path(dir).resolve().stem
+        print(f"{self.dir} -> {self.coursename}")
         self._load()
 
 
@@ -66,13 +72,9 @@ class Contents:
                 self.notebooks = json.loads(f.read())
         except IOError:
             # print(f"OOPS {type(exc)} {exc}")
-            path = Path(self.dir)
-            if not path.is_dir():
-                print(f"Could not browse for test notebooks in {self.dir}")
-                exit(1)
-            paths = path.glob("**/*.ipynb")
-            notebooks = sorted(['/'.join([p.parts[-2], p.stem]) for p in paths
-                                if 'test' not in str(p)])
+            coursedir = Path(self.dir)
+            paths = coursedir.glob("**/*.ipynb")
+            notebooks = sorted(str(path.relative_to(coursedir)) for path in paths)
             with Path(self.filename).open("w") as writer:
                 writer.write(json.dumps(notebooks))
             print(f"saved notebooks list for {self.coursename} in {self.filename}")
