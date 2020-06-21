@@ -47,7 +47,8 @@ class Command(BaseCommand):
             return True
         else:
             name = (container_or_monitored['Names'][0] 
-                    if 'Names' in container_or_monitored
+                    if (isinstance(container_or_monitored, dict)
+                        and 'Names' in container_or_monitored)
                     else container_or_monitored.name)
             return any(re.match(pattern, name)
                     for pattern in self.patterns)
