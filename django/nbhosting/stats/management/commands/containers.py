@@ -60,8 +60,10 @@ class Command(BaseCommand):
         try:
             self._run_once(show_details, show_idle)
         except Exception as exc:
+            import traceback
             print(self.BANNER, f"OOPS {type(exc)}, {exc}",
                   end="\n" if show_details else "")
+            traceback.print_exc()
     
     def _run_once(self, show_details, show_idle):
         """
