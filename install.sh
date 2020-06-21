@@ -206,6 +206,7 @@ function main() {
     # probe sitesettings.py
     django/manage.py shell_sitesettings > django/nbh_main/sitesettings.sh
     source django/nbh_main/sitesettings.sh
+    mv -f django/nbh_main/sitesettings.sh $nbhroot
 
     if [[ -z "$@" ]]; then
         default-main

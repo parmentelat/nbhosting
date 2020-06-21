@@ -129,3 +129,8 @@ ALLOWED_HOSTS = [
     # as per django's expectations
     # a list of hostname's or IP address as strings
 ]
+
+# maximal amount of memory allowed per container
+# see http://docs.podman.io/en/latest/markdown/podman-run.1.html
+# A unit can be b (bytes), k (kilobytes), m (megabytes), or g (gigabytes).
+container_max_memory = "5g"   # 5 gigabytes 

@@ -3,7 +3,7 @@
 #
 # group all shell commands in a single file
 # you can run any of the inside functions with e.g.
-#
+# nbh the-function the-arguments
 
 ENGINE=podman
 
@@ -50,13 +50,32 @@ ENGINE=podman
 # nbh-driver
 COMMAND=$0
 
-# the default values for a few globals
+# the default value for the most crucial global
 NBHROOT=${NBHROOT:-/nbhosting/current}
-DEBUG=true
 
-# miss options to tweak these - which relate to systemd-nspawn
-#IMAGES=/homefs/btrfs/btrfs
-#MACHINES=/homefs/btrfs/machines
+# SRCROOT may be passed to all commands 
+# with nbh -s <srcroot> the-function the-parameters
+#
+# from that location we will compute the path
+# to sitesettings.sh that contains a bash version
+# of the configuration initially made in sitesettings.py
+# among others, sitesettings.sh defines nbhroot
+#
+function load-sitesettings() {
+    local global_debug
+    [ "$DEBUG" == "true-from-command-line" ] && global_debug=true
+    local sitesettings=$NBHROOT/sitesettings.sh
+    -echo-stderr LOADING sitesettings $sitesettings
+    [ -f $sitesettings ] || -die "Cannot spot sitesettings.sh - aborting"
+    source $sitesettings
+    # for legacy, these are lowercase in sitesettings.py
+    NBHROOT=$nbhroot
+    # onother one we need here; command-line has precedence
+    [ "$DEBUG" == "False" ] && DEBUG=
+    [ -n "$global_debug" ] && DEBUG=true-from-command-line
+    # yet another one
+    [ -z "$container_max_memory" ] && container_max_memory="0"
+}
 
 ### various timeouts
 # format is ticks period
@@ -629,7 +648,7 @@ function run-container-for-student-in-course() {
                 -p $port:8888 
                 --user root
                 --rm --detach
-                --memory=5g
+                --memory=$container_max_memory
                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
                 -v $STUDENT_course:/home/jovyan/work
                 -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
@@ -1163,17 +1182,20 @@ function main() {
 
     while getopts "d:x" option; do
         case $option in
-            d) NBHROOT="$OPTARG"
-               # make sure root is absolute
-               NBHROOT=$(cd $NBHROOT; pwd -P)
-               ;;
-            x) DEBUG=true ;;
+            d)  NBHROOT="$OPTARG"
+                [[ "$NBHROOT" =~ /.* ]] || {
+                # make sure root is absolute
+                    NBHROOT=$(cd $NBHROOT; pwd -P)
+                } ;;
+            x) DEBUG=true-from-command-line ;;
             ?) >&2 usage; exit 1;;
         esac
     done
     shift $((OPTIND-1))
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
+
+    load-sitesettings
 
     # first argument is a subcommand in this file
     local fun="$1"
