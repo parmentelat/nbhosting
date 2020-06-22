@@ -1,3 +1,10 @@
+# 0.30.6 2020 Jun 22
+
+* container memory limit configurable in sitesettings.py
+* stats also gather available memory, as well as total containers and kernels
+* hardened monitor
+* bugfix: nbh-manage containers with selection pattern on courses
+
 # 0.30.5 2020 Jun 19
 
 * hard-wired memory limit on a container = 5g  
