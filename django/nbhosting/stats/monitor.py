@@ -467,13 +467,15 @@ class Monitor:
             with open("/proc/meminfo") as feed:
                 total_line = feed.readline()
                 free_line  = feed.readline()
+                avail_line  = feed.readline()
                 total_mem = handle_line(total_line)
                 free_mem = handle_line(free_line)
+                avail_mem = handle_line(avail_line)
         except:
             logger.exception("failed to probe memory")
-            total_mem, free_mem = 0, 0
+            total_mem, free_mem, avail_mem = 0, 0, 0
 
-        memory = dict(memory_total=total_mem, memory_free=free_mem)
+        memory = dict(memory_total=total_mem, memory_free=free_mem, memory_available=avail_mem)
 
         return disk_spaces, loads, memory
 
@@ -492,7 +494,7 @@ class Monitor:
                 disk_spaces['container']['percent'], disk_spaces['container']['free'],
                 disk_spaces['nbhosting']['percent'], disk_spaces['nbhosting']['free'],
                 disk_spaces['system']['percent'], disk_spaces['system']['free'],
-                memory['memory_total'], memory['memory_free'],
+                memory['memory_total'], memory['memory_free'], memory['memory_available']
             )
 
     def run_forever(self):

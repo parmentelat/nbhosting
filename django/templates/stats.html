@@ -176,6 +176,7 @@ d3.json(url_counts).then(function (incoming) {
     let load15s               = incoming.load15s;
     let memory_total          = incoming.memory_totals;
     let memory_free           = incoming.memory_frees;
+    let memory_available      = incoming.memory_availables;
 
     let running_containers_data = {
 	x : timestamps, y : running_containers,
@@ -253,20 +254,30 @@ d3.json(url_counts).then(function (incoming) {
         [load1s_data, load5s_data, load15s_data],
         layout);
 
-    // compute percentage
-    let memory_used_percent = memory_free.map(
+    // compute percentages
+    let memory_free_percent = memory_free.map(
         function(free, index) {
             let total=memory_total[index];
-            return 100*(total-free)/total;
+            return 100*free/total;
         });
-    let memory_used_data = {
-        x: timestamps, y: memory_used_percent,
-        name: 'Used Memory (%)',
+    let memory_free_data = {
+        x: timestamps, y: memory_free_percent,
+        name: 'Free Memory (%)',
+    }
+    // compute percentages
+    let memory_available_percent = memory_available.map(
+        function(available, index) {
+            let total=memory_total[index];
+            return 100*available/total;
+        });
+    let memory_available_data = {
+        x: timestamps, y: memory_available_percent,
+        name: 'Available Memory (%)',
     }
     turn_off_clock('plotly-memory');
     Plotly.newPlot(
         'plotly-memory', 
-        [memory_used_data,],
+        [memory_free_data, memory_available_data, ],
         {...layout, ...percent_layout});
 });
 //////////////////////////////////////////////////
