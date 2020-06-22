@@ -100,10 +100,10 @@ function turn_off_clock(div_id) {
     $(`#${div_id}-clock`).hide();
 }
 
-let legend_layout = { orientation : 'h', x : -.1, y: 1.2};
+let legend_layout = { orientation: 'h', x: -.1, y: 1.2};
 let layout = {
-    showlegend : true,
-    legend : legend_layout,
+    showlegend: true,
+    legend: legend_layout,
 };
 let percent_layout = {yaxis: {range: [0., 100.] }}
 
@@ -128,11 +128,11 @@ d3.json(url_metrics).then(function (incoming) {
     let d_uni_notebooks   = incoming.daily.unique_notebooks;
     let e_total_notebooks = incoming.events.total_notebooks;
 
-    let total_students_data = { x : e_timestamps, y : e_total_students,
-				name : 'total students'};
-    let new_students_data =   { x : d_timestamps, y : d_new_students,
+    let total_students_data = { x: e_timestamps, y: e_total_students,
+				name: 'total students'};
+    let new_students_data =   { x: d_timestamps, y: d_new_students,
 			        name: 'new students / day'};
-    let uni_students_data =   { x : d_timestamps, y : d_uni_students,
+    let uni_students_data =   { x: d_timestamps, y: d_uni_students,
 			        name: 'unique students / day'};
     turn_off_clock('plotly-students');
     Plotly.newPlot(
@@ -140,11 +140,11 @@ d3.json(url_metrics).then(function (incoming) {
         [total_students_data, uni_students_data, new_students_data],
         layout);
 
-    let new_notebooks_data =   { x : d_timestamps, y : d_new_notebooks,
+    let new_notebooks_data =   { x: d_timestamps, y: d_new_notebooks,
 			         name: 'new notebooks / day'};
-    let uni_notebooks_data =   { x : d_timestamps, y : d_uni_notebooks,
+    let uni_notebooks_data =   { x: d_timestamps, y: d_uni_notebooks,
 			         name: 'unique notebooks open / day'};
-    let total_notebooks_data = { x : e_timestamps, y : e_total_notebooks,
+    let total_notebooks_data = { x: e_timestamps, y: e_total_notebooks,
     			       	 name: 'notebooks read at least once'};
     turn_off_clock('plotly-notebooks');
     Plotly.newPlot(
@@ -179,16 +179,20 @@ d3.json(url_counts).then(function (incoming) {
     let memory_available      = incoming.memory_availables;
 
     let running_containers_data = {
-	x : timestamps, y : running_containers,
-	name : "running jupyter containers",
-    };
-    let total_containers_data = {
-	x : timestamps, y : total_containers,
-	name : "total jupyter containers",
+	    x: timestamps, y: running_containers,
+	    name: "course containers",
     };
     let running_kernels_data = {
-	x : timestamps, y : running_kernels,
-	name : "running kernels"
+	    x: timestamps, y: running_kernels,
+        name: "course kernels"
+    }
+    let system_containers_data = {
+        x: timestamps, y:system_containers,
+        name: "containers (all courses)",
+    }
+    let system_kernels_data = {
+        x: timestamps, y:system_kernels,
+        name: "kernels (all courses)",
     }
     turn_off_clock('plotly-containers-kernels');
     Plotly.newPlot(
@@ -199,15 +203,15 @@ d3.json(url_counts).then(function (incoming) {
 
     let container_ds_percents_data = {
         x: timestamps, y: container_ds_percents,
-        name : '% of free disk space - containers fs',
+        name: '% of free disk space - containers fs',
     }
     let nbhosting_ds_percents_data = {
         x: timestamps, y: nbhosting_ds_percents,
-        name : 'nbhosting fs',
+        name: 'nbhosting fs',
     }
     let system_ds_percents_data = {
         x: timestamps, y: system_ds_percents,
-        name : 'system fs',
+        name: 'system fs',
     }
     let layout_100 = JSON.parse(JSON.stringify(layout));
     layout_100.yaxis = {range : [0, 100]};
@@ -220,15 +224,15 @@ d3.json(url_counts).then(function (incoming) {
 
     let container_ds_frees_data = {
         x: timestamps, y: container_ds_frees,
-        name : 'free disk space - containers fs (in MiB)',
+        name: 'free disk space - containers fs (in MiB)',
     }
     let nbhosting_ds_frees_data = {
         x: timestamps, y: nbhosting_ds_frees,
-        name : 'free disk space - nbhosting fs (in MiB)',
+        name: 'free disk space - nbhosting fs (in MiB)',
     }
     let system_ds_frees_data = {
         x: timestamps, y: system_ds_frees,
-        name : 'free disk space - system fs (in MiB)',
+        name: 'free disk space - system fs (in MiB)',
     }
     turn_off_clock('plotly-ds-free');
     Plotly.newPlot(
@@ -238,15 +242,15 @@ d3.json(url_counts).then(function (incoming) {
 
     let load1s_data = {
         x: timestamps, y: load1s,
-        name : '100 x load past 1 minute',
+        name: '100 x load past 1 minute',
     }
     let load5s_data = {
         x: timestamps, y: load5s,
-        name : '100 x load past 5 minutes',
+        name: '100 x load past 5 minutes',
     }
     let load15s_data = {
         x: timestamps, y: load15s,
-        name : '100 x load past 15 minutes',
+        name: '100 x load past 15 minutes',
     }
     turn_off_clock('plotly-cpu-load');
     Plotly.newPlot(
@@ -291,8 +295,8 @@ d3.json(url_usage).then(function(incoming) {
        and becoming unusable for the other figures
        and that was rather nasty to troubleshoot */
     let bar_layout = {
-        showlegend : true,
-        legend : legend_layout,
+        showlegend: true,
+        legend: legend_layout,
     }
 
     ////////// nb students per notebook - static version
@@ -321,9 +325,9 @@ d3.json(url_usage).then(function(incoming) {
     let nbstudents_per_notebook_data = {
         type : 'bar',
         text : labels1,
-        x : x1,
+        x: x1,
         y: y1,
-        name : `number of students/${incoming.nbstudents} per notebook`,
+        name: `number of students/${incoming.nbstudents} per notebook`,
         };
     turn_off_clock('plotly-nbstudents-per-notebook');
     Plotly.newPlot('plotly-nbstudents-per-notebook',
@@ -344,8 +348,8 @@ d3.json(url_usage).then(function(incoming) {
 
     let nbstudents_per_nbnotebooks_data = {
         type : 'bar', text : labels2,
-        x : x2, y : y2,
-        name : `number of students/${incoming.nbstudents} who have read exactly that many notebooks`,
+        x: x2, y: y2,
+        name: `number of students/${incoming.nbstudents} who have read exactly that many notebooks`,
         marker : { color: '#91d27e'},
         };
     turn_off_clock('plotly-nbstudents-per-nbnotebooks');
@@ -358,8 +362,8 @@ d3.json(url_usage).then(function(incoming) {
 
     let heatmap_data = {
         type : 'heatmap',
-        x : heatmap.x, y : heatmap.y, z : heatmap.z,
-        zmin : 1, zmax : heatmap.zmax,
+        x: heatmap.x, y: heatmap.y, z : heatmap.z,
+        zmin : 1, zmax: heatmap.zmax,
         hoverinfo : 'x+z',
         colorscale : [
             [0.0, 'rgb(69,117,180)'],

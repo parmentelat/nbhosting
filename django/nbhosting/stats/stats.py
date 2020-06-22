@@ -300,11 +300,9 @@ class Stats:
 
         returns a dictionary with the following keys
         * 'timestamps' : the times where monitor reported the figures
-        plus, for known counts as listed in known_counts,
-          made plural by adding a 's', so e.g.
-        * 'running_jupyters': running containers
-        * 'total_jupyters' :  total containers
-        * ...
+        * plus, for each known count as listed in known_counts,
+          a key made plural by adding a 's', so e.g.
+         'running_jupyters': running containers
         """
         counts_path = self.monitor_counts_path()
         timestamps = []
