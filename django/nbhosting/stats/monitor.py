@@ -348,6 +348,8 @@ class Monitor:
         if debug:
             logger.setLevel(logging.DEBUG)
         self._graphroot = None
+        self.system_containers = 0
+        self.system_kernels = 0
 
 
     def run_once(self):
@@ -381,11 +383,11 @@ class Monitor:
         with podman.ApiConnection(podman_url) as podman_api:
             # returns None when no container is found !
             containers = podman.containers.list_containers(podman_api, all=True) or []
-        logger.debug(f"found {len(hash_by_course)} courses "
-                     f"and {len(containers)} containers")
+        logger.info(f"found {len(hash_by_course)} courses "
+                    f"and {len(containers)} containers")
 
-        # a list of async futures
-        futures = []
+
+        monitoreds = []
         for container in containers:
             try:
                 name = container['Names'][0]
@@ -395,11 +397,9 @@ class Monitor:
                 # may be None if s/t is misconfigured
                 image_hash = hash_by_course[coursename] \
                        or f"hash not found for course {coursename}"
-                monitored_jupyter = MonitoredJupyter(
+                monitoreds.append(MonitoredJupyter(
                     container, coursename, student,
-                    figures, image_hash)
-                futures.append(monitored_jupyter.co_run(
-                    self.idle, self.lingering))
+                    figures, image_hash))
             # typically non-nbhosting containers
             except ValueError:
                 # ignore this container as we don't even know
@@ -414,9 +414,15 @@ class Monitor:
                 logger.exception(f"monitor has to ignore {container}")
                                 
         # run the whole stuff
+        futures = [mon.co_run(self.idle, self.lingering)
+                   for mon in monitoreds]
+        
         #asyncio.run(asyncio.gather(*futures))
         asyncio.get_event_loop().run_until_complete(
             asyncio.gather(*futures))
+        
+        self.system_containers = len(monitoreds)
+        self.system_kernels = sum(mon.nb_kernels for mon in monitoreds)
 
     
     def _gather_system_facts(self, figures_by_course):
@@ -494,7 +500,8 @@ class Monitor:
                 disk_spaces['container']['percent'], disk_spaces['container']['free'],
                 disk_spaces['nbhosting']['percent'], disk_spaces['nbhosting']['free'],
                 disk_spaces['system']['percent'], disk_spaces['system']['free'],
-                memory['memory_total'], memory['memory_free'], memory['memory_available']
+                memory['memory_total'], memory['memory_free'], memory['memory_available'],
+                self.system_containers, self.system_kernels,
             )
 
     def run_forever(self):

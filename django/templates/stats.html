@@ -160,10 +160,10 @@ d3.json(url_counts).then(function (incoming) {
 
     // incoming parts
     let timestamps            = incoming.timestamps;
+    // this is about THIS course
     let running_containers    = incoming.running_containers;
-    let frozen_containers     = incoming.frozen_containers;
-    var	total_containers      = running_containers.map(function(num, index){
-        return num+frozen_containers[index];})
+    // no longer relevant
+    //let frozen_containers     = incoming.frozen_containers;
     let running_kernels       = incoming.running_kernels;
     let container_ds_percents = incoming.container_ds_percents;
     let container_ds_frees    = incoming.container_ds_frees;
@@ -177,6 +177,9 @@ d3.json(url_counts).then(function (incoming) {
     let memory_total          = incoming.memory_totals;
     let memory_free           = incoming.memory_frees;
     let memory_available      = incoming.memory_availables;
+    // this is system-wide
+    let system_containers      = incoming.system_containers;
+    let system_kernels         = incoming.system_kernels;
 
     let running_containers_data = {
 	    x: timestamps, y: running_containers,
@@ -197,7 +200,8 @@ d3.json(url_counts).then(function (incoming) {
     turn_off_clock('plotly-containers-kernels');
     Plotly.newPlot(
         'plotly-containers-kernels',
-        [running_containers_data, total_containers_data, running_kernels_data],
+        [running_containers_data, running_kernels_data,
+         system_containers_data, system_kernels_data, ],
         layout);
 
 

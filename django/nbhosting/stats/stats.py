@@ -187,6 +187,7 @@ class Stats:
         'nbhosting_ds_percent', 'nbhosting_ds_free',
         'system_ds_percent', 'system_ds_free',
         'memory_total', 'memory_free', 'memory_available',
+        'system_container', 'system_kernel',
     ]
 
     def record_monitor_known_counts_line(self):
