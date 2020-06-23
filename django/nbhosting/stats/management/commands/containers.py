@@ -114,7 +114,8 @@ class Command(BaseCommand):
                     print(f"{index:<3d}{mon.name:>{width}s} [{mon.nb_kernels:>2d}k] "
                             f"last active {la} - {ellapsed:>3d} min ago")
                 else:
-                    print(f"{index:<3d}{mon.name:>{width}s} [-0-] ")
+                    display = '?' if mon.nb_kernels is None else 0
+                    print(f"{index:<3d}{mon.name:>{width}s} [-{display}-] ")
 
         if show_details:
             ban = self.now()
@@ -125,8 +126,8 @@ class Command(BaseCommand):
         def print_line(stopped, monitoreds, msg):
             if show_idle:
                 nb_stopped = len(stopped)
-                nb_idle = sum((mon.nb_kernels == 0) for mon in monitoreds)
-                nb_active = sum((mon.nb_kernels > 0) for mon in monitoreds)
+                nb_idle = sum((mon.nb_kernels == 0 or mon.nb_kernels is None) for mon in monitoreds)
+                nb_active = len(monitoreds) - nb_idle
                 total_kernels = sum(mon.nb_kernels for mon in monitoreds)
                 total = nb_stopped + nb_idle + nb_active
                 print(self.now(),
