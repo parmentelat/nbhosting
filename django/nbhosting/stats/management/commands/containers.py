@@ -126,9 +126,10 @@ class Command(BaseCommand):
         def print_line(stopped, monitoreds, msg):
             if show_idle:
                 nb_stopped = len(stopped)
-                nb_idle = sum((mon.nb_kernels == 0 or mon.nb_kernels is None) for mon in monitoreds)
+                nb_idle = sum((mon.nb_kernels == 0 or mon.nb_kernels is None)
+                              for mon in monitoreds)
                 nb_active = len(monitoreds) - nb_idle
-                total_kernels = sum(mon.nb_kernels for mon in monitoreds)
+                total_kernels = sum((mon.nb_kernels or 0) for mon in monitoreds)
                 total = nb_stopped + nb_idle + nb_active
                 print(self.now(),
                       f"{msg} {nb_stopped} stopped + "

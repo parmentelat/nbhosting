@@ -422,7 +422,7 @@ class Monitor:
             asyncio.gather(*futures))
         
         self.system_containers = len(monitoreds)
-        self.system_kernels = sum(mon.nb_kernels for mon in monitoreds)
+        self.system_kernels = sum((mon.nb_kernels or 0) for mon in monitoreds)
 
     
     def _gather_system_facts(self, figures_by_course):
