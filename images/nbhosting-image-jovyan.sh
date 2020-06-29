@@ -35,7 +35,9 @@ pip install nbautoeval
 # the ipythontutor magic
 pip install ipythontutor
 
+# coloring
+pip install nb-courselevels
+
 # jupyterlab git extension
 ### temporarily requires to dowgrade jupyterlab until the git extension is upgraded to support jlab 2.x
-pip install jupyterlab==1
 jupyter labextension install @jupyterlab/git && pip install --upgrade jupyterlab-git && jupyter serverextension enable --py jupyterlab_git
