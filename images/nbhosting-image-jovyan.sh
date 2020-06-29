@@ -19,25 +19,25 @@ git config user.name  || git config --global user.name "Nbhosting User"
 # useful additions and extensions
 
 # install jupyter extensions
-pip install ipywidgets && jupyter nbextension enable --py widgetsnbextension
+pip install -U ipywidgets && jupyter nbextension enable --py widgetsnbextension
 
 # install contrib extensions including splitcell
-pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install --user
+pip install -U jupyter_contrib_nbextensions && jupyter contrib nbextension install --user
 # enable splitcell nbextension
 jupyter nbextension enable splitcell/splitcell
 
 # we may use jupytext in the future for smoother git pull from the students space
-pip install jupytext
+pip install -U jupytext
 
 # auto-evaluated exercices
-pip install nbautoeval
+pip install -U nbautoeval
 
 # the ipythontutor magic
-pip install ipythontutor
+pip install -U ipythontutor
 
 # coloring
-pip install nb-courselevels
+pip install -U nb-courselevels
 
 # jupyterlab git extension
-### temporarily requires to dowgrade jupyterlab until the git extension is upgraded to support jlab 2.x
-jupyter labextension install @jupyterlab/git && pip install --upgrade jupyterlab-git && jupyter serverextension enable --py jupyterlab_git
+pip install -U jupyterlab jupyterlab-git 
+jupyter labextension install @jupyterlab/git && jupyter serverextension enable --py jupyterlab_git
