@@ -31,7 +31,7 @@ setup(
         'django_extensions',
         'jsonpickle',
         'nbformat',
-        'jupytext',
+        'jupytext[myst]',
         # monitor
         'aiohttp',
         'podman',
