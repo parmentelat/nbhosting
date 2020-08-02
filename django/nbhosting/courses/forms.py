@@ -10,7 +10,7 @@ class CourseForm(ModelForm):
 
     class Meta:
         model = CourseDir
-        fields = ['autopull', 'image', 'staff_usernames']
+        fields = ['autopull', 'archived', 'image', 'staff_usernames']
 
 class UpdateCourseForm(forms.Form):
     autopull = forms.BooleanField(
