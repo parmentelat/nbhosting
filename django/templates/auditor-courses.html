@@ -47,6 +47,18 @@ div.course {
     padding-top: 10px;
 }
 
+/* archived courses */
+div.course.archived>span>a.btn {
+    /* use a pattern instead */
+    background-image:
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
+    }
+}
+
+span.track>a.btn {
+    background-color: white;
+}
+
 div.course>span.course>a::before {
 /*    content: "course : " */
 }
@@ -58,7 +70,7 @@ div.course>span.track>a::before {
 <div class="courses-box m-3">
 {% for course_dir in course_dirs %}
   {% with course_dir.tracks.0.name as main_trackname %}
-    <div class="course p-3 m-3">
+    <div class="course p-3 m-3 {{course_dir.archived_class}}">
         <span class="course">
             <a class='btn btn-info btn-lg'
             href='/auditor/notebook/{{course_dir.coursename}}:{{main_trackname}}/'

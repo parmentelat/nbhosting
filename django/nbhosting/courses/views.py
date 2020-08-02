@@ -34,11 +34,12 @@ def match(coursename, pattern):
 @csrf_protect
 def auditor_list_courses(request):
     course_dirs = CourseDir.objects.order_by('coursename')
+    course_dirs = [cd for cd in course_dirs if not cd.archived]
     pattern = request.GET.get('pattern', None)
     if pattern:
         course_dirs = [coursedir for coursedir in course_dirs 
                        if match(coursedir.coursename, pattern)]
-    # all=true - or anythong really means show all courses
+    # all=true - or anything really means show all courses
     ask_all_courses = request.GET.get('all', None)
     show_all_courses = True
     if ask_all_courses is None:
@@ -46,7 +47,8 @@ def auditor_list_courses(request):
         if groups:
             show_all_courses = False
             course_dirs = [coursedir for coursedir in course_dirs
-                           if coursedir.relevant(request.user)]
+                           if coursedir.relevant(request.user)
+                              and not coursedir.archived]
     env = dict(
         course_dirs=course_dirs,
         nbh_version=nbh_version,
@@ -305,6 +307,7 @@ def staff_course_update(request, course):
         if form.is_valid():
             # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
             coursedir.autopull = form.cleaned_data['autopull']
+            coursedir.archived = form.cleaned_data['archived']
             coursedir.image = form.cleaned_data['image']
             coursedir.staff_usernames = form.cleaned_data['staff_usernames']
             coursedir.save()

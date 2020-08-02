@@ -35,32 +35,42 @@ class Command(BaseCommand):
         patterns = kwargs['patterns']
         verbose = kwargs['verbose']
 
-        def show_course(cd):
-            if verbose == 0:
-                print(cd.coursename)
-            elif verbose == 1:
-                autopull = "on" if cd.autopull else "off"
-                hash = cd.current_hash()
-                print(f"{cd.coursename:20s}\t{cd.image:30s}[AP {autopull:3s}]\t{hash}\t{cd.giturl}")
+        def show_course(cd, max_name, max_image):
+            autopull = "[AP]" if cd.autopull else ""
+            archived = "[AR]" if cd.archived else ""
+            col1 = f"{max_name+1}s"
+            col2 = f"{max_image+1}s"
+            hash = f"{cd.current_hash():9s}"
+            line = f"{cd.coursename:{col1}}"
+            if verbose == 1:
+                line += f"{cd.image:{col2}}"
+                line += f"{autopull:5s}"
+                line += f"{hash}"
+                line += f"{cd.giturl}"
             else:
-                autopull = "on" if cd.autopull else "off"
-                hash = cd.current_hash()
                 groups = cd.registered_groups.all()
                 groupnames = " + ".join(group.name for group in groups)
-                print(f"{cd.coursename:20s}\t{cd.image:30s}[AP {autopull:3s}]"
-                      f"\t{hash}\tRGS=[{groupnames}]\t{cd.giturl}")
+                line += f"{cd.image:{col2}}"
+                line += f"{autopull:5s}"
+                line += f"{archived:5s}"
+                line += f"{hash}"
+                line += f"RGS=[{groupnames}]"
+                line += f"{cd.giturl}"
+            print(line)
                 
 
         all_coursedirs = sorted(
             CourseDir.objects.all(),
             key=lambda coursedir: coursedir.coursename)
+        max_name = max(len(cd.coursename) for cd in all_coursedirs)
+        max_image = max(len(cd.image) for cd in all_coursedirs)
         for coursedir in all_coursedirs:
             name = coursedir.coursename
             if not patterns:
-                show_course(coursedir)
+                show_course(coursedir, max_name, max_image)
             else:
                 for pattern in patterns:
                     if pattern == '*' or pattern in name:
-                        show_course(coursedir)
+                        show_course(coursedir, max_name, max_image)
                         break
         return 0

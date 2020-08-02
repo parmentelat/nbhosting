@@ -35,6 +35,7 @@ class CourseDir(models.Model):
     giturl = models.CharField(max_length=1024, default='none')
     image = models.CharField(max_length=256, default='none')
     autopull = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
 
     # staff users refer to hashes created remotely
     # so they do not match locally registered users
@@ -68,6 +69,8 @@ class CourseDir(models.Model):
         return self.git_dir.exists() and self.git_dir.is_dir()
     def __repr__(self):
         return self.coursename
+    def archived_class(self):
+        return "archived" if self.archived else ""
 
     def __len__(self):
         return len(self.notebooks())

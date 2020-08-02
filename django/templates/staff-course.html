@@ -114,6 +114,11 @@ div.tracks, div.staffs{
 .group-name {
     color:blue;
 }
+.archived {
+background-image:
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
+    }
+}
 </style>
 
 <!------------------------------>
@@ -123,14 +128,14 @@ div.tracks, div.staffs{
         <div class="col-8">
             <div class="section">
                 <a href="/staff/course/{{coursename}}/update/"
-                    class='btn btn-outline-warning btn-lg btn-block'
+                    class='btn btn-outline-warning btn-lg btn-block {{coursedir.archived_class}}'
                     data-toggle="tooltip"
                     title="click to edit this course"
                 >edit details for {{coursename}}</a>
             </div>
             <div class='section'>
                 <a href='/staff/courses/update-from-git/{{coursename}}'
-                 class='btn btn-info btn-lg btn-block'
+                 class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
                 >
                     <span data-toggle="tooltip"
                         data-html="true" title="<span class='smaller'>
@@ -211,7 +216,7 @@ div.tracks, div.staffs{
                             {% endfor %}
                         </div>
                         <a href='/staff/courses/show-tracks/{{coursename}}'
-                            class='btn btn-info btn-lg btn-block'
+                            class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
                             data-toggle="tooltip"
                             data-html="true"
                             title="<span class='smaller'>
@@ -258,7 +263,7 @@ div.tracks, div.staffs{
                             </br>so you can redo your image</span>">container image : <code>{{image}}</code></h3>
                         {% if image == coursename %}
                             <a href='/staff/courses/build-image/{{coursename}}'
-                                class='btn btn-info btn-lg btn-block'
+                                class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
                                 data-toggle="tooltip" data-html="true"
                                 title="<span class='smaller'>
                                     rebuild image for that course<br/>
@@ -297,7 +302,7 @@ div.tracks, div.staffs{
                             {% endfor %}
                         </div>
                         <a href='/staff/courses/clear-staff/{{coursename}}'
-                            class='btn btn-info btn-lg btn-block'
+                            class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
                             data-toggle="tooltip" data-html="true"
                             title="<span class='smaller'>
                                 remove all notebooks found</br>

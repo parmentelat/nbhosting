@@ -19,6 +19,11 @@ class UpdateCourseForm(forms.Form):
         help_text=("when enabled, will automatically "
                    "pull every hour from your git remote"),
         )
+    archived = forms.BooleanField(
+        label='archived',
+        required=False,
+        help_text=("archived courses do not show up in the default courses list"),
+        )
     image = forms.CharField(
         label='image',
         required=False,
