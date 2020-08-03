@@ -278,6 +278,10 @@ function course-update-from-git() {
         for file in jupyter_notebook_config.py custom.js custom.css; do
             [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
         done
+        [ -f $COURSE_git/nbhosting/nbconfig/notebook.json ] && {
+            mkdir -p $COURSE_jupyter/nbconfig
+            $rsync $COURSE_git/nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
+        }
     }
     
     [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
@@ -658,6 +662,10 @@ function run-container-for-student-in-course() {
                 -v $COURSE_git:$COURSE_git:ro
                 -e PYTHONPATH=/home/jovyan/modules
 "
+# allow to customize nbconfig/notebook.json if present in the course under nbhosting/
+[ -f $COURSE_jupyter/nbconfig/notebook.json ] && \
+    command="$command -v $COURSE_jupyter/nbconfig/notebook.json:/home/jovyan/.jupyter/nbconfig/notebook.json:ro"
+
 # this one is for podman
     [ -n "$DEBUG" ] && command="$command --log-level=debug"
     # see start-in-dir-as-uid.sh for a note on setting the directories
