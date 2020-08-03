@@ -666,6 +666,15 @@ function run-container-for-student-in-course() {
 [ -f $COURSE_jupyter/nbconfig/notebook.json ] && \
     command="$command -v $COURSE_jupyter/nbconfig/notebook.json:/home/jovyan/.jupyter/nbconfig/notebook.json:ro"
 
+# for using jlab/git from inside a student container
+# because NBHROOT and hence COURSE_git might be a symlink
+# typically a student repo would have its remote set to
+# remote.origin.url=/nbhosting/dev/courses-git/ue12-intro
+# but only /nbhosting/current would be visible from the container
+local course_GIT_norm=$(cd $COURSE_git; pwd -P)
+[ "$course_GIT_norm" != "$COURSE_git" ] && \
+    command="$command -v ${course_GIT_norm}:${course_GIT_norm}:ro"
+
 # this one is for podman
     [ -n "$DEBUG" ] && command="$command --log-level=debug"
     # see start-in-dir-as-uid.sh for a note on setting the directories
