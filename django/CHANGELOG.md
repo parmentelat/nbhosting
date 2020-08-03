@@ -1,3 +1,13 @@
+# 0.31.0 2020 Aug 3
+
+* a course can be set as 'archived', so it won't show up in the standard courses index page
+* allow a course to customize nbconfig/notebook.json in its nbhosting/ subdir
+* core images come with jupytext[myst]
+* use latest jupyterlab, with functional git extension
+  to get this to work an additional mountpoint may be created in the container
+* add some convenience scripts that were used to transfer 
+  the MOOC on fun-mooc.fr from .ipynb to .md
+
 # 0.30.6 2020 Jun 22
 
 * container memory limit configurable in sitesettings.py
