@@ -279,7 +279,7 @@ function course-update-from-git() {
             [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
         done
     }
-
+    
     [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
     -update-course 2> >(tee -a $log >&2)
 }
@@ -483,7 +483,7 @@ function -git-repo-student-for-course() {
     # else we should be good;
     # however because of the change introduced in 0.21
     # when needed, we overwrite the 'origin' remote url 
-    # to point at the local diretory under courses-git
+    # to point at the local directory under courses-git
     # instead of using the external git repo
     else
         cd $toplevel
