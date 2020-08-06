@@ -35,8 +35,9 @@ pip install -U nbautoeval
 # the ipythontutor magic
 pip install -U ipythontutor
 
-# coloring
-pip install -U nb-courselevels
+# do not load courselevels by default
+# because it implicitly adds extra buttons
+# leave it to each individual course
 
 # jupyterlab git extension
 pip install -U jupyterlab jupyterlab-git 
