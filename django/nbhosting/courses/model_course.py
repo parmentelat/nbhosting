@@ -3,6 +3,7 @@
 import os
 from pathlib import Path                                # pylint: disable=w0611
 import subprocess
+import shutil
 import itertools
 
 from importlib.util import (
@@ -103,6 +104,24 @@ class CourseDir(models.Model):
         both = groups & self.registered_groups.all()
         return bool(both)
 
+
+    def clean_before_delete(self, *, preserve_students, clean_raw, verbose=True):
+        all_dirs = NBHROOT.glob(f"*/{self.coursename}")
+        def clear(path):
+            if verbose:
+                logger.info(f"Clearing {path}")
+                shutil.rmtree(path)
+        for dir in all_dirs:
+            dir_kind = dir.parent.name
+            if dir_kind == 'raw':
+                if clean_raw:
+                    clear(dir)
+            else:
+                clear(dir)
+        if not preserve_students:
+            student_spaces = (NBHROOT / "students" / self.coursename).glob("*")
+            for dir in student_spaces:
+                clear(dir)
 
     def customized(self, filename):
         """
