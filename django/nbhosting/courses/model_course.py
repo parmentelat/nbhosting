@@ -19,12 +19,8 @@ from nbh_main.settings import NBHROOT, logger, sitesettings
 from nbhosting.utils import show_and_run
 
 from .model_track import Track, generic_track
-from .model_track import write_tracks, read_tracks
+from .model_track import CourseTracks, write_tracks, read_tracks, sanitize_tracks
 from .model_mapping import StaticMapping
-
-# this is what we expect to find in a course custom tracks.py
-from typing import List
-CourseTracks = List[Track]
 
 from ..matching import matching_policy
 
@@ -376,6 +372,7 @@ class CourseDir(models.Model):
         # compute from course
         logger.debug(f"{tracks_path} not found - recomputing")
         tracks = self._fetch_course_custom_tracks()
+        traccks = sanitize_tracks(tracks)
         self._tracks = tracks
         write_tracks(tracks, tracks_path)
         return tracks

@@ -9,6 +9,10 @@ import jupytext
 
 from nbh_main.settings import logger, sitesettings
 
+# this is what we expect to find as the result of a course custom tracks.py
+from typing import List
+CourseTracks = List['Track']
+
 # as of 2019 aug, we don't worry at all about untracked notebooks
 # that can be entirely managed through a regular jupyter app
 
@@ -166,6 +170,10 @@ class Section:                                          # pylint: disable=r0903
                 return notebook
         return None
 
+    def sanitize(self):
+        # sanitize it only about removing empty nodes
+        # so, nothing to do
+        pass
 
 class Track:
 
@@ -218,6 +226,12 @@ class Track:
             if spotted:
                 return spotted
         return None
+    
+    def sanitize(self):
+        for section in self.sections[:]:
+            section.sanitize()
+            if not section:
+                self.sections.remove(section)
 
     def mark_notebooks(self, student):
         if self._marked:
@@ -331,4 +345,13 @@ def read_tracks(coursedir, input_path: Path) -> List[Track]:
             for notebook in section.notebooks:
                 notebook.coursedir = coursedir
                 notebook.in_track = True
+    return tracks
+
+# for model_course; prune empty nodes in the structure
+def sanitize_tracks(tracks: CourseTracks):
+    # don't modify the iterable you iterate upon
+    for track in tracks[:]:
+        track.sanitize()
+        if not track:
+            tracks.remove(track)
     return tracks
