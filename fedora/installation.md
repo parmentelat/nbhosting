@@ -343,7 +343,7 @@ This will fetch at dockerhub the 2 images that are used to create our own core i
 ### build core images (step B)
 
 ```bash
-nbh-manage build-core-images
+nbh-manage build-images
 ```
 
 This will rebuild images `nbhosting/minimal-notebook` and
@@ -407,7 +407,7 @@ to tell nbhosting to pull that change so it is aware. Two options are available 
 * otherwise you will need to pull the course contents manually, through the Web UI again, or from the command line with
 
 ```bash
-nbh-manage course-pull-from-git mycourse
+nbh-manage course-pull mycourse
 ```
 
 ## Web UI

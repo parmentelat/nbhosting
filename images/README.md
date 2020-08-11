@@ -37,7 +37,7 @@ Using them is not mandatory, but again having `start-in-dir-as-uid.sh` installed
 These nbhosting images are **not** published on dockerhub, instead they are meant to be redone locally before rebuilding course images; to this end, do
 
 ```bash
-nbh-manage build-core-images
+nbh-manage build-images
 ```
 
 
@@ -65,7 +65,7 @@ In that second case, rebuilding a course's image is thus generally done either
 * from the shell, through the following steps:
 
 ```bash
-nbh course-pull-from-git mycourse
+nbh course-pull mycourse
 nbh-manage course-build-image mycourse
 ```
 

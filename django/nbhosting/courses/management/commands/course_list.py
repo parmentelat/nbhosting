@@ -62,8 +62,8 @@ class Command(BaseCommand):
         all_coursedirs = sorted(
             CourseDir.objects.all(),
             key=lambda coursedir: coursedir.coursename)
-        max_name = max(len(cd.coursename) for cd in all_coursedirs)
-        max_image = max(len(cd.image) for cd in all_coursedirs)
+        max_name = max((len(cd.coursename) for cd in all_coursedirs), default=4)
+        max_image = max((len(cd.image) for cd in all_coursedirs), default=4)
         for coursedir in all_coursedirs:
             name = coursedir.coursename
             if not patterns:
