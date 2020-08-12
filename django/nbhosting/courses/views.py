@@ -124,7 +124,7 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
         track_obj.mark_notebooks(student)
         
     first_notebook_per_track = {
-        track_obj.name : track_obj.first_notebook().clean_path()
+        track_obj.id : track_obj.first_notebook().clean_path()
         for track_obj in tracks
     }
 
@@ -280,7 +280,7 @@ def clear_staff(request, course):
 def show_tracks(request, course):
     return render_subprocess_result(
         request, course,
-        "course-show-tracks", 'tracks recomputed', True)
+        "course-tracks", 'tracks recomputed', True)
 
 
 @staff_member_required

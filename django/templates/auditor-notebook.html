@@ -31,7 +31,7 @@
 {% if jupyter_app %}
 let global_track_or_app = "@{{jupyter_app}}";
 {% else %}
-let global_track_or_app = ":{{track.name}}";
+let global_track_or_app = ":{{track.id}}";
 {% endif %}
 
 function update_header(string) {
@@ -78,12 +78,10 @@ let first_notebook_per_track = JSON.parse(
 // and turn off jup app buttons
 // if show_first_button is set, 
 // also display first notebook in track 
-function select_track(track, show_first_notebook){
-    global_track_or_app = `:${track}`;
+function select_track(track_id, show_first_notebook){
+    global_track_or_app = `:${track_id}`;
     turn_jupyter_button('classic', false);
     turn_jupyter_button('jlab', false);
-    // html5 does not allow space in ids
-    let track_id = track.replace(/ /g, '');
     // xxx need internet connection
     $(`a.track-name:not([id="sections-${track_id}-tab"])`).removeClass('active');
     $(`a.track-name[id="sections-${track_id}-tab"]`).addClass('active');
@@ -92,12 +90,12 @@ function select_track(track, show_first_notebook){
     $(`h1.single-track-head`).addClass('active');
 
     if (show_first_notebook) {
-        let notebook = first_notebook_per_track[track];
+        let notebook = first_notebook_per_track[track_id];
         if (notebook) {
             iframe_notebook(notebook);
             outline_current_notebook(notebook);
         } else {
-            console.log(`Could not spot first notebook for track ${track}`);
+            console.log(`Could not spot first notebook for track ${track_id}`);
         }
     }
 }
@@ -461,19 +459,22 @@ iframe {
 
         <div class='left-upper transitionable {% if tracks|length_is:"1" %}hidden{% endif%}'>
 
-            <h1 class="btn btn-outline-secondary track-head"
+            <h1 class="btn btn-outline-secondary active track-head"
                 data-toggle="tooltip" data-html="true"
-                title="you may choose to navigate through one of the following tracks"
+                title="you may choose one of the following tracks"
+                aria-pressed="true"
             >by track</h1>
             <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
                 {% for track_obj in tracks %}
+                <span data-toggle="tooltip" title="{{track_obj.description}}">
                 <a class="nav-link show track-name"
-                    onclick="select_track('{{track_obj.name}}', true)"
-                    id="sections-{{track_obj.name|cut:" "}}-tab"
-                    data-toggle="pill" href="#sections-{{track_obj.name|cut:" "}}"
-                    role="tab" aria-controls="sections-{{track_obj.name|cut:" "}}"
-                    aria-selected="{% if track.name == track_obj.name %}true{% else %}false{% endif %}"
+                    onclick="select_track('{{track_obj.id}}', true)"
+                    id="sections-{{track_obj.id}}-tab"
+                    data-toggle="pill" href="#sections-{{track_obj.id}}"
+                    role="tab" aria-controls="sections-{{track_obj.id}}"
+                    aria-selected="{% if track.id == track_obj.id %}true{% else %}false{% endif %}"
                 >{{track_obj.name}}</a>
+                </span>
                 {% endfor %}
             </div>
         </div>
@@ -483,8 +484,8 @@ iframe {
 
             {% for track_obj in tracks %}
             <div class="tab-pane fade track-sections transitionable"
-                id="sections-{{track_obj.name|cut:" "}}" role="tabpanel"
-                aria-labelledby="sections-{{track_obj.name|cut:" "}}-tab"
+                id="sections-{{track_obj.id}}" role="tabpanel"
+                aria-labelledby="sections-{{track_obj.id}}-tab"
                 >
                 {% if tracks|length_is:"1" %}
                 <h1 class="btn btn-outline-secondary single-track-head"
@@ -497,12 +498,12 @@ iframe {
                 {% for section in track_obj.sections %}
                 <div class="section">
                     <a {% autoescape off %}{{section.first_notebook.decorate_a}}{% endautoescape %}
-onclick="{{section.first_notebook.onclick}}; select_track('{{track_obj.name}}', false);"
+onclick="{{section.first_notebook.onclick}}; select_track('{{track_obj.id}}', false);"
                     class="btn section-head btn-outline-primary"
                     >{{section.name}}</a>
                     {% for notebook_obj in section.notebooks %}
                     <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}
-onclick="{{notebook_obj.onclick}};select_track('{{track_obj.name}}', false);"
+onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);"
                     >
                         <div data-notebook="{{notebook_obj.clean_path}}"
                              data-notebook-title="{{notebook_obj.notebookname}}"
@@ -520,10 +521,10 @@ onclick="{{notebook_obj.onclick}};select_track('{{track_obj.name}}', false);"
 
         <div class="left-bottom">
 
-            <h1 class="btn btn-outline-secondary jupyter-head"
+            <h1 class="btn btn-outline-secondary active jupyter-head"
                 data-toggle="tooltip" data-html="true"
-                title="or, if you'd prefer through<br/> a regular jupyter app
-                      <br/>(esp. with your own notebooks)"
+                title="or, if you'd prefer through<br/> a regular jupyter app"
+                aria-pressed="true"
             >Jupy<wbr>ter</h1>
             <div class="jupyter">
                 <a id="classic"
@@ -576,7 +577,7 @@ $(() => {
     {% if jupyter_app %} 
         select_{{jupyter_app}}();
     {% else %}
-        select_track("{{track.name}}", false);
+        select_track("{{track.id}}", false);
     {% endif %}
 });
 

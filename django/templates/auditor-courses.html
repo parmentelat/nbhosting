@@ -59,24 +59,26 @@ span.track>a.btn {
     background-color: white;
 }
 
+/*
 div.course>span.course>a::before {
-/*    content: "course : " */
+    content: "course : " 
 }
 div.course>span.track>a::before {
     content: "track : "
 }
+*/
 </style>
 
 <div class="courses-box m-3">
 {% for course_dir in course_dirs %}
-  {% with course_dir.tracks.0.name as main_trackname %}
+  {% with course_dir.tracks.0.id as main_trackid %}
     <div class="course p-3 m-3 {{course_dir.archived_class}}">
         <span class="course">
             <a class='btn btn-info btn-lg'
-            href='/auditor/notebook/{{course_dir.coursename}}:{{main_trackname}}/'
+            href='/auditor/notebook/{{course_dir.coursename}}:{{main_trackid}}/'
             data-toggle="tooltip"
             data-html="true"
-            title="track '{{main_trackname}}' for course '{{course_dir.coursename}}'"
+            title="pick one of the <br>{{course_dir.tracks | length}} tracks below"
             >
             {{course_dir.coursename}}
             </a>
@@ -88,7 +90,7 @@ div.course>span.track>a::before {
                 data-toggle="tooltip"
                 data-html="true"
                 title="{{track.description}}"
-                href="/auditor/notebook/{{course_dir.coursename}}:{{track.name}}">
+                href="/auditor/notebook/{{course_dir.coursename}}:{{track.id}}">
                 {{ track.name }}
                 </a>
             </span>

@@ -178,11 +178,12 @@ class Section:                                          # pylint: disable=r0903
 class Track:
 
     def __init__(self, coursedir, sections: List['Section'],
-                 *, name="default", description="no description"):
+                 *, name="default", description="no description", id=None):
         self.coursedir = coursedir
         self.sections = sections
         self.name = name
         self.description = description
+        self.id = id or self.name.replace(' ','-').replace('&','and')
         # a flag that says if we've been through
         # mark_notebooks already or not
         self._marked = False
@@ -192,7 +193,8 @@ class Track:
     def __getstate__(self):
         return dict(sections=self.sections,
                     name=self.name,
-                    description=self.description)
+                    description=self.description,
+                    id=self.id)
 
     # coursedir restored by read_tracks
     def __setstate__(self, state):
@@ -203,10 +205,12 @@ class Track:
 
 
     def __repr__(self):
+        return f"{self.name}[{self.id}]"
+
+    def describe(self):
         result = ""
         result += f"{len(self.sections)} sections,"
         result += f" {self.number_notebooks()} notebooks"
-        result += f" in course {self.coursedir}"
         return result
 
     def number_sections(self):
@@ -325,7 +329,7 @@ def generic_track(coursedir):
     return track_by_directory(
         coursedir,
         name="generic",
-        description="automatically generated track from full repo contents",
+        description="generated track from all ipynb's found in repo",
         notebooks=notebooks_by_pattern(coursedir, "**/*.ipynb"))
 
 

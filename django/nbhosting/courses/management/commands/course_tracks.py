@@ -34,8 +34,9 @@ class Command(BaseCommand):
                 cache.unlink()
         tracks = coursedir.tracks()
         for track in tracks:
-            logger.info(f"{track.name}: {track}")
+            logger.info(f"track: {track.name}[id={track.id}]: {track.description}")
+            logger.info(f"       {track.describe()}")
             for section in track.sections:
-                logger.info(f"{4*' '}{section.name}")
+                logger.info(f"{4*' '}section: {section.name}")
                 for notebook in section.notebooks:
-                    logger.info(f"{8*' '}{notebook.notebookname}")
+                    logger.info(f"{8*' '}* {notebook.notebookname}")
