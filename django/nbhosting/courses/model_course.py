@@ -554,6 +554,9 @@ class CourseDir(models.Model):
           run_args: additional arguments to subprocess.run();
             typically encoding="utf-8" is useful when text output is expected
             which in our case is always the case..
+            
+        Returns:
+          True if the subprocess returns 0, False otherwise
         """
         completed = self.nbh_subprocess(subcommand, False, *args, **run_args)
 
