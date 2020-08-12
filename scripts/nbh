@@ -160,7 +160,6 @@ function -compute-course-globals() {
     COURSE_static=$NBHROOT/static/$course
     COURSE_jupyter=$NBHROOT/jupyter/$course
     COURSE_raw=$NBHROOT/raw/$course
-    COURSE_logs=$NBHROOT/logs/$course
     COURSE_build=$NBHROOT/images/$course
     COURSE_local=$NBHROOT/local/$course
 
@@ -188,21 +187,14 @@ function course-init() {
 
     -compute-course-globals $course
 
-    local log=$COURSE_logs/course-init.log
+    [ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
 
-    function -course-init() {
-        [ -d $COURSE_git ] && -die "Course already present as $COURSE_git"
-
-        echo ==========  $(date): course-init from $giturl
-        local courses_git_parent=$(dirname $COURSE_git)
-        mkdir -p $courses_git_parent
-        cd $courses_git_parent
-        echo In $(pwd) : running git clone $giturl $course
-        git clone $giturl $course
-    }
-
-    [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
-    -course-init >> $log 2>&1
+    echo ==========  $(date): course-init from $giturl
+    local courses_git_parent=$(dirname $COURSE_git)
+    mkdir -p $courses_git_parent
+    cd $courses_git_parent
+    echo In $(pwd) : running git clone $giturl $course
+    git clone $giturl $course
 
 }
 
@@ -222,8 +214,6 @@ function course-update-from-git() {
     course=$1; shift
     -compute-course-globals $course
 
-    local log=$NBHROOT/logs/$course/course-update.log
-
     # check the course is known
     [ -d $COURSE_git ] || -die "Cannot find git repo $COURSE_git"
     # initialize
@@ -234,58 +224,54 @@ function course-update-from-git() {
 
     rsync="rsync --recursive --copy-unsafe-links --perms --times --force --delete"
 
-    function -update-course() {
+    [ -d $COURSE_git ] || -die "$FUNCNAME: $course has not git repo in $COURSE_git - aborting"
 
-        [ -d $COURSE_git ] || -die "$FUNCNAME: $course has not git repo in $COURSE_git - aborting"
+    echo ==========  $(date): update-course
 
-        echo ==========  $(date): update-course
+    cd $COURSE_git
+    echo "========== git pull"
+    git pull
+    # this does not always show 3 commits
+    # so let's be more vague about that
+    echo "========== latest commits"
+    git log --oneline "HEAD~~~..HEAD"
+    echo "========== dealing with submodules"
+    # might not be exactly needed anymore if we use subtrees instead
+    git submodule init
+    git submodule update
 
-        cd $COURSE_git
-        echo "========== git pull"
-        git pull
-        # this does not always show 3 commits
-        # so let's be more vague about that
-        echo "========== latest commits"
-        git log --oneline "HEAD~~~..HEAD"
-        echo "========== dealing with submodules"
-        # might not be exactly needed anymore if we use subtrees instead
-        git submodule init
-        git submodule update
+    echo "========== housekeeping"
+    # create course dirs if needed
+    for dir in $COURSE_notebooks $COURSE_modules $COURSE_static $COURSE_raw; do
+        [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
+    done
 
-        echo "========== housekeeping"
-        # create course dirs if needed
-        for dir in $COURSE_notebooks $COURSE_modules $COURSE_static $COURSE_raw; do
-            [ -d $dir ] || { echo Creating $dir; mkdir -p $dir; }
-        done
+    # clear track caches
+    rm -rf $COURSE_notebooks/.tracks.json
 
-        # clear track caches
-        rm -rf $COURSE_notebooks/.tracks.json
-
-        ##### notebooks
-        # temporary; making sure we do clean stuff up properly
-        rm -rf $COURSE_notebooks/*
-        # xxx would be nice to use sitesettings.notebook_extensions
-        $rsync --prune-empty-dirs --include='*.ipynb' --include='*.md' --include='*.py' --include='*/' --exclude='*' \
-            $COURSE_git/ $COURSE_notebooks/
-        ##### modules
-        [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
-        ##### static
-        for toplevel in $COURSE_static_toplevels; do
-            $rsync $toplevel $COURSE_static; chmod -R g-w,o-w $COURSE_static;
-        done
-        ##### jupyter
-        [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
-        for file in jupyter_notebook_config.py custom.js custom.css; do
-            [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
-        done
-        [ -f $COURSE_git/nbhosting/nbconfig/notebook.json ] && {
-            mkdir -p $COURSE_jupyter/nbconfig
-            $rsync $COURSE_git/nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
-        }
+    ##### notebooks
+    # temporary; making sure we do clean stuff up properly
+    rm -rf $COURSE_notebooks/*
+    # xxx would be nice to use sitesettings.notebook_extensions
+    $rsync --prune-empty-dirs --include='*.ipynb' --include='*.md' --include='*.py' --include='*/' --exclude='*' \
+        $COURSE_git/ $COURSE_notebooks/
+    ##### modules
+    [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
+    ##### static
+    for toplevel in $COURSE_static_toplevels; do
+        $rsync $toplevel $COURSE_static; chmod -R g-w,o-w $COURSE_static;
+    done
+    ##### jupyter
+    [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
+    for file in jupyter_notebook_config.py custom.js custom.css; do
+        [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
+    done
+    [ -f $COURSE_git/nbhosting/nbconfig/notebook.json ] && {
+        mkdir -p $COURSE_jupyter/nbconfig
+        $rsync $COURSE_git/nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
     }
+    return 0
     
-    [ -d $COURSE_logs ] || mkdir -p $COURSE_logs
-    -update-course 2> >(tee -a $log >&2)
 }
 
 ####################
@@ -993,7 +979,6 @@ function course-rename() {
     local old_static=$COURSE_static
     local old_jupyter=$COURSE_jupyter
     local old_raw=$COURSE_raw
-    local old_logs=$COURSE_logs
     local old_build=$COURSE_build
     local old_local=$COURSE_local
 
@@ -1004,7 +989,6 @@ function course-rename() {
     local new_static=$COURSE_static
     local new_jupyter=$COURSE_jupyter
     local new_raw=$COURSE_raw
-    local new_logs=$COURSE_logs
     local new_build=$COURSE_build
     local new_local=$COURSE_local
 
