@@ -211,17 +211,23 @@ html, body {
 }
 
 /* 102px is the header size */
-#left-pane, #iframe-container, #hideleft-toggle {
+#left-pane, #iframe-container {
     top: 102px;
 }
 /* this one is 102px - 20px (toggle height) */
 #hidetop-toggle {
     top: 82px;
 }
+/* a bit lower to allow for the menubar */
+#hideleft-toggle {
+    top: 156px;
+}
 
-
-.nbh-body.hidetop #iframe-container, .nbh-body.hidetop #left-pane, .nbh-body.hidetop #hideleft-toggle {
+.nbh-body.hidetop #iframe-container, .nbh-body.hidetop #left-pane {
     top: 0px;
+}
+.nbh-body.hidetop #hideleft-toggle {
+    top: 54px;
 }
 
 /* less space between top and left when both shown */
