@@ -1,3 +1,19 @@
+# 0.32.0 2020 Aug 3
+
+* nbh-manage commands get renamed
+  build-core-images -> build-image
+  groups-list -> group-list
+  courses-list -> course-list
+  course-pull-from-git -> course-pull
+  course-show-tracks -> course-tracks
+* new command nbh-manage course-delete
+* deprecation of $NBHROOT/logs
+* review how tracks are displayed  
+  in particular a Track object now has an id field
+  that is computed from name unless it is explicitly given 
+  to the constructor
+* tracks with no notebook get sanitized
+
 # 0.31.0 2020 Aug 3
 
 * a course can be set as 'archived', so it won't show up in the standard courses index page
