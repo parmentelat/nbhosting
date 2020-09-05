@@ -1,3 +1,8 @@
+# 0.32.1 2020 Sep 5
+
+* emergency fix, pin notebook==6.0.3  
+  https://github.com/jupyter/notebook/issues/5687
+
 # 0.32.0 2020 Aug 3
 
 * nbh-manage commands get renamed
