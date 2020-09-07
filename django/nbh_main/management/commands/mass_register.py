@@ -138,6 +138,9 @@ def filter_todos(todos):
             news.append(todo)
     return olds, news
 
+def display_todo(todo):
+    return f"{todo['email']} on line {todo['lineno']} ({todo['first_name']} {todo['last_name']})"
+
 
 MAIL_SHOWED = False
 
@@ -234,12 +237,18 @@ def add_todos_in_group(todos, group, dry_run):
             group.user_set.add(user)
 
 
-def mass_register(input_filename, template_filename, dry_run, groupname):
+def mass_register(input_filename, template_filename, groupname, long_output, dry_run):
     template = open_and_check_template(template_filename)
     todos, parse_error = parse(input_filename)
     logging.info(f"parsed {len(todos)} entries, checking for news")
     olds, news = filter_todos(todos)
     logging.info(f"found  {len(olds)} old + {len(news)} new entries")
+    if long_output:
+        for old in olds:
+            print("OLD", display_todo(old))
+        print("NEW entries")
+        for new in news:
+            print("NEW", display_todo(new))
     
     proceed = (len(olds) + len(news)) == len(todos)
     if parse_error or not proceed:
@@ -323,6 +332,10 @@ class Command(BaseCommand):
             "-n", "--dry-run", default=False, action='store_true',
             help="just pretends")
         parser.add_argument(
+            "-l", "--long", dest='long_output', default=False, action='store_true',
+            help="long (verbose) output"
+        )
+        parser.add_argument(
             "-t", "--template", default="mass-register.mail",
             help="filename for mail body template - **searched** "
                  "together with regular django templates")
@@ -337,5 +350,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         mass_register(kwargs['filename'][0],
                       kwargs['template'],
+                      kwargs['group'],
+                      kwargs['long_output'],
                       kwargs['dry_run'],
-                      kwargs['group'])
+                      )
