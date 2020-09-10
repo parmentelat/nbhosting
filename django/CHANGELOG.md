@@ -1,3 +1,7 @@
+# 0.32.2 2020 Sep 5
+
+* fix #120, take more users into account when computing stats
+
 # 0.32.1 2020 Sep 5
 
 * emergency fix, pin notebook==6.0.3  
