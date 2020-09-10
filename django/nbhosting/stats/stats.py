@@ -20,6 +20,10 @@ time_format = "%Y-%m-%dT%H:%M:%S"
 # who were asked to forge their hashes in separate namespaces
 # so for now let's just keep the long ones
 def artefact_user(user_hash):
+    # actual students get a username in first.last
+    # so this should be considered real
+    if '.' in user_hash:
+        return False
     return len(user_hash) < 28
 
 # an iterable has no builtin len method
