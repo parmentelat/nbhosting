@@ -1,3 +1,7 @@
+# 0.32.3 2020 Sep 11
+
+* fix #116
+
 # 0.32.2 2020 Sep 5
 
 * fix #120, take more users into account when computing stats
