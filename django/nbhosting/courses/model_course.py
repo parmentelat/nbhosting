@@ -301,7 +301,7 @@ class CourseDir(models.Model):
     # locate a Track corresponding to trackname in tracks
     def _locate_track(self, tracks: CourseTracks, trackname) -> Track:
         for item in tracks:
-            if item.name == trackname:
+            if item.id == trackname:
                 return item
         # find some default
         if tracks:
