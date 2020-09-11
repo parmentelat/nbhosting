@@ -90,11 +90,11 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
     
     # do this in both jupyter and track mode
     if not trackname:
-        trackname = coursedir.tracknames()[0]
+        trackname = coursedir.default_trackname()
     track = coursedir.track(trackname)
 
     if notebook is None:
-        notebook_obj = track.sections[0].notebooks[0]
+        notebook_obj = track.first_notebook()
         notebook = notebook_obj.clean_path()
         print(f"default notebook -> {notebook}")
     else:

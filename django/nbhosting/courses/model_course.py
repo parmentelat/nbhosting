@@ -298,7 +298,7 @@ class CourseDir(models.Model):
         return type_ok
 
 
-    # locate a Track corresponding to trackaname in tracks
+    # locate a Track corresponding to trackname in tracks
     def _locate_track(self, tracks: CourseTracks, trackname) -> Track:
         for item in tracks:
             if item.name == trackname:
@@ -402,6 +402,12 @@ class CourseDir(models.Model):
         returns the list of supported track names
         """
         return [track.name for track in self.tracks()]
+    
+    def default_trackname(self):
+        try:
+            return self.tracks()[0].name
+        except:
+            return "unknown"
 
 
     def track(self, trackname):
