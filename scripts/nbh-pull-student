@@ -36,6 +36,8 @@ function main() {
 
 
     cd $user_workspace
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+
 
     function log-header() {
         local date=$(date +'%Y-%m-%d:%H:%M')
@@ -48,7 +50,7 @@ function main() {
 
     init-git-in-student-space
 
-    echoq "$coursename - $username: (1) fast-forward git pull"
+    echoq "$coursename - $username on $branch: (1) fast-forward git pull"
     log-header git pull fast-forward
     $SUDO git pull --ff-only &>> $LOG && {
                 exit 0
@@ -69,12 +71,12 @@ function main() {
     # so we compute the set of files that can be a problem
     log-header git fetch --all
     $SUDO git fetch --all &>> $LOG
-    ancestor=$(git merge-base origin/master $user_hash)
+    ancestor=$(git merge-base origin/$branch $user_hash)
     function assess_damages() {
         # local changes
         git diff --name-only | sort > __LOCAL_CHANGES
         # teacher changes
-        git diff --name-only master origin/master | sort > __UPSTREAM_CHANGES
+        git diff --name-only $branch origin/$branch | sort > __UPSTREAM_CHANGES
         # find common changes
         comm -12 __LOCAL_CHANGES __UPSTREAM_CHANGES > __COMMON_CHANGES
         # split between notebooks and others
@@ -102,7 +104,7 @@ function main() {
     log-header git commit -m$commit_message
     $SUDO git commit -m"$commit_message" &>> $LOG
     log-header git merge --commit -m$merge_message
-    $SUDO git merge origin/master --commit -m"$merge_message" &>> $LOG
+    $SUDO git merge origin/$branch --commit -m"$merge_message" &>> $LOG
     local OK=$?
     echoq "$coursename - $username: (3) upstream merge returned $OK"
     log-header "(3) upstream merge returned $OK"
@@ -110,7 +112,7 @@ function main() {
     if [ $OK != 0 ]; then
         echoq "$coursename - $username: (4) git merge --abort"
         log-header "(4) git merge --abort"
-        echoq "$coursename - $username: (4) to redo manually, do git merge origin/master"
+        echoq "$coursename - $username: (4) to redo manually, do git merge origin/$branch"
         $SUDO git merge --abort
     fi
     exit $OK
