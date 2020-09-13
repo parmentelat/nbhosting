@@ -33,6 +33,17 @@ def iter_len(iterable):
         count += 1
     return count
 
+# remove known extension if present
+# xxx the extension list should be configurable
+# todo clean up production events.raw once this
+# version is rolled out 
+def canonicalize(notebook):
+    known_exts = ('.ipynb', '.md', '.py')
+    path = Path(notebook)
+    if path.suffix in known_exts:
+        notebook = path.parent / path.stem
+    return str(notebook)
+
 
 class DailyFigures:
     """
@@ -167,6 +178,7 @@ class Stats:
         action is one of the three actions returned by run-student-course-jupyter
         port is the port number for that jupyter
         """
+        notebook = canonicalize(notebook)
         return self._write_events_line(student, notebook, action, port)
 
     def record_kill_jupyter(self, student):
@@ -261,6 +273,7 @@ class Stats:
                             previous_figures = current_figures
                             current_figures = DailyFigures(previous_figures)
                             figures_by_day[day] = current_figures
+                        notebook = canonicalize(notebook)
                         current_figures.add_notebook(notebook)
                         current_figures.add_student(student)
                         accumulator.insert(
@@ -394,6 +407,7 @@ class Stats:
                         nspn = [ (notebook, len(set_by_notebook[notebook]))
                                 for notebook in sorted(set_by_notebook)]
                         nbstudents_per_notebook_buckets.record_data(nspn, previous, next)
+                    notebook = canonicalize(notebook)
                     set_by_notebook[notebook].add(student)
                     set_by_student[student].add(notebook)
                     raw_counts[notebook, student] += 1
