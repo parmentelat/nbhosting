@@ -85,13 +85,13 @@ define([
         let seconds = Jupyter.notebook.minimum_autosave_interval/1000;
     	console.log(`${hello} speed up autosave -> ${seconds}s`);
     }
-	
+
 	let turn_off_extension_buttons = function() {
 		let turned_off = [];
 		// the nbdime button is very intrusive and provides little value if at all
 		turned_off.push("nbdime");
 		$("[data-jupyter-action='nbdime:diff-notebook-checkpoint']").hide();
-		// split-cell button; it does not take much space 
+		// split-cell button; it does not take much space
 		// but can be confusing
 		turned_off.push("split-cell");
 		$("[data-jupyter-action='auto:toggle-cell-style']").hide();

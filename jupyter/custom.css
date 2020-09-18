@@ -22,7 +22,7 @@ div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
 /* Insert : is fine */
 
 /* Cell submenu */
-#change_cell_type {display: none; }
+#change_cell_type                               {display: none; }
 
 /* Widgets */
 div#menus>div>div>ul.nav>li:nth-child(3)		{display: none; }
@@ -40,6 +40,13 @@ div#menus>div>div>ul.nav>li:nth-last-child(2)	{ display: none; }
    and filter out individual entries, like for File above ?
 */
 div#menus>div>div>ul.nav>li:nth-last-child(1)	{ display: none; }
+
+/* the Navigate menu - no idea what this is about
+   but this time it comes with an id so at least it's easy */
+#Navigate                                       { display: none; }
+
+/* the jupytext submenu in the File menu */
+#jupytext_sub_menu                              { display: none; }
 
 /* ---------- other pieces in the UI */
 /* third horizontal area (toolbar) */
