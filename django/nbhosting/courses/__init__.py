@@ -6,4 +6,4 @@
 
 from .model_track import (
     Track, Section, Notebook,
-    notebooks_by_pattern, track_by_directory, generic_track)
+    notebooks_by_pattern, notebooks_by_patterns, track_by_directory, generic_track)
