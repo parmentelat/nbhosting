@@ -1,3 +1,8 @@
+# 0.32.6 2020 Oct 6
+
+* new function notebooks_by_patterns (plural)
+  that allows to pass several patterns in tracks.py
+
 # 0.32.5 2020 Sep 18
 
 * fix #123
