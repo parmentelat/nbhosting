@@ -101,7 +101,7 @@ class Notebook:                                         # pylint: disable=r0903
             result +=  f'''{main_tooltip}<br/>'''
         result += f'''<span class='smaller'>{self.clean_path()}</span>"'''
         return result
-    
+
     def onclick(self):
         return (f'iframe_notebook("{self.clean_path()}");')
 
@@ -118,19 +118,19 @@ class Notebook:                                         # pylint: disable=r0903
                 f"because of exception {type(exc)}: {exc}")
             self._notebookname = self.clean_path()
             self._version = "n/a"
-            
+
 class DummyNotebook:
     """
     just a placeholder so that an empty section can do from the ninja template
     section.first_notebook.decorate_a
     """
-    
-    def decorate_a(self): 
+
+    def decorate_a(self):
         return ""
-    
+
     def onclick(self):
         return ""
-    
+
     def clean_path(self):
         return "dummy-notebook"
 
@@ -218,7 +218,7 @@ class Track:
 
     def number_notebooks(self):
         return sum((len(section) for section in self.sections), 0)
-    
+
     def first_notebook(self):
         return self.sections[0].first_notebook() if self.sections else DummyNotebook()
 
@@ -230,7 +230,7 @@ class Track:
             if spotted:
                 return spotted
         return None
-    
+
     def sanitize(self):
         for section in self.sections[:]:
             section.sanitize()
@@ -267,8 +267,7 @@ def notebooks_by_pattern(coursedir, pattern):
     return a sorted list of all notebooks (relative paths)
     matching some pattern from coursedir
     """
-    logger.debug(
-        f"notebooks_by_pattern in {coursedir} with {pattern}")
+    logger.debug(f"notebooks_by_pattern in {coursedir} with {pattern}")
     root = Path(coursedir.notebooks_dir).absolute()
     absolutes = root.glob(pattern)
     probed = [path.relative_to(root) for path in absolutes]

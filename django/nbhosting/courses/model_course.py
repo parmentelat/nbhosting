@@ -93,10 +93,10 @@ class CourseDir(models.Model):
     def relevant(self, user):
         """
         is this group relevant for a given user
-        
+
         if the user is is no group, then this returns True
         otherwise, it looks for an intersection between
-        the groups from the course and the groups from the user 
+        the groups from the course and the groups from the user
         """
         groups = user.groups.all()
         if not groups:
@@ -154,7 +154,7 @@ class CourseDir(models.Model):
     @staticmethod
     def _probe_notebooks_in_dir(root):
         absolute_notebooks = itertools.chain(
-            *(root.glob(f"**/*.{extension}") 
+            *(root.glob(f"**/*.{extension}")
               for extension in sitesettings.notebook_extensions))
         # relative notebooks without extension
         return (
@@ -181,13 +181,13 @@ class CourseDir(models.Model):
         """
         an iterator on tuples of the form
         (User, workspace_path)
-        for all (registered) users who have a 
+        for all (registered) users who have a
         workspace open on that course
         and whose name matches the pattern, if provided
-        
+
         user_patterns: see matching policy in module nbhosting.matching
-            
-        staff_selector: 
+
+        staff_selector:
           if not provided, defaults to {'student', 'staff'}
         """
 
@@ -203,7 +203,7 @@ class CourseDir(models.Model):
                 return 'staff' in staff_selector
             else:
                 return 'student' in staff_selector
-           
+
         all_users = sorted(
             User.objects.all(),
             key=lambda user: user.username)
@@ -216,26 +216,26 @@ class CourseDir(models.Model):
             if not user_workspace.exists():
                 continue
             yield user, user_workspace
-        
+
 
     def update_user_workspace(self, user:User, *,
-                              course_hash=None, user_workspace=None, 
+                              course_hash=None, user_workspace=None,
                               quiet_mode=False, do_pull=False):
         """
         allows to inspect or update a user's workspace
-        
+
         if do_pull is False, the method only checks the user's current commit's hash
         with the course's hash
-        
+
         if do_pull is True, this method will for now invoke the nbh-pull-student
         that for convenience is currently shipped as a standalone shell script
         mostly nbh-pull-student this will do a git pull, but try to smoothly
         accomodate our use cases where e.g. often differences are only
         with python version..
-        
+
         quiet_mode asks for a less verbose output
-        
-        if either course_hash or user_workspace are already known, 
+
+        if either course_hash or user_workspace are already known,
         pass them along for more efficiency
         """
         if course_hash is None:
@@ -243,11 +243,11 @@ class CourseDir(models.Model):
         if user_workspace is None:
             user_workspace = self.student_dir(user.username)
         user_hash = self.current_hash(user.username)
-        
+
         def myqprint(*args):
             if not quiet_mode:
                 print(*args)
-            
+
         if course_hash == user_hash:
             myqprint(f"OK student {user.username}")
             return
@@ -259,7 +259,7 @@ class CourseDir(models.Model):
             return
         # here we are in a position to try an reconcile the student's repo
         # with upstream
-        # for now we go for an external shell script that is easier 
+        # for now we go for an external shell script that is easier
         # to develop in incremental deployment mode
         command = (f"nbh-pull-student {'-q' if quiet_mode else ''}"
                    f" {self.coursename} {user.username} {user_workspace} "
@@ -402,7 +402,7 @@ class CourseDir(models.Model):
         returns the list of supported track names
         """
         return [track.name for track in self.tracks()]
-    
+
     def default_trackname(self):
         try:
             return self.tracks()[0].name
@@ -514,32 +514,32 @@ class CourseDir(models.Model):
 
     def current_hash(self, student=None):
         """
-        returns full hash of current commit, either in the student's 
+        returns full hash of current commit, either in the student's
         directory, or in the main course git area if not provided
         """
         directory = self.git_dir if not student else self.student_dir(student)
         command=['git', '-C', str(directory), 'log', '-1', "--pretty=%h"]
         return subprocess.run(
             command, capture_output=True).stdout.decode().strip()
-        
+
 
     def does_current_hash_have(self, course_hash, student, student_hash):
         """
         useful for checking that a student's repo is in sync with the course
-        
+
         the course is on hash 'course_hash'
         we need to check if the student is on a hash that
         already has the course_hash integrated
-        
-        this is done by using 
+
+        this is done by using
         git merge-base --is-ancestor course student
-        that should return 0 
+        that should return 0
         """
         directory = self.student_dir(student)
         # check that the course hash is present on the student side
-        command1 = ['git', '-C', str(directory), 
+        command1 = ['git', '-C', str(directory),
                     'cat-file', '-e', course_hash, '2>/dev/null']
-        command2 = ['git', '-C', str(directory), 
+        command2 = ['git', '-C', str(directory),
                     'merge-base', '--is-ancestor', course_hash, student_hash]
         command = " ".join(command1) + ' && ' + " ".join(command2)
         return os.system(command) == 0
@@ -560,7 +560,7 @@ class CourseDir(models.Model):
           run_args: additional arguments to subprocess.run();
             typically encoding="utf-8" is useful when text output is expected
             which in our case is always the case..
-            
+
         Returns:
           True if the subprocess returns 0, False otherwise
         """
