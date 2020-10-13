@@ -1,3 +1,9 @@
+# 0.32.7 2020 Oct 13
+
+* notebooks_by_patterns no longer does a global sort
+  just concatenate the (sorted) sequences issued by
+  notebooks_by_pattern
+
 # 0.32.6 2020 Oct 6
 
 * new function notebooks_by_patterns (plural)
