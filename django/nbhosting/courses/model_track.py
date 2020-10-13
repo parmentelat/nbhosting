@@ -278,20 +278,20 @@ def notebooks_by_pattern(coursedir, pattern):
 
 def notebooks_by_patterns(coursedir, patterns):
     """
-    return a sorted list of all notebooks (relative paths)
-    matching any of the provided patterns from coursedir
+    return a concatenation of notebooks_by_pattern on
+    all patterns
+    each bunch is sorted internally, but the concatenation
+    remains in the order specified in patterns
+    Returns:
+       list of all notebooks (relative paths)
     """
     logger.debug(f"notebooks_by_patterns in {coursedir} with")
     for pattern in patterns:
         logger.debug(f"  pattern {pattern}")
-    root = Path(coursedir.notebooks_dir).absolute()
-    notebooks = set()
+    result = []
     for pattern in patterns:
-        absolutes = root.glob(pattern)
-        probed = [path.relative_to(root) for path in absolutes]
-        notebooks.update(Notebook(coursedir, path) for path in probed)
-    notebooks = sorted(notebooks, key=lambda n: n.path)
-    return notebooks
+        result.extend(notebooks_by_pattern(coursedir, pattern))
+    return result
 
 
 def track_by_directory(coursedir, *,
