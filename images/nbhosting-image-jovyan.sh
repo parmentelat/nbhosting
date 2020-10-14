@@ -17,7 +17,8 @@ git config user.name  || git config --global user.name "Nbhosting User"
 
 # hopefully temporary hack for a regression in notebook=6.1.1 and notebook=6.1.3,
 # https://github.com/jupyter/notebook/issues/5687
-pip install notebook==6.0.3
+# pip install notebook==6.0.3
+pip install notebook
 
 # --------
 # useful additions and extensions
