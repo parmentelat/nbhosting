@@ -1,3 +1,9 @@
+# 0.32.8 2020 Oct 13
+
+* unpin notebook version (pinned in 0.32.1) as version 6.1.4
+  has fixed the issue, that for the record was with narrow
+  pages being further shrunken by half 
+
 # 0.32.7 2020 Oct 13
 
 * notebooks_by_patterns no longer does a global sort
