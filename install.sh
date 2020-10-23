@@ -74,7 +74,7 @@ function update-assets() {
     mkdir -p $static_root/snapshots
     chown -R nginx:nginx $static_root/snapshots
 
-    (cd django; manage.py collectstatic --noinput)
+    (cd django; ./manage.py collectstatic --noinput)
 }
 
 function update-images() {
@@ -163,7 +163,7 @@ function enable-services() {
 
 function migrate-database() {
 # not quite sure why, but it seems safer to use manage.py here
-    (cd django; manage.py migrate)
+    (cd django; ./manage.py migrate)
 }
 
 function restart-services() {
