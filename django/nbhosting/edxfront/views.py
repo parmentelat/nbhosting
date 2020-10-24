@@ -15,9 +15,9 @@ from nbhosting.stats.stats import Stats
 
 # Create your views here.
 
-# use header=True when you have a short message 
+# use header=True when you have a short message
 # and want to use is as the header too
-def error_page(request, course, student, notebook, message, 
+def error_page(request, course, student, notebook, message,
                header="! nbhosting internal error !"):
     if header is True:
         header = message
@@ -50,7 +50,7 @@ def log_completed_process(completed, subcommand):
 
 def failed_command_message(command_str, completed, prefix=None):
     result = ""
-    if prefix: 
+    if prefix:
         result += f"{prefix}\n"
     result += (
         f"command {command_str}\n"
@@ -58,23 +58,23 @@ def failed_command_message(command_str, completed, prefix=None):
         f"stdout:{completed.stdout}\n"
         f"stderr:{completed.stderr}")
     return result
-    
+
 
 def failed_command_header(action):
     if action == 'failed-garbage-collecting':
         return 'Please try again later'
     elif action == 'failed-stopped-container':
         return 'Unexpected stopped container'
-    elif action == 'failed-cannot-retrieve-port': 
+    elif action == 'failed-cannot-retrieve-port':
         return 'Cannot retrieve port number'
-    elif action == 'failed-timeout': 
+    elif action == 'failed-timeout':
         return 'Your container is taking too long to answer'
     elif action == 'failed-unknown-image':
         return 'Image not found for course'
     else:
         # failed-cannot-add-student-in-course
         # failed-unknown-student $student
-        # failed-cannot-add-student-in-course 
+        # failed-cannot-add-student-in-course
         # failed-student-has-no-workdir
         return action
 
@@ -149,17 +149,17 @@ def classroom_request(request, course, student, notebook):
 def locate_notebook(directory, notebook):
     """
     with jupytext in the picture, and with our needs
-    to be able to publish raw .md files, there is a need to 
-    be a little smarter and to locate an actual contents 
+    to be able to publish raw .md files, there is a need to
+    be a little smarter and to locate an actual contents
     from the 'notebook' path
-    
+
     returns a 4-uple
         exists notebook_with_extension notebook_without_extension is_notebook
-    
+
     if exists is False, then all the rest is None
     otherwise
       directory/notebook_with_extension is an existing file
-      
+
     policy according to notebook's suffix
     * if notebook ends up with .md
       it is assumed to be existing
@@ -169,12 +169,12 @@ def locate_notebook(directory, notebook):
       search for .ipynb then .py
     * if notebook ends in .py
       search for .py and then .ipynb
-      
+
     xxx possibly this could make simpler, especially with notebooks
     that only save themselves under a single format - as dual-format
     is a real pain in terms of updating a student's space
     most likely it should use sitesettings.notebook_extensions
-    but it's safer to keep it that way until the bulk of 2019/2020 
+    but it's safer to keep it that way until the bulk of 2019/2020
     courses is not over
     """
     logger.info(f"locate_notebook with {directory} and {notebook}")
@@ -194,15 +194,15 @@ def locate_notebook(directory, notebook):
         s = p.parent / p.stem
         c = p.parent / (p.stem + variant)
         if c.exists():
-            return (True, str(c.relative_to(top)), 
-                    str(s.relative_to(top)), 
+            return (True, str(c.relative_to(top)),
+                    str(s.relative_to(top)),
                     # with jupytext in the picture,
                     # any .md file can be opened as a notebook
                     # variant != '.md'
                     True
                     )
     return False, None, None, None
-    
+
 
 def _open_notebook(request, coursename, student, notebook,
                    *, forcecopy, init_student_git): # pylint: disable=r0914
@@ -232,10 +232,10 @@ def _open_notebook(request, coursename, student, notebook,
     if not exists:
         exists, notebook_with_ext, _, is_genuine_notebook = \
             locate_notebook(coursedir.student_dir(student), notebook)
-            
+
     if not exists:
         msg = f"notebook `{notebook}' not known in this course or student"
-        return error_page(request, coursename, student, notebook, 
+        return error_page(request, coursename, student, notebook,
                           msg, header="notebook not found")
 
     subcommand = 'container-view-student-course-notebook'
@@ -271,7 +271,7 @@ def _open_notebook(request, coursename, student, notebook,
 
     try:
         action, _container_name, actual_port, jupyter_token = completed.stdout.split()
-        
+
         if completed.returncode != 0 or action.startswith("failed"):
             message = failed_command_message(
                 command_str, completed, prefix="failed to spawn notebook container")
@@ -336,7 +336,7 @@ def share_notebook(request, course, student, notebook):
 
     command += [student, course, notebook_with_ext, hash]
     command_str = " ".join(command)
-    
+
     logger.info(f"In {Path.cwd()}\n"
                 f"-> Running command {' '.join(command)}")
     completed = subprocess.run(
@@ -424,7 +424,7 @@ def _jupyterdir_forward(request, coursename, student, jupyter_url):
 
     try:
         action, _container_name, actual_port, jupyter_token = completed.stdout.split()
-        
+
         if completed.returncode != 0 or action.startswith("failed"):
             message = failed_command_message(
                 command_str, completed, prefix="failed to spawn notebook container")
