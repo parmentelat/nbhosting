@@ -1,3 +1,7 @@
+# 0.32.9 2020 Oct 25
+
+* fix #126
+
 # 0.32.8 2020 Oct 13
 
 * unpin notebook version (pinned in 0.32.1) as version 6.1.4
