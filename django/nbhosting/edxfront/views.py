@@ -263,7 +263,7 @@ def _open_notebook(request, coursename, student, notebook,
     command += [student, coursename, notebook_with_ext,
                 coursedir.image, ref_giturl]
     command_str = " ".join(command)
-    logger.info(f'edxfront is running: {command_str}')
+    logger.info(f'edxfront is running: {command_str} DEBUG={DEBUG}')
     completed = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -319,11 +319,37 @@ def share_notebook(request, course, student, notebook):
       * or { error: "the error message" }
     """
 
-    # the ipynb extension is removed from the notebook name in urls.py
-    notebook_with_ext = notebook + ".ipynb"
+    coursedir = CourseDir.objects.get(coursename=course)
+    student_dir = coursedir.student_dir(student)
+    exists, with_ext, without_ext, is_notebook = locate_notebook(student_dir, notebook)
+    if not exists or not is_notebook:
+        message = f"cannot spot notebook {notebook}"
+        return JsonResponse(dict(error=message))
+
+    ext = with_ext.replace(without_ext, "")
+#    debug = f"{with_ext=} {without_ext=} {ext=}"
+#    logger.info(debug)
+
+    # nbconvert works only from a .ipynb
+    # invoke jupytext to produce that one
+    if ext != '.ipynb':
+        with_original_ext = with_ext
+        with_ext = f"{without_ext}.ipynb"
+        command_str = f"cd {student_dir}; jupytext --to ipynb -o {with_ext} {with_original_ext}"
+        logger.info(f"In {Path.cwd()}\n"
+                    f"-> Running command {command_str}")
+        completed = subprocess.run(
+            command_str, universal_newlines=True, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        log_completed_process(completed, 'jupytext')
+        if completed.returncode != 0:
+            message = failed_command_message(command_str, completed)
+            return JsonResponse(dict(error=message))
+
+
     # compute hash from the input, so that a second run on the same notebook
     # will override any previsouly published static snapshot
-    hasher = hashlib.sha1(bytes(f'{course}-{student}-{notebook}',
+    hasher = hashlib.sha1(bytes(f'{course}-{student}-{without_ext}',
                                 encoding='utf-8'))
     hash = hasher.hexdigest()
 
@@ -334,7 +360,7 @@ def share_notebook(request, course, student, notebook):
         command.append('-x')
     command.append(subcommand)
 
-    command += [student, course, notebook_with_ext, hash]
+    command += [student, course, with_ext, hash]
     command_str = " ".join(command)
 
     logger.info(f"In {Path.cwd()}\n"

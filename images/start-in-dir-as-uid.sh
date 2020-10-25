@@ -30,8 +30,11 @@
 
 
 COMMAND=$0
-USAGE="Usage: $0 dir uid command .. to .. run"
+USAGE="Usage: $0 [-s] dir uid command .. to .. run"
 REQUIRE="Usage: $0 needs to be run as root"
+
+SILENT=
+[ "$1" == "-s" ] && { shift; SILENT=true; }
 
 dir=$1; shift
 uid=$1; shift
@@ -41,6 +44,7 @@ uid=$1; shift
 [ "$UID" -eq 0 ] || { printf $REQUIRE ; exit 1; }
 
 function -echo-stdout() {
+    [ -n "$SILENT" ] && return
     local milli=$(date +"%N" | sed -e 's,\(...\).*,\1,')
     echo $(date "+%H:%M:%S").$milli $COMMAND "$@"
 }
@@ -48,7 +52,7 @@ function -echo-stdout() {
 -echo-stdout "checking for uid $uid"
 # create uid if missing
 # do not create homedir; this is because 
-if getent passwd $uid; then
+if getent passwd $uid > /dev/null; then
     # this uid already exists, let's figure what the login is
     login=$(getent passwd $uid | cut -d: -f1)
 else
@@ -72,6 +76,6 @@ find . -mount | xargs chown $uid
 # only need to tweak HOME just in case
 ##########
 -echo-stdout exec-ing as uid "$uid" in $(pwd)
-echo "$@"
+-echo-stdout command is "$@"
 
 exec runuser --user $login -- env HOME=/home/jovyan "$@"

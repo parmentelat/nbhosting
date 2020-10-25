@@ -108,10 +108,6 @@ function -die() {
     exit 1
 }
 
-function -keep-one-ipynb() {
-    local incoming="$1"; shift
-    sed -e 's/\(.ipynb\)\{2,\}/.ipynb/' <<< $incoming
-}
 ########################################
 # runtime
 ########################################
@@ -858,8 +854,9 @@ function container-share-student-course-notebook-in-hash() {
     [ "$#" -eq 4 ] || -die $USAGE
     local student=$1; shift
     local course=$1; shift
-    local notebook=$(-keep-one-ipynb "$1"); shift
+    local notebook="$1"; shift
     local hash=$1; shift
+    local STUDENT_uid=$(id -u $student)
 
     -compute-course-globals $course
     -compute-student-globals-in-course $student $course
@@ -880,7 +877,8 @@ function container-share-student-course-notebook-in-hash() {
     -mkdir-for-file-as-student $absolute_path nginx
 
     $ENGINE exec $STUDENT_container \
-        jupyter nbconvert --to html  --stdout "$guest_notebook" \
+        start-in-dir-as-uid.sh -s /home/jovyan $STUDENT_uid \
+        /opt/conda/bin/jupyter nbconvert --to=html  --stdout "$guest_notebook" \
         > $absolute_path
 
     echo $url_path
