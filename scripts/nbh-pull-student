@@ -1,15 +1,20 @@
 #!/bin/bash
 
 COMMAND="$(basename $0)"
-USAGE="$COMMAND coursename username user_workspace course_hash user_hash"
+USAGE="$COMMAND [-q] [-s] coursename username user_workspace course_hash user_hash"
 QUIET=""
 
-function die() { echo "$@"; exit 1; }
 
 function echoq() {
     [ -n "$QUIET" ] && return
-    echo "$@"
+    echo -n "$@"
 }
+
+function exitq() {
+    [ -z "$QUIET" ] && echo
+    exit "$@"
+}
+
 
 function main() {
 
@@ -22,7 +27,7 @@ function main() {
     # reset OPTIND for subsequent calls to getopts
     OPTIND=1
 
-    [[ "$#" == 5 ]] || die "$USAGE"
+    [[ "$#" == 5 ]] || { echo "$USAGE"; exit 1; }
     local coursename=$1; shift
     local username=$1; shift
     local user_workspace=$1; shift
@@ -30,7 +35,7 @@ function main() {
     local user_hash=$1; shift
 
     local SUDO="sudo -u $username"
-    local LOG=.nbh-git.log 
+    local LOG="__LOG"
 
     local merge_message="nbh is merging upstream"
 
@@ -50,20 +55,24 @@ function main() {
 
     init-git-in-student-space
 
-    echoq "$coursename - $username on $branch: (1) fast-forward git pull"
+    echoq "=== $username/$coursename"
+
+    echoq " (1: ff)"
     log-header git pull fast-forward
     $SUDO git pull --ff-only &>> $LOG && {
-                exit 0
+        echoq " pull fast-forward OK"
+        exitq 0
     }
 
     # surprisingly enough, git pull has no -m option
-    # if the student has diverged, then it's perfectly possible 
+    # if the student has diverged, then it's perfectly possible
     # that git pull will work just fine although it's not a fast-forward
-    echoq "$coursename - $username: (2) auto-merge git pull"
+    echoq " (2: pull)"
     log-header git pull with automerge
-    $SUDO git pull --no-edit &>> $LOG && $SUDO git commit --amend -m"$merge_message" && {
-        echoq "$coursename - $username: (1b) git pull OK"
-        exit 0
+       $SUDO git pull --no-edit &>> $LOG \
+    && $SUDO git commit --amend -m"$merge_message" &>> $LOG && {
+        echoq " pull automerge OK"
+        exitq 0
     }
 
     # when we reach this point it means that git pull did not work it out
@@ -87,14 +96,14 @@ function main() {
     assess_damages
     local notebook
     for notebook in $(cat __COMMON_CHANGES_IPYNB); do
-        echoq "$coursename - $username: (3) nbstripout $notebook"
+        echoq " (3 nbso $notebook)"
         $SUDO python3 -m nbstripout $notebook
     done
     local common_changes="$(cat __COMMON_CHANGES)"
     if [ -z "$common_changes" ]; then
-        echoq "$coursename - $username: (3!) no common changes found ! -- aborting"
+        echoq " (3!) no common changes found ! -- aborting"
         log-header "(3!) no common changes found ! -- aborting"
-        exit 1
+        exitq 1
     fi
 
     local nb_common_changes=$(wc -w <<< $common_changes)
@@ -106,16 +115,16 @@ function main() {
     log-header git merge --commit -m$merge_message
     $SUDO git merge origin/$branch --commit -m"$merge_message" &>> $LOG
     local OK=$?
-    echoq "$coursename - $username: (3) upstream merge returned $OK"
+    echoq " (3 upstream merge -> $OK)"
     log-header "(3) upstream merge returned $OK"
     # abort merge if failed
     if [ $OK != 0 ]; then
-        echoq "$coursename - $username: (4) git merge --abort"
+        echoq " (4) git merge --abort"
         log-header "(4) git merge --abort"
-        echoq "$coursename - $username: (4) to redo manually, do git merge origin/$branch"
+        echoq " (4) to redo manually, do git merge origin/$branch"
         $SUDO git merge --abort
     fi
-    exit $OK
+    exitq $OK
 }
 
 main "$@"
