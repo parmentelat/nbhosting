@@ -42,8 +42,8 @@ Here's what a student would see;
 In a nutshell:
 
 * the first time a student tries to open a notebook, nbhosting transparently creates her an account, together with a container;
-* the first time a student opens a given notebook, this notebook is **copied** from the master course contents (more on this below) **into her container**; from that point on, her work for that notebook is independant from the master course
-* containers are automatically stopped (i.e. frozen) when the student is inactive, to preserve computing resources; as a consequence, a student may have to wait 5 to 10 seconds when she shows up the first time or after idle time.
+* the first time a student opens a given notebook, this notebook is **copied** from the master course contents **into her container**; note that there are 2 different strategies at work in terms of copying, as explained below; in any case, from that point on, her work for that notebook is independant from the master course;
+* containers are automatically stopped (i.e. frozen) when the student is inactive, to preserve computing resources; as a consequence, a student may have to wait up to 10 seconds when she shows up the first time or after idle time.
 
 2 Additional features allow a student to:
 
@@ -121,7 +121,7 @@ For declaring somebody as staff, you need to somehow locate that person's hash, 
 
 # Dataflow - `nbhosting` side
 
-Here's the general principle of how of works
+Here's the general principle of how things work
 
 ## silent mode (in an iframe, behind a MOOC system)
 
@@ -140,8 +140,12 @@ The classroom mode uses a similar approach, but uses a URL that
 mentions `notebookGitRepo/` instead of `notebookLazyCopy/`; the
 behaviour is mostly the same except for the policy used to create
 notebooks in the student space; when the visited notebook is missing
-there, `notebookGitRepo` triggers a git clone operation, instead of
+there, `notebookGitRepo` triggers a *git clone* operation, instead of
 copying notebooks individually.
+
+The advantage in this mode is that students can later on use the jupyterlab
+git extension to accurately manage their local repo, i.e. drop or commit
+local changes, pull any updates from the master repo, and so on
 
 ## summary
 
