@@ -1,3 +1,8 @@
+# 0.33.1 2020 Nov 11
+
+* more compact output for nbh-pull-student (1 or 2 lines per student)
+* miscell tweaks in the doc to adapt for fedora 33
+
 # 0.32.9 2020 Oct 25
 
 * fix #126
