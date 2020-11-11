@@ -39,7 +39,7 @@ Here's what a student would see;
 
 # How does it work ?
 
-In a nushell:
+In a nutshell:
 
 * the first time a student tries to open a notebook, nbhosting transparently creates her an account, together with a container;
 * the first time a student opens a given notebook, this notebook is **copied** from the master course contents (more on this below) **into her container**; from that point on, her work for that notebook is independant from the master course
