@@ -9,6 +9,8 @@
   * based on fedora 29
 * revised: January 2020
   * based on fedora 31
+* revised: November 2020
+  * based on fedora 33
 
 ## Requirements
 
@@ -17,7 +19,7 @@ Depending on the scope of your deployment, you will need
 * primarily as much memory as you can get; `nbhosting` spawns one jupyter-powered
   container per tuple (student x course), so even if these are killed after a fixed amount
   of idle time (monitor's *idle* setting), that may require a substantial amount of
-  memory;
+  memory; rule of thumb is to provision for about 200Mb of RAM per kernel (open notebook)
 * in terms of disk space, 1 Tb will already lead you rather far, thanks to COW
   imaging capabilities.
 
@@ -67,12 +69,31 @@ pip install .
 podman can use cgroupsv2, which is the default on fedora>=31; no need to mess with
 kernel-booting options (like the ones that would be required to run docker)
 
+## umask
+
+When updating to fedora-33, we have had to change this line in `/etc/login.defs`
+
+```
+UMASK           022
+```
+
+which was previously set to `077`; without this setting, the files created under
+the `courses-git` directory were only readable by `root`, and thus unavailable to
+users, which in turn would create a lot of 404 errors.
+
 ****
 
 # disk partitioning
 
-We use `btrfs` as the underlying filesystem for containers; the requirement is thus to have
-`/nbhosting` mounted on a `btrfs` partition somehow.
+> ***Note*** that the choice of *btrfs* dates back to 5 years ago, with earlier
+versions of docker; this is still what we use on `nbhosting.inria.fr` right now,
+but we use now podman and surely there are other combinations of
+(physical partitioning scheme x logical cow fs driver) that work just as well,
+so feel free to pick your own choice here.
+
+
+We use `btrfs` as the underlying filesystem for containers;
+the requirement is thus to have `/nbhosting` mounted on a `btrfs` partition somehow.
 
 **Note** that since the switch to using podman, this is probably no longer a hard constraint.
 
@@ -219,6 +240,10 @@ cd /root/nbhosting
 cp fedora/etc/sudoers.d/99-nbhosting /etc/sudoers.d/
 chmod 440 /etc/sudoers.d/99-nbhosting
 ```
+
+## `login.defs`
+
+check that you have UMASK set to 077 in `/etc/login.defs`
 
 ## reboot
 
@@ -601,11 +626,11 @@ If you upgrade to a more recent fedora, as always `dnf` will take care
 of the packages that it knows about, but **won't automatically install
 the `pip` dependencies, that need to be reinstalled manually**
 
-Likewise, when upgrading from say f31 to f32, python3 will move from
+For example, when upgrading from say f31 to f32, python3 will move from
 3.7 to 3.8; so pip dependencies will restart from scratch;
 `install.sh` should do all the heavylifting in this case, but check
-for the installation pf `podman-py` that might need manual
-intervention if installed from sources.
+also for the installation pf `podman-py` that will need a dedicated manual
+intervention as well.
 
 ## note on upgrading from docker to podman
 
