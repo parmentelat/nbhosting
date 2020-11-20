@@ -73,7 +73,7 @@ class Contents:
         except IOError:
             # print(f"OOPS {type(exc)} {exc}")
             coursedir = Path(self.dir)
-            paths = coursedir.glob("**/*.ipynb")
+            paths = coursedir.glob("**/*.md")
             notebooks = sorted(str(path.relative_to(coursedir)) for path in paths)
             with Path(self.filename).open("w") as writer:
                 writer.write(json.dumps(notebooks))
