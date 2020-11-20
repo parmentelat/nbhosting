@@ -2,10 +2,12 @@
 
 * re-run in 2020 may w/ fedora 31
 
-* as of 2019 nov 15, stupeflip is being decommissioned and goes into the r2lab room;
+* re-run in 2020 nov w/ fedora 33
+
+* as of 2019 nov 15, darktek is being decommissioned and goes into the r2lab room;
 our new test box will thus be **`stupeflip`**;
 here's a summary of the steps I have taken to set it up,
-starting from a rther mundame fedora-29,
+starting from a rather mundame fedora-29,
 in a hope to better understand that fonts thing
 
 ```bash
@@ -18,7 +20,7 @@ git clone https://github.com/flotpython/gittutorial.git mines-git-tuto
 git clone https://github.com/flotpython/primer mines-python-primer
 git clone https://github.com/parmentelat/nbhosting.git nbhosting
 git clone https://github.com/flotpython/slides.git python-slides
-git clone https://github.com/parmentelat/flotpython.git python3-s2
+git clone https://github.com/parmentelat/flotpython.git python-mooc
 
 dnf install -y chromedriver
 dnf install -y chromium
@@ -41,7 +43,7 @@ dnf install -y mathjax
   * requires requests - `pip3 install requests`
 
 * courses
-  * check that course `python3-s2` is defined in the nbhosting server, and that
+  * check that course `python-mooc` is defined in the nbhosting server, and that
     on the test box there is a git repo by that name
 
 ## UPDATE 2019 Nov
@@ -151,14 +153,15 @@ the output of nbhtests itself is interesting and should be recorded; to this end
 
 ```bash
     ./nbhtests-nohup -u 1-100 -w 10 & exit
+```
 
 ### use another course
 
-By default we use `~/git/python3-s2` as the root of the course tree; it is used in particular to make up the notebook names, so this needs to be in sync with what the test server sees. **NOTE** that in particular it should use the **same course name** as on the server.
+By default we use `~/git/python-mooc` as the root of the course tree; it is used in particular to make up the notebook names, so this needs to be in sync with what the test server sees. **NOTE** that in particular it should use the **same course name** as on the server.
 
 Use this to use another course tree.
 
-    -c ~/git/python3-s2
+    -c ~/git/python-mooc
 
 ### use another server
 
@@ -197,7 +200,7 @@ Which retrieves the relevant files from stupeflip in the same dirname
 * The `.txt` files should exist for all students; they should show something like
 
 ```bash
-parmentelat ~/git/nbhosting/tests $ cat artefacts-stupeflip/student-0001-python3-s2-8-contents-4contents.txt
+parmentelat ~/git/nbhosting/tests $ cat artefacts-stupeflip/student-0001-python-mooc-8-contents-4contents.txt
 kernel area:[]
 number of cells: 18
 ```

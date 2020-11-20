@@ -98,7 +98,7 @@ In any case, the image-building command is run in a directory that contains:
 
 Your dockerfile **MUST** copy `start-in-dir-as-uid.sh` in the images's `/usr/local/bin`; it **must** also run as root; `because start-in-dir-as-uid.sh` needs this privilege in order to setuid as the actual student uid; see as an example [the dockerfile for the python MOOC](https://github.com/parmentelat/flotpython/blob/master/nbhosting/Dockerfile).
 
-**Final note** in the `Dockerfile` for `python3-s2` we have chosen to use the ***latest*** version of `scipy-notebook` image. This is on purpose, but not necessarily the best practice if you want to be on the safe side, and be resilient to hasty upgrades on dockerhub; so you may what to use a specific image hash instead.
+**Final note** in the `Dockerfile` for `python-mooc` we have chosen to use the ***latest*** version of `scipy-notebook` image. This is on purpose, but not necessarily the best practice if you want to be on the safe side, and be resilient to hasty upgrades on dockerhub; so you may what to use a specific image hash instead.
 
 # conclusion
 

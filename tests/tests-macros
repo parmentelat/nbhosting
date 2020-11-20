@@ -21,12 +21,12 @@ function compute-coursedirs() {
 
 ######### 
 function 5c-10s-2n() {
-   compute-coursedirs bioinfo mines-git-tuto mines-python-primer python3-s2 python-slides
+   compute-coursedirs bioinfo mines-git-tuto mines-python-primer python-mooc python-slides
    ./nbhtests.py -u 1-10 -i 1-2 $coursedirs "$@"
 }
 
 function 5c-20s-1n() {
-   compute-coursedirs bioinfo mines-git-tuto mines-python-primer python3-s2 python-slides
+   compute-coursedirs bioinfo mines-git-tuto mines-python-primer python-mooc python-slides
    ./nbhtests.py -u 1-20 -i 1 $coursedirs "$@"
 }
 
@@ -35,32 +35,32 @@ function 5c-20s-1n() {
 # focus on this one:
 # 50 w3/w3-s2-c3-for-sur-plusieurs-variables
 function 1c-100s-1n() {
-   compute-coursedirs python3-s2 
+   compute-coursedirs python-mooc 
    ./nbhtests.py -u 1-100 -i 50 $coursedirs "$@"
 }
 
 # gently more demanding, exact same with -w10
 function 1c-100s-1n-w10() {
-   compute-coursedirs python3-s2 
+   compute-coursedirs python-mooc 
    ./nbhtests.py -u 1-100 -i 60 -w10 $coursedirs "$@"
 }
 
 # one course too, same total load of 100 students
 # but larger window, and -c so that it runs faster
 function 1c-100s-1n-w10-c() {
-   compute-coursedirs python3-s2 
+   compute-coursedirs python-mooc 
    ./nbhtests.py -u 1-100 -i 60 -w10 -c $coursedirs "$@"
 }
 
 # same but heavy duty, faster period, more simulataneous students
 function 1c-100s-1n-heavy() {
-   compute-coursedirs python3-s2 
+   compute-coursedirs python-mooc 
    ./nbhtests.py -u 1-200 -i 50 -p 10 -w 10 $coursedirs "$@"
 }
 
 # hammering still harder
 function 1c-100s-1n-extra() {
-   compute-coursedirs python3-s2 
+   compute-coursedirs python-mooc 
    ./nbhtests.py -u 1-200 -i 50 -p 5 -w 20 $coursedirs "$@"
 }
 

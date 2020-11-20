@@ -4,7 +4,7 @@
 ad hoc utility to have a running MOOC transition from .ipynb notebooks 
 to a jupytext-powered format
 
-specifically from python3-s2 (i.e. flotpython/course@master)
+specifically from python-mooc (i.e. flotpython/course@master)
 to python-mooc (i.e. i.e. flotpython/course@jupytext)
 """
 

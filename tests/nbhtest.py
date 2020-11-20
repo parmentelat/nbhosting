@@ -32,7 +32,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
 # default location where to look for test notebooks
-default_course_gitdir = Path.home() / "git" / "python3-s2" 
+default_course_gitdir = Path.home() / "git" / "python-mooc" 
 default_topurl = "https://nbhosting-dev.inria.fr/"
 default_sleep_internal = 1
 default_go_between_notebooks = 5

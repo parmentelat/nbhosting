@@ -19,7 +19,7 @@ class Command(BaseCommand):
     example: nbh-manage courses-list python bio
     
     could output: bioinfo mines-python-primer 
-    python-slides python3-s2 
+    python-slides python-mooc 
     """
 
     def add_arguments(self, parser):
