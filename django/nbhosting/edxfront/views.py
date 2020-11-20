@@ -5,6 +5,12 @@ import subprocess
 import hashlib
 import re
 
+import pickle
+import time
+import itertools
+from datetime import datetime as DateTime, timedelta as TimeDelta
+
+
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidden
 
@@ -12,6 +18,7 @@ from nbh_main.settings import sitesettings
 from nbh_main.settings import logger, DEBUG
 from nbhosting.courses.model_course import CourseDir
 from nbhosting.stats.stats import Stats
+
 
 # Create your views here.
 
@@ -203,7 +210,6 @@ def locate_notebook(directory, notebook):
                     )
     return False, None, None, None
 
-
 def _open_notebook(request, coursename, student, notebook,
                    *, forcecopy, init_student_git): # pylint: disable=r0914
     """
@@ -237,6 +243,48 @@ def _open_notebook(request, coursename, student, notebook,
         msg = f"notebook `{notebook}' not known in this course or student"
         return error_page(request, coursename, student, notebook,
                           msg, header="notebook not found")
+
+
+    # deal with concurrent requests on the same container
+    # by using a shared memory (a uwsgi cache)
+    # starting_containers is the cache name
+    # as configured in nbhosting.ini(.in)
+
+    # import here and not at toplevel as that would be too early
+    # https://uwsgi-docs.readthedocs.io/en/latest/PythonModule.html?highlight=cache#cache-functions
+    import uwsgi
+    idling = 0.5
+    # just a safety in case our code would not release stuff properly
+    expire_in_s = 15
+    expire = TimeDelta(seconds=expire_in_s)
+
+    def my_repr(timedelta):
+        return f"{timedelta.seconds}s {timedelta.microseconds}µs"
+
+    container = f'{coursename}-x-{student}'
+    for attempt in itertools.count(1):
+        already = uwsgi.cache_get(container, 'starting_containers')
+
+        # good to go
+        if not already:
+            logger.info(f"{attempt=} going ahead with {container=} and {notebook=}")
+            now_bytes = pickle.dumps(DateTime.now())
+            uwsgi.cache_set(container, now_bytes, 0, "starting_containers")
+            break
+
+        # has the stored token expired ?
+        already_datetime = pickle.loads(already)
+        age = DateTime.now() - already_datetime
+        if age >= expire:
+            logger.info(f"{attempt=} expiration ({my_repr(age)} is > {expire_in_s}s) "
+                        f"going ahead with {container=} and {notebook=}")
+            break
+
+        # not good, waiting our turn...
+        logger.info(f"{attempt=} waiting for {idling=} because {my_repr(age)} is < {expire_in_s}s "
+                    f"with {container=} and {notebook=}")
+        time.sleep(0.5)
+
 
     subcommand = 'container-view-student-course-notebook'
 
@@ -305,6 +353,8 @@ def _open_notebook(request, coursename, student, notebook,
         message = failed_command_message(command_str, completed, prefix=prefix)
         return error_page(
             request, coursename, student, notebook, message)
+    finally:
+        uwsgi.cache_del(container, "starting_containers")
 
 
 def share_notebook(request, course, student, notebook):

@@ -50,3 +50,8 @@ max-requests = 100000
 # install with
 # pip uwsgitop
 stats = /tmp/uwsgi-stats.socket
+
+# cache area to deal with multiple incoming requests
+# in each entry we store a pickled datetime.datetime
+# which is a bytes of length 44
+cache2 = name=starting_containers,items=1000,blocksize=100
