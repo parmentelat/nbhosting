@@ -1,3 +1,15 @@
+# 0.34.0 2020 Nov 21
+
+* simultaneous requests
+  * this is to address a concern experienced by magistere, who has pages
+    containing several iframes to the same course
+  * the nbh script needs to determine if the container is already running
+    and so if several attempts are made at the same time, they all believe
+    the container is down and all try to spawn it, but only one can succeed
+  * so in this version, an exclusive lock mechanism - using uwsgi cache to
+    share this global info between uwsgi worker processes - prevents
+    simultaneous attempts to spawn 2 notebooks from the same container
+
 # 0.33.1 2020 Nov 11
 
 * more compact output for nbh-pull-student (1 or 2 lines per student)
