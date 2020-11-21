@@ -32,8 +32,8 @@ def duration(dir):
             print(f"duration was {delta}")
     except:
         pass
-            
-         
+
+
 def average(dir, criteria):
     txt_filenames = Path(dir).glob("*.txt")
     numbers = []
@@ -52,8 +52,8 @@ def average(dir, criteria):
         return
     array = np.array(numbers)
     print(f"({len(array)} items) {criteria:12} avg={array.mean():.2f} with std.dev={np.sqrt(array.var()):.2f} ")
-                 
-                 
+
+
 def count_booms(dir, verbose):
     by_size = defaultdict(list)
     counter = 0
@@ -92,7 +92,7 @@ def main():
                         By default all subdirs named in 'artefacts*'""")
     parser.add_argument("-v", "--verbose", default=False, action='store_true')
     args = parser.parse_args()
-    
+
     dirs = args.dirs
     if not dirs:
         dirs = Path(".").glob("artefacts*")
@@ -103,5 +103,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-                        
-    

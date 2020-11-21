@@ -32,7 +32,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
 # default location where to look for test notebooks
-default_course_gitdir = Path.home() / "git" / "python-mooc" 
+default_course_gitdir = Path.home() / "git" / "python-mooc"
 default_topurl = "https://nbhosting-dev.inria.fr/"
 default_sleep_internal = 1
 default_go_between_notebooks = 5
@@ -41,7 +41,7 @@ class Contents:
     """
     models a coursedir that we scan so we can reference notebooks by their index
     """
-    
+
     def __init__(self, dir):
         self.dir = dir
         # check existence
@@ -60,7 +60,7 @@ class Contents:
             print(i, n)
 
 
-    @property 
+    @property
     def filename(self):
         return f"{self.coursename}.nbs.json"
 
@@ -89,10 +89,10 @@ js_save = "Jupyter.notebook.save_checkpoint()"
 def pause(mark, message, *, sleep=0, duration=None, skip=0):
     """
     skip is a number of sleep periods that should not be accounted
-    for in the computed duration 
+    for in the computed duration
     """
     line = f"{mark}:{message}"
-    if sleep: 
+    if sleep:
         line += f" - waiting for {sleep}s"
     if duration:
         line += f" (since beg. {duration - skip*sleep:.02f})s"
@@ -104,7 +104,7 @@ def pause(mark, message, *, sleep=0, duration=None, skip=0):
 class Notebook:
     def __init__(self, notebook_arg):
         coursedir, index = notebook_arg.split(':')
-        contents = Contents(coursedir)  
+        contents = Contents(coursedir)
         course = contents.coursename
         notebooks = contents.notebooks
         self.course = course
@@ -114,12 +114,12 @@ class Notebook:
         except IndexError:
             self.nb_path = "unexisting-notebook"
             print(f"Using {self.nb_path} for dangling index {index}")
-        
-    
+
+
     @property
     def url_path(self):
         return f"{self.course}/{self.nb_path}"
-    
+
 
 
 class Artefact:
@@ -153,7 +153,7 @@ class Artefact:
 
 def run(topurl, user, notebooks, sleep, go, cut):
     """
-    fetch - as this user - 
+    fetch - as this user -
     notebook indexed by index relative to that course dir
     then perform additional tasks (exec, save, etc..)
     """
@@ -174,14 +174,14 @@ def run(topurl, user, notebooks, sleep, go, cut):
     driver = selenium.webdriver.Chrome(chrome_driver_binary, options=options)
 
     print("driver ready")
-    
+
     def fetch_one_notebook(notebook, need_new_window):
         nonlocal topurl
         nb = notebook.nb_path
         # be extra-safe
         if topurl.endswith("/"):
             topurl = topurl[:-1]
-        
+
         url  = f"{topurl}/notebookLazyCopy/{notebook.url_path}/{user}"
         mark = f"{nb}/{user}"
 
@@ -241,10 +241,10 @@ def run(topurl, user, notebooks, sleep, go, cut):
             traceback.print_exc()
             driver.save_screenshot(scr.filename('4boom'))
 
-    # the first one is different, it receives its window 
+    # the first one is different, it receives its window
     # in a natural way; other windows need to be open from there
     notebook0, *others = notebooks
-    
+
     fetch_one_notebook(notebook0, False)
     for other in others:
         time.sleep(go)
@@ -289,11 +289,11 @@ def main():
     parser.add_argument("notebooks", default=[f"{default_course_gitdir}:0"],
                         nargs='*',
                         help="""define the notebook to open; this is ':'-separated
-                                with its first part a git repo, and the second part 
+                                with its first part a git repo, and the second part
                                 an index in the list of known notebooks
                                 - run with -l to see list""")
     args = parser.parse_args()
-    
+
     if args.list:
         for notebook_arg in args.notebooks:
             coursedir = notebook_arg.split(':')[0]

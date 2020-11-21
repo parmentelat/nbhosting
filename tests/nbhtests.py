@@ -1,7 +1,7 @@
 #!/usr/bin/env -S python3 -u
 
 """
-Utility to open a large number of notebooks 
+Utility to open a large number of notebooks
 
 We use subprocess because phantom and selenium are not asyncio-friendly,
 and there is no clear advantage in running all the open-notebook instances
@@ -23,13 +23,13 @@ from apssh.formatters import TerminalFormatter
 from intsranges import IntsRanges
 
 from nbhtest import (
-    default_course_gitdir, 
+    default_course_gitdir,
     default_topurl,
     default_sleep_internal,
     default_go_between_notebooks,
     Contents,
 )
-   
+
 default_period = 20
 default_window = 5
 default_idle = 5 # this is the default on the dev box
@@ -56,13 +56,13 @@ def main() -> bool:
                         help="""just load the urls, don't do any further processing""")
     parser.add_argument("-w", "--window", default=default_window, type=int,
                         help="window depth for spawning the nbhtest instances")
-    parser.add_argument("--idle", default=None, 
+    parser.add_argument("--idle", default=None,
                         help="monitor idle setting")
     parser.add_argument("-n", "--dry-run", action='store_true')
     parser.add_argument("coursedirs", default=[default_course_gitdir],
                         nargs='*',
                         help="""a list of git repos where to fetch notebooks""")
-    
+
     signature = "".join(sys.argv[1:])
     args = parser.parse_args()
 
@@ -97,7 +97,7 @@ def main() -> bool:
                     scheduler=scheduler,
                     node=local,
                     commands = [command, f"sleep {args.period}"])
-                
+
     if args.dry_run:
         return True
 

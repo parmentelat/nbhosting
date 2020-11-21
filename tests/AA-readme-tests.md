@@ -3,6 +3,8 @@
 * re-run in 2020 may w/ fedora 31
 
 * re-run in 2020 nov w/ fedora 33
+  * no big change but the test repo has .md notebooks
+  * so the reference notebook moves from index 60 to 80
 
 * as of 2019 nov 15, darktek is being decommissioned and goes into the r2lab room;
 our new test box will thus be **`stupeflip`**;
