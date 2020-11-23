@@ -112,9 +112,10 @@ define([
 
 	let turn_off_extension_buttons = function() {
 		let turned_off = [];
-		// the nbdime button is very intrusive and provides little value if at all
+		// the nbdime thingy is very intrusive and provides little value if at all
 		turned_off.push("nbdime");
 		$("[data-jupyter-action='nbdime:diff-notebook-checkpoint']").hide();
+		$("[data-jupyter-action='nbdime:diff-notebook-git']").hide();
 		// split-cell button; it does not take much space
 		// but can be confusing
 		turned_off.push("split-cell");
@@ -315,6 +316,6 @@ define([
 		show_metadata_in_header(Jupyter);
 		enable_move_up_down(Jupyter);
 		// without the delay this won't have any effect
-		setTimeout(turn_off_extension_buttons, 1000);
+		setTimeout(turn_off_extension_buttons, 2000);
     })
 })
