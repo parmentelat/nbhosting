@@ -311,7 +311,7 @@ def _open_notebook(request, coursename, student, notebook,
     command += [student, coursename, notebook_with_ext,
                 coursedir.image, ref_giturl]
     command_str = " ".join(command)
-    logger.info(f'edxfront is running: {command_str} DEBUG={DEBUG}')
+    logger.info(f'edxfront is running (DEBUG={DEBUG}): {command_str}')
     completed = subprocess.run(
         command, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
