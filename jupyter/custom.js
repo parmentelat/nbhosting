@@ -15,7 +15,7 @@ define([
 
     //////////////////////////////////////////////////
     // see also custom.css that does most of the hiding
-    let hack_header_for_nbh = function(/*Jupyter*/) {
+    let hack_header_for_nbh = function(Jupyter) {
 
 	    // hide all dividers
         // don't do this in CSS as we have our own dividers come in later on
@@ -32,15 +32,39 @@ define([
         for (let id of ids_to_move) {
             last_button_group.after($(`#${id}`));
         }
-    }
+	}
+
+	let enable_move_up_down = function(Jupyter) {
+
+		// always define the shortcuts
+		let command_shortcuts = Jupyter.keyboard_manager.command_shortcuts;
+		command_shortcuts.set_shortcut(
+            'shift-u', 'jupyter-notebook:move-cell-up');
+        // move cell down
+        command_shortcuts.set_shortcut(
+            'shift-d', 'jupyter-notebook:move-cell-down');
+
+		// enable buttons in the menubar if requested
+		// in the notebook metadata
+		let metadata = Jupyter.notebook.metadata;
+		let enabled = metadata.nbhosting && metadata.nbhosting.show_up_down_buttons;
+		if (enabled)
+			$('#move_up_down').css("display", "inline");
+}
 
     // display title and version
     let show_metadata_in_header = function(Jupyter) {
-    	console.log(`${hello} showing notebook metadata like notebookname`);
-    	let notebook = Jupyter.notebook;
-    	let title = notebook.metadata.notebookname || "Untitled";
-    	let version = notebook.metadata.version || "0.0";
-    	let notebookmeta = `${title}<span id="metaversion">v${version}</span>`;
+    	console.log(`${hello} showing nbhosting title`);
+    	let metadata = Jupyter.notebook.metadata;
+		let title = (metadata.nbhosting && metadata.nbhosting.title)
+		            || metadata.notebookname || "untitled";
+		let notebookmeta = `<span id="metatitle">${title}</span>`;
+		// show version only if not empty
+		let version = (metadata.nbhosting && metadata.nbhosting.version)
+					  || metadata.version;
+		// discard void versions like 0 or 0.0 or even 1.0
+		if (version && (version != '1.0') && (version.replace(/[0\.]*/, "")))
+    		notebookmeta += `<span id="metaversion">v${version}</span>`;
     	let notebookmetadiv =
     	    `<div id="metaarea" class="navbar">${notebookmeta}</div>`;
     	$(notebookmetadiv).insertBefore($("#menubar"))
@@ -279,7 +303,7 @@ define([
     base_promises.app_initialized.then(function(appname) {
         console.log(`${hello} base_promises sent appname=${appname}`);
         if (appname === 'NotebookApp') {
-            hack_header_for_nbh(Jupyter);
+			hack_header_for_nbh(Jupyter);
             inactivate_non_code_cells(Jupyter);
             redefine_enter_in_command_mode(Jupyter);
             add_reset_and_share_buttons(Jupyter);
@@ -289,6 +313,7 @@ define([
     nb_promises.notebook_loaded.then(function(appname){
         console.log(`${hello} nb_promises sent appname=${appname}`);
 		show_metadata_in_header(Jupyter);
+		enable_move_up_down(Jupyter);
 		// without the delay this won't have any effect
 		setTimeout(turn_off_extension_buttons, 1000);
     })
