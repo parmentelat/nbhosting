@@ -1,3 +1,21 @@
+# 0.35.0 2020 Nov 23
+
+* close #129
+  * U and D keyboard shortcuts always allow to move cells up and down
+  * plus, the native up and down buttons can be displayed
+    with the show_up_down_buttons (see below)
+* close #130
+  * metadata can be nested in the 'nhosting' toplevel category as
+    ```
+    nbhosting:
+      title:
+      version: 
+      show_up_down_buttons: yes
+    ```
+    missing version is OK, unrelevant versions are no longer displayed
+* close #131
+  * nbdime extension area disabled
+
 # 0.34.0 2020 Nov 21
 
 * simultaneous requests
