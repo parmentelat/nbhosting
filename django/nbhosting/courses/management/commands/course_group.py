@@ -13,34 +13,37 @@ class Command(BaseCommand):
 
     help = """
     this command adds groups to a course
-    unless -r is provided, 
+    unless -r is provided,
     in which case it removes them
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("-r", "--remove", default=False)
-        parser.add_argument("-v", "--verbose", default=False)
+        parser.add_argument("-r", "--remove", default=False, action='store_true')
+        parser.add_argument("-l", "--list", default=False, action='store_true',
+                            help="display groups after operation is complete."
+                                 "defaults to true if no group is given")
         parser.add_argument("coursename")
-        parser.add_argument("groupname", nargs='+')
+        parser.add_argument("groupname", nargs='*')
 
     def handle(self, *args, **kwargs):
 
-        verbose = kwargs['verbose']
         remove = kwargs['remove']
-        oldname = kwargs['oldname']
-        groupnames = kwargs['groupnames']
+        coursename = kwargs['coursename']
+        groupnames = kwargs['groupname']
+        list_flag = kwargs['list'] or not groupnames
 
         try:
-            course = CourseDir.objects.get(coursename=oldname)
+            course = CourseDir.objects.get(coursename=coursename)
         except CourseDir.DoesNotExist:
-            logger.error(f"course {oldname} not found")
+            logger.error(f"course {coursename} not found")
             exit(1)
 
         def describe():
-            if not verbose:
+            if not list_flag:
                 return
-            print(f"{coursename}: "
-                  f"[{'+'.join(g for g in course.registered_groups.iterator())}]")
+            groups = ('+'.join(g.name
+                               for g in course.registered_groups.iterator()))
+            print(f"{coursename}: [{groups}]")
 
         for groupname in groupnames:
             try:

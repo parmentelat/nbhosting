@@ -26,7 +26,7 @@ class Command(BaseCommand):
         try:
             instance = CourseDir.objects.get(coursename=oldname)
             try:
-                should_not_exist = CourseDir.objects.get(coursename=newname)
+                _should_not_exist = CourseDir.objects.get(coursename=newname)
                 logger.error(f"course {newname} already exists")
                 exit(1)
             except CourseDir.DoesNotExist:

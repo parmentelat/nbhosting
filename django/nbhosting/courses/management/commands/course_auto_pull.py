@@ -17,7 +17,7 @@ class Command(BaseCommand):
     on all courses that have their autopull setting defined as true
     """
 
-    
+
     def add_arguments(self, parser):
         parser.add_argument(
             "-a", "--all", action='store_true', default=False,

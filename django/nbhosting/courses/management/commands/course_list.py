@@ -12,14 +12,14 @@ class Command(BaseCommand):
 
     help = """
     this command list known courses
-    
+
     without argument it lists all courses; with arguments
     it lists all course whose name contains any of the tokens
-    
+
     example: nbh-manage courses-list python bio
-    
-    could output: bioinfo mines-python-primer 
-    python-slides python-mooc 
+
+    could output: bioinfo mines-python-primer
+    python-slides python-mooc
     """
 
     def add_arguments(self, parser):

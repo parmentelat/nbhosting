@@ -11,11 +11,11 @@ from nbh_main.settings import logger, NBHROOT
 class Command(BaseCommand):
 
     help = """
-    this command lets you delete a course 
+    this command lets you delete a course
 
     by default, all the students local spaces pertaining to that course
     are deleted as well, unless you provide the --preserve-students flag
-    
+
     by default, the raw/ area that has logs of the activity is preserved,
     unless you provide the --clean-raw flag
     """
