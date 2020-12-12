@@ -1,3 +1,8 @@
+# 0.35.1 2020 Dec 12
+
+* close #132 - new management command course-group
+* close #118 - improved course-list
+
 # 0.35.0 2020 Nov 23
 
 * close #129
