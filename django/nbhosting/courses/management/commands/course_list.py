@@ -45,7 +45,7 @@ class Command(BaseCommand):
             archived = "[AR]" if cd.archived else ""
             flags = "".join([x for x in (autopull, archived) if x])
             flags = f"{flags:9s}"
-            hash_part = f"{cd.current_hash():8s}"
+            hash_part = f"{cd.current_hash():9s}"
             groups_part = f"{groups(cd):{col_groups}}"
             image = cd.image
 
