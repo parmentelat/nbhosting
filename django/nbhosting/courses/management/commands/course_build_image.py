@@ -11,7 +11,7 @@ from nbh_main.settings import logger, NBHROOT
 class Command(BaseCommand):
 
     help = """
-    rebuild container image for that course
+    rebuild container image for selected courses
 
     NOTE that courses that override
     their image so as to use another course's
@@ -28,28 +28,15 @@ class Command(BaseCommand):
             help="""when set, this option causes build to be forced;
             that is to say, podman build is invoked with the --no-cache option.
             Of course this means a longer execution time""")
-        parser.add_argument(
-            "-a", "--all", action='store_true', default=False,
-            help="redo all known courses")
-        parser.add_argument("coursenames", nargs="*")
+        parser.add_argument("patterns", nargs='*', type=str)
 
 
     def handle(self, *args, **kwargs):
         dry_run = kwargs['dry_run']
         force = kwargs['force']
 
-        coursenames = kwargs['coursenames']
-        if not coursenames:
-            if kwargs['all']:
-                coursenames = sorted(
-                    (cd.coursename for cd in CourseDir.objects.all()))
-            else:
-                print("must provide at least one course, or --all")
-                exit(1)
-        for coursename in coursenames:
-            coursedir = CourseDir.objects.get(coursename=coursename)
-            if not coursedir.is_valid():
-                logger.error(f"no such course {coursename}")
-                return
-            logger.info(f"{40*'='} building image for {coursename}")
+        patterns = kwargs['patterns']
+        selected = CourseDir.courses_by_patterns(patterns)
+        for coursedir in selected:
+            logger.info(f"{40*'='} building image for {coursedir.coursename}")
             coursedir.build_image(force, dry_run)

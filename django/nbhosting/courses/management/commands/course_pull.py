@@ -14,25 +14,11 @@ class Command(BaseCommand):
 
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "-a", "--all", action='store_true', default=False,
-            help="redo all known courses")
-        parser.add_argument("coursenames", nargs="*")
-
+        parser.add_argument("patterns", nargs="*")
 
     def handle(self, *args, **kwargs):
-        coursenames = kwargs['coursenames']
-        if not coursenames:
-            if kwargs['all']:
-                coursenames = sorted(
-                    (cd.coursename for cd in CourseDir.objects.all()))
-            else:
-                print("must provide at least one course, or --all")
-                exit(1)
-        for coursename in coursenames:
-            coursedir = CourseDir.objects.get(coursename=coursename)
-            if not coursedir.is_valid():
-                logger.error(f"no such course {coursename}")
-                return
-            logger.info(f"{40*'='} pulling from git for {coursename}")
+        patterns = kwargs['patterns']
+        selected = list(CourseDir.courses_by_patterns(patterns))
+        for coursedir in selected:
+            logger.info(f"{40*'='} pulling from git for {coursedir.coursename}")
             coursedir.pull_from_git()

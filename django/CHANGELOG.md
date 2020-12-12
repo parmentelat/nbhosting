@@ -11,12 +11,14 @@
     with the show_up_down_buttons (see below)
 * close #130
   * metadata can be nested in the 'nhosting' toplevel category as
-    ```
+
+    ```yaml
     nbhosting:
       title:
-      version: 
+      version:
       show_up_down_buttons: yes
     ```
+
     missing version is OK, unrelevant versions are no longer displayed
 * close #131
   * nbdime extension area disabled
@@ -46,7 +48,7 @@
 
 * unpin notebook version (pinned in 0.32.1) as version 6.1.4
   has fixed the issue, that for the record was with narrow
-  pages being further shrunken by half 
+  pages being further shrunken by half
 
 # 0.32.7 2020 Oct 13
 
@@ -90,9 +92,9 @@
   course-show-tracks -> course-tracks
 * new command nbh-manage course-delete
 * deprecation of $NBHROOT/logs
-* review how tracks are displayed  
+* review how tracks are displayed
   in particular a Track object now has an id field
-  that is computed from name unless it is explicitly given 
+  that is computed from name unless it is explicitly given
   to the constructor
 * tracks with no notebook get sanitized
 
@@ -103,7 +105,7 @@
 * core images come with jupytext[myst]
 * use latest jupyterlab, with functional git extension
   to get this to work an additional mountpoint may be created in the container
-* add some convenience scripts that were used to transfer 
+* add some convenience scripts that were used to transfer
   the MOOC on fun-mooc.fr from .ipynb to .md
 
 # 0.30.6 2020 Jun 22
@@ -133,7 +135,7 @@
   intrusive and messes with the containers
 * new management command nbh-manage containers [-c] to display containers
   and kernels and last activity
-* more robust course-create, 
+* more robust course-create,
   rolls back DB insertion if git clone doesn't go through
 * doc has a section on installing podman-py
 
@@ -181,14 +183,14 @@
 
 # 0.27.0 2020 Mar 27
 
-* fix for #111 and the SameSite cookie policy pushed in recent chromes  
+* fix for #111 and the SameSite cookie policy pushed in recent chromes
   hopefully temporary
 
 # 0.26.0 2020 Jan 22
 
 * **NEW mandatory SETTING**; you need to define `notebook_extensions` in `sitesettings.py`
 * more jupytext-friendly; the extensions declared in that new setting
-  are considered as possible notebooks, that can be opened directly  
+  are considered as possible notebooks, that can be opened directly
   **NOTE** that at this point there remains some places where the assumed value
   of `["ipynb", "py", "md"]` is hard-wired
 * some provisions made for finer-grained logging of container warmup sequence

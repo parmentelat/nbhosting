@@ -5,6 +5,7 @@ from pathlib import Path                                # pylint: disable=w0611
 import subprocess
 import shutil
 import itertools
+import re
 
 from importlib.util import (
     spec_from_file_location, module_from_spec)
@@ -48,6 +49,35 @@ class CourseDir(models.Model):
         self._notebooks = None
         self._tracks = None
         super().__init__(*args, **kwds)
+
+
+    @staticmethod
+    def courses_by_patterns(patterns):
+        """
+        a generator to iterate over the CourseDir objects
+        whose name matches any of the given patterns
+        * no pattern means all courses match
+        * empty (string) pattern, or pattern = '*'
+          means all courses
+        * without any *
+          all courses that contain that string match
+        * otherwise: considered a full-feature regexp
+        """
+        def pattern_to_regexp(pattern):
+            # implement above rule
+            if not pattern or pattern == '*':
+                return '^.*$'
+            elif '*' not in pattern:
+                return f'^.*{pattern}.*$'
+            else:
+                return pattern
+        # no pattern means all
+        patterns = patterns or ['']
+        regexps = [re.compile(pattern_to_regexp(p)) for p in patterns]
+        for coursedir in CourseDir.objects.all():
+            name = coursedir.coursename
+            if any(regexp.match(name) for regexp in regexps):
+                yield coursedir
 
 
     # hopefully temporary; being a Model seems to imply

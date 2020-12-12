@@ -23,12 +23,13 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("patterns", nargs='*', type=str)
         parser.add_argument(
             "-l", "--list", action="count", default=0,
             help=("Give more output. Option is additive, and can be used up to 2 "
                   "times."),
         )
+        parser.add_argument("patterns", nargs='*', type=str)
+
 
     def handle(self, *args, **kwargs):
 
@@ -78,17 +79,7 @@ class Command(BaseCommand):
                 line = f"{escape}[1m{escape}[31m{line}{escape}[0m"
             return line
 
-
-        all_coursedirs = sorted(
-            CourseDir.objects.all(),
-            key=lambda coursedir: coursedir.coursename)
-        if not patterns:
-            selected = all_coursedirs
-        else:
-            def is_matched(cd):
-                return any((pattern == '*' or pattern in cd.coursename)
-                           for pattern in patterns)
-            selected = [cd for cd in all_coursedirs if is_matched(cd)]
+        selected = list(CourseDir.courses_by_patterns(patterns))
 
         max_name = max((len(cd.coursename) for cd in selected), default=4)
         max_image = max((len(cd.image) for cd in selected), default=4)
