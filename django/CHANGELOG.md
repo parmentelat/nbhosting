@@ -1,3 +1,12 @@
+# 0.36.0 2020 Dec 12
+
+* close #136
+  * all 4 course management commands (list, pull, build-image, tracks)
+    use a unified selection mechanism
+  * beware that the --all option is no longer needed not supported
+    just call the command with no parameter to get same effect
+  * see details in https://github.com/parmentelat/nbhosting/issues/136
+
 # 0.35.1 2020 Dec 12
 
 * close #132 - new management command course-group
