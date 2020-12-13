@@ -1,3 +1,7 @@
+# 0.36.1 2020 Dec 13
+
+* for #135: support a URL in /containerKill/course/student/
+
 # 0.36.0 2020 Dec 12
 
 * close #136
