@@ -207,6 +207,23 @@ class CourseDir(models.Model):
         return self._probe_notebooks_in_dir(root)
 
 
+    def kill_student_container(self, student):
+        """
+        kills container attached to (course x student)
+
+        returns True if container was killed, False otherwise
+        """
+        import podman
+        podman_url = "unix://localhost/run/podman/podman.sock"
+        container_name = f"{self.coursename}-x-{student}"
+        retcod = None
+        try:
+            with podman.ApiConnection(podman_url) as podman_api:
+                return podman.containers.kill(podman_api, container_name)
+        except podman.errors.ContainerNotFound:
+            return False
+
+
     def users_with_workspace(self, *, user_patterns=None, staff_selector=None):
         """
         an iterator on tuples of the form

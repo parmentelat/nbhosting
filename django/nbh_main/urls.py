@@ -46,6 +46,9 @@ urlpatterns = [
                         nbhosting.edxfront.views.jupyterdir_forward
     ),
 
+    re_path(rf'^containerKill/{COURSE}/{STUDENT}/?$',
+                        nbhosting.edxfront.views.container_kill_request),
+
     # regular users who log in
     re_path(rf'^auditor/courses.*$',
                         nbhosting.courses.views.auditor_list_courses),

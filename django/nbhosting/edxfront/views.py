@@ -535,3 +535,30 @@ def _jupyterdir_forward(request, coursename, student, jupyter_url):
         message = failed_command_message(command_str, completed, prefix=prefix)
         return error_page(
             request, coursename, student, "jupyterdir", message)
+
+
+def container_kill_request(request, course, student):
+    # xxx the names in urls.py need a cleanup
+    coursename = course
+    logger.info(f"container_kill_request: {coursename} x {student}")
+    all_right, explanation = authorized(request)
+
+    if not all_right:
+        return HttpResponseForbidden(
+            f"Access denied: {explanation}")
+
+    coursedir = CourseDir.objects.get(coursename=coursename)
+    if not coursedir.is_valid():
+        return error_page(
+            request, coursename, student, "n/a",
+            f"no such coursename {coursename}"
+        )
+
+    success = coursedir.kill_student_container(student)
+    if not success:
+        return error_page(
+            request, coursename, student, "n/a", "could not kill container"
+        )
+
+    return render(request, "container-killed.html",
+                  dict(coursename=coursename, student=student))
