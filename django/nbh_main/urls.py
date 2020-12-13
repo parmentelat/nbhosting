@@ -43,8 +43,7 @@ urlpatterns = [
     # /ipythonForward/thecourse/thestudent/lab
     # /ipythonForward/thecourse/thestudent/git-pull?repo=...
     re_path(rf'^ipythonForward/{COURSE}/{STUDENT}/{JUPYTER_URL}/?$',
-                        nbhosting.edxfront.views.jupyterdir_forward
-    ),
+                        nbhosting.edxfront.views.jupyterdir_forward),
 
     re_path(rf'^containerKill/{COURSE}/{STUDENT}/?$',
                         nbhosting.edxfront.views.container_kill_request),
