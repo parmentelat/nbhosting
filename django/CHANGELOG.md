@@ -1,3 +1,7 @@
+# 0.36.2 2020 Dec 14
+
+* follow-up on #136, sort courses based on name
+
 # 0.36.1 2020 Dec 13
 
 * for #135: support a URL in /containerKill/course/student/
