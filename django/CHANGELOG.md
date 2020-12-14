@@ -1,3 +1,7 @@
+# 0.36.3 2020 Dec 14
+
+* follow-up on #135, all error pages return a 400 HTTP status
+
 # 0.36.2 2020 Dec 14
 
 * follow-up on #136, sort courses based on name
