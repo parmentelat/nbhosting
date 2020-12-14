@@ -36,7 +36,7 @@ class Command(BaseCommand):
         force = kwargs['force']
 
         patterns = kwargs['patterns']
-        selected = CourseDir.courses_by_patterns(patterns)
+        selected = sorted(CourseDir.courses_by_patterns(patterns))
         for coursedir in selected:
             logger.info(f"{40*'='} building image for {coursedir.coursename}")
             coursedir.build_image(force, dry_run)

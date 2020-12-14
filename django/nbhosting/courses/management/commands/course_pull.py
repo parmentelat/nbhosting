@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         patterns = kwargs['patterns']
-        selected = list(CourseDir.courses_by_patterns(patterns))
+        selected = sorted(CourseDir.courses_by_patterns(patterns))
         for coursedir in selected:
             logger.info(f"{40*'='} pulling from git for {coursedir.coursename}")
             coursedir.pull_from_git()

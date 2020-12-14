@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         preserve = kwargs['preserve']
         patterns = kwargs['patterns']
-        selected = list(CourseDir.courses_by_patterns(patterns))
+        selected = sorted(CourseDir.courses_by_patterns(patterns))
         logger.info(f"preserve mode = {preserve}")
         for coursedir in selected:
             if not preserve:

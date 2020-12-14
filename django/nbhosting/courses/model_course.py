@@ -50,6 +50,8 @@ class CourseDir(models.Model):
         self._tracks = None
         super().__init__(*args, **kwds)
 
+    def __lt__(self, other):
+        return self.coursename < other.coursename
 
     @staticmethod
     def courses_by_patterns(patterns):

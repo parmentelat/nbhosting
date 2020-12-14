@@ -79,7 +79,7 @@ class Command(BaseCommand):
                 line = f"{escape}[1m{escape}[31m{line}{escape}[0m"
             return line
 
-        selected = list(CourseDir.courses_by_patterns(patterns))
+        selected = sorted(CourseDir.courses_by_patterns(patterns))
 
         max_name = max((len(cd.coursename) for cd in selected), default=4)
         max_image = max((len(cd.image) for cd in selected), default=4)
