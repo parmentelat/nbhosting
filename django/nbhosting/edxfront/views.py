@@ -11,6 +11,7 @@ import itertools
 from datetime import datetime as DateTime, timedelta as TimeDelta
 
 
+from http import HTTPStatus
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidden
 
@@ -29,9 +30,10 @@ def error_page(request, course, student, notebook, message,
     if header is True:
         header = message
     return render(
-        request, "error.html", dict(
-            course=course, student=student,
-            notebook=notebook, message=message, header=header))
+        request, "error.html", 
+        context=dict(course=course, student=student,
+                notebook=notebook, message=message, header=header),
+        status=HTTPStatus.BAD_REQUEST)
 
 
 def log_completed_process(completed, subcommand):
