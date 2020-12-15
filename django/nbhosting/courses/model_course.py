@@ -297,6 +297,9 @@ class CourseDir(models.Model):
             if not quiet_mode:
                 print(*args)
 
+        if not user_hash:
+            myqprint(f"?? student {user.username} has a non-git workspace")
+            return
         if course_hash == user_hash:
             myqprint(f"OK student {user.username}")
             return

@@ -41,6 +41,11 @@ function main() {
 
 
     cd $user_workspace
+    # check this is indeed a git repo
+    git log HEAD -1 >& /dev/null || {
+        echoq "$user_workspace not a git repo - aborting"
+        exitq 1
+    }
     local branch=$(git rev-parse --abbrev-ref HEAD)
 
 
