@@ -53,7 +53,7 @@ COMMAND=$0
 # the default value for the most crucial global
 NBHROOT=${NBHROOT:-/nbhosting/current}
 
-# SRCROOT may be passed to all commands 
+# SRCROOT may be passed to all commands
 # with nbh -s <srcroot> the-function the-parameters
 #
 # from that location we will compute the path
@@ -164,7 +164,7 @@ function -compute-course-globals() {
 #    COURSE_ref=$MACHINES/$course.ref
 
 # this is how the static mappings business is being exposed to bash
-# from the django app    
+# from the django app
     COURSE_static_mappings=$(cat $COURSE_notebooks/.static-mappings 2> /dev/null)
     COURSE_static_toplevels=$(cat $COURSE_notebooks/.static-toplevels 2> /dev/null)
 }
@@ -247,6 +247,7 @@ function course-update-from-git() {
 
     ##### notebooks
     # temporary; making sure we do clean stuff up properly
+    echo "========== syncing the notebooks area"
     rm -rf $COURSE_notebooks/*
     # xxx would be nice to use sitesettings.notebook_extensions
     $rsync --prune-empty-dirs --include='*.ipynb' --include='*.md' --include='*.py' --include='*/' --exclude='*' \
@@ -255,9 +256,15 @@ function course-update-from-git() {
     [ -d modules ] && { $rsync modules/ $COURSE_modules; chmod -R g-w,o-w $COURSE_modules; }
     ##### static
     for toplevel in $COURSE_static_toplevels; do
-        $rsync $toplevel $COURSE_static; chmod -R g-w,o-w $COURSE_static;
+        if [ -e $toplevel ]; then
+            echo "========== rsyncing static $toplevel"
+            $rsync $toplevel $COURSE_static; chmod -R g-w,o-w $COURSE_static;
+        else
+            echo "========== skipped non-existent static $toplevel"
+        fi
     done
     ##### jupyter
+    echo "========== syncing the jupyter area"
     [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
     for file in jupyter_notebook_config.py custom.js custom.css; do
         [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
@@ -267,7 +274,7 @@ function course-update-from-git() {
         $rsync $COURSE_git/nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
     }
     return 0
-    
+
 }
 
 ####################
@@ -468,7 +475,7 @@ function -git-repo-student-for-course() {
         sudo -u $student git clone $giturl . 1>&2
     # else we should be good;
     # however because of the change introduced in 0.21
-    # when needed, we overwrite the 'origin' remote url 
+    # when needed, we overwrite the 'origin' remote url
     # to point at the local directory under courses-git
     # instead of using the external git repo
     else
@@ -536,7 +543,7 @@ function run-container-for-student-in-course() {
         [ -d $static_toplevel ] || -echo-stderr WARNING $static_toplevel dir not found
     done
 
-    podman inspect --type image $image >& /dev/null || { 
+    podman inspect --type image $image >& /dev/null || {
         echo failed-unknown-image $container none none
         -die image $image not known to podman;
     }
@@ -550,7 +557,7 @@ function run-container-for-student-in-course() {
     if podman inspect --format "{{.Name}}" $container >& /dev/null ; then
         # if yes, check its status
         local status=$(podman inspect -f "{{.State.Status}}" $container)
-        
+
         if [ "$status" == "removing" ]; then
             # out of luck here, we're trying to open a notebook
             # while monitor has just killed the container
@@ -589,9 +596,9 @@ function run-container-for-student-in-course() {
             >&2 podman logs -t --since +1m $container
             -echo-stderr "==================== podman logs end"
             echo failed-timeout $container $port existing
-            return 1 
+            return 1
         fi
-        
+
         local line="existing $container $port $jupyter_token"
         echo $line
         return 0
@@ -605,7 +612,7 @@ function run-container-for-student-in-course() {
     #   instead as mounting the 2 files custom.js and custom.css individually
     #   this is an attempt to ease propagation of changes to any of these files
     #   as otherwise a container restart is required for this to take effect
-    # * map jovyan uid to the student's; 
+    # * map jovyan uid to the student's;
     #   out of luck trying to use docker-stacks's native start.sh
     #   that led to costly and useless chown's on /opt/conda; so instead we
     #   * run the container as root
@@ -624,14 +631,14 @@ function run-container-for-student-in-course() {
     # store it
     echo $port > $STUDENT_course/.port
 
-    # this is really important on fedora-31, this variable somehow leaked from 
+    # this is really important on fedora-31, this variable somehow leaked from
     # systemd and caused podman run to stupidly hang
     unset NOTIFY_SOCKET
     # this one is to prevent the conmon process from being added in the systemd cgroup
     # https://github.com/containers/libpod/issues/6549
     unset INVOCATION_ID
     command="podman run --name $container
-                -p $port:8888 
+                -p $port:8888
                 --user root
                 --rm --detach
                 --memory=$container_max_memory
@@ -700,7 +707,7 @@ local course_GIT_norm=$(cd $COURSE_git; pwd -P)
          >&2 podman logs -t --since +1m $container
          -echo-stderr "==================== podman logs end"
         echo failed-timeout $container $port created
-        return 1 
+        return 1
     fi
 
     local line="created $container $port $jupyter_token"
@@ -735,7 +742,7 @@ function -wait-for-http-on-port-token() {
         fi
     done
     -echo-stderr "beg giving up on $port - last curl attempt yielded this :"
-    >&2 cat /tmp/wait-http-$port 
+    >&2 cat /tmp/wait-http-$port
     rm -f /tmp/wait-http-$port
     -echo-stderr "end giving up on $port"
     return 1
@@ -784,9 +791,9 @@ function container-view-student-course-notebook() {
 
     ## create the student notebook if not there yet
     if [ -z "$init_student_git" ]; then
-        -lazy-copy-student-notebook-for-course $forcecopy $course $student "$notebook" 
+        -lazy-copy-student-notebook-for-course $forcecopy $course $student "$notebook"
     else
-        -git-repo-student-for-course $course $giturl $student 
+        -git-repo-student-for-course $course $giturl $student
     fi
 
     -compute-student-globals-in-course $student $course
