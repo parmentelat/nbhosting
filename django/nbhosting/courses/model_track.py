@@ -27,6 +27,7 @@ class Notebook:                                         # pylint: disable=r0903
         self.path = path
         self.in_track = None
         self.in_student = None
+        # historically the nbhosting.title metadata was named notebookname
         self._notebookname = None
         self._version = None
 
@@ -108,10 +109,14 @@ class Notebook:                                         # pylint: disable=r0903
     def _read_embedded(self):
         try:
             nbo = jupytext.read(self.absolute())
+            metadata = nbo['metadata']
+            nbh_md = metadata.get('nbhosting', {})
             self._notebookname = (
-                nbo['metadata'].get('notebookname', self.clean_path()))
+                nbh_md.get('title', "")
+                or metadata.get('notebookname', self.clean_path()))
             self._version = (
-                nbo['metadata'].get('version', '0.1'))
+                nbh_md.get("version", "")
+                or metadata.get('version', '0.1'))
         except Exception as exc:
             logger.warning(
                 f"failed to extract metadata for notebook {self.clean_path()}\n"
