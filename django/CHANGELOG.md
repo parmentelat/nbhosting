@@ -1,3 +1,7 @@
+# 0.37.0 2021 Feb 8
+
+* use nbhosting metadata if present instead of notebookname #137
+
 # 0.36.3 2020 Dec 14
 
 * follow-up on #135, all error pages return a 400 HTTP status
