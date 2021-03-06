@@ -3,11 +3,24 @@ from pathlib import Path
 from nbh_main.settings import logger
 
 class StaticMapping:
-    """
-    each non-comment line in nbhosting/static-mappings
-    results in
-    """
-    def __init__(self, line):
+
+    def __init__(self, *args):
+        if len(args) == 1 and isinstance(args[0], str):
+            [line] = args
+            self._init_from_line(line)
+        elif len(args) == 2 and all(isinstance(x, str) for x in args):
+            src, dest = args
+            self._init_from_src_dest(self, src, dest)
+
+    def _init_from_src_dest(self, src, dest):
+        self.local, self.from_top = src, dest
+        self.valid = True
+
+    def _init_from_line(self, line):
+        """
+        each non-comment line in nbhosting/static-mappings
+        results in one valid instance
+        """    
         try:
             line = line.strip()
             if '#' in line:

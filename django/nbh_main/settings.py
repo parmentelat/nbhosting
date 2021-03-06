@@ -96,9 +96,11 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            './templates',
+            'templates',
             # mostly for mass-register.py
             '.',
+            # for locating shell templates in course-run-extra-build
+            f"{sitesettings.srcroot}/django/templates",
             ],
         'APP_DIRS': True,
         'OPTIONS': {

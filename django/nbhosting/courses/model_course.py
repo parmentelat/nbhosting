@@ -6,6 +6,7 @@ import subprocess
 import shutil
 import itertools
 import re
+import yaml
 
 from importlib.util import (
     spec_from_file_location, module_from_spec)
@@ -20,9 +21,11 @@ from nbh_main.settings import NBHROOT, logger, sitesettings
 
 from nbhosting.utils import show_and_run
 
-from .model_track import Track, generic_track
-from .model_track import CourseTracks, write_tracks, read_tracks, sanitize_tracks
+from .model_track import (
+    Track, generic_track, tracks_from_yaml_config,
+    CourseTracks, write_tracks, read_tracks, sanitize_tracks)
 from .model_mapping import StaticMapping
+from .model_build import Build
 
 from ..matching import matching_policy
 
@@ -112,6 +115,13 @@ class CourseDir(models.Model):
     def _git_dir(self):
         return NBHROOT / "courses-git" / self.coursename
     git_dir = property(_git_dir)
+    # because NBHROOT and hence self.git_dir might be a symlink
+    # typically a student repo would have its remote set to
+    # remote.origin.url=/nbhosting/dev/courses-git/ue12-intro
+    # but only /nbhosting/current would be visible from the container
+    def _norm_git_dir(self):
+        return self.git_dir.resolve()
+    norm_git_dir = property(_norm_git_dir)
 
     def _static_dir(self):
         return NBHROOT / "static" / self.coursename
@@ -222,7 +232,6 @@ class CourseDir(models.Model):
         import podman
         podman_url = "unix://localhost/run/podman/podman.sock"
         container_name = f"{self.coursename}-x-{student}"
-        retcod = None
         try:
             with podman.ApiConnection(podman_url) as podman_api:
                 return podman.containers.kill(podman_api, container_name)
@@ -434,6 +443,7 @@ class CourseDir(models.Model):
         disk cache in courses/<coursename>/.tracks.json
         and only then triggers course-specific tracks.py if provided
         """
+        self.probe()
         # in memory ?
         if self._tracks is not None:
             return self._tracks
@@ -444,10 +454,15 @@ class CourseDir(models.Model):
             tracks = read_tracks(self, tracks_path)
             self._tracks = tracks
             return tracks
-        # compute from course
-        logger.debug(f"{tracks_path} not found - recomputing")
-        tracks = self._fetch_course_custom_tracks()
-        traccks = sanitize_tracks(tracks)
+        # compute from yaml config
+        if self._yaml_config and 'tracks' in self._yaml_config:
+            logger.debug(f"computing tracks from yaml")
+            tracks = tracks_from_yaml_config(self, self._yaml_config['tracks'])
+        else:
+            # compute from course
+            logger.debug(f"{tracks_path} not found - recomputing")
+            tracks = self._fetch_course_custom_tracks()
+        tracks = sanitize_tracks(tracks)
         self._tracks = tracks
         write_tracks(tracks, tracks_path)
         return tracks
@@ -474,8 +489,53 @@ class CourseDir(models.Model):
 
 
     def _probe_settings(self):
-
+        self._yaml_config = None
         self.static_mappings = []
+        self.builds = []
+        self._probe_settings_yaml() or self._probe_settings_old()
+        # store in raw format for nbh script
+        with (self.notebooks_dir / ".static-mappings").open('w') as raw:
+            for static_mapping in self.static_mappings:
+                print(static_mapping.expose(self),
+                      file=raw)
+        toplevels = StaticMapping.static_toplevels(
+            self.static_mappings
+        )
+        with (self.notebooks_dir / ".static-toplevels").open('w') as raw:
+            for toplevel in toplevels:
+                print(toplevel, file=raw)
+
+
+    def _probe_settings_yaml(self):
+        yaml_filename = self.customized("nbhosting.yaml")
+        if not yaml_filename:
+            return False
+        try:
+            with open(yaml_filename) as feed:
+                yaml_config = yaml.safe_load(feed.read())
+            #
+            if 'static-mappings' not in yaml_config:
+                self.static_mappings = StaticMapping.defaults()
+            else:
+                logger.debug(f"populating static-mappings from yaml")
+                self.static_mappings = [
+                    StaticMapping(D['source'], D['destination'])
+                    for D in yaml_config['static-mappings']
+                ]
+            #
+            if 'builds' not in yaml_config:
+                self.builds = []
+            else:
+                self.builds = [ Build(D) for D in yaml_config['builds'] ]
+            self._yaml_config = yaml_config
+        except Exception:
+            logger.exception(f"could not load yaml file {yaml_filename} - ignoring")
+            return False
+        return True
+
+
+    def _probe_settings_old(self):
+
         custom_static_mappings = self.customized("static-mappings")
         if not custom_static_mappings:
             self.static_mappings = StaticMapping.defaults()
@@ -495,17 +555,6 @@ class CourseDir(models.Model):
                 logger.exception(f"could not load static-mappings for {self}")
                 self.static_mappings = StaticMapping.defaults()
 
-        # store in raw format for nbh script
-        with (self.notebooks_dir / ".static-mappings").open('w') as raw:
-            for static_mapping in self.static_mappings:
-                print(static_mapping.expose(self),
-                      file=raw)
-        toplevels = StaticMapping.static_toplevels(
-            self.static_mappings
-        )
-        with (self.notebooks_dir / ".static-toplevels").open('w') as raw:
-            for toplevel in toplevels:
-                print(toplevel, file=raw)
 
 
     def image_hash(self):
@@ -555,6 +604,77 @@ class CourseDir(models.Model):
         show_and_run(f"cd {image_dir}; "
                      f"podman build {force_tag} -f Dockerfile -t {image} .",
                      dry_run=dry_run)
+
+    def buildnames(self):
+        return [build.name for build in self.builds]
+    def build_by_name(self, buildname):
+        for build in self.builds:
+            if build.name == buildname:
+                return build
+
+    def run_extra_builds(self, build_patterns, dry_run=False):
+        self.probe()
+        for build in self.builds:
+            if not matching_policy(build.name, build_patterns):
+                continue
+            self.run_extra_build(build, dry_run)
+
+    def run_extra_build(self, build: Build, dry_run):
+        """
+        execute one of the buildnames provided in nbhosting.yaml
+
+        * preparation: create a lancher script called clone-build-rsync.sh
+          in NBHROOT/builds/COURSENAME/BUILDNAME
+          this script contains the 'script' part defined in YAML
+          surrounded with some pre- and post- code
+        * start a podman container with the relevant areas bind-mounted
+          namely the git repo - mounted read-only - and the build area
+          mentioned above
+        """
+
+        coursename = self.coursename
+        githash = self.current_hash()
+
+        buildname = build.name
+        script = build.script
+        result_folder = build.result_folder
+        entry_point = build.entry_point
+        mount_as = build.mount_as
+
+
+        variables = "NBHROOT+coursename+githash+buildname+script+result_folder+entry_point+mount_as"
+        # oddly enough a dict comprehension won't work here,
+        # saying the variable names are undefined...
+        vars = {}
+        for var in variables.split('+'):
+            vars[var] = eval(var)
+
+        from django.template.loader import get_template
+        template = get_template("scripts/clone-build-rsync.sh")
+        expanded_script = template.render(vars)
+
+        host_trigger = Path(self.build_dir) / buildname / githash / "clone-build-rsync.sh"
+        host_trigger.parent.mkdir(parents=True, exist_ok=True)
+        with host_trigger.open('w') as writer:
+            writer.write(expanded_script)
+
+        container = f"{coursename}-xbuildx-{buildname}-{githash}"
+
+        podman  = f""
+        podman += f" podman run --rm"
+        podman += f" --name {container}"
+        # mount git repo
+        podman += f" -v {self.git_dir}:{self.git_dir}"
+        # ditto under its normalized name if needed
+        if self.norm_git_dir != self.git_dir:
+            podman += f" -v {self.norm_git_dir}:{self.norm_git_dir}"
+        # mount subdir of NBHROOT/builds
+        podman += f" -v {host_trigger.parent}:/home/jovyan/building"
+        podman += f" {self.image}"
+        podman += f" bash /home/jovyan/building/clone-build-rsync.sh"
+        show_and_run(podman, dry_run=dry_run)
+        if dry_run:
+            logger.info(f"(DRY-RUN) Build script is in {host_trigger}")
 
 
     def pull_from_git(self, silent=False):
@@ -653,4 +773,3 @@ class CourseDir(models.Model):
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             encoding="utf-8",
             **run_args)
-

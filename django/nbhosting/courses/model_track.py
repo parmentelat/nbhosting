@@ -382,14 +382,14 @@ def sanitize_tracks(tracks: CourseTracks):
             tracks.remove(track)
     return tracks
 
-# see test-data/config.yaml for an example
+# see test-data/nbhosting.yaml for an example
 # of a yaml-based tracks definition
 def tracks_from_yaml_config(coursedir, tracks: dict):
     def get(D, key):
         return D.get(key, key)
     def build_track_from_dict(D):
         return Track(coursedir,
-                     sections=(build_section_from_dict(subD) for subD in D['sections']),
+                     sections=[build_section_from_dict(subD) for subD in D['sections']],
                      name=get(D, 'name'),
                      description=get(D, 'description'),
                      id=get(D, 'id'))

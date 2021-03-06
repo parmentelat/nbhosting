@@ -42,6 +42,6 @@ class Tests(TestCase):
         with open('test-data/config.yaml') as feed:
             yaml_config = yaml.safe_load(feed.read())
         yaml_tracks = yaml_config['tracks']
-        tracks = tracks_from_yaml_config(yaml_tracks)
+        tracks = tracks_from_yaml_config(coursedir, yaml_tracks)
         # warning, this may change if the course gets pulled
         self.assertEqual(len(tracks), 5)
