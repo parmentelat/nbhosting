@@ -117,8 +117,12 @@ class CourseDir(models.Model):
         return NBHROOT / "static" / self.coursename
     static_dir = property(_static_dir)
 
-    def _build_dir(self):
+    def _image_dir(self):
         return NBHROOT / "images" / self.coursename
+    image_dir = property(_image_dir)
+
+    def _build_dir(self):
+        return NBHROOT / "builds" / self.coursename
     build_dir = property(_build_dir)
 
 
@@ -525,7 +529,7 @@ class CourseDir(models.Model):
         locates Dockerfile and triggers podman build
         """
         force_tag = "" if not force else "--no-cache"
-        build_dir = self.build_dir
+        image_dir = self.image_dir
 
         image = self.image
         if image != self.coursename:
@@ -542,13 +546,13 @@ class CourseDir(models.Model):
             return
 
         # clean up and repopulate build dir
-        show_and_run(f"rm -rf {build_dir}/*", dry_run=dry_run)
-        build_dir.exists() or build_dir.mkdir()         # pylint: disable=w0106
+        show_and_run(f"rm -rf {image_dir}/*", dry_run=dry_run)
+        image_dir.exists() or image_dir.mkdir()         # pylint: disable=w0106
 
-        show_and_run(f"cp {dockerfile} {build_dir}/Dockerfile", dry_run=dry_run)
-        show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {build_dir}",
+        show_and_run(f"cp {dockerfile} {image_dir}/Dockerfile", dry_run=dry_run)
+        show_and_run(f"cp {NBHROOT}/images/start-in-dir-as-uid.sh {image_dir}",
                      dry_run=dry_run)
-        show_and_run(f"cd {build_dir}; "
+        show_and_run(f"cd {image_dir}; "
                      f"podman build {force_tag} -f Dockerfile -t {image} .",
                      dry_run=dry_run)
 

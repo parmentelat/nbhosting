@@ -381,3 +381,21 @@ def sanitize_tracks(tracks: CourseTracks):
         if not track:
             tracks.remove(track)
     return tracks
+
+# see test-data/config.yaml for an example
+# of a yaml-based tracks definition
+def tracks_from_yaml_config(coursedir, tracks: dict):
+    def get(D, key):
+        return D.get(key, key)
+    def build_track_from_dict(D):
+        return Track(coursedir,
+                     sections=(build_section_from_dict(subD) for subD in D['sections']),
+                     name=get(D, 'name'),
+                     description=get(D, 'description'),
+                     id=get(D, 'id'))
+    def build_section_from_dict(D):
+        return Section(
+            name=get(D, 'name'),
+            coursedir=coursedir,
+            notebooks=notebooks_by_patterns(coursedir, D['notebooks']))
+    return [build_track_from_dict(track) for track in tracks]

@@ -4,8 +4,9 @@ from django.test import TestCase
 
 from nbhosting.courses.model_course import CourseDir
 
-from nbhosting.courses.model_track import Track, Section, Notebook, generic_track
 
+from nbhosting.courses.model_track import (
+    Track, Section, Notebook, generic_track, tracks_from_yaml_config)
 
 class Tests(TestCase):
 
@@ -31,6 +32,16 @@ class Tests(TestCase):
 
     def test_notebookname(self):
         coursedir = CourseDir.objects.get(coursename="python-mooc")
-        notebook = Notebook(coursedir, "w1/w1-s1-c1-versions-python.ipynb")
+        notebook = Notebook(coursedir, "w1/w1-s1-c1-versions-python.md")
 
         self.assertEqual(notebook.notebookname, "Versions de python")
+
+    def test_yaml_tracks(self):
+        coursedir = CourseDir.objects.get(coursename="ue22-web-intro")
+        import yaml
+        with open('test-data/config.yaml') as feed:
+            yaml_config = yaml.safe_load(feed.read())
+        yaml_tracks = yaml_config['tracks']
+        tracks = tracks_from_yaml_config(yaml_tracks)
+        # warning, this may change if the course gets pulled
+        self.assertEqual(len(tracks), 5)
