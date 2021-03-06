@@ -7,7 +7,7 @@ set -x
 
 apt-get update
 
-pip install -U pip setuptools 
+pip install -U pip setuptools
 
 # --------
 # this is to increase the ulimit -n (max nb of open files)
@@ -21,6 +21,9 @@ for type in hard soft; do echo '*' $type nofile 131072 ; done > /etc/security/li
 # add lsof in the mix to help troubleshoot shortages of open files
 # from the container context
 apt-get install lsof
+
+# needed to export build results
+apt-get install rsync
 
 
 # --------
@@ -36,7 +39,7 @@ find /opt /usr -name notebook.js -o -name main.min.js | \
 find /opt /usr -name notificationarea.js -o -name main.min.js | \
     xargs sed -i \
         -e 's|this.init_trusted_notebook_notification_widget();||' \
-        -e 's|nnw.set_message(i18n.msg._("Notebook saved"),2000);||' 
+        -e 's|nnw.set_message(i18n.msg._("Notebook saved"),2000);||'
 
 
 # --------
