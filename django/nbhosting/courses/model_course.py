@@ -16,6 +16,7 @@ podman_url = "unix://localhost/run/podman/podman.sock"
 
 from django.db import models
 from django.contrib.auth.models import User, Group
+from django.template.loader import get_template
 
 from nbh_main.settings import NBHROOT, logger, sitesettings
 
@@ -623,8 +624,8 @@ class CourseDir(models.Model):
         """
         execute one of the buildnames provided in nbhosting.yaml
 
-        * preparation: create a lancher script called clone-build-rsync.sh
-          in NBHROOT/builds/COURSENAME/BUILDNAME
+        * preparation: create a launcher script called .clone-build-rsync.sh
+          in NBHROOT/builds/COURSENAME/BUILDNAME/githash/
           this script contains the 'script' part defined in YAML
           surrounded with some pre- and post- code
         * start a podman container with the relevant areas bind-mounted
@@ -649,11 +650,11 @@ class CourseDir(models.Model):
         for var in variables.split('+'):
             vars[var] = eval(var)
 
-        from django.template.loader import get_template
-        template = get_template("scripts/clone-build-rsync.sh")
+        template = get_template("scripts/dot-clone-build-rsync.sh")
         expanded_script = template.render(vars)
 
-        host_trigger = Path(self.build_dir) / buildname / githash / "clone-build-rsync.sh"
+        host_trigger = Path(self.build_dir) / buildname / githash / ".clone-build-rsync.sh"
+        host_log = host_trigger.with_suffix(".log")
         host_trigger.parent.mkdir(parents=True, exist_ok=True)
         with host_trigger.open('w') as writer:
             writer.write(expanded_script)
@@ -671,11 +672,18 @@ class CourseDir(models.Model):
         # mount subdir of NBHROOT/builds
         podman += f" -v {host_trigger.parent}:/home/jovyan/building"
         podman += f" {self.image}"
-        podman += f" bash /home/jovyan/building/clone-build-rsync.sh"
-        show_and_run(podman, dry_run=dry_run)
+        podman += f" bash /home/jovyan/building/.clone-build-rsync.sh"
+        podman += f" > {host_log} 2>&1"
+        success = show_and_run(podman, dry_run=dry_run)
         if dry_run:
             logger.info(f"(DRY-RUN) Build script is in {host_trigger}")
-
+        else:
+            logger.info(f"See complete log in {host_log}")
+            if success:
+                # move latest symlink
+                latest = Path(self.build_dir) / buildname / "latest"
+                latest.symlink_to(Path(githash), target_is_directory=True)
+                logger.info("{latest} updated ")
 
     def pull_from_git(self, silent=False):
         """

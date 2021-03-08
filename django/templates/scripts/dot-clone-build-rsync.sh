@@ -34,7 +34,7 @@ function clone_build_rsync() {
   user_code_in_subshell
   if [ $? == 0 ]; then
     echo "build OK - installing"
-    rsync -ai $result_folder/ /home/jovyan/building/result_folder
+    rsync -ai $result_folder/ /home/jovyan/building/
     exit 0
   else
     echo "build KO"
@@ -43,4 +43,5 @@ function clone_build_rsync() {
 }
 
 set -x
-clone_build_rsync 2>&1 > $here/clone-build-rsync.log
+# clone_build_rsync 2>&1 > $here/.clone-build-rsync.log
+clone_build_rsync 
