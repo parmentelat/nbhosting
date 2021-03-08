@@ -123,6 +123,11 @@ http {
         }
 
 
+        location /builds {
+                 root @nbhroot@;
+                 autoindex on;
+        }
+
         # more harmful than helpful at least during devel
         # redirect non-matching urls to /welcome
         location / {
