@@ -1,3 +1,8 @@
+# 0.38.1 2021 Mar 9
+
+* nbh-manage course-tracks --yaml
+  is a helper tool to produce a yaml extract as a replacement to tracks.py
+
 # 0.38.0 2021 Mar 9
 
 * the static-mappings and tracks.py configurations can now be done
