@@ -1,3 +1,15 @@
+# 0.38.0 2021 Mar 9
+
+* the static-mappings and tracks.py configurations can now be done
+  through a unified yaml file expected to be in nbhosting/nbhosting.yaml
+  if the yaml file is found, the other 2 old-style config files
+  (again traks.py and static-mappings) are ignored
+* courses can also define builds, like for instance
+  to recompute a jupyter-book version
+* nbh-manage course-run-build allows to trigger those builds
+* this is not yet connected to course-pull (see issue #139)
+* nor does the UI have any button to reach those builds yet (see issue #140)
+
 # 0.37.0 2021 Feb 8
 
 * use nbhosting metadata if present instead of notebookname #137
