@@ -399,3 +399,21 @@ def tracks_from_yaml_config(coursedir, tracks: dict):
             coursedir=coursedir,
             notebooks=notebooks_by_patterns(coursedir, D['notebooks']))
     return [build_track_from_dict(track) for track in tracks]
+
+# input is a list of Track instances
+def to_yaml(tracks):
+    def section_dict(section):
+        return dict(
+            name=section.name,
+            notebooks=[str(notebook.path) for notebook in section.notebooks],
+        )
+    def track_dict(track):
+        return dict(
+            name=track.name,
+            description=track.description,
+            id=track.id,
+            sections = [section_dict(section) for section in track.sections],
+        )
+    pre_yaml = dict(tracks=[track_dict(track) for track in tracks])
+    import yaml
+    return yaml.dump(pre_yaml)
