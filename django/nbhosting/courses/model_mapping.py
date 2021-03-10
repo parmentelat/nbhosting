@@ -10,7 +10,7 @@ class StaticMapping:
             self._init_from_line(line)
         elif len(args) == 2 and all(isinstance(x, str) for x in args):
             src, dest = args
-            self._init_from_src_dest(self, src, dest)
+            self._init_from_src_dest(src, dest)
 
     def _init_from_src_dest(self, src, dest):
         self.local, self.from_top = src, dest
