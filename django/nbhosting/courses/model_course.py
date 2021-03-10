@@ -682,8 +682,9 @@ class CourseDir(models.Model):
             if success:
                 # move latest symlink
                 latest = Path(self.build_dir) / buildname / "latest"
+                latest.exists() and latest.unlink()
                 latest.symlink_to(Path(githash), target_is_directory=True)
-                logger.info("{latest} updated ")
+                logger.info(f"{latest} updated ")
 
     def pull_from_git(self, silent=False):
         """
