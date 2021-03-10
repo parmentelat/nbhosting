@@ -1,41 +1,21 @@
 ---
 tracks:
-  - name: "course #1: HTML"
+  - name: "track #1"
     description: "basic contents with HTML and some CSS"
-    id: html
+    id: track1
     sections:
-      - name: introduction
-        notebooks: [ "notebooks/0*.md" ]
-      - name: "HTML basics"
+      - name: "section #11"
+        notebooks: [ "notebooks/0*.md" "notebooks/0*.py"]
+      - name: "section #12"
         notebooks: [ "quiz/1*md", "notebooks/1*.md" ]
-  - name: "course #2: CSS layout"
+  - name: "track #2"
     description: "advanced layout with CSS"
-    id: css
+    id: track2
     sections:
-      - name: quiz
-        notebooks: [ "quiz/1-html.md" ]
-      - name: layout with CSS
-        notebooks: [ notebooks/2*md" ]
-  - name: "course #3: JS basics"
-    description: "programming with JS"
-    id: js
-    sections:
-      - name: intro to JS
-        notebooks: [ "notebooks/3*md" ]
-      - name: optional content
-        notebooks: [ "notebooks/5*md" ]
-  - name: "old JS intro"
-    description: "course from year 1 - check for any missing stuff"
-    id: oldies
-    sections:
-      - name: "previous JS intro"
-        notebooks: [ "notebooks/old*md" ]
-  - name: "final quiz"
-    description: "final quiz"
-    id: quiz
-    sections:
-      - name: quiz JS
-        notebooks: [ "quiz/3-js.md" ]
+      - name: "section #11"
+        notebooks: [ "notebooks/2*.md" "notebooks/2*.py"]
+      - name: "section #12"
+        notebooks: [ "quiz/2*md", "notebooks/3*.md" ]
 
 static-mappings:
   - source: data
@@ -47,10 +27,9 @@ static-mappings:
 
 builds:
   - name: jupyter-book
+    directory: notebooks
     script: >
-      cd notebooks
       pip install jupyter-book
       jupyter-book build .
-    result-folder: notebooks/_build/html
-    mount-as: jupyter-book
-    entry-point: index.html
+    result-folder: _build/html
+    entry-point: index.html   # is the default

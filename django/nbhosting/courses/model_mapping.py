@@ -20,7 +20,7 @@ class StaticMapping:
         """
         each non-comment line in nbhosting/static-mappings
         results in one valid instance
-        """    
+        """
         try:
             line = line.strip()
             if '#' in line:

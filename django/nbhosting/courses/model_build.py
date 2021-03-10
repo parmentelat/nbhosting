@@ -33,9 +33,9 @@ class YamlRecord:
 
 class Build(YamlRecord):
     DEFAULTS = {
-        'name': None,
+        'name': None,                   # to appear under the builds/ subdir
         'script': None,
-        'result_folder': '.',
-        'mount_as': '{self.name}',
-        'entry_point': 'index.html'
+        'directory': '.',               # where to run relatie to repo
+        'result_folder': '_build/html', # default is for sphinx
+        'entry_point': 'index.html',    # what to expose to the outside
     }

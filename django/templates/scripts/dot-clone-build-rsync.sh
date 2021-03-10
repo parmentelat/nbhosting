@@ -14,9 +14,9 @@ NBHROOT="{{NBHROOT}}"
 coursename="{{coursename}}"
 buildname="{{buildname}}"
 githash="{{githash}}"
+directory="{{directory}}"
 result_folder="{{result_folder}}"
 entry_point="{{entry_point}}"
-mount_as="{{mount_as}}"
 
 host_repo="${NBHROOT}/courses-git/${coursename}"
 
@@ -24,17 +24,21 @@ host_repo="${NBHROOT}/courses-git/${coursename}"
 # https://stackoverflow.com/questions/30488698/how-to-make-a-bash-function-return-1-on-any-error
 user_code_in_subshell() (
 set -e
+cd {{directory}}
+pwd
 {{script}}
 )
 
 function clone_build_rsync() {
+  id
   cd /home/jovyan/work
   git clone ${host_repo} .
   # set -e
   user_code_in_subshell
   if [ $? == 0 ]; then
     echo "build OK - installing"
-    rsync -ai $result_folder/ /home/jovyan/building/
+    ls -ld $directory/$result_folder/ /home/jovyan/building/
+    rsync -ai $directory/$result_folder/ /home/jovyan/building/
     exit 0
   else
     echo "build KO"
@@ -44,4 +48,4 @@ function clone_build_rsync() {
 
 set -x
 # clone_build_rsync 2>&1 > $here/.clone-build-rsync.log
-clone_build_rsync 
+clone_build_rsync

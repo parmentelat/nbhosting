@@ -638,12 +638,12 @@ class CourseDir(models.Model):
 
         buildname = build.name
         script = build.script
+        directory = build.directory
         result_folder = build.result_folder
         entry_point = build.entry_point
-        mount_as = build.mount_as
 
 
-        variables = "NBHROOT+coursename+githash+buildname+script+result_folder+entry_point+mount_as"
+        variables = "NBHROOT+coursename+githash+buildname+script+directory+result_folder+entry_point"
         # oddly enough a dict comprehension won't work here,
         # saying the variable names are undefined...
         vars = {}
