@@ -1,6 +1,12 @@
+# 0.39.0 2021 Mar 10
+
+* revised definition of the build object, new field directory,
+  deprecate mount_as, defaults adapted to a sphinx build
+
+
 # 0.38.2 2021 Mar 10
 
-** minor bugfixes in yaml-config
+* minor bugfixes in yaml-config
 
 # 0.38.1 2021 Mar 9
 
