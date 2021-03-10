@@ -1,3 +1,7 @@
+# 0.38.2 2021 Mar 10
+
+** minor bugfixes in yaml-config
+
 # 0.38.1 2021 Mar 9
 
 * nbh-manage course-tracks --yaml
