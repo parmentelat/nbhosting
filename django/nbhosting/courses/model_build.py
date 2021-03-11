@@ -39,3 +39,6 @@ class Build(YamlRecord):
         'result_folder': '_build/html', # default is for sphinx
         'entry_point': 'index.html',    # what to expose to the outside
     }
+
+    def __repr__(self):
+        return f"Build {self.name} in directory {self.directory}"

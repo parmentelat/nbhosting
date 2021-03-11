@@ -509,6 +509,7 @@ class CourseDir(models.Model):
 
     def _probe_settings_yaml(self):
         yaml_filename = self.customized("nbhosting.yaml")
+        logger.debug(f"yaml filename {yaml_filename}")
         if not yaml_filename:
             return False
         try:
@@ -619,6 +620,14 @@ class CourseDir(models.Model):
             if not matching_policy(build.name, build_patterns):
                 continue
             self.run_extra_build(build, dry_run)
+
+    def list_extra_builds(self, build_patterns):
+        self.probe()
+        for build in self.builds:
+            if not matching_policy(build.name, build_patterns):
+                continue
+            print(build)
+
 
     def run_extra_build(self, build: Build, dry_run):
         """
