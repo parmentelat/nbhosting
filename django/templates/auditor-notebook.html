@@ -144,6 +144,9 @@ function iframe_notebook(notebook) {
 ////////// toggle buttons
 
 // hide left and top areas
+function hideleft_status() {
+    return ($("#hideleft-toggle").hasClass("hideleft"));
+}
 function hideleft_toggle() {
     if ($("#hideleft-toggle").hasClass("hideleft")) {
         hideleft_off();
@@ -163,6 +166,9 @@ function hideleft_off() {
     $("#hideleft-toggle").removeClass("hideleft");
 }
 
+function hidetop_status() {
+    return ($("#hidetop-toggle").hasClass("hidetop"));
+}
 function hidetop_toggle() {
     if ($("#hidetop-toggle").hasClass("hidetop")) {
         hidetop_off();
@@ -225,8 +231,16 @@ function toggle_decorations(direction, event) {
      || event.ctrlKey || event.altKey) {
         (direction == 'top') ? hidetop_toggle() : hideleft_toggle();
     } else {
-        hidetop_toggle();
-        hideleft_toggle();
+        // usual click means toggle in both directions
+        let top = hidetop_status()
+        let left = hideleft_status()
+        // except if they are not in the same status
+        if (top == left) {
+            hidetop_toggle()
+            hideleft_toggle()
+        } else {
+            top ? hidetop_toggle() : hideleft_toggle()
+        }
     }
 }
 </script>
