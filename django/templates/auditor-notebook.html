@@ -98,6 +98,13 @@ function select_track(track_id, show_first_notebook){
     }
 }
 
+function select_build(buildname, entry_point) {
+  // xxx todo figure a URL scheme so as to point there directly
+  // like with @classic and @jlab
+  let url = `/builds/{{coursename}}/${buildname}/latest/${entry_point}`
+  iframe_src(url)
+}
+
 // jupyter classic app
 function select_classic() {
     global_track_or_app = "@classic";
@@ -544,14 +551,22 @@ onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);"
         <div id="left-bottom">
 
             <div id="other-views"
-                data-toggle="tooltip" data-html="true"
+                data-toggle="tooltip" data-html="true" data-placement="right"
                 title="you'll find here<br>some other ways<br>to browse this repo">
                 other views
             </div>
 
+            {% for build in coursedir.builds %}
+                <div id="build-{{build.name}}" 
+                    onclick="select_build('{{build.name}}', '{{build.entry_point}}')"
+                    class="build btn btn-outline-success"
+                > {{build.name}}
+                </div>
+            {% endfor %}
+
             <div id="classic"
                 onclick="select_classic()"
-                data-toggle="tooltip" data-html="true"
+                data-toggle="tooltip" data-html="true" data-placement="right"
                 title="Jupyter classic will display the contents of your workdir
                 and spawn noteboks in separate tabs"
                 class="classic btn btn-outline-success"
@@ -560,7 +575,7 @@ onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);"
             <div id="jlab"
                 onclick="select_jlab()"
                 target="nbhosting-jupyter"
-                data-toggle="tooltip" data-html="true"
+                data-toggle="tooltip" data-html="true" data-placement="right"
                 title="with Jupyter lab you can edit all your contents from
                 within a single browser tab"
                 class="lab btn btn-outline-success"
