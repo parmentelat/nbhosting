@@ -55,11 +55,10 @@ function outline_current_notebook(notebook) {
 // make sure no track is highlighted
 function turn_off_tracks() {
     $("a.track-name").removeClass('active');
-    $(`h1.single-track-head`).removeClass('active');
 }
 // turn off one of the 2 jupyter app buttons
 function turn_jupyter_button(name, true_if_on) {
-    let button = $(`div.jupyter a#${name}`);
+    let button = $(`div#${name}`);
     true_if_on ? button.addClass('active') : button.removeClass('active');
 }
 
@@ -87,7 +86,6 @@ function select_track(track_id, show_first_notebook){
     $(`a.track-name[id="sections-${track_id}-tab"]`).addClass('active');
     $(`div.track-sections:not([id="sections-${track_id}"])`).removeClass('active').removeClass('show');
     $(`div.track-sections[id="sections-${track_id}"]`).addClass('active').addClass('show');
-    $(`h1.single-track-head`).addClass('active');
 
     if (show_first_notebook) {
         let notebook = first_notebook_per_track[track_id];
@@ -185,6 +183,41 @@ function hidetop_off() {
 }
 
 
+/* the left bottom area works in auto-hide mode */
+
+function leftbottom_on() {_hide_leftbottom(false)}
+function leftbottom_off() {_hide_leftbottom(true)}
+function leftbottom_toggle() {
+    let left_bottom = document.querySelector("#left-bottom")
+    let hidden = left_bottom.getAttribute('data-hidden')
+    _hide_leftbottom(! hidden)
+}
+function _hide_leftbottom(hidden) {
+    console.log(`hidden = ${hidden}`)
+    // let's get rid of jquery one day
+    let left_bottom = document.querySelector("#left-bottom")
+    // we're requested to make it show up: use the css setting
+    if (!hidden) {
+        left_bottom.style.marginBottom = null
+        left_bottom.setAttribute('data-hidden', null)
+    } else {
+        // hidden here means to keep only 'other-views' visible
+        let other_views = document.getElementById('other-views')
+        let thin_height = other_views.clientHeight - 5
+        let height = left_bottom.offsetHeight
+        left_bottom.style.marginBottom = `${- (height - thin_height)}px`;
+        left_bottom.setAttribute('data-hidden', 'yes')
+    }
+}
+window.addEventListener(
+    'load', ()=> {
+        leftbottom_off()
+        let left_bottom = document.querySelector("#left-bottom")
+        left_bottom.addEventListener('mouseenter', leftbottom_on)
+        left_bottom.addEventListener('mouseover', leftbottom_on)
+        left_bottom.addEventListener('mouseout', leftbottom_off)
+    })
+
 function toggle_decorations(direction, event) {
     // with shift-click or control click
     // toggle just that direction
@@ -231,10 +264,10 @@ html, body {
 }
 
 /* less space between top and left when both shown */
-.nbh-body:not(.hidetop) #left-pane .left-upper.hidden + .left-middle > .track-sections {
+.nbh-body:not(.hidetop) #left-pane .#left-bottom.hidden + .left-middle > .track-sections {
     margin-top: 0px;
 }
-.nbh-body:not(.hidetop) #left-pane .left-upper:not(.hidden) {
+.nbh-body:not(.hidetop) #left-pane #left-top:not(.hidden) {
     margin-top: 0px;
 }
 
@@ -257,7 +290,7 @@ html, body {
     right: 100%;
 }
 
-div.left-upper {
+#left-top {
     margin: 10px 10px 0px 10px;
     padding: 10px;
     border-radius: 10px;
@@ -269,14 +302,17 @@ div.left-middle {
     overflow-y: auto;
 }
 
-div.left-bottom {
+#left-bottom {
+    display: flex;
+    flex-direction: column;
     /* margin-top: auto is important so that
        the box gets attached to the bottom of the viewport */
     margin: auto 10px 5px 10px;
+    transition: margin-bottom 0.5s ease-in-out;
     border-radius: 10px;
     /* tmp */
     border: 2px solid green;
-    padding: 10px;
+    padding: 0px 10px 10px 10px;
     background-color: white;
 }
 
@@ -396,42 +432,17 @@ iframe {
 /*    background-position: center; */
  }
 
- .single-track-head, .track-head, .jupyter-head {
-     width: 100%;
-     border-width: 0px;
- }
-
-.track-head {
- font-size: 100%;
-}
-
-.jupyter-head {
+ #other-views {
+    text-align: center;
+    width: 100%;
+    border-width: 0px;
     font-size: 100%;
+    padding-bottom: 10px;
 }
 
-.single-track-head {
+#classic, #jlab {
     width: 100%;
     font-size: 80%;
-}
-.single-track-head:before {
-    content: "\2933";
-}
-
-.jupyter {
-    display: flex;
-}
-
-.classic, .lab {
-    width: 50%;
-    margin: 0px 6px;
-    padding: 6px 0px;
-    font-size: 80%;
-}
-
-.git {
-    width: 100%;
-    margin-top: 10px;
-    font-size: 100%;
 }
 
 .transitionable {
@@ -463,13 +474,11 @@ iframe {
 
     <div id="left-pane" class="transitionable">
 
-        <div class='left-upper transitionable {% if tracks|length_is:"1" %}hidden{% endif%}'>
+        <div id='left-top' class='transitionable {% if tracks|length_is:"1" %}hidden{% endif%}'
+            data-toggle="tooltip" data-html="true"
+            title="this course<br>has several tracks"
+        >
 
-            <h1 class="btn btn-outline-secondary active track-head"
-                data-toggle="tooltip" data-html="true"
-                title="you may choose one of the following tracks"
-                aria-pressed="true"
-            >by track</h1>
             <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
                 {% for track_obj in tracks %}
                 <span data-toggle="tooltip" title="{{track_obj.description}}">
@@ -493,13 +502,6 @@ iframe {
                 id="sections-{{track_obj.id}}" role="tabpanel"
                 aria-labelledby="sections-{{track_obj.id}}-tab"
                 >
-                {% if tracks|length_is:"1" %}
-                <h1 class="btn btn-outline-secondary single-track-head"
-                    data-toggle="tooltip" data-html="true"
-                    title="you may read along the single track<br/>
-                           that this course offers">
-                </h1>
-                {% endif%}
 
                 {% for section in track_obj.sections %}
                 <div class="section">
@@ -525,39 +527,32 @@ onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);"
         </div>
 
 
-        <div class="left-bottom">
+        <div id="left-bottom">
 
-            <h1 class="btn btn-outline-secondary active jupyter-head"
+            <div id="other-views"
                 data-toggle="tooltip" data-html="true"
-                title="or, if you'd prefer through<br/> a regular jupyter app"
-                aria-pressed="true"
-            >Jupy<wbr>ter</h1>
-            <div class="jupyter">
-                <a id="classic"
-                    onclick="select_classic()"
-                    data-toggle="tooltip" data-html="true"
-                    title="Jupyter classic will display the contents of your workdir
-                    and spawn noteboks in separate tabs"
-                    class="classic btn btn-outline-success"
-                    >  clas<wbr>sic
-                </a>
-                <a id="jlab"
-                    onclick="select_jlab()"
-                    target="nbhosting-jupyter"
-                    data-toggle="tooltip" data-html="true"
-                    title="with Jupyter lab you can edit all your contents from
-                    within a single browser tab"
-                    class="lab btn btn-outline-success"
-                    >  lab
-                </a>
+                title="you'll find here<br>some other ways<br>to browse this repo">
+                other views
             </div>
 
-<!--            <a onclick="iframe_src('{{gitpull_url}}')"
-                class="btn btn-outline-danger git"
+            <div id="classic"
+                onclick="select_classic()"
                 data-toggle="tooltip" data-html="true"
-                title="update your workspace<br/>from the upstream git repo"
-            > git pull
-            </a> -->
+                title="Jupyter classic will display the contents of your workdir
+                and spawn noteboks in separate tabs"
+                class="classic btn btn-outline-success"
+                >  Jupy<wbr>ter clas<wbr>sic
+                </div>
+            <div id="jlab"
+                onclick="select_jlab()"
+                target="nbhosting-jupyter"
+                data-toggle="tooltip" data-html="true"
+                title="with Jupyter lab you can edit all your contents from
+                within a single browser tab"
+                class="lab btn btn-outline-success"
+                >  Jupy<wbr>ter lab
+                </div>
+
         </div>
 
     </div>
