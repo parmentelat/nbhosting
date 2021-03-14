@@ -35,10 +35,10 @@ let global_track_or_app = ":{{track.id}}";
 {% endif %}
 
 function update_header(string) {
-    $('div.nbh-title>h2').html(string);    
+    $('div.nbh-title>h2').html(string);
 }
 
-// make sure the current notebook 
+// make sure the current notebook
 // is properly highlighted in the track area
 function outline_current_notebook(notebook) {
     $("div.notebook").each(function(index, div) {
@@ -73,11 +73,11 @@ function update_url(trailer) {
 let first_notebook_per_track = JSON.parse(
     document.getElementById('first-notebook-per-track').textContent);
 
-// a track has been chosen 
+// a track has been chosen
 // hightlight corresponding track button,
 // and turn off jup app buttons
-// if show_first_button is set, 
-// also display first notebook in track 
+// if show_first_button is set,
+// also display first notebook in track
 function select_track(track_id, show_first_notebook){
     global_track_or_app = `:${track_id}`;
     turn_jupyter_button('classic', false);
@@ -188,7 +188,7 @@ function hidetop_off() {
 function toggle_decorations(direction, event) {
     // with shift-click or control click
     // toggle just that direction
-    if (event.shiftKey || event.metaKey 
+    if (event.shiftKey || event.metaKey
      || event.ctrlKey || event.altKey) {
         (direction == 'top') ? hidetop_toggle() : hideleft_toggle();
     } else {
@@ -231,10 +231,10 @@ html, body {
 }
 
 /* less space between top and left when both shown */
-.nbh-body:not(.hidetop) #left-pane .left-upper.hidden + .left-middle > .track-sections { 
+.nbh-body:not(.hidetop) #left-pane .left-upper.hidden + .left-middle > .track-sections {
     margin-top: 0px;
 }
-.nbh-body:not(.hidetop) #left-pane .left-upper:not(.hidden) { 
+.nbh-body:not(.hidetop) #left-pane .left-upper:not(.hidden) {
     margin-top: 0px;
 }
 
@@ -460,7 +460,7 @@ iframe {
     <div id="hidetop-toggle" class="transitionable">
         <img src="/assets/img/down.svg" height="40px" />
     </div>
-    
+
     <div id="left-pane" class="transitionable">
 
         <div class='left-upper transitionable {% if tracks|length_is:"1" %}hidden{% endif%}'>
@@ -580,7 +580,7 @@ function clicktop(e) { toggle_decorations('top', e); }
 $(() => {
     $("#hideleft-toggle").click(clickleft);
     $("#hidetop-toggle").click(clicktop);
-    {% if jupyter_app %} 
+    {% if jupyter_app %}
         select_{{jupyter_app}}();
     {% else %}
         select_track("{{track.id}}", false);
