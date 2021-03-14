@@ -1,3 +1,9 @@
+# 0.40.0 2021 Mar 14
+
+* the list of builds is used to create additional navigation buttons in the 'other views' area
+  that's how one can now read the output of a jupyter-book build
+  still missing is a URL scheme to reach such builds directly
+
 # 0.39.0 2021 Mar 10
 
 * revised definition of the build object, new field directory,
