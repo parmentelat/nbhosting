@@ -95,12 +95,14 @@ class Notebook:                                         # pylint: disable=r0903
         if main_tooltip is None:
             main_tooltip = self.notebookname
 
-        result = ""
-        result += f''' data-toggle="tooltip" data-html="true"'''
-        result += f''' title="'''
+        full_tooltip = ""
         if main_tooltip:
-            result +=  f'''{main_tooltip}<br/>'''
-        result += f'''<span class='smaller'>{self.clean_path()}</span>"'''
+            full_tooltip +=  f'''{main_tooltip}<br/>'''
+        full_tooltip += f'''<span class='smaller'>{self.clean_path()}</span>'''
+
+        result = ""
+        result += f''' data-toggle="tooltip" data-html="true" data-placement="bottom"'''
+        result += f''' title="{full_tooltip}"'''
         return result
 
     def onclick(self):
