@@ -614,22 +614,21 @@ class CourseDir(models.Model):
             if build.name == buildname:
                 return build
 
-    def run_extra_builds(self, build_patterns, dry_run=False):
-        self.probe()
-        for build in self.builds:
-            if not matching_policy(build.name, build_patterns):
-                continue
-            self.run_extra_build(build, dry_run)
-
-    def list_extra_builds(self, build_patterns):
+    def list_builds(self, build_patterns):
         self.probe()
         for build in self.builds:
             if not matching_policy(build.name, build_patterns):
                 continue
             print(build)
 
+    def run_builds(self, build_patterns, *, dry_run=False, force=False):
+        self.probe()
+        for build in self.builds:
+            if not matching_policy(build.name, build_patterns):
+                continue
+            self.run_build(build, dry_run=dry_run, force=force)
 
-    def run_extra_build(self, build: Build, dry_run):
+    def run_build(self, build: Build, *, dry_run=False, force=False):
         """
         execute one of the buildnames provided in nbhosting.yaml
 
@@ -640,6 +639,8 @@ class CourseDir(models.Model):
         * start a podman container with the relevant areas bind-mounted
           namely the git repo - mounted read-only - and the build area
           mentioned above
+
+        return True if build is done or redone successfully
         """
 
         coursename = self.coursename
@@ -651,6 +652,17 @@ class CourseDir(models.Model):
         result_folder = build.result_folder
         entry_point = build.entry_point
 
+        build_path = Path(self.build_dir) / buildname / githash
+        if build_path.exists():
+            if not build_path.is_dir():
+                logger.error(f"{build_path} exists and is not a dir - build aborted")
+                return False
+            if not force:
+                logger.error(f"build {build_path} already present - run with --force to override")
+                return False
+            logger.info(f"removing existing build (--force) {build_path}")
+            import shutil
+            shutil.rmtree(str(build_path))
 
         variables = "NBHROOT+coursename+githash+buildname+script+directory+result_folder+entry_point"
         # oddly enough a dict comprehension won't work here,
@@ -662,7 +674,7 @@ class CourseDir(models.Model):
         template = get_template("scripts/dot-clone-build-rsync.sh")
         expanded_script = template.render(vars)
 
-        host_trigger = Path(self.build_dir) / buildname / githash / ".clone-build-rsync.sh"
+        host_trigger = build_path / ".clone-build-rsync.sh"
         host_log = host_trigger.with_suffix(".log")
         host_trigger.parent.mkdir(parents=True, exist_ok=True)
         with host_trigger.open('w') as writer:

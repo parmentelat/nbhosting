@@ -557,7 +557,7 @@ onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);"
             </div>
 
             {% for build in coursedir.builds %}
-                <div id="build-{{build.name}}" 
+                <div id="build-{{build.name}}"
                     onclick="select_build('{{build.name}}', '{{build.entry_point}}')"
                     class="build btn btn-outline-success"
                 > {{build.name}}
