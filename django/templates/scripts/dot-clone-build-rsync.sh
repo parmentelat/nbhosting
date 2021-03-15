@@ -12,11 +12,8 @@ here=$(dirname $0)
 
 NBHROOT="{{NBHROOT}}"
 coursename="{{coursename}}"
-buildname="{{buildname}}"
-githash="{{githash}}"
 directory="{{directory}}"
 result_folder="{{result_folder}}"
-entry_point="{{entry_point}}"
 
 host_repo="${NBHROOT}/courses-git/${coursename}"
 

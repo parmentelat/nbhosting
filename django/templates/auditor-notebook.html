@@ -98,10 +98,10 @@ function select_track(track_id, show_first_notebook){
     }
 }
 
-function select_build(buildname, entry_point) {
+function select_build(build_id, entry_point) {
   // xxx todo figure a URL scheme so as to point there directly
   // like with @classic and @jlab
-  let url = `/builds/{{coursename}}/${buildname}/latest/${entry_point}`
+    let url = `/builds/{{coursename}}/${build_id}/latest/${entry_point}`
   iframe_src(url)
 }
 
@@ -557,9 +557,13 @@ onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);"
             </div>
 
             {% for build in coursedir.builds %}
-                <div id="build-{{build.name}}"
-                    onclick="select_build('{{build.name}}', '{{build.entry_point}}')"
+                <div id="build-{{build.id}}"
+                    onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
                     class="build btn btn-outline-success"
+                    {% if build.description %}
+                      data-toggle="tooltip" data-html="true" data-placement="right"
+                      title="{{build.description}}"
+                    {% endif %}
                 > {{build.name}}
                 </div>
             {% endfor %}

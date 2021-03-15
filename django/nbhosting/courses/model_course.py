@@ -607,12 +607,6 @@ class CourseDir(models.Model):
                      f"podman build {force_tag} -f Dockerfile -t {image} .",
                      dry_run=dry_run)
 
-    def buildnames(self):
-        return [build.name for build in self.builds]
-    def build_by_name(self, buildname):
-        for build in self.builds:
-            if build.name == buildname:
-                return build
 
     def list_builds(self, build_patterns):
         self.probe()
@@ -630,10 +624,10 @@ class CourseDir(models.Model):
 
     def run_build(self, build: Build, *, dry_run=False, force=False):
         """
-        execute one of the buildnames provided in nbhosting.yaml
+        execute one of the builds provided in nbhosting.yaml
 
         * preparation: create a launcher script called .clone-build-rsync.sh
-          in NBHROOT/builds/COURSENAME/BUILDNAME/githash/
+          in NBHROOT/builds/<coursename>/<buildid>/<githash>/
           this script contains the 'script' part defined in YAML
           surrounded with some pre- and post- code
         * start a podman container with the relevant areas bind-mounted
@@ -646,13 +640,13 @@ class CourseDir(models.Model):
         coursename = self.coursename
         githash = self.current_hash()
 
-        buildname = build.name
+        buildid = build.id
         script = build.script
         directory = build.directory
         result_folder = build.result_folder
         entry_point = build.entry_point
 
-        build_path = Path(self.build_dir) / buildname / githash
+        build_path = Path(self.build_dir) / buildid / githash
         if build_path.exists():
             if not build_path.is_dir():
                 logger.error(f"{build_path} exists and is not a dir - build aborted")
@@ -664,7 +658,7 @@ class CourseDir(models.Model):
             import shutil
             shutil.rmtree(str(build_path))
 
-        variables = "NBHROOT+coursename+githash+buildname+script+directory+result_folder+entry_point"
+        variables = "NBHROOT+coursename+script+directory+result_folder"
         # oddly enough a dict comprehension won't work here,
         # saying the variable names are undefined...
         vars = {}
@@ -680,7 +674,7 @@ class CourseDir(models.Model):
         with host_trigger.open('w') as writer:
             writer.write(expanded_script)
 
-        container = f"{coursename}-xbuildx-{buildname}-{githash}"
+        container = f"{coursename}-xbuildx-{buildid}-{githash}"
 
         podman  = f""
         podman += f" podman run --rm"
@@ -702,7 +696,7 @@ class CourseDir(models.Model):
             logger.info(f"See complete log in {host_log}")
             if success:
                 # move latest symlink
-                latest = Path(self.build_dir) / buildname / "latest"
+                latest = Path(self.build_dir) / buildid / "latest"
                 latest.exists() and latest.unlink()
                 latest.symlink_to(Path(githash), target_is_directory=True)
                 logger.info(f"{latest} updated ")

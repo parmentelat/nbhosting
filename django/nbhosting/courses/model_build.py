@@ -33,7 +33,9 @@ class YamlRecord:
 
 class Build(YamlRecord):
     DEFAULTS = {
-        'name': None,                   # to appear under the builds/ subdir
+        'name': None,                   # shows up in the UI
+        'id': "{self.name}",            # to appear under the builds/ subdir and URLs
+        'description': "",              # ditto as a tooltip
         'script': None,
         'directory': '.',               # where to run relative to repo
         'result_folder': '_build/html', # default is for sphinx
@@ -41,4 +43,7 @@ class Build(YamlRecord):
     }
 
     def __repr__(self):
-        return f"Build {self.name} in directory {self.directory}"
+        name_part = f" name={self.name}" if self.name != self.id else ""
+        d = self.description
+        description_part = d if len(d) < 20 else f"{d[:17]}..."
+        return f"Build {self.id}{name_part} in directory {self.directory} desc:{description_part}"
