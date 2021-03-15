@@ -1,3 +1,8 @@
+# 0.40.2 2021 Mar 15
+
+* nbh-manage course-pull no longer does git pull but fetch + reset --hard
+- the remote is expected to be called origin (#138)
+
 # 0.40.1 2021 Mar 15
 
 * nbh-manage course-run-build --force (#141)
