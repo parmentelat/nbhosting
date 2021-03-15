@@ -1,3 +1,8 @@
+# 0.40.1 2021 Mar 15
+
+* nbh-manage course-run-build --force (#141)
+* builds have more fields: id + name + description (#142)
+
 # 0.40.0 2021 Mar 14
 
 * the list of builds is used to create additional navigation buttons in the 'other views' area
