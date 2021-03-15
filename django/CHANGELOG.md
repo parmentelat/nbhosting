@@ -1,24 +1,22 @@
 # 0.40.2 2021 Mar 15
 
-* nbh-manage course-pull no longer does git pull but fetch + reset --hard
-- the remote is expected to be called origin (#138)
+* nbh-manage course-pull no longer does git pull but fetch + reset --hard  
+  the current branch is used as-is, note that the remote is expected to be called `origin` #138
 
 # 0.40.1 2021 Mar 15
 
-* nbh-manage course-run-build --force (#141)
-* builds have more fields: id + name + description (#142)
+* nbh-manage course-run-build --force #141
+* builds have more fields: id + name + description #142
 
 # 0.40.0 2021 Mar 14
 
-* the list of builds is used to create additional navigation buttons in the 'other views' area
-  that's how one can now read the output of a jupyter-book build
-  still missing is a URL scheme to reach such builds directly
+* the list of builds is used to create additional navigation buttons in the 'other views'
+  area #140  
 
 # 0.39.0 2021 Mar 10
 
 * revised definition of the build object, new field directory,
   deprecate mount_as, defaults adapted to a sphinx build
-
 
 # 0.38.2 2021 Mar 10
 
@@ -31,19 +29,21 @@
 
 # 0.38.0 2021 Mar 9
 
-* the static-mappings and tracks.py configurations can now be done
-  through a unified yaml file expected to be in nbhosting/nbhosting.yaml
-  if the yaml file is found, the other 2 old-style config files
-  (again traks.py and static-mappings) are ignored
+* the `static-mappings` and `tracks.py` configurations can now be done
+  through a unified yaml file expected to be in `nbhosting/nbhosting.yaml`
+* if the yaml file is found, the other 2 old-style config files
+  (again `traks.py` and `static-mappings`) are ignored
 * courses can also define builds, like for instance
-  to recompute a jupyter-book version
+  to recompute a static html version using jupyter-book
 * nbh-manage course-run-build allows to trigger those builds
-* this is not yet connected to course-pull (see issue #139)
-* nor does the UI have any button to reach those builds yet (see issue #140)
+* this is not yet connected to course-pull #139
+* nor does the UI have any button to reach those builds yet #140
 
 # 0.37.0 2021 Feb 8
 
 * use nbhosting metadata if present instead of notebookname #137
+* that is to say `nbhosting.title` and `nbhosting.version` have precedence over toplevel
+  `notebookname` and `version` resp.
 
 # 0.36.3 2020 Dec 14
 
@@ -64,7 +64,6 @@
     use a unified selection mechanism
   * beware that the --all option is no longer needed not supported
     just call the command with no parameter to get same effect
-  * see details in https://github.com/parmentelat/nbhosting/issues/136
 
 # 0.35.1 2020 Dec 12
 
