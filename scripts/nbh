@@ -197,10 +197,11 @@ function course-init() {
 
 
 ##########
-# pull from upstream git repo
+# fetch and reset from upstream git repo
 # and updates the various parts accordingly
-# also the options allow to change global settings
-# for the course:
+#
+# note that this DOES NOT MERGE but instead does a reset --hard
+# on the upstream commit; the remote is expected to be named 'origin'
 ###
 @declare-subcommand course-update-from-git
 function course-update-from-git() {
@@ -226,8 +227,12 @@ function course-update-from-git() {
     echo ==========  $(date): update-course
 
     cd $COURSE_git
-    echo "========== git pull"
-    git pull
+    echo "========== git fetch origin"
+    git fetch origin
+
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    echo "========== git reset --hard origin/$branch"
+    git reset --hard origin/$branch
     # this does not always show 3 commits
     # so let's be more vague about that
     echo "========== latest commits"

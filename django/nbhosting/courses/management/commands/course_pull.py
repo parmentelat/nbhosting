@@ -20,5 +20,5 @@ class Command(BaseCommand):
         patterns = kwargs['patterns']
         selected = sorted(CourseDir.courses_by_patterns(patterns))
         for coursedir in selected:
-            logger.info(f"{40*'='} pulling from git for {coursedir.coursename}")
+            logger.info(f"{40*'='} updating from git for {coursedir.coursename}")
             coursedir.pull_from_git()
