@@ -43,9 +43,10 @@ class Command(BaseCommand):
             col_name = f"{max_name+1}s"
             col_groups = f"{max_groups+1}s"
             autopull = "[AP]" if cd.autopull else ""
+            autobuild = "[AB]" if cd.autobuild else ""
             archived = "[AR]" if cd.archived else ""
-            flags = "".join([x for x in (autopull, archived) if x])
-            flags = f"{flags:9s}"
+            flags = "".join([x for x in (autopull, autobuild, archived) if x])
+            flags = f"{flags:13s}"
             hash_part = f"{cd.current_hash():9s}"
             groups_part = f"{groups(cd):{col_groups}}"
             image = cd.image

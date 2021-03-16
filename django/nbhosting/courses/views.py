@@ -305,9 +305,11 @@ def staff_course_update(request, course):
 
         # Check if the form is valid:
         if form.is_valid():
-            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            # process the data in form.cleaned_data as required
+            # here we just write it to the model field
             coursedir.autopull = form.cleaned_data['autopull']
             coursedir.archived = form.cleaned_data['archived']
+            coursedir.autobuild = form.cleaned_data['autobuild']
             coursedir.image = form.cleaned_data['image']
             coursedir.staff_usernames = form.cleaned_data['staff_usernames']
             coursedir.save()

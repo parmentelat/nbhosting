@@ -38,6 +38,7 @@ class CourseDir(models.Model):
     image = models.CharField(max_length=256, default='none')
     autopull = models.BooleanField(default=False)
     archived = models.BooleanField(default=False)
+    autobuild = models.BooleanField(default=False)
 
     # staff users refer to hashes created remotely
     # so they do not match locally registered users
