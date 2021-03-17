@@ -13,39 +13,42 @@
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
-{% if user.is_authenticated and user.is_staff %}
-    <li class="breadcrumb-item auditor"><a href="/auditor/notebook/{{coursename}}">{{coursename}}</a></li>
-    <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
-{% endif %}
-    <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
-    <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
-    <li class="breadcrumb-item active"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
-    <li class="breadcrumb-item stats"><a href="/staff/stats/{{coursename}}">{{coursename}}</a></li>
+  {% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item auditor"><a href="/auditor/notebook/{{coursename}}">{{coursename}}</a></li>
+  <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
+  {% endif %}
+  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
+  <li class="breadcrumb-item active"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
+  <li class="breadcrumb-item stats"><a href="/staff/stats/{{coursename}}">{{coursename}}</a></li>
 </ol>
 {% endblock %}
 
 
 {% block content %}
 <style>
-.autopull {
+  .autopull {
     padding-left: 40px;
     font-size: 200%;
     vertical-align: middle;
-}
-.autopull-on {
+  }
+
+  .autopull-on {
     color: blue;
-}
-.autopull-off {
+  }
+
+  .autopull-off {
     color: #d66d92;
-}
-.course-box {
+  }
+
+  .course-box {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-start;
-}
+  }
 
-.notebook {
+  .notebook {
     font-size: 50%;
     border: 0.1px solid #888;
     border-radius: 5px;
@@ -53,54 +56,65 @@
     margin-left: 3px;
     margin-right: 3px;
     margin-top: 2px
-}
-/* only in-course means it's not yet been copied */
-a.notebook {
+  }
+
+  /* only in-course means it's not yet been copied */
+  a.notebook {
     background-color: #fef;
     color: black;
-}
-a.notebook:hover {
+  }
+
+  a.notebook:hover {
     color: purple;
-}
-span.mapping {
+  }
+
+  span.mapping {
     font-family: Andale Mono, monospace;
     font-size: 80%
-}
-span.mapping.from {
+  }
+
+  span.mapping.from {
     color: blue;
-}
-span.mapping.to::before {
+  }
+
+  span.mapping.to::before {
     content: " → $coursedir/";
     color: green;
-}
-span.mapping.to {
+  }
+
+  span.mapping.to {
     color: red;
-}
-.smaller {
+  }
+
+  .smaller {
     font-size: 75%;
-}
-div.tracks, div.staffs{
+  }
+
+  div.tracks,
+  div.staffs {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     margin: 5px;
-}
-.track{
+  }
+
+  .track {
     border-radius: 6px;
     border: 1px solid #ccc;
     padding: 4px;
     margin: 4px;
     color: green;
-}
-.staff {
+  }
+
+  .staff {
     border-radius: 3px;
     border: 1px solid #ccc;
     padding: 4px;
     margin: 4px;
     color: blue;
-}
+  }
 
-.registered-user {
+  .registered-user {
     background-color: #eef;
     font-size: 60%;
     border: 0.1px solid #888;
@@ -109,218 +123,197 @@ div.tracks, div.staffs{
     margin-left: 3px;
     margin-right: 3px;
     margin-top: 2px
-}
+  }
 
-.group-name {
-    color:blue;
-}
-.archived {
-background-image:
-        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
-    }
-}
+  .group-name {
+    color: blue;
+  }
+
+  .archived {
+    background-image:
+      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
+  }
+  }
 </style>
 
 <!------------------------------>
 <div class="container-fluid">
-    <div class="row">
+  <div class="row">
 
-        <div class="col-8">
-            <div class="section">
-                <a href="/staff/course/{{coursename}}/update/"
-                    class='btn btn-outline-warning btn-lg btn-block {{coursedir.archived_class}}'
-                    data-toggle="tooltip"
-                    title="click to edit this course"
-                >edit details for {{coursename}}</a>
-            </div>
-            <div class='section'>
-                <a href='/staff/courses/update-from-git/{{coursename}}'
-                 class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
-                >
-                    <span data-toggle="tooltip"
-                        data-html="true" title="<span class='smaller'>
+    <div class="col-8">
+      <div class="section">
+        <a href="/staff/course/{{coursename}}/update/"
+          class='btn btn-outline-warning btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip"
+          title="click to edit this course">edit details for {{coursename}}</a>
+      </div>
+      <div class='section'>
+        <a href='/staff/courses/update-from-git/{{coursename}}'
+          class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'>
+          <span data-toggle="tooltip" data-html="true" title="<span class='smaller'>
                        update course <code>{{coursename}}</code>
                        <br/>using git pull from <br/><code>{{giturl}}</code></span>">
-                        git pull contents for {{coursename}}
-                    </span>
-                    <span
-                        class="fa autopull {% if coursedir.autopull %}fa-clock-o autopull-on{% else %}fa-stop-circle autopull-off{% endif %}"
-                        data-toggle="tooltip" title="autopull is turned {% if coursedir.autopull %} ON {% else %} OFF {% endif %}"
-                        >
-                    </span>
-                    <span
-                        class="{%if coursedir.autopull %} btn-success {% else %} btn-danger {% endif %}">
+            git pull contents for {{coursename}}
+          </span>
+          <span
+            class="fa autopull {% if coursedir.autopull %}fa-clock-o autopull-on{% else %}fa-stop-circle autopull-off{% endif %}"
+            data-toggle="tooltip" title="autopull is turned {% if coursedir.autopull %} ON {% else %} OFF {% endif %}">
+          </span>
+          <span class="{%if coursedir.autopull %} btn-success {% else %} btn-danger {% endif %}">
 
-                </span>
-                </a>
-            </div> <!--section-->
+          </span>
+        </a>
+      </div>
+      <!--section-->
 
-            <div class="card">
-                <div class="card-block ml-3 mt-3">
-                    <h2 class="card-title">{{how_many}} notebooks</h2>
-                </div>
-                <div class="card-block course-box  ml-3 mb-3">
-                    {% for notebook in notebooks %}
-                    <a class='notebook'
-                        href='/auditor/notebook/{{coursename}}/{{notebook}}'
-                    >
-                        {{notebook}}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
+      <div class="card">
+        <div class="card-block ml-3 mt-3">
+          <h2 class="card-title">{{how_many}} notebooks</h2>
+        </div>
+        <div class="card-block course-box  ml-3 mb-3">
+          {% for notebook in notebooks %}
+          <a class='notebook' href='/auditor/notebook/{{coursename}}/{{notebook}}'>
+            {{notebook}}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
 
 
-            <div class="card">
-                <div class="card-block ml-3 mt-3">
-                    <h2 class="card-title">{{how_many}} groups</h2>
-                </div>
-                <div class="card-block ml-3 mb-3">
-                    {% for enriched_group in enriched_groups %}
-                        <h4 class="group-name card-subtitle mt-2 mb-2">
-                            group {{enriched_group.name}} - {{enriched_group.number_students}} students
-                        </h4>
-                        <div class="course-box">
-                        {% for student_struct in enriched_group.student_structs %}
-                            <span class="registered-user"
-                                data-toggle="tooltip"
-                                title="{{student_struct.tooltip}}"
-                            >{{student_struct.display}}</span>
-                        {% endfor %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
+      <div class="card">
+        <div class="card-block ml-3 mt-3">
+          <h2 class="card-title">{{how_many}} groups</h2>
+        </div>
+        <div class="card-block ml-3 mb-3">
+          {% for enriched_group in enriched_groups %}
+          <h4 class="group-name card-subtitle mt-2 mb-2">
+            group {{enriched_group.name}} - {{enriched_group.number_students}} students
+          </h4>
+          <div class="course-box">
+            {% for student_struct in enriched_group.student_structs %}
+            <span class="registered-user" data-toggle="tooltip"
+              title="{{student_struct.tooltip}}">{{student_struct.display}}</span>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
 
 
-        </div> <!-- col-8-->
+    </div> <!-- col-8-->
 
     <!------------------------------>
-        <div class="col-4">
+    <div class="col-4">
 
-            <div class="section">
-                <div class="card">
-                    <div class="card-block m-3">
-                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                            title="<span class='smaller'>a track is an ordered subset
-                            of the notebooks present in th repo; defining several tracks
-                            can come in handy to propose several levels,
-                            or several languages, or to expose only exercises in a separate track">tracks</h3>
-                        <div class="tracks">
-                            {% for track in tracks %}
-                            <a class="track btn btn-secondary-success"
-                                href="/auditor/notebook/{{coursename}}:{{track.name}}"
-                                data-toggle="tooltip" data-html="true"
-                                title="<span class='smaller'>switch to auditor mode to see track {{track.name}}</span>"
-                            >{{track.name}}</a>
-                            {% endfor %}
-                        </div>
-                        <a href='/staff/courses/show-tracks/{{coursename}}'
-                            class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
-                            data-toggle="tooltip"
-                            data-html="true"
-                            title="<span class='smaller'>
-                                   show how tracks are computed<br/>
-                                   this primarily runs <br/>the python module<br/>
-                                   named <code>nbhosting/tracks.py</code><br/>
-                                   in the course repo
-                                </span>"
-                            >
-                            compute tracks
-                        </a>
-                    </div>
-                </div>
+      <div class="section">
+        <div class="card">
+          <div class="card-block m-3">
+            <h3 class="card-title" data-toggle="tooltip" data-html="true" 
+              title="<span class='smaller'>a track is an ordered subset
+                      of the notebooks present in th repo; defining several tracks
+                      can come in handy to propose several levels,
+                      or several languages, or to expose only exercises in a separate track</span>"
+                    >tracks</h3>
+            <div class="tracks">
+              {% for track in tracks %}
+              <a class="track btn btn-secondary-success" href="/auditor/notebook/{{coursename}}:{{track.name}}"
+                data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>switch to auditor mode to see track {{track.name}}</span>">{{track.name}}</a>
+              {% endfor %}
             </div>
+            <a href='/staff/courses/show-tracks/{{coursename}}'
+              class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                      show how tracks are computed<br/>
+                      this primarily runs <br/>the python module<br/>
+                      named <code>nbhosting/tracks.py</code><br/>
+                      in the course repo
+                     </span>">
+              compute tracks
+            </a>
+          </div>
+        </div>
+      </div>
 
 
-            <div class='section'>
-                <div class="card">
-                    <div class="card-block m-3">
-                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                         title="<span class='smaller'>
-                             static mappings are symlinks created in all working subdirs<br/>
-                         you can define them for your course in
-                         <code>nbhosting/static-mappings</code></span>">static mappings</h3>
-                         <ul class="list-group list-group-flush">
-                            {% for static_mapping in static_mappings %}
-                            <li class="list-group-item">
-                                <p class='card-text'> {{static_mapping.html|safe|escape}} </p>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div> <!-- card-block-->
-                </div> <!-- card-->
-            </div>
+      <div class='section'>
+        <div class="card">
+          <div class="card-block m-3">
+            <h3 class="card-title" data-toggle="tooltip" data-html="true" title="<span class='smaller'>
+                      static mappings are symlinks created in all working subdirs<br/>
+                      you can define them for your course in
+                      <code>nbhosting/static-mappings</code>
+                    </span>">
+              static mappings</h3>
+            <ul class="list-group list-group-flush">
+              {% for static_mapping in static_mappings %}
+              <li class="list-group-item">
+                <p class='card-text'> {{static_mapping.html|safe|escape}} </p>
+              </li>
+              {% endfor %}
+            </ul>
+          </div> <!-- card-block-->
+        </div> <!-- card-->
+      </div>
 
 
-            <div class="section">
-                <div class="card">
-                    <div class="card-block m-3">
-                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                            title="<span class='smaller'>
-                                if you use the course name<br/>
-                                then please provide <code>nbhosting/Dockerfile</code>
-                            </br>so you can redo your image</span>">container image : <code>{{image}}</code></h3>
-                        {% if image == coursename %}
-                            <a href='/staff/courses/build-image/{{coursename}}'
-                                class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
-                                data-toggle="tooltip" data-html="true"
-                                title="<span class='smaller'>
-                                    rebuild image for that course<br/>
-                                    please be patient</span>"
-                            >
-                                rebuild image
-                            </a>
-                        {% endif %}
-                        <a href='/staff/courses/destroy-my-container/{{coursename}}'
-                            class='btn btn-danger btn-lg btn-block'
-                            data-toggle="tooltip"
-                            data-html="true"
-                            title="<span class='smaller'>
-                                for trying out a newly built image</br>
-                                you need to destroy your <br/>
-                                currently running container</span>"
-                        >
-                            destroy my container
-                        </a>
-                    </div>
-                </div>
-            </div>
+      <div class="section">
+        <div class="card">
+          <div class="card-block m-3">
+            <h3 class="card-title" data-toggle="tooltip" data-html="true" 
+              title="<span class='smaller'>
+                      if you use the course name<br/>
+                      then please provide <code>nbhosting/Dockerfile</code>
+                      </br>so you can redo your image</span>">
+                  container image : <code>{{image}}</code></h3>
+            {% if image == coursename %}
+            <a href='/staff/courses/build-image/{{coursename}}'
+              class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                      rebuild image for that course<br/>
+                      please be patient</span>">
+              rebuild image
+            </a>
+            {% endif %}
+            <a href='/staff/courses/destroy-my-container/{{coursename}}' class='btn btn-danger btn-lg btn-block'
+              data-toggle="tooltip" data-html="true" 
+              title="<span class='smaller'>
+                      for trying out a newly built image</br>
+                      you need to destroy your <br/>
+                      currently running container</span>">
+              destroy my container
+            </a>
+          </div>
+        </div>
+      </div>
 
 
-            <div class="section">
-                <div class="card">
-                    <div class="card-block m-3">
-                        <h3 class="card-title" data-toggle="tooltip" data-html="true"
-                        title="<span class='smaller'>
+      <div class="section">
+        <div class="card">
+          <div class="card-block m-3">
+            <h3 class="card-title" data-toggle="tooltip" data-html="true" title="<span class='smaller'>
                             students listed as staff<br/>
                             are ignored when<br/>
                             gathering usage statistics">staff</h3>
-                        <div class="staffs">
-                            {% for hash in shorten_staffs %}
-                            <span class="staff">{{hash}}</span>
-                            {% endfor %}
-                        </div>
-                        <a href='/staff/courses/clear-staff/{{coursename}}'
-                            class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}'
-                            data-toggle="tooltip" data-html="true"
-                            title="<span class='smaller'>
+            <div class="staffs">
+              {% for hash in shorten_staffs %}
+              <span class="staff">{{hash}}</span>
+              {% endfor %}
+            </div>
+            <a href='/staff/courses/clear-staff/{{coursename}}'
+              class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
                                 remove all notebooks found</br>
                                 in all students marked as staff<br/>
                                 this helps in assessing the course</br>
-                                is well-formed, by removing any leftovers</span>"
-                            >
-                            clear staff files
-                        </a>
-                    </div> <!-- card-block-->
-                </div> <!-- card-->
-            </div>
+                                is well-formed, by removing any leftovers</span>">
+              clear staff files
+            </a>
+          </div> <!-- card-block-->
+        </div> <!-- card-->
+      </div>
+    </div> <!-- col -->
 
-
-
-        </div> <!-- col -->
-
-    </div> <!-- row-->
+  </div> <!-- row-->
 </div> <!-- container-->
 
 {% endblock %}

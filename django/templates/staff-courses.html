@@ -11,31 +11,33 @@ manage courses
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
-{% if user.is_authenticated and user.is_staff %}
+  {% if user.is_authenticated and user.is_staff %}
   <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
-{% endif %}
-    <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
-    <li class="breadcrumb-item active"><a href="/staff/courses/">courses</a></li>
+  {% endif %}
+  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+  <li class="breadcrumb-item active"><a href="/staff/courses/">courses</a></li>
 </ol>
 {% endblock %}
 
 
 {% block content %}
 <style>
-div.grid {
+  div.grid {
     display: grid;
-    grid-template-columns: auto auto auto ;
-}
-h3 {
-    text-align: right;
-}
-.archived {
-    background-image:
-        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
-    }
-}
+    grid-template-columns: auto auto auto;
+  }
 
-/*
+  h3 {
+    text-align: right;
+  }
+
+  .archived {
+    background-image:
+      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
+  }
+  }
+
+  /*
 div.buttons-flex {
     display: flex;
     flex-direction: row;
@@ -46,19 +48,14 @@ div.buttons-flex {
 </style>
 
 <div class="grid">
-    {% for course_dir in course_dirs %}
-        <h3 class="card-title m-2 p-2 {{course_dir.archived_class}}">{{course_dir.coursename}}</h3>
-        <a class="btn btn-lg btn-outline-danger m-2 {{course_dir.archived_class}}"
-            href='/staff/course/{{course_dir.coursename}}'
-            data-toggle="tooltip"
-            title="pull, build, settings, ..."
-        >manage</a>
-        <a class="btn btn-lg btn-outline-warning m-2 {{course_dir.archived_class}}"
-            href='/staff/stats/{{course_dir.coursename}}'
-            data-toggle="tooltip"
-            title="course activity and resources"
-        >statistics</a>
-    {% endfor %}
+  {% for course_dir in course_dirs %}
+  <h3 class="card-title m-2 p-2 {{course_dir.archived_class}}">{{course_dir.coursename}}</h3>
+  <a class="btn btn-lg btn-outline-danger m-2 {{course_dir.archived_class}}"
+    href='/staff/course/{{course_dir.coursename}}' data-toggle="tooltip" title="pull, build, settings, ...">manage</a>
+  <a class="btn btn-lg btn-outline-warning m-2 {{course_dir.archived_class}}"
+    href='/staff/stats/{{course_dir.coursename}}' data-toggle="tooltip"
+    title="course activity and resources">statistics</a>
+  {% endfor %}
 </div>
 
 {% endblock %}

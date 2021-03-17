@@ -12,9 +12,9 @@ welcome to nbhosting
 
 {% block breadcrumb %}
 <ol class="breadcrumb">
-{% if user.is_authenticated and user.is_staff %}
+  {% if user.is_authenticated and user.is_staff %}
   <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
-{% endif %}
+  {% endif %}
   <li class="breadcrumb-item active"><a href="/welcome/">home</a></li>
   <li class="breadcrumb-item"><a href="/auditor/courses/">courses</a></li>
 </ol>
@@ -23,97 +23,87 @@ welcome to nbhosting
 
 {% block content %}
 <style>
-div.center {
+  div.center {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: space-around;
-}
-div.center-vertical {
+  }
+
+  div.center-vertical {
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: center;
-}
-.smaller {
+  }
+
+  .smaller {
     font-size: 60%;
-}
+  }
 </style>
 
 <div class="container">
 
-    <div class="alert m-5
+  <div class="alert m-5
         {% if not user.is_authenticated %} alert-secondary
         {% elif not user.is_staff %} alert-primary
         {% else %} alert-danger
         {% endif %}
         ">
-        <div class="center">
-            <h4 class="alert-heading m-5">what's this ?</h4></div>
-
-            <p>
-                <code>nbhosting</code> was originally designed for
-                <strong>hosting Jupyter notebooks</strong> as a silent companion
-                to edx-hosted courses
-                <br/>
-                you use it in this original mode when
-                attending a MOOC from e.g.
-                <a href="https://fun-mooc.fr">fun-mooc.fr</a>
-                or
-                <a href="https://magistere.education.fr">magistere.education.fr</a>,
-                and for that you do not even need to known about this place
-                - let alone authenticate
-            </p>
-
-            {% if not user.is_authenticated %}
-                <p>
-                    it now has an additional feature to be used in the classroom
-                    <br/>
-                    for using it under this mode, you will need to ask your
-                    teacher for an account, and then
-                    <div class="center-vertical">
-                    <a href="/accounts/login/" class="btn btn-outline-secondary mt-3">
-                        log into the system</a>
-                        <br/>
-                    <a href="/accounts/password_reset/" 
-                        class="smaller btn btn-outline-danger mt-3 p-1">
-                        I forgot my password</a>
-                    </div>
-                </p>
-            {% else %}
-                <p>
-                    you can now also use it in <strong>classroom mode</strong>,
-                    and browse content directly from here,
-                    with no third-party infrastructure involved
-                </p>
-                <div class="center mt-4">
-                    <a href="/auditor/courses/"
-                        class="btn btn-outline-primary m-4"
-                        data-toggle="tooltip"
-                        title="pick your course"
-                    >
-                        see available courses
-                    </a>
-                {% if user.is_staff %}
-                    <a href="/staff/courses/"
-                        class="btn btn-outline-danger m-4"
-                        data-toggle="tooltip"
-                        data-html="true"
-                        title="pull from git, build image,<br/> settings, statistics, ..."
-                    >
-                        manage courses & stats
-                    </a>
-                    <a href="/admin/"
-                        class="btn btn-outline-info m-4"
-                        data-toggle="tooltip"
-                        title="manage accounts"
-                    >
-                        django admin app
-                    </a>
-                {% endif %}
-                </div>
-            {% endif %}
-        </div>
+    <div class="center">
+      <h4 class="alert-heading m-5">what's this ?</h4>
     </div>
+
+    <p>
+      <code>nbhosting</code> was originally designed for
+      <strong>hosting Jupyter notebooks</strong> as a silent companion
+      to edx-hosted courses
+      <br />
+      you use it in this original mode when
+      attending a MOOC from e.g.
+      <a href="https://fun-mooc.fr">fun-mooc.fr</a>
+      or
+      <a href="https://magistere.education.fr">magistere.education.fr</a>,
+      and for that you do not even need to known about this place
+      - let alone authenticate
+    </p>
+
+    {% if not user.is_authenticated %}
+    <p>
+      it now has an additional feature to be used in the classroom
+      <br />
+      for using it under this mode, you will need to ask your
+      teacher for an account, and then
+    <div class="center-vertical">
+      <a href="/accounts/login/" class="btn btn-outline-secondary mt-3">
+        log into the system</a>
+      <br />
+      <a href="/accounts/password_reset/" class="smaller btn btn-outline-danger mt-3 p-1">
+        I forgot my password</a>
+    </div>
+    </p>
+    {% else %}
+    <p>
+      you can now also use it in <strong>classroom mode</strong>,
+      and browse content directly from here,
+      with no third-party infrastructure involved
+    </p>
+    <div class="center mt-4">
+      <a href="/auditor/courses/" class="btn btn-outline-primary m-4" data-toggle="tooltip" title="pick your course">
+        see available courses
+      </a>
+      {% if user.is_staff %}
+      <a href="/staff/courses/" class="btn btn-outline-danger m-4" data-toggle="tooltip" data-html="true"
+        title="pull from git, build image,<br/> settings, statistics, ...">
+        manage courses & stats
+      </a>
+      <a href="/admin/" class="btn btn-outline-info m-4" data-toggle="tooltip" title="manage accounts">
+        django admin app
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
 </div>
 {% endblock %}

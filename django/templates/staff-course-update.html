@@ -13,60 +13,66 @@ updating {{coursedir.coursename}}
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
-{% if user.is_authenticated and user.is_staff %}
-    <li class="breadcrumb-item auditor"><a href="/auditor/notebook/{{coursename}}">{{coursedir.coursename}}</a></li>
-    <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
-{% endif %}
-    <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
-    <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
-    <li class="breadcrumb-item"><a href="/staff/course/{{coursename}}">{{coursedir.coursename}}</a></li>
-    <li class="breadcrumb-item active"><a href="/staff/course/{{coursename}}/update">EDIT</a></li>
+  {% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item auditor"><a href="/auditor/notebook/{{coursename}}">{{coursedir.coursename}}</a></li>
+  <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
+  {% endif %}
+  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
+  <li class="breadcrumb-item"><a href="/staff/course/{{coursename}}">{{coursedir.coursename}}</a></li>
+  <li class="breadcrumb-item active"><a href="/staff/course/{{coursename}}/update">EDIT</a></li>
 </ol>
 {% endblock %}
 
 
 {% block content %}
 <style>
-form>table {
-    margin : 20px;
-}
-form>table tr {
+  form>table {
+    margin: 20px;
+  }
+
+  form>table tr {
     border: 1px solid;
-}
-form>table th {
+  }
+
+  form>table th {
     font-weight: bold;
     text-align: right;
     vertical-align: top;
     border: 1px solid black;
-}
-form>table th>label {
-    padding-top: 5px;
-}
+  }
 
-form>table th, form>table td {
+  form>table th>label {
+    padding-top: 5px;
+  }
+
+  form>table th,
+  form>table td {
     padding: 10px;
-}
-form>table td>input {
+  }
+
+  form>table td>input {
     padding: 5px;
     display: inline;
     border-radius: 5px;
     margin-bottom: 12px;
-}
+  }
 
-input[type="submit"] {
+  input[type="submit"] {
     font-size: 200%;
     font-weight: bold;
     width: 80%;
     padding: 20px;
-    margin: 20px 10% ;
+    margin: 20px 10%;
     background-color: red;
     border-radius: 20px;
-}
+  }
 
-h1, h2 {
+  h1,
+  h2 {
     padding: 12px;
     text-align: center;
-}
+  }
 </style>
 
 <h1>Course: {{ coursedir.coursename }}</h1>
@@ -75,7 +81,7 @@ h1, h2 {
 <form action="" method="post">
   {% csrf_token %}
   <table>
-  {{ form.as_table }}
+    {{ form.as_table }}
   </table>
   <input type="submit" value="Submit">
 </form>

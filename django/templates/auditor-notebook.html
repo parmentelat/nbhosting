@@ -10,13 +10,13 @@
 
 {% block breadcrumb %}
 <ol class="breadcrumb">
-{% if user.is_authenticated and user.is_staff %}
+  {% if user.is_authenticated and user.is_staff %}
   <li class="breadcrumb-item staff"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
   <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
-{% endif %}
-    <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
-    <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
-    <li class="breadcrumb-item active"><a href="/auditor/notebook/{{coursename}}">{{coursename}}</a></li>
+  {% endif %}
+  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/auditor/courses'>courses</a></li>
+  <li class="breadcrumb-item active"><a href="/auditor/notebook/{{coursename}}">{{coursename}}</a></li>
 </ol>
 {% endblock %}
 
@@ -28,56 +28,56 @@
 <!--  javascript -->
 <script>
 
-{% if jupyter_app %}
-let global_track_or_app = "@{{jupyter_app}}";
-{% else %}
-let global_track_or_app = ":{{track.id}}";
-{% endif %}
+  {% if jupyter_app %}
+  let global_track_or_app = "@{{jupyter_app}}";
+  {% else %}
+  let global_track_or_app = ":{{track.id}}";
+  {% endif %}
 
-function update_header(string) {
+  function update_header(string) {
     $('div.nbh-title>h2').html(string);
-}
+  }
 
-// make sure the current notebook
-// is properly highlighted in the track area
-function outline_current_notebook(notebook) {
-    $("div.notebook").each(function(index, div) {
-        let $div = $(div);
-        let current = $div.attr("data-notebook") == notebook;
-        if (current) {
-            $div.addClass("current");
-            update_header($div.attr("data-notebook-title"));
-        } else {
-            $div.removeClass("current");
-        }
+  // make sure the current notebook
+  // is properly highlighted in the track area
+  function outline_current_notebook(notebook) {
+    $("div.notebook").each(function (index, div) {
+      let $div = $(div);
+      let current = $div.attr("data-notebook") == notebook;
+      if (current) {
+        $div.addClass("current");
+        update_header($div.attr("data-notebook-title"));
+      } else {
+        $div.removeClass("current");
+      }
     })
-}
-// make sure no track is highlighted
-function turn_off_tracks() {
+  }
+  // make sure no track is highlighted
+  function turn_off_tracks() {
     $("a.track-name").removeClass('active');
-}
-// turn off one of the 2 jupyter app buttons
-function turn_jupyter_button(name, true_if_on) {
+  }
+  // turn off one of the 2 jupyter app buttons
+  function turn_jupyter_button(name, true_if_on) {
     let button = $(`div#${name}`);
     true_if_on ? button.addClass('active') : button.removeClass('active');
-}
+  }
 
-// update the URL bar so that page can be bookmarked or reloaded
-function update_url(trailer) {
+  // update the URL bar so that page can be bookmarked or reloaded
+  function update_url(trailer) {
     window.history.pushState(
-        {}, "", `/auditor/notebook/{{coursename}}${global_track_or_app}${trailer}`);
-}
+      {}, "", `/auditor/notebook/{{coursename}}${global_track_or_app}${trailer}`);
+  }
 
-// parse map { track -> first-notebook-path }
-let first_notebook_per_track = JSON.parse(
+  // parse map { track -> first-notebook-path }
+  let first_notebook_per_track = JSON.parse(
     document.getElementById('first-notebook-per-track').textContent);
 
-// a track has been chosen
-// hightlight corresponding track button,
-// and turn off jup app buttons
-// if show_first_button is set,
-// also display first notebook in track
-function select_track(track_id, show_first_notebook){
+  // a track has been chosen
+  // hightlight corresponding track button,
+  // and turn off jup app buttons
+  // if show_first_button is set,
+  // also display first notebook in track
+  function select_track(track_id, show_first_notebook) {
     global_track_or_app = `:${track_id}`;
     turn_jupyter_button('classic', false);
     turn_jupyter_button('jlab', false);
@@ -88,25 +88,25 @@ function select_track(track_id, show_first_notebook){
     $(`div.track-sections[id="sections-${track_id}"]`).addClass('active').addClass('show');
 
     if (show_first_notebook) {
-        let notebook = first_notebook_per_track[track_id];
-        if (notebook) {
-            iframe_notebook(notebook);
-            outline_current_notebook(notebook);
-        } else {
-            console.log(`Could not spot first notebook for track ${track_id}`);
-        }
+      let notebook = first_notebook_per_track[track_id];
+      if (notebook) {
+        iframe_notebook(notebook);
+        outline_current_notebook(notebook);
+      } else {
+        console.log(`Could not spot first notebook for track ${track_id}`);
+      }
     }
-}
+  }
 
-function select_build(build_id, entry_point) {
-  // xxx todo figure a URL scheme so as to point there directly
-  // like with @classic and @jlab
+  function select_build(build_id, entry_point) {
+    // xxx todo figure a URL scheme so as to point there directly
+    // like with @classic and @jlab
     let url = `/builds/{{coursename}}/${build_id}/latest/${entry_point}`
-  iframe_src(url)
-}
+    iframe_src(url)
+  }
 
-// jupyter classic app
-function select_classic() {
+  // jupyter classic app
+  function select_classic() {
     global_track_or_app = "@classic";
     update_url("");
     iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree');
@@ -115,9 +115,9 @@ function select_classic() {
     turn_off_tracks();
     turn_jupyter_button('classic', true);
     turn_jupyter_button('jlab', false);
-}
-// jupyter lab app
-function select_jlab(){
+  }
+  // jupyter lab app
+  function select_jlab() {
     global_track_or_app = "@jlab";
     update_url("");
     iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab');
@@ -126,172 +126,179 @@ function select_jlab(){
     turn_off_tracks();
     turn_jupyter_button('classic', false);
     turn_jupyter_button('jlab', true);
-}
+  }
 
-// direct iframe to this url
-// and focus input events there
-function iframe_src(url) {
+  // direct iframe to this url
+  // and focus input events there
+  function iframe_src(url) {
     $("#nbhosting-jupyter")[0].src = url;
     focus_iframe();
-}
-function focus_iframe() {
+  }
+  function focus_iframe() {
     $("iframe")[0].contentWindow.focus();
-}
+  }
 
-// show notebook in iframe
-// track is not managed
-function iframe_notebook(notebook) {
-    let url=`/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
+  // show notebook in iframe
+  // track is not managed
+  function iframe_notebook(notebook) {
+    let url = `/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
     iframe_src(url);
     outline_current_notebook(notebook);
     update_url(`/${notebook}`);
-}
+  }
 
 
-////////// toggle buttons
+  ////////// toggle buttons
 
-// hide left and top areas
-function hideleft_status() {
+  // hide left and top areas
+  function hideleft_status() {
     return ($("#hideleft-toggle").hasClass("hideleft"));
-}
-function hideleft_toggle() {
+  }
+  function hideleft_toggle() {
     if ($("#hideleft-toggle").hasClass("hideleft")) {
-        hideleft_off();
+      hideleft_off();
     } else {
-        hideleft_on();
+      hideleft_on();
     }
     focus_iframe();
-}
-function hideleft_on() {
+  }
+  function hideleft_on() {
     $("#left-pane").addClass("hideleft");
     $("#iframe-container").addClass("hideleft");
     $("#hideleft-toggle").addClass("hideleft");
-}
-function hideleft_off() {
+  }
+  function hideleft_off() {
     $("#left-pane").removeClass("hideleft");
     $("#iframe-container").removeClass("hideleft");
     $("#hideleft-toggle").removeClass("hideleft");
-}
+  }
 
-function hidetop_status() {
+  function hidetop_status() {
     return ($("#hidetop-toggle").hasClass("hidetop"));
-}
-function hidetop_toggle() {
+  }
+  function hidetop_toggle() {
     if ($("#hidetop-toggle").hasClass("hidetop")) {
-        hidetop_off();
+      hidetop_off();
     } else {
-        hidetop_on();
+      hidetop_on();
     }
     focus_iframe();
-}
-function hidetop_on() {
+  }
+  function hidetop_on() {
     $(".nbh-banner").addClass("hidetop");
     $(".nbh-body").addClass("hidetop");
     $("#hidetop-toggle").addClass("hidetop");
-}
-function hidetop_off() {
+  }
+  function hidetop_off() {
     $(".nbh-banner").removeClass("hidetop");
     $(".nbh-body").removeClass("hidetop");
     $("#hidetop-toggle").removeClass("hidetop");
-}
+  }
 
 
-/* the left bottom area works in auto-hide mode */
+  /* the left bottom area works in auto-hide mode */
 
-function leftbottom_on() {_hide_leftbottom(false)}
-function leftbottom_off() {_hide_leftbottom(true)}
-function leftbottom_toggle() {
+  function leftbottom_on() { _hide_leftbottom(false) }
+  function leftbottom_off() { _hide_leftbottom(true) }
+  function leftbottom_toggle() {
     let left_bottom = document.querySelector("#left-bottom")
     let hidden = left_bottom.getAttribute('data-hidden')
-    _hide_leftbottom(! hidden)
-}
-function _hide_leftbottom(hidden) {
+    _hide_leftbottom(!hidden)
+  }
+  function _hide_leftbottom(hidden) {
     // let's get rid of jquery one day
     let left_bottom = document.querySelector("#left-bottom")
     // we're requested to make it show up: use the css setting
     if (!hidden) {
-        left_bottom.style.marginBottom = null
-        left_bottom.setAttribute('data-hidden', null)
+      left_bottom.style.marginBottom = null
+      left_bottom.setAttribute('data-hidden', null)
     } else {
-        // hidden here means to keep only 'other-views' visible
-        let other_views = document.getElementById('other-views')
-        let thin_height = other_views.clientHeight - 5
-        let height = left_bottom.offsetHeight
-        left_bottom.style.marginBottom = `${- (height - thin_height)}px`;
-        left_bottom.setAttribute('data-hidden', 'yes')
+      // hidden here means to keep only 'other-views' visible
+      let other_views = document.getElementById('other-views')
+      let thin_height = other_views.clientHeight - 5
+      let height = left_bottom.offsetHeight
+      left_bottom.style.marginBottom = `${- (height - thin_height)}px`;
+      left_bottom.setAttribute('data-hidden', 'yes')
     }
-}
-window.addEventListener(
-    'load', ()=> {
-        leftbottom_off()
-        let left_bottom = document.querySelector("#left-bottom")
-        left_bottom.addEventListener('mouseenter', leftbottom_on)
-        left_bottom.addEventListener('mouseover', leftbottom_on)
-        left_bottom.addEventListener('mouseout', leftbottom_off)
+  }
+  window.addEventListener(
+    'load', () => {
+      leftbottom_off()
+      let left_bottom = document.querySelector("#left-bottom")
+      left_bottom.addEventListener('mouseenter', leftbottom_on)
+      left_bottom.addEventListener('mouseover', leftbottom_on)
+      left_bottom.addEventListener('mouseout', leftbottom_off)
     })
 
-function toggle_decorations(direction, event) {
+  function toggle_decorations(direction, event) {
     // with shift-click or control click
     // toggle just that direction
     if (event.shiftKey || event.metaKey
-     || event.ctrlKey || event.altKey) {
-        (direction == 'top') ? hidetop_toggle() : hideleft_toggle();
+      || event.ctrlKey || event.altKey) {
+      (direction == 'top') ? hidetop_toggle() : hideleft_toggle();
     } else {
-        // usual click means toggle in both directions
-        let top = hidetop_status()
-        let left = hideleft_status()
-        // except if they are not in the same status
-        if (top == left) {
-            hidetop_toggle()
-            hideleft_toggle()
-        } else {
-            top ? hidetop_toggle() : hideleft_toggle()
-        }
+      // usual click means toggle in both directions
+      let top = hidetop_status()
+      let left = hideleft_status()
+      // except if they are not in the same status
+      if (top == left) {
+        hidetop_toggle()
+        hideleft_toggle()
+      } else {
+        top ? hidetop_toggle() : hideleft_toggle()
+      }
     }
-}
+  }
 </script>
 
 
 <!--  CSS -->
 <style>
-html, body {
+  html,
+  body {
     height: 100%;
     width: 100%;
-}
+  }
 
-.nbh-banner.hidetop {
+  .nbh-banner.hidetop {
     display: none;
-}
+  }
 
-/* 102px is the header size */
-#left-pane, #iframe-container {
+  /* 102px is the header size */
+  #left-pane,
+  #iframe-container {
     top: 102px;
-}
-/* this one is 102px - 20px (toggle height) */
-#hidetop-toggle {
+  }
+
+  /* this one is 102px - 20px (toggle height) */
+  #hidetop-toggle {
     top: 82px;
-}
-/* a bit lower to allow for the menubar */
-#hideleft-toggle {
+  }
+
+  /* a bit lower to allow for the menubar */
+  #hideleft-toggle {
     top: 156px;
-}
+  }
 
-.nbh-body.hidetop #iframe-container, .nbh-body.hidetop #left-pane {
+  .nbh-body.hidetop #iframe-container,
+  .nbh-body.hidetop #left-pane {
     top: 0px;
-}
-.nbh-body.hidetop #hideleft-toggle {
+  }
+
+  .nbh-body.hidetop #hideleft-toggle {
     top: 54px;
-}
+  }
 
-/* less space between top and left when both shown */
-.nbh-body:not(.hidetop) #left-pane .#left-bottom.hidden + .left-middle > .track-sections {
+  /* less space between top and left when both shown */
+  .nbh-body:not(.hidetop) #left-pane .#left-bottom.hidden+.left-middle>.track-sections {
     margin-top: 0px;
-}
-.nbh-body:not(.hidetop) #left-pane #left-top:not(.hidden) {
-    margin-top: 0px;
-}
+  }
 
-#left-pane {
+  .nbh-body:not(.hidetop) #left-pane #left-top:not(.hidden) {
+    margin-top: 0px;
+  }
+
+  #left-pane {
     display: flex;
     flex-direction: column;
     position: absolute;
@@ -303,26 +310,27 @@ html, body {
     */
     right: 83%;
     padding: 0px;
-    background-color: #e9ecef; /* from bootstrap jumbotron */
-}
+    background-color: #e9ecef;
+    /* from bootstrap jumbotron */
+  }
 
-#left-pane.hideleft {
+  #left-pane.hideleft {
     right: 100%;
-}
+  }
 
-#left-top {
+  #left-top {
     margin: 10px 10px 0px 10px;
     padding: 10px;
     border-radius: 10px;
     border: 2px solid gray;
     background-color: white;
-}
+  }
 
-div.left-middle {
+  div.left-middle {
     overflow-y: auto;
-}
+  }
 
-#left-bottom {
+  #left-bottom {
     display: flex;
     flex-direction: column;
     /* margin-top: auto is important so that
@@ -334,74 +342,75 @@ div.left-middle {
     border: 2px solid green;
     padding: 0px 10px 10px 10px;
     background-color: white;
-}
+  }
 
-#hidetop-toggle {
+  #hidetop-toggle {
     position: fixed;
     right: 0px;
     z-index: 100;
     transform: scaleY(-1);
-}
+  }
 
-#hidetop-toggle.hidetop {
+  #hidetop-toggle.hidetop {
     transform: scale(1);
     top: 0px;
-}
+  }
 
-#hidetop-toggle.hideleft {
+  #hidetop-toggle.hideleft {
     transform: scaleX(1);
     left: 0px;
-}
+  }
 
-#hideleft-toggle {
+  #hideleft-toggle {
     position: fixed;
     left: 17%;
     z-index: 100;
     transform: scaleX(-1);
-}
+  }
 
-#hideleft-toggle.hideleft {
+  #hideleft-toggle.hideleft {
     transform: scaleX(1);
     left: 0px;
-}
+  }
 
-#iframe-container {
+  #iframe-container {
     position: absolute;
     bottom: 0px;
     left: 17%;
     right: 0px;
-}
+  }
 
-#iframe-container.hideleft {
+  #iframe-container.hideleft {
     left: 0%;
-}
+  }
 
-iframe {
+  iframe {
     height: 100%;
-}
+  }
 
-/* ----------- */
+  /* ----------- */
 
-.track-name {
+  .track-name {
     border-radius: 5px;
     border: 1px solid gray;
     margin: 5px;
     padding: 4px 16px;
     font-size: 80%;
-}
-.track-name:not(.active) {
-    background-color: #f0f0f0;
-}
+  }
 
-div.track-sections {
+  .track-name:not(.active) {
+    background-color: #f0f0f0;
+  }
+
+  div.track-sections {
     padding: 10px 10px;
     margin: 10px;
     border-radius: 10px;
     border: 2px solid blue;
     background-color: white;
-}
+  }
 
-div.section {
+  div.section {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -409,210 +418,185 @@ div.section {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 0px;
-}
-div.section:last-child {
+  }
+
+  div.section:last-child {
     padding-bottom: 0px;
-}
-.section-head {
+  }
+
+  .section-head {
     width: 100%;
     margin-bottom: 10px;
     font-size: 75%;
-}
-.notebook {
+  }
+
+  .notebook {
     width: 18px;
     height: 18px;
     border-radius: 50%;
     border: 1px solid #333;
     margin: 1px;
-}
-div.section>a>.notebook.current {
+  }
+
+  div.section>a>.notebook.current {
     background-color: #ffffff;
     border: 2px solid black;
-}
+  }
 
-/* should not happen in normal usage */
-.in-track {
+  /* should not happen in normal usage */
+  .in-track {
     background-color: #ccc;
-}
+  }
 
-.in-track.in-student {
+  .in-track.in-student {
     background-color: #afa;
-}
-.in-student {
-    background-color: #884EA0;  /* purple-ish */
-}
-.smaller {
-    font-size: 60%;
-}
+  }
 
-iframe {
+  .in-student {
+    background-color: #884EA0;
+    /* purple-ish */
+  }
+
+  .smaller {
+    font-size: 60%;
+  }
+
+  iframe {
     background-image: url("/assets/img/loading.svg");
     background-repeat: no-repeat;
     background-size: 100%;
-/*    background-position: center; */
- }
+    /*    background-position: center; */
+  }
 
- #other-views {
+  #other-views {
     text-align: center;
     width: 100%;
     border-width: 0px;
     font-size: 100%;
     padding-bottom: 10px;
-}
+  }
 
-#classic, #jlab {
+  #classic,
+  #jlab {
     width: 100%;
     font-size: 80%;
-}
+  }
 
-.transitionable {
+  .transitionable {
     -webkit-transition: all 0.25s ease-in-out;
     -moz-transition: all 0.25s ease-in-out;
     -ms-transition: all 0.25s ease-in-out;
     -o-transition: all 0.25s ease-in-out;
     transition: all 0.25s ease-in-out;
 
-}
+  }
 
-.hidden {
+  .hidden {
     display: none;
-}
+  }
 
-.tooltip {
+  .tooltip {
     pointer-events: none;
-}
+  }
 </style>
 
 <!------------------------------>
 <div class="container" height="100%">
-    <div id="hideleft-toggle" class="transitionable">
-        <img src="/assets/img/right.svg" height="40px" />
+  <div id="hideleft-toggle" class="transitionable">
+    <img src="/assets/img/right.svg" height="40px" />
+  </div>
+  <div id="hidetop-toggle" class="transitionable">
+    <img src="/assets/img/down.svg" height="40px" />
+  </div>
+
+  <div id="left-pane" class="transitionable">
+
+    <div id='left-top' class='transitionable {% if tracks|length_is:"1" %}hidden{% endif%}' data-toggle="tooltip"
+      data-html="true" title="this course<br>has several tracks">
+
+      <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
+        {% for track_obj in tracks %}
+        <span data-toggle="tooltip" title="{{track_obj.description}}">
+          <a class="nav-link show track-name" onclick="select_track('{{track_obj.id}}', true)"
+            id="sections-{{track_obj.id}}-tab" data-toggle="pill" href="#sections-{{track_obj.id}}" role="tab"
+            aria-controls="sections-{{track_obj.id}}"
+            aria-selected="{% if track.id == track_obj.id %}true{% else %}false{% endif %}">{{track_obj.name}}</a>
+        </span>
+        {% endfor %}
+      </div>
     </div>
-    <div id="hidetop-toggle" class="transitionable">
-        <img src="/assets/img/down.svg" height="40px" />
-    </div>
 
-    <div id="left-pane" class="transitionable">
 
-        <div id='left-top' class='transitionable {% if tracks|length_is:"1" %}hidden{% endif%}'
-            data-toggle="tooltip" data-html="true"
-            title="this course<br>has several tracks"
-        >
+    <div class="tab-content left-middle" id="track-picker-tabContent">
 
-            <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
-                {% for track_obj in tracks %}
-                <span data-toggle="tooltip" title="{{track_obj.description}}">
-                <a class="nav-link show track-name"
-                    onclick="select_track('{{track_obj.id}}', true)"
-                    id="sections-{{track_obj.id}}-tab"
-                    data-toggle="pill" href="#sections-{{track_obj.id}}"
-                    role="tab" aria-controls="sections-{{track_obj.id}}"
-                    aria-selected="{% if track.id == track_obj.id %}true{% else %}false{% endif %}"
-                >{{track_obj.name}}</a>
-                </span>
-                {% endfor %}
-            </div>
+      {% for track_obj in tracks %}
+      <div class="tab-pane fade track-sections transitionable" id="sections-{{track_obj.id}}" role="tabpanel"
+        aria-labelledby="sections-{{track_obj.id}}-tab">
+
+        {% for section in track_obj.sections %}
+        <div class="section">
+          <a {% autoescape off %}{{section.first_notebook.decorate_a}}{% endautoescape %}
+            onclick="{{section.first_notebook.onclick}}; select_track('{{track_obj.id}}', false);"
+            class="btn section-head btn-outline-primary">{{section.name}}</a>
+          {% for notebook_obj in section.notebooks %}
+          <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}
+            onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);">
+            <div data-notebook="{{notebook_obj.clean_path}}" data-notebook-title="{{notebook_obj.notebookname}}" class="notebook {{notebook_obj.classes}}
+                            {% if notebook_obj.clean_path == notebook %}current{% endif %}"></div>
+          </a>
+          {% endfor %}
         </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
 
 
-        <div class="tab-content left-middle" id="track-picker-tabContent">
+    <div id="left-bottom">
 
-            {% for track_obj in tracks %}
-            <div class="tab-pane fade track-sections transitionable"
-                id="sections-{{track_obj.id}}" role="tabpanel"
-                aria-labelledby="sections-{{track_obj.id}}-tab"
-                >
+      <div id="other-views" data-toggle="tooltip" data-html="true" data-placement="right"
+        title="you'll find here<br>some other ways<br>to browse this repo">
+        other views
+      </div>
 
-                {% for section in track_obj.sections %}
-                <div class="section">
-                    <a {% autoescape off %}{{section.first_notebook.decorate_a}}{% endautoescape %}
-onclick="{{section.first_notebook.onclick}}; select_track('{{track_obj.id}}', false);"
-                    class="btn section-head btn-outline-primary"
-                    >{{section.name}}</a>
-                    {% for notebook_obj in section.notebooks %}
-                    <a {% autoescape off %}{{notebook_obj.decorate_a}}{% endautoescape %}
-onclick="{{notebook_obj.onclick}};select_track('{{track_obj.id}}', false);"
-                    >
-                        <div data-notebook="{{notebook_obj.clean_path}}"
-                             data-notebook-title="{{notebook_obj.notebookname}}"
-                             class="notebook {{notebook_obj.classes}}
-                            {% if notebook_obj.clean_path == notebook %}current{% endif %}"
-                        ></div>
-                    </a>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-            </div>
-            {% endfor %}
-        </div>
+      {% for build in coursedir.builds %}
+      <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
+        class="build btn btn-outline-success" {% if build.description %} data-toggle="tooltip" data-html="true"
+        data-placement="right" title="{{build.description}}" {% endif %}> {{build.name}}
+      </div>
+      {% endfor %}
 
-
-        <div id="left-bottom">
-
-            <div id="other-views"
-                data-toggle="tooltip" data-html="true" data-placement="right"
-                title="you'll find here<br>some other ways<br>to browse this repo">
-                other views
-            </div>
-
-            {% for build in coursedir.builds %}
-                <div id="build-{{build.id}}"
-                    onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
-                    class="build btn btn-outline-success"
-                    {% if build.description %}
-                      data-toggle="tooltip" data-html="true" data-placement="right"
-                      title="{{build.description}}"
-                    {% endif %}
-                > {{build.name}}
-                </div>
-            {% endfor %}
-
-            <div id="classic"
-                onclick="select_classic()"
-                data-toggle="tooltip" data-html="true" data-placement="right"
-                title="Jupyter classic will display the contents of your workdir
-                and spawn noteboks in separate tabs"
-                class="classic btn btn-outline-success"
-                >  Jupy<wbr>ter clas<wbr>sic
-                </div>
-            <div id="jlab"
-                onclick="select_jlab()"
-                target="nbhosting-jupyter"
-                data-toggle="tooltip" data-html="true" data-placement="right"
-                title="with Jupyter lab you can edit all your contents from
-                within a single browser tab"
-                class="lab btn btn-outline-success"
-                >  Jupy<wbr>ter lab
-                </div>
-
-        </div>
+      <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
+                and spawn noteboks in separate tabs" class="classic btn btn-outline-success"> Jupy<wbr>ter clas<wbr>sic
+      </div>
+      <div id="jlab" onclick="select_jlab()" target="nbhosting-jupyter" data-toggle="tooltip" data-html="true"
+        data-placement="right" title="with Jupyter lab you can edit all your contents from
+                within a single browser tab" class="lab btn btn-outline-success"> Jupy<wbr>ter lab
+      </div>
 
     </div>
 
-    <div id="iframe-container" class="transitionable">
-        <iframe id="nbhosting-jupyter"
-            height="100%"
-            width="100%"
-            src="{{iframe}}"
-            onload="focus_iframe()"
-        >
-        </iframe>
-    </div>
+  </div>
+
+  <div id="iframe-container" class="transitionable">
+    <iframe id="nbhosting-jupyter" height="100%" width="100%" src="{{iframe}}" onload="focus_iframe()">
+    </iframe>
+  </div>
 </div>
 
 <script>
-function clickleft(e) { toggle_decorations('left', e); }
-function clicktop(e) { toggle_decorations('top', e); }
+  function clickleft(e) { toggle_decorations('left', e); }
+  function clicktop(e) { toggle_decorations('top', e); }
 
-$(() => {
+  $(() => {
     $("#hideleft-toggle").click(clickleft);
     $("#hidetop-toggle").click(clicktop);
     {% if jupyter_app %}
-        select_{{jupyter_app}}();
+    select_{ { jupyter_app } } ();
     {% else %}
-        select_track("{{track.id}}", false);
+    select_track("{{track.id}}", false);
     {% endif %}
-});
+  });
 
 </script>
 {% endblock %}

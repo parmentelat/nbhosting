@@ -13,10 +13,10 @@ Course {{course}}: {{message}}
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
-    <li class="breadcrumb-item"><a href="/staff/courses/">courses</a></li>
-    <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
-    <li class="breadcrumb-item auditor"><a href='/auditor/courses/'>courses</a></li>
-    <li class="breadcrumb-item auditor"><a href='/auditor/notebook/{{course}}'>{{course}}</a></li>
+  <li class="breadcrumb-item"><a href="/staff/courses/">courses</a></li>
+  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+  <li class="breadcrumb-item auditor"><a href='/auditor/courses/'>courses</a></li>
+  <li class="breadcrumb-item auditor"><a href='/auditor/notebook/{{course}}'>{{course}}</a></li>
 </ol>
 {% endblock %}
 
@@ -24,37 +24,36 @@ Course {{course}}: {{message}}
 {% block content %}
 
 <div class='section'>
-    <a
-        class="btn btn-lg btn-block btn-{%if returncode == 0%}success{%else%}warning{%endif%}"
-        href='/staff/course/{{course}}'>Back to {{course}}
-    </a>
+  <a class="btn btn-lg btn-block btn-{%if returncode == 0%}success{%else%}warning{%endif%}"
+    href='/staff/course/{{course}}'>Back to {{course}}
+  </a>
 </div>
 
 
 <h1 class='page-header'>Status</h1>
 
 <div class="code code-{%if returncode == 0%}ok{%else%}ko{%endif%}">
-Command <code>{{command}}</code> returned
-{% if returncode == 0 %}
-OK
-{% else %}
-{{ returncode }}
-{% endif %}
+  Command <code>{{command}}</code> returned
+  {% if returncode == 0 %}
+  OK
+  {% else %}
+  {{ returncode }}
+  {% endif %}
 </div>
 
 <h1 class="page-header"><code>stdout</code></h1>
 <div class="code code-{%if returncode == 0%}ok{%else%}ko{%endif%}">
-{%if not stdout%}
-No stdout
-{%else%}
-<pre><code>{{stdout}}</code></pre>
-{%endif%}
+  {%if not stdout%}
+  No stdout
+  {%else%}
+  <pre><code>{{stdout}}</code></pre>
+  {%endif%}
 </div>
 
 {% if stderr %}
 <h1 class="page-header"><code>stderr</code></h1>
 <div class="code code-{%if returncode == 0%}ok{%else%}ko{%endif%}">
-<pre><code>{{stderr}}</code></pre>
+  <pre><code>{{stderr}}</code></pre>
 </div>
 {% endif %}
 
