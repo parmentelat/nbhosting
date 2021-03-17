@@ -653,7 +653,7 @@ class CourseDir(models.Model):
                 logger.error(f"{build_path} exists and is not a dir - build aborted")
                 return False
             if not force:
-                logger.error(f"build {build_path} already present - run with --force to override")
+                logger.warning(f"build {build_path} already present - run with --force to override")
                 return False
             logger.info(f"removing existing build (--force) {build_path}")
             import shutil
@@ -707,10 +707,17 @@ class CourseDir(models.Model):
         pulls from the git repository
         """
         if not silent:
-            return self.run_nbh_subprocess('course-update-from-git')
+            result = self.run_nbh_subprocess('course-update-from-git')
         else:
             completed = self.nbh_subprocess('course-update-from-git', False)
-            return completed.returncode == 0
+            result = (completed.returncode == 0)
+        # xxx we may need some exclusion mechanism to avoid
+        # having 2 builds running simultaneously
+        if self.autobuild:
+            logger.info(f"autobuild: rebuilding {self.coursename}")
+            command = f"nbh-manage course-run-build {self.coursename}"
+            result = result and show_and_run(command)
+        return result
 
 
     def current_hash(self, student=None):
