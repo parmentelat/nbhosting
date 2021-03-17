@@ -1,3 +1,7 @@
+# 0.40.3 2021 Mar 17
+
+* cosmetic, reformatted html templates with a 2-space indent
+
 # 0.40.2 2021 Mar 15
 
 * nbh-manage course-pull no longer does git pull but fetch + reset --hard  
