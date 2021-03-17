@@ -1,6 +1,7 @@
-# 0.40.3 2021 Mar 17
+# 0.41.0 2021 Mar 17
 
-* cosmetic, reformatted html templates with a 2-space indent
+* add autobuild in the course model
+* pulling a course that has autobuild set triggers all builds on that course
 
 # 0.40.2 2021 Mar 15
 
