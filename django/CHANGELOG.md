@@ -1,3 +1,7 @@
+# 0.41.1 2021 Mar 17
+
+* bugfix monitor was failing to cleanup lingering containers #145
+
 # 0.41.0 2021 Mar 17
 
 * add autobuild in the course model
