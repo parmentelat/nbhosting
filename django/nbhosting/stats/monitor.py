@@ -143,7 +143,11 @@ class MonitoredJupyter:
             logger.error(f"error 500 with {self.name}")
 
     def creation_time(self):
-        return self.container['Created']
+        # this returns format 2021-03-24T12:50:44.429575432Z
+        # which has nanoseconds !
+        created = self.container['Created']
+        epoch = datetime.strptime(created[:-4], '%Y-%m-%dT%H:%M:%S.%f').timestamp()
+        return epoch
 
 
     def last_activity_human(self):
