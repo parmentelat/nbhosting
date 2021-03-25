@@ -11,7 +11,7 @@ import subprocess
 import logging
 import re
 
-from typing import Dict 
+from typing import Dict
 
 import asyncio
 import aiohttp
@@ -27,7 +27,7 @@ from nbhosting.courses.model_course import CourseDir
 from nbhosting.stats.stats import Stats
 
 # podman containers come in 2 flavours
- 
+
 # first call to list_containers() returns a list of dicts with keys
 
 HighlevelContainer = Dict
@@ -69,7 +69,7 @@ Also note that
 # not configurable for now
 # when we detect an unreachable container, we wait this amount of seconds
 # before we decide to kill it, to make sure it is not simply taking off
-# makes sense to pick something in the order of magnitude of the 
+# makes sense to pick something in the order of magnitude of the
 # global timeout in scripts/nbh
 GRACE = 30
 
@@ -141,7 +141,7 @@ class MonitoredJupyter:
                 self.inspection = podman.containers.inspect(podman_api, self.name)
         except podman.errors.InternalServerError:
             logger.error(f"error 500 with {self.name}")
-            
+
     def creation_time(self):
         return self.container['Created']
 
@@ -230,7 +230,7 @@ class MonitoredJupyter:
         except Exception:
             logger.exception(f"Cannot probe number of kernels with {self} - unhandled exception")
 
-    
+
     def kill_container(self):
         # using a new connection each time turns out much more robust
         with podman.ApiConnection(podman_url) as podman_api:
@@ -242,7 +242,7 @@ class MonitoredJupyter:
     def remove_container(self):
         with podman.ApiConnection(podman_url) as podman_api:
             podman.containers.remove(podman_api, self.name)
-            
+
 
     async def co_run(self, idle, lingering):
         try:
@@ -263,19 +263,19 @@ class MonitoredJupyter:
             return
 
         state = self.inspection['State']['Status']
-        
+
         if state in ('stopped', 'configured'):
             logger.info(f"BLIP weirdo (1) {self.name} - removing")
             logger.info(f"BLIP weirdo (1) detailed state was {self.inspection['State']}")
             self.remove_container()
             return
-        
+
         # ignore non running containers
         if state != 'running':
             logger.info(f"BLIP weirdo (2) {self.name} - ignoring")
             logger.info(f"BLIP weirdo (2) detailed state was {self.inspection['State']}")
             return
-        
+
         # count number of kernels and last activity
         await self.count_running_kernels()
         # last_activity may be 0 if no kernel is running inside that container
@@ -313,10 +313,10 @@ class MonitoredJupyter:
                 f"that has been idle for {idle_minutes} mn")
             self.kill_container()
             return
-        
+
         # if students accidentally leave stuff running in the background
         # last_activity may be misleading
-        # so we kill all caontainers older than <lingering>
+        # so we kill all containers older than <lingering>
         # the unit here is seconds but the front CLI has it in hours
         created_time = self.creation_time()
         ellapsed = int(now - created_time)
@@ -369,7 +369,7 @@ class Monitor:
         disk_spaces, loads, memory = self._gather_system_facts(figures_by_course)
         self._scan_containers(figures_by_course)
         self._write_results(figures_by_course, disk_spaces, loads, memory)
-                
+
     def _scan_containers(self, figures_by_course):
 
         # initialize all known courses - we want data on all courses
@@ -412,19 +412,19 @@ class Monitor:
                             f"can't find image hash for {coursename}")
             except Exception:
                 logger.exception(f"monitor has to ignore {container}")
-                                
+
         # run the whole stuff
         futures = [mon.co_run(self.idle, self.lingering)
                    for mon in monitoreds]
-        
+
         #asyncio.run(asyncio.gather(*futures))
         asyncio.get_event_loop().run_until_complete(
             asyncio.gather(*futures))
-        
+
         self.system_containers = len(monitoreds)
         self.system_kernels = sum((mon.nb_kernels or 0) for mon in monitoreds)
 
-    
+
     def _gather_system_facts(self, figures_by_course):
         # ds stands for disk_space
         if self._graphroot is None:
@@ -485,7 +485,7 @@ class Monitor:
 
         return disk_spaces, loads, memory
 
-    def _write_results(self, figures_by_course, 
+    def _write_results(self, figures_by_course,
                        disk_spaces, loads, memory):
         coursedirs_by_name = {c.coursename : c
                               for c in CourseDir.objects.all()}
