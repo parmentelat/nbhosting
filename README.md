@@ -3,7 +3,7 @@
 **Important Notices**
 
 * **Since release 0.24**, nbhosting **no longer relies on cookies** to route traffic to the containers.
-* **Since release 0.30, nbhosting **relies on podman** and **no longer on docker** to host containers.
+* **Since release 0.30**, nbhosting **relies on podman** and **no longer on docker** to host containers.
 
 # Jupyter notebook hosting architecture
 
