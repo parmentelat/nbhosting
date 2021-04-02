@@ -9,17 +9,34 @@
 
 This git repo contains a collection of utilities, that together make up the architecture behind `nbhosting.inria.fr` that is designed as a notebook-serving infrastructure.
 
+## Use case : MOOCs
+
 First use case is for hosting notebooks in the context of MOOCs. See e.g. on fun-mooc.fr:
 
 * [Python : des fondamentaux à l'utilisation du langage](https://www.fun-mooc.fr/courses/inria/41001S03/session03/about)
 * [Bioinformatique : algorithmes et génomes](https://www.fun-mooc.fr/courses/inria/41003S02/session02/about)
 * [Physique : préparation à l'entrée dans l'enseignement supérieur](https://www.fun-mooc.fr/courses/course-v1:Polytechnique+03009+session01/about)
 
+The [m@agistere service](https://magistere.education.fr/) also uses
+this same infrastructure to add notebooks to their moddle-based LMS
+
+## In the classroom
+
+In addition to this "*silent" mode, it is also possible to use it in
+standalone mode in the classroom; to that end, nbhosting also offers a
+few features to provide a thin navigation/structuring layer on top of
+notebook-oriented contents.
+
 ******
 
 # *Open-edX* teacher side
 
-On the edx side, teacher would create a bloc typed as *ipython notebook* - note that the present repo does not address the code for the edx extension that supports this type of blocs (ref?); it is readily available at this point (jan. 2017) at `fun-mooc.fr`; see below for enabling it on a new course.
+As far as fun-mooc/edx mode is concerned, on the edx side, teacher
+would create a bloc typed as *ipython notebook* - note that the
+present repo does not address the code for the edx extension that
+supports this type of blocs (ref?); it is readily available at this
+point (jan. 2017) at `fun-mooc.fr`; see below for enabling it on a new
+course.
 
 ![](docs/edx-bloc.png)
 
@@ -31,7 +48,7 @@ On the edx side, teacher would create a bloc typed as *ipython notebook* - note 
 
 # *Open-edX* student side
 
-Here's what a student would see;
+With these settings in place, here's what a student would see;
 
 ![](docs/edx-student.png)
 
@@ -41,16 +58,16 @@ Here's what a student would see;
 
 In a nutshell:
 
-* the first time a student tries to open a notebook, nbhosting transparently creates her an account, together with a container;
-* the first time a student opens a given notebook, this notebook is **copied** from the master course contents **into her container**; note that there are 2 different strategies at work in terms of copying, as explained below; in any case, from that point on, her work for that notebook is independant from the master course;
-* containers are automatically stopped (i.e. frozen) when the student is inactive, to preserve computing resources; as a consequence, a student may have to wait up to 10 seconds when she shows up the first time or after idle time.
+* the first time a student opens a notebook, nbhosting transparently creates them an account, together with a container;
+* the first time a student opens a given notebook, this notebook is **copied** from the master course contents **into her container**; note that there are 2 different strategies at work in terms of copying, as explained below; in any case, from that point on, their work for that notebook is independant from the master course;
+* containers are automatically stopped (i.e. frozen) when the student is idle for some tunable amount of time, so as to preserve computing resources; as a consequence, a student may have to wait up to 10 seconds when she shows up the first time or after idle time (i.e. each a container needs to be respawn).
 
 2 Additional features allow a student to:
 
-* **Reset to Original**: copy again the master course into her container -
-  **beware* that she will then lose her work on that notebook of course.
+* **Reset to Original**: copy again the master course into their container -
+  **beware* that they will then lose their work on that notebook of course.
 * **Share Static Version**: create a read-only snapshot of her notebook, that
-  can then be used to share her work in the course's forum.
+  can then be used to share their work in the course's forum or on their favorite chat system.
 
 ![](docs/edx-extras.png)
 
@@ -69,13 +86,14 @@ Module List* setting, as illustrated below:
 
 ## Workflow / how to publish
 
-Workflow is entirely based on git : a course is defined from a git repo, typically remote
-and public. In order to publish a new version of your notebooks, you need to push them to
-that reference repo, and then instruct nbhosting to pull the new stuff :
+Workflow is entirely based on git : a course is defined from a git
+repo, typically remote (github, gitlab, ...) and public. In order to
+publish a new version of your notebooks, you need to push them to that
+reference repo, and then instruct nbhosting to pull the new stuff :
 
 ![](docs/nbhosting-git-pull.png)
 
-If you set a given course in *autopull* mode, nbhosting will then perform this pull
+If you set a given course in *autopull* mode, nbhosting will perform this pull
 operation on its own every 5 minutes.
 
 ## Container image
@@ -83,11 +101,11 @@ operation on its own every 5 minutes.
 Each course is deployed based on a specific image; for customization,
 create a file named `nbhosting/Dockerfile` in your course repo.
 Note that some magic recipes need to be applied in your image for proper
-deployment, you should copy the beginning of [the code for our Python
-course](https://github.com/flotpython/course/blob/master/nbhosting/Dockerfile),
-although it is often desirable to select a fixed version for the bottom image.
+deployment, so you should start from either the `nbhosting/minimal-notebook`
+or `nbhosting/scipy-notebook` image; see the beginning of [the code for our Python
+MOOC](https://github.com/flotpython/course/blob/master/nbhosting/Dockerfile) for an example.
 
-That image can then be rebuilt from the website. New image will be deployed
+That image can then be rebuilt from the website. The new image will be deployed
 incrementally, essentially as running containers get phased out when detected as
 inactive; this means it can take a day or two before all the students can see
 the upgrade.
@@ -102,7 +120,8 @@ Each notebook is displayed with a label and version number; like e.g. on the exa
 
 ## Statistics
 
-Statistics are available, for visually inspecting data like:
+Some usage statistics are available, for visually inspecting data like:
+
 * how many different students have showed up and when,
 * which notebooks were opened and when,
 * computing resources like created/active containers, disk space, CPU load...
@@ -111,11 +130,21 @@ Statistics are available, for visually inspecting data like:
 
 ## Staff
 
-You can declare some people as being staff; this is used by nbhosting only for
-discarding accesses done by these people, when putting stats together. A convenience button also allows to trash all the working files for people declared as staff, which can come in handy to be sure that staff people always see the latest pushed version.
+You can declare some people as being staff; this is used by nbhosting
+only for discarding accesses done by these people, when putting stats
+together. A convenience button also allows to trash all the working
+files for people declared as staff, which can come in handy to be sure
+that staff people always see the latest pushed version.
 
-For declaring somebody as staff, you need to somehow locate that person's hash, as exposed by edx.
+For declaring somebody as staff, you need to somehow locate that
+person's hash, as exposed by edx.
 
+## Jupytext
+
+text-formats are way easier to manage under git than the historical `ipynb` format; for
+that reason, nbhosting provides full and transparent support for notebooks saved in a
+text-format, at least for formats known under jupytext as `py:percent`, `py:light`,
+`markdown` and `md:myst`.
 
 ******
 
@@ -134,7 +163,7 @@ Here's the general principle of how things work
 
 ***Note*** that `notebookLazyCopy` used to be named `ipythonExercice`, which is still supported for backward compatibility.
 
-## classroom mode 
+## classroom mode
 
 The classroom mode uses a similar approach, but uses a URL that
 mentions `notebookGitRepo/` instead of `notebookLazyCopy/`; the
@@ -147,14 +176,16 @@ The advantage in this mode is that students can later on use the jupyterlab
 git extension to accurately manage their local repo, i.e. drop or commit
 local changes, pull any updates from the master repo, and so on
 
+An experimental feature called 'pull-students' allows to deal with changes made in the
+master course; it allows to automatically pull these changes in the student's repo.
+
 ## summary
 
 As a summary:
 
 ![](docs/architecture.png)
 
-
-
 # TODO
 
-See [Issues on github](https://github.com/parmentelat/nbhosting/issues) for an up-to-date status.
+See [Issues on github](https://github.com/parmentelat/nbhosting/issues) 
+for an up-to-date status.
