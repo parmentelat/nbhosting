@@ -1,3 +1,8 @@
+# 0.41.2 2021 Apr 28
+
+* allow jupyterlab-git extension install to fail
+* revisited the 'other views' area
+
 # 0.41.1 2021 Mar 17
 
 * bugfix monitor was failing to cleanup lingering containers #145
