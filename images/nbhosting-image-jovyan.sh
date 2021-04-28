@@ -46,4 +46,4 @@ pip install -U ipythontutor
 
 # jupyterlab git extension
 pip install -U jupyterlab jupyterlab-git 
-jupyter labextension install @jupyterlab/git && jupyter serverextension enable --py jupyterlab_git
+jupyter labextension install @jupyterlab/git && jupyter serverextension enable --py jupyterlab_git || :
