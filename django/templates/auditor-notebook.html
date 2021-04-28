@@ -209,15 +209,13 @@
     // let's get rid of jquery one day
     let left_bottom = document.querySelector("#left-bottom")
     // we're requested to make it show up: use the css setting
-    if (!hidden) {
-      left_bottom.style.marginBottom = null
+    let other_views = document.getElementById('other-views')
+    if (! hidden) {
+      other_views.classList.remove('hidden')
+//      left_bottom.style.marginBottom = null
       left_bottom.setAttribute('data-hidden', null)
     } else {
-      // hidden here means to keep only 'other-views' visible
-      let other_views = document.getElementById('other-views')
-      let thin_height = other_views.clientHeight - 5
-      let height = left_bottom.offsetHeight
-      left_bottom.style.marginBottom = `${- (height - thin_height)}px`;
+      other_views.classList.add('hidden')
       left_bottom.setAttribute('data-hidden', 'yes')
     }
   }
@@ -336,11 +334,10 @@
     /* margin-top: auto is important so that
        the box gets attached to the bottom of the viewport */
     margin: auto 10px 5px 10px;
-    transition: margin-bottom 0.5s ease-in-out;
     border-radius: 10px;
     /* tmp */
     border: 2px solid green;
-    padding: 0px 10px 10px 10px;
+    padding: 0px 10px 4px 10px;
     background-color: white;
   }
 
@@ -468,12 +465,23 @@
     /*    background-position: center; */
   }
 
-  #other-views {
+  #other-views-label {
     text-align: center;
     width: 100%;
     border-width: 0px;
     font-size: 100%;
     padding-bottom: 10px;
+  }
+  #other-views {
+    display: flex;
+    flex-direction: column;
+    transition: max-height 0.4s ease-in;
+  }
+  #other-views.hidden {
+    max-height: 0;
+  }
+  #left-bottom[data-hidden="yes"] #other-views-label {
+    padding-bottom: 0px;
   }
 
   #classic,
@@ -492,7 +500,7 @@
   }
 
   .hidden {
-    display: none;
+    display: none !important;
   }
 
   .tooltip {
@@ -554,24 +562,27 @@
 
     <div id="left-bottom">
 
-      <div id="other-views" data-toggle="tooltip" data-html="true" data-placement="right"
+      <div id="other-views-label" data-toggle="tooltip" data-html="true" data-placement="right"
         title="you'll find here<br>some other ways<br>to browse this repo">
         other views
       </div>
 
-      {% for build in coursedir.builds %}
-      <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
-        class="build btn btn-outline-success" {% if build.description %} data-toggle="tooltip" data-html="true"
-        data-placement="right" title="{{build.description}}" {% endif %}> {{build.name}}
-      </div>
-      {% endfor %}
+      <div id="other-views" class="transitionable">
 
-      <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
-                and spawn noteboks in separate tabs" class="classic btn btn-outline-success"> Jupy<wbr>ter clas<wbr>sic
-      </div>
-      <div id="jlab" onclick="select_jlab()" target="nbhosting-jupyter" data-toggle="tooltip" data-html="true"
-        data-placement="right" title="with Jupyter lab you can edit all your contents from
-                within a single browser tab" class="lab btn btn-outline-success"> Jupy<wbr>ter lab
+        {% for build in coursedir.builds %}
+        <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
+          class="build btn btn-outline-success" {% if build.description %} data-toggle="tooltip" data-html="true"
+          data-placement="right" title="{{build.description}}" {% endif %}> {{build.name}}
+        </div>
+        {% endfor %}
+
+        <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
+                      and spawn noteboks in separate tabs" class="classic btn btn-outline-success"> Jupy<wbr>ter clas<wbr>sic
+        </div>
+        <div id="jlab" onclick="select_jlab()" target="nbhosting-jupyter" data-toggle="tooltip" data-html="true"
+          data-placement="right" title="with Jupyter lab you can edit all your contents from
+                      within a single browser tab" class="lab btn btn-outline-success"> Jupy<wbr>ter lab
+        </div>
       </div>
 
     </div>
