@@ -174,3 +174,7 @@ LOGIN_REDIRECT_URL = '/welcome/'
 LOGIN_URL =          '/accounts/login/'
 
 DEFAULT_FROM_EMAIL = f"nbhosting-no-reply@{sitesettings.server_name}"
+
+# for smooth migration to 3.2, that otherwises complains a lot about this
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
