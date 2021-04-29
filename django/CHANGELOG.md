@@ -1,3 +1,7 @@
+# 0.41.3 2021 Apr 29
+
+* remove persistent warning issued by Django3.2 about default primary keys
+
 # 0.41.2 2021 Apr 28
 
 * allow jupyterlab-git extension install to fail
