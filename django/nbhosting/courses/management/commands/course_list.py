@@ -6,15 +6,63 @@ from django.core.management.base import BaseCommand
 
 from nbhosting.courses.model_course import CourseDir
 
+from nbhosting.matching import matching_policy
+
 from nbh_main.settings import logger, NBHROOT
+
+def iter_len(iter):
+    return sum(1 for _ in iter)
+
+
+def list_courses_groups(patterns, verbose):
+    """
+    usual verbosity meaning - see e.g. group_list.py
+    """
+    for coursedir in CourseDir.objects.all():
+        if not matching_policy(coursedir.coursename, patterns):
+            continue
+        if not verbose:
+            print(coursedir.coursename)
+            continue
+        groups = coursedir.registered_groups.all()
+        if verbose == 1:
+            print(f"{coursedir.coursename} has {iter_len(groups)} group(s)")
+            continue
+        if verbose >= 3:
+            print(f"{10*'-'} {coursedir.coursename} has {iter_len(groups)} group(s)")
+        for group in groups:
+            print(group.name)
+
+
+def list_courses_users(patterns, verbose):
+    """
+    usual verbosity meaning - see e.g. group_list.py
+    """
+    for coursedir in CourseDir.objects.all():
+        if not matching_policy(coursedir.coursename, patterns):
+            continue
+        if not verbose:
+            print(coursedir.coursename)
+            continue
+        groups = coursedir.registered_groups.all()
+        users = sorted({user for group in groups for user in group.user_set.all()},
+                       key=lambda user: user.username)
+        if verbose == 1:
+            print(f"{coursedir.coursename} has {iter_len(users)} user(s)")
+            continue
+        if verbose >= 3:
+            print(f"{10*'-'} {coursedir.coursename} has {iter_len(users)} user(s)")
+        for user in users:
+            print(user.username)
+
 
 class Command(BaseCommand):
 
     help = """
-    this command list known courses
+    this command list known courses;
 
     without argument it lists all courses; with arguments
-    it lists all course whose name contains any of the tokens
+    it lists all course whose name contains any of the tokens;
 
     example: nbh-manage courses-list python bio
 
@@ -28,13 +76,31 @@ class Command(BaseCommand):
             help=("Give more output. Option is additive, and can be used up to 2 "
                   "times."),
         )
+        parser.add_argument(
+            "-g", "--groups", default=False, action="store_true",
+            help="only list registered groups",
+        )
+        parser.add_argument(
+            "-u", "--users", default=False, action="store_true",
+            help="only list users affiliated through at least one group",
+        )
         parser.add_argument("patterns", nargs='*', type=str)
 
 
     def handle(self, *args, **kwargs):
 
         patterns = kwargs['patterns']
+        users_mode = kwargs['users']
+        groups_mode = kwargs['groups']
         list_flag = kwargs['list']
+
+        if users_mode:
+            list_courses_users(patterns, list_flag)
+            return
+
+        if groups_mode:
+            list_courses_groups(patterns, list_flag)
+            return
 
         def groups(cd):
             return " + ".join(group.name for group in cd.registered_groups.all())
@@ -79,6 +145,7 @@ class Command(BaseCommand):
                 escape = chr(27)
                 line = f"{escape}[1m{escape}[31m{line}{escape}[0m"
             return line
+
 
         selected = sorted(CourseDir.courses_by_patterns(patterns))
 
