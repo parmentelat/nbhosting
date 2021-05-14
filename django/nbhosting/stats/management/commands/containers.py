@@ -86,12 +86,16 @@ class Command(BaseCommand):
 
         def monitored(container):
             name = container['Names'][0]
-            course, student = name.split('-x-')
+            try:
+                course, student = name.split('-x-')
+            except ValueError:
+                return None
             # create one figures instance per container
             figures = CourseFigures()
             return MonitoredJupyter(container, course, student, figures, None)
             
         running_monitoreds = [monitored(container) for container in all_running]
+        running_monitoreds = [mon for mon in running_monitoreds if mon]
 
         if show_details or show_idle:
             # probe them to fill las_activity and number_kernels
