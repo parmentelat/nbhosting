@@ -164,7 +164,6 @@ def destroy_my_container(request, course):
 
 
 def staff_course_update(request, course):
-    print(f"MATCHED staff-course.html with course={course}")
     coursedir = get_object_or_404(CourseDir, coursename=course)
 
     # If this is a POST request then process the Form data

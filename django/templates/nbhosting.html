@@ -5,15 +5,25 @@
 
 <head>
   <title>{% block head_title %}nbhosting management{% endblock %}</title>
-  <link rel="icon" type="image/png" href="{% static " img/nbh-favicon.png" %}" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.4/js/tether.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/css/bootstrap.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.0/d3.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+
+  <link rel="icon" type="image/png" href="{% static " img/nbh-favicon.png" %}">
+  <script                 src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.4/js/tether.min.js"></script>
+  <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/css/bootstrap.min.css">
+  <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.0/d3.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.27.3/filepond.css">
+  <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.27.3/filepond.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200,200i,400,400i,500,500i,600,600i,700,700i">
   <style>
+    body {
+      font-family: Raleway;
+    }
+    #left-pane {
+      font-weight: 100;
+    }
     div.nbh-banner {
       padding: 0px 2rem 18px 2rem;
       display: flex;
@@ -102,6 +112,11 @@
     ol.breadcrumb.stats>li>a,
     ol.breadcrumb>li.stats>a {
       color: orange;
+    }
+
+    ol.breadcrumb.droparea>li>a,
+    ol.breadcrumb>li.droparea>a {
+      color: green;
     }
 
     ol.breadcrumb li:not(.active)>a {

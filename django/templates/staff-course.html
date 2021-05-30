@@ -131,6 +131,12 @@
     background-image:
       url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
   }
+
+  .drops {
+    padding: 6px 20px;
+    background-color: #ccc;
+    border: 1px solid black;
+    border-radius: 6px;
   }
 </style>
 
@@ -280,6 +286,23 @@
                       currently running container</span>">
               destroy my container
             </a>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="section">
+        <div class="card">
+          <div class="card-block m-3">
+            <h3 class="card-title" data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                      to create a droparea, simply create a directory in <code>{{coursedir.drop_dir}}</code></span>"
+                      >
+                dropareas
+            </h3>
+            {% for droparea in coursedir.dropareas %}
+              <a href="/teacher/droparea/{{coursename}}/{{droparea}}">{{droparea}}</a><br>
+            {% endfor %}
           </div>
         </div>
       </div>

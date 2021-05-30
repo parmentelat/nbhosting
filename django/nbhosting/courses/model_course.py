@@ -1,5 +1,10 @@
 # pylint: disable=c0111
+# pylint: disable=logging-fstring-interpolation, f-string-without-interpolation
+# pylint: disable=attribute-defined-outside-init
+# pylint: disable=broad-except
+# pylint: disable=expression-not-assigned
 
+import sys
 import os
 from pathlib import Path                                # pylint: disable=w0611
 import subprocess
@@ -43,6 +48,7 @@ class CourseDir(models.Model):
     # staff users refer to hashes created remotely
     # so they do not match locally registered users
     # so it is *not* a many-to-many relationship
+    # xxx would it rather make sense to use a property here ?
     staff_usernames = models.TextField(default="", blank=True)
 
     # this OTOH qualifies for a proper n-to-n thing
@@ -55,8 +61,10 @@ class CourseDir(models.Model):
         self._tracks = None
         super().__init__(*args, **kwds)
 
+
     def __lt__(self, other):
         return self.coursename < other.coursename
+
 
     @staticmethod
     def courses_by_patterns(patterns):
@@ -102,7 +110,7 @@ class CourseDir(models.Model):
     def is_valid(self):
         return self.git_dir.exists() and self.git_dir.is_dir()
     def __repr__(self):
-        return self.coursename
+        return str(self.coursename)
     def archived_class(self):
         return "archived" if self.archived else ""
 
@@ -137,6 +145,14 @@ class CourseDir(models.Model):
         return NBHROOT / "builds" / self.coursename
     build_dir = property(_build_dir)
 
+    def drop_dir(self):
+        return NBHROOT / "droparea" / self.coursename
+
+
+    def dropareas(self):
+        for droppath in self.drop_dir().glob('*'):
+            if droppath.is_dir():
+                yield droppath.name
 
     def relevant(self, user):
         """
@@ -182,12 +198,14 @@ class CourseDir(models.Model):
 
         returns a Path instance, or None
         """
-        c1 = NBHROOT / "local" / self.coursename / filename
-        c2 = self.git_dir / "nbhosting" / filename
+        candidates = [
+            NBHROOT / "local" / self.coursename / filename,
+            self.git_dir / "nbhosting" / filename,
+        ]
 
-        for c in (c1, c2):
-            if c.exists():
-                return c
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
         return None
 
 
@@ -231,8 +249,6 @@ class CourseDir(models.Model):
 
         returns True if container was killed, False otherwise
         """
-        import podman
-        podman_url = "unix://localhost/run/podman/podman.sock"
         container_name = f"{self.coursename}-x-{student}"
         try:
             with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
@@ -441,13 +457,12 @@ class CourseDir(models.Model):
                 tracks = tracks_fun(self)
                 if self._check_tracks(tracks):
                     return tracks
-            except Exception:                           # pylint: disable=w0703
+            except Exception:
                 logger.exception(
                     f"{self} could not do load custom tracks")
             finally:
                 # make sure to reload the python code next time
                 # we will need it, in case the course has published an update
-                import sys
                 if modulename in sys.modules:
                     del sys.modules[modulename]
         else:
@@ -499,7 +514,7 @@ class CourseDir(models.Model):
     def default_trackname(self):
         try:
             return self.tracks()[0].name
-        except:
+        except Exception:
             return "unknown"
 
 
@@ -592,7 +607,7 @@ class CourseDir(models.Model):
             except podman.errors.ImageNotFound:
                 logger.error(f"Course {self.coursename} "
                             f"uses unknown podman image {self.image}")
-            except:
+            except Exception:
                 logger.exception("Can't figure image hash")
 
 
@@ -676,7 +691,6 @@ class CourseDir(models.Model):
                 logger.warning(f"build {build_path} already present - run with --force to override")
                 return False
             logger.info(f"removing existing build (--force) {build_path}")
-            import shutil
             shutil.rmtree(str(build_path))
 
         variables = "NBHROOT+coursename+script+directory+result_folder"
@@ -684,7 +698,7 @@ class CourseDir(models.Model):
         # saying the variable names are undefined...
         vars = {}
         for var in variables.split('+'):
-            vars[var] = eval(var)
+            vars[var] = eval(var)                             # pylint: disable=eval-used
 
         template = get_template("scripts/dot-clone-build-rsync.sh")
         expanded_script = template.render(vars)
@@ -697,20 +711,20 @@ class CourseDir(models.Model):
 
         container = f"{coursename}-xbuildx-{buildid}-{githash}"
 
-        podman  = f""
-        podman += f" podman run --rm"
-        podman += f" --name {container}"
+        podman_c  = f""
+        podman_c += f" podman run --rm"
+        podman_c += f" --name {container}"
         # mount git repo
-        podman += f" -v {self.git_dir}:{self.git_dir}"
+        podman_c += f" -v {self.git_dir}:{self.git_dir}"
         # ditto under its normalized name if needed
         if self.norm_git_dir != self.git_dir:
-            podman += f" -v {self.norm_git_dir}:{self.norm_git_dir}"
+            podman_c += f" -v {self.norm_git_dir}:{self.norm_git_dir}"
         # mount subdir of NBHROOT/builds
-        podman += f" -v {host_trigger.parent}:/home/jovyan/building"
-        podman += f" {self.image}"
-        podman += f" bash /home/jovyan/building/.clone-build-rsync.sh"
-        podman += f" > {host_log} 2>&1"
-        success = show_and_run(podman, dry_run=dry_run)
+        podman_c += f" -v {host_trigger.parent}:/home/jovyan/building"
+        podman_c += f" {self.image}"
+        podman_c += f" bash /home/jovyan/building/.clone-build-rsync.sh"
+        podman_c += f" > {host_log} 2>&1"
+        success = show_and_run(podman_c, dry_run=dry_run)
         if dry_run:
             logger.info(f"(DRY-RUN) Build script is in {host_trigger}")
         else:

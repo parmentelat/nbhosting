@@ -92,6 +92,13 @@ class Command(BaseCommand):
         )
         parser.add_argument("patterns", nargs='*', type=str)
 
+    @staticmethod
+    def dropareas(coursedir):
+        dropareas = list(coursedir.dropareas())
+        if not dropareas:
+            return ""
+        spaces = " ".join(dropareas)
+        return f"{{{spaces}}}"
 
     def handle(self, *args, **kwargs):
 
@@ -112,7 +119,7 @@ class Command(BaseCommand):
         def groups(cd):
             return " + ".join(group.name for group in cd.registered_groups.all())
 
-        def show_course(cd, max_name, max_image, max_groups):
+        def show_course(cd, max_name, max_image, max_groups, max_droparea):
             col_name = f"{max_name+1}s"
             col_groups = f"{max_groups+1}s"
             autopull = "[AP]" if cd.autopull else ""
@@ -120,6 +127,8 @@ class Command(BaseCommand):
             archived = "[AR]" if cd.archived else ""
             flags = "".join([x for x in (autopull, autobuild, archived) if x])
             flags = f"{flags:13s}"
+            dropareas = self.dropareas(cd)
+            droparea_part = f"{dropareas:{max_droparea+1}}"
             hash_part = f"{cd.current_hash():9s}"
             groups_part = f"{groups(cd):{col_groups}}"
             image = cd.image
@@ -145,11 +154,12 @@ class Command(BaseCommand):
             line += flags
             if verbose == 1:
                 return line
+            line += droparea_part
             line += hash_part
             line += groups_part
             if verbose >= 3:
                 line += f"{cd.nb_registered_users():>3}u "
-            line += f"{cd.giturl}"
+                line += f"{cd.giturl}"
             if image_exists is False:
                 escape = chr(27)
                 line = f"{escape}[1m{escape}[31m{line}{escape}[0m"
@@ -161,6 +171,7 @@ class Command(BaseCommand):
         max_name = max((len(cd.coursename) for cd in selected), default=4)
         max_image = max((len(cd.image) for cd in selected), default=4)
         max_groups = max((len(groups(cd)) for cd in selected), default=3)
+        max_droparea = max((len(self.dropareas(cd)) for cd in selected), default=1)
         for coursedir in selected:
-            print(show_course(coursedir, max_name, max_image, max_groups))
+            print(show_course(coursedir, max_name, max_image, max_groups, max_droparea))
         return 0

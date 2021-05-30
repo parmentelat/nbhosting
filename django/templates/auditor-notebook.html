@@ -106,10 +106,11 @@
   }
 
   // jupyter classic app
-  function select_classic() {
-    global_track_or_app = "@classic";
-    update_url("");
-    iframe_src('/ipythonForward/{{coursename}}/{{student}}/tree');
+  function select_classic(top) {
+    top = (top === undefined) ? "" : top
+    global_track_or_app = "@classic"
+    update_url("")
+    iframe_src(`/ipythonForward/{{coursename}}/{{student}}/tree/${top}`)
     update_header('Jupyter classic');
     outline_current_notebook('--no-match--');
     turn_off_tracks();
@@ -337,7 +338,7 @@
     border-radius: 10px;
     /* tmp */
     border: 2px solid green;
-    padding: 0px 10px 4px 10px;
+    padding: 0px 10px;
     background-color: white;
   }
 
@@ -571,8 +572,34 @@
 
         {% for build in coursedir.builds %}
         <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
-          class="build btn btn-outline-success" {% if build.description %} data-toggle="tooltip" data-html="true"
-          data-placement="right" title="{{build.description}}" {% endif %}> {{build.name}}
+          class="build btn btn-outline-info"
+          {% if build.description %} data-toggle="tooltip" data-html="true"
+          data-placement="right" title="{{build.description}}" {% endif %}
+        >
+         {{build.name}}
+        </div>
+        {% endfor %}
+
+        {% for droparea in coursedir.dropareas %}
+        <!-- students -->
+        <div id="droparea-{{droparea}}"
+             onclick='select_classic("{{droparea}}")'
+             class="droparea btn btn-outline-warning"
+             data-toggle="tooltip" data-html="true"
+             data-placement="right" title="your teacher may drop files for you"
+        >
+          droparea {{droparea}}
+        </div>
+        {% endfor %}
+
+        {% for droparea in coursedir.dropareas %}
+        <!-- teacher -->
+        <div id="droparea-{{droparea}}"
+             class="droparea btn btn-outline-danger"
+             data-toggle="tooltip" data-html="true"
+             data-placement="right" title="drop files and push to students"
+        >
+          <a href="/teacher/droparea/{{coursename}}/{{droparea}}">drop in {{droparea}}</a>
         </div>
         {% endfor %}
 

@@ -2,22 +2,23 @@
 nbhosting URL Configuration
 """
 
-# pylint: disable=c0326, c0330
+# pylint: disable=w1309
 
 from django.urls import path, re_path, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.views.generic.base import RedirectView
 
 import nbhosting.edxfront.views
 import nbhosting.courses.views_auditor
 import nbhosting.courses.views_staff
+import nbhosting.courses.views_teacher
 import nbhosting.stats.views
-import nbh_main.views
+import nbh_main.views                                # pylint: disable=wrong-import-order
 
 TRACK =       r'(?P<track>[^/]*)'
 COURSE =      r'(?P<course>[\w_.-]+)'
 STUDENT =     r'(?P<student>[\w_.-]+)'
+DROPAREA =    r'(?P<droparea>[\w_.-]+)'
 # being very loose / flexible for the spelling of <notebook>
 # (for supporting e.g. spaces in filenames)
 # requires the non-greedy version of .+
@@ -58,6 +59,14 @@ urlpatterns = [
     # more harmful than helpful at least during devel
     re_path(rf'^auditor.*',
                         nbh_main.views.welcome),
+
+    # teacher views for managing contents
+    re_path(rf'^teacher/droparea/{COURSE}/{DROPAREA}/?$',
+                        nbhosting.courses.views_teacher.teacher_droparea),
+    re_path(rf'^teacher/dropped/{COURSE}/{DROPAREA}/?$',
+                        nbhosting.courses.views_teacher.teacher_dropped),
+    re_path(rf'teacher/dropped-push/{COURSE}/{DROPAREA}/?$',
+                        nbhosting.courses.views_teacher.teacher_dropped_push),
 
     # super user
     re_path(rf'^staff/courses/update-from-git/{COURSE}/?$',
@@ -110,7 +119,8 @@ urlpatterns = [
     #                        name='welcome'),
 ]
 
-from .settings import DEVEL
+from .settings import DEVEL                       # pylint: disable=wrong-import-position
 if DEVEL:
+    # pylint: disable=wrong-import-order, ungrouped-imports
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
     urlpatterns += staticfiles_urlpatterns()

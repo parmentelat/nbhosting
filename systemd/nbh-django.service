@@ -14,7 +14,7 @@ Restart=always
 # that default behaviour has the catastrophic effect that a restart of the django service
 # will cause all containers to die !
 KillMode=process
-StandardError=syslog
+#StandardError=syslog
 NotifyAccess=all
 LimitNOFILE=32768
 

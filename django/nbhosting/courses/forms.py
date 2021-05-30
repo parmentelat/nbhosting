@@ -10,7 +10,7 @@ class CourseForm(ModelForm):
 
     class Meta:
         model = CourseDir
-        fields = ['autopull', 'autobuild', 'archived', 'image', 'staff_usernames']
+        fields = ['image', 'autopull', 'archived', 'autobuild', 'staff_usernames' ]
 
 class UpdateCourseForm(forms.Form):
     autopull = forms.BooleanField(
@@ -49,23 +49,10 @@ class UpdateCourseForm(forms.Form):
         label='staff_usernames',
         required=False,
         strip=True,
-        widget=forms.Textarea(attrs={
-            'rows': 10,
-            'cols': 100,
-        }),
+        widget=forms.Textarea(attrs={ 'rows': 10, 'cols': 100, }),
         help_text="""
         the names of users that are considered staff for this course;
         this is mainly used to ignore activity from these people
         when computing statistics
         """
     )
-
-#    def clean_autopull(self):
-#        """
-#        fake validator - not too useful for that field but just to keep track
-#        https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Forms
-#        """
-#        data = self.cleaned_data['autopull']
-#
-#        if data in (True, False):
-#        return False

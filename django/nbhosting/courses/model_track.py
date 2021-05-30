@@ -1,4 +1,4 @@
-# pylint: disable=c0111, w1203
+# pylint: disable=c0111, w1203, f-string-without-interpolation
 
 from pathlib import Path
 from collections import defaultdict
@@ -10,7 +10,6 @@ import jupytext
 from nbh_main.settings import logger, sitesettings
 
 # this is what we expect to find as the result of a course custom tracks.py
-from typing import List
 CourseTracks = List['Track']
 
 # as of 2019 aug, we don't worry at all about untracked notebooks
@@ -106,7 +105,7 @@ class Notebook:                                         # pylint: disable=r0903
         return result
 
     def onclick(self):
-        return (f'iframe_notebook("{self.clean_path()}");')
+        return f'iframe_notebook("{self.clean_path()}");'
 
     def _read_embedded(self):
         try:
@@ -119,7 +118,7 @@ class Notebook:                                         # pylint: disable=r0903
             self._version = (
                 nbh_md.get("version", "")
                 or metadata.get('version', '0.1'))
-        except Exception as exc:
+        except Exception as exc:                # pylint: disable=broad-except
             logger.warning(
                 f"failed to extract metadata for notebook {self.clean_path()}\n"
                 f"because of exception {type(exc)}: {exc}")
@@ -187,12 +186,12 @@ class Section:                                          # pylint: disable=r0903
 class Track:
 
     def __init__(self, coursedir, sections: List['Section'],
-                 *, name="default", description="no description", id=None):
+                 *, name="default", description="no description", id_=None):
         self.coursedir = coursedir
         self.sections = sections
         self.name = name
         self.description = description
-        self.id = id or self.name.replace(' ','-').replace('&','and')
+        self.id = id_ or self.name.replace(' ', '-').replace('&', 'and')
         # a flag that says if we've been through
         # mark_notebooks already or not
         self._marked = False
@@ -397,7 +396,7 @@ def tracks_from_yaml_config(coursedir, tracks: dict):
                      sections=[build_section_from_dict(subD) for subD in D['sections']],
                      name=get(D, 'name'),
                      description=get(D, 'description'),
-                     id=get(D, 'id'))
+                     id_=get(D, 'id'))
     def build_section_from_dict(D):
         return Section(
             name=get(D, 'name'),

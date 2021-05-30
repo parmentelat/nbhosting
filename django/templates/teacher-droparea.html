@@ -1,0 +1,244 @@
+{% extends "nbhosting.html" %}
+
+
+{% block head_title %}
+{{coursename}} - {{droparea}} ({{droppeds|length}})
+{% endblock %}
+{% block title %}
+{{coursename}} - {{droparea}} has {{droppeds|length}} dropped
+{% endblock %}
+
+
+{% block breadcrumb %}
+<ol class="breadcrumb staff">
+  {% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item auditor"><a href="/auditor/notebook/{{coursename}}">{{coursename}}</a></li>
+  <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
+  {% endif %}
+  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+  <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
+  <li class="breadcrumb-item droparea active"><a href="/teacher/droparea/{{coursename}}/{{droparea}}">{{droparea}}</a></li>
+  <li class="breadcrumb-item staff"><a href="/staff/course/{{coursename}}">{{coursename}}</a></li>
+</ol>
+{% endblock %}
+
+
+{% block content %}
+
+<script>
+  function filepond_init() {
+    // this is how django says we can retrieve the csrf token from
+    // the {% csrf_token %} above
+
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+
+    // pre-populate filepond with what's already uploaded
+    // that is exposed here as the 'droppeds' variable in the jinja env
+    // which in turns contains a list of Dropped elements
+    let files = []
+    {% for dropped in droppeds %}
+    files.push({
+      source: "{{dropped.relpath}}",
+      options: {
+        type: 'limbo',
+        file: {
+          name: "{{dropped.relpath}}",
+          size: {{ dropped.bytes_size }},
+      }}})
+    {% endfor %}
+    let server = {
+      url: '/teacher/dropped/{{coursename}}/{{droparea}}/',
+      headers: {
+        'X-CSRFToken': csrftoken,
+      },
+      process: {
+        withCredentials: false,
+      },
+    }
+    function file_order(a, b) {
+      return (a.filename === b.filename) ? 0 : (a.filename < b.filename) ? -1 : 1
+    }
+    let svg = `<svg class="box-icon" xmlns="http://www.w3.org/2000/svg" width="50" height="43" viewBox="0 0 50 43">
+<path d="M48.4 26.5c-.9 0-1.7.7-1.7 1.7v11.6h-43.3v-11.6c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v13.2c0 .9.7 1.7 1.7 1.7h46.7c.9 0 1.7-.7 1.7-1.7v-13.2c0-1-.7-1.7-1.7-1.7zm-24.5 6.1c.3.3.8.5 1.2.5.4 0 .9-.2 1.2-.5l10-11.6c.7-.7.7-1.7 0-2.4s-1.7-.7-2.4 0l-7.1 8.3v-25.3c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v25.3l-7.1-8.3c-.7-.7-1.7-.7-2.4 0s-.7 1.7 0 2.4l10 11.6z"></path>
+</svg>`
+    let labelIdle = `${svg} Drag & Drop your files or <span class="filepond--label-action">Browse</span>`
+    let options = {
+      files: files,
+      server: server,
+      maxParallelUploads: 10,
+      credits: ['https://github.com/pqina/filepond', 'filepond inside',],
+      labelIdle: labelIdle,
+      insertItemLocation: file_order,
+    }
+    let html = document.getElementById('the-filepond')
+    FilePond.create(html, options)
+  }
+
+  function push_dropped_files(files_selector, dry_run) {
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+
+    fetch('/teacher/dropped-push/{{coursename}}/{{droparea}}/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+      },
+      body: JSON.stringify({
+        push: files_selector,
+        dry_run: dry_run,
+      }),
+    })
+    .then(function (response) {
+      if (response.status !== 200) {
+        response.text()
+          .then(function (text) {
+            console.log('response is not 200', text)
+            alert(`whoops cannot push\nserver returned bad request\n${text}`)
+          })
+        return
+      }
+      response.json()
+        .then(function (data) {
+          //            console.log("received 200 response", data)
+          let filepond = FilePond.find(document.getElementById("the-filepond"))
+          for (let file of filepond.getFiles()) {
+            let found = false
+            for (let push of data) {
+              if (push.relpath == file.filename) {
+                let news_msg = (push.news == 0) ? "" : ` (+${push.news})`
+                let message = `${push.availables} students/${push.total}${news_msg}`
+                message += ` - ${file.fileSize}B`
+                found = true
+                $(`#filepond--item-${file.id} .filepond--file-info-sub`).html(message)
+                break
+              }
+            }
+            if (!found) {
+              $(`#filepond--item-${file.id} .filepond--file-info-sub`).html('???')
+            }
+          }
+        })
+    })
+    .catch(function (err) {
+      console.log('big time error', err)
+      alert(`whoops cannot push\n big time error\n${err}`)
+    })
+  }
+
+  window.addEventListener('load',
+    () => {
+      filepond_init()
+      document.getElementById('drop-push').addEventListener(
+        'click', () => { push_dropped_files('*', false) })
+      document.getElementById('drop-status').addEventListener(
+        'click', () => { push_dropped_files('*', true) })
+  })
+</script>
+
+<style>
+.action-area {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+#the-filepond {
+  margin-top: 25px;
+}
+.box-icon {
+  padding-right: 20px;
+}
+
+.drop-action {
+  padding: 15px 30px;
+  border: 1px solid #888;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#drop-push {
+  background-color: rgb(233, 175, 157);
+}
+#drop-status {
+  background-color: rgb(157, 233, 204);
+}
+
+/** FilePond Custom Styles **/
+ .filepond--root {
+   width: 100%;
+   font-family: Raleway;
+ }
+ .filepond--drop-label {
+	color: #4c4e53;
+}
+
+.filepond--label-action {
+	text-decoration-color: #babdc0;
+}
+
+.filepond--panel-root {
+	border-radius: 2em;
+	background-color: #edf0f4;
+	height: 1em;
+}
+
+.filepond--item-panel {
+	background-color: #595e68;
+}
+
+.filepond--drip-blob {
+	background-color: #7f8a9a;
+}
+
+@media (min-width: 30em) {
+    .filepond--item {
+        width: calc(50% - 1em);
+    }
+}
+
+@media (min-width: 50em) {
+    .filepond--item {
+        width: calc(33.33% - 1em);
+    }
+}
+@media (min-width: 80em) {
+    .filepond--item {
+        width: calc(25% - 1em);
+    }
+}
+@media (min-width: 100em) {
+    .filepond--item {
+        width: calc(20% - 1em);
+    }
+}
+.push-one {
+  margin-left: 10px;
+  font-size: 150% !important;
+}
+</style>
+
+
+{% csrf_token %}
+
+<!------------------------------>
+<div class="container-fluid">
+  <div class="row">
+
+    <input type="file"
+      id="the-filepond"
+      class="filepond"
+      multiple
+      data-allow-reorder="true"
+      data-max-file-size="4MB"
+    >
+
+    <div class="action-area">
+      <span id="drop-status" class="drop-action">
+      refresh status for all ({{coursedir.nb_registered_users}}) students</span>
+      <span id="drop-push" class="drop-action">
+      push all for all ({{coursedir.nb_registered_users}}) students</span>
+    </div>
+  </div> <!-- row-->
+</div> <!-- container-->
+
+{% endblock %}
