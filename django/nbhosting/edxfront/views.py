@@ -30,7 +30,7 @@ def error_page(request, course, student, notebook, message,
     if header is True:
         header = message
     return render(
-        request, "error.html", 
+        request, "error.html",
         context=dict(course=course, student=student,
                 notebook=notebook, message=message, header=header),
         status=HTTPStatus.BAD_REQUEST)
@@ -252,40 +252,51 @@ def _open_notebook(request, coursename, student, notebook,
     # starting_containers is the cache name
     # as configured in nbhosting.ini(.in)
 
-    # import here and not at toplevel as that would be too early
-    # https://uwsgi-docs.readthedocs.io/en/latest/PythonModule.html?highlight=cache#cache-functions
-    import uwsgi
-    idling = 0.5
-    # just a safety in case our code would not release stuff properly
-    expire_in_s = 15
-    expire = TimeDelta(seconds=expire_in_s)
+    # in devel mode we don't have uwsgi
+    try:
 
-    def my_repr(timedelta):
-        return f"{timedelta.seconds}s {timedelta.microseconds}µs"
+        # import here and not at toplevel as that would be too early
+        # https://uwsgi-docs.readthedocs.io/en/latest/PythonModule.html?highlight=cache#cache-functions
 
-    container = f'{coursename}-x-{student}'
-    for attempt in itertools.count(1):
-        already = uwsgi.cache_get(container, 'starting_containers')
+        uwsgi = None
+        import uwsgi
+        idling = 0.5
+        # just a safety in case our code would not release stuff properly
+        expire_in_s = 15
+        expire = TimeDelta(seconds=expire_in_s)
 
-        # good to go
-        if not already:
-            logger.info(f"{attempt=} going ahead with {container=} and {notebook=}")
-            now_bytes = pickle.dumps(DateTime.now())
-            uwsgi.cache_set(container, now_bytes, 0, "starting_containers")
-            break
+        def my_repr(timedelta):
+            return f"{timedelta.seconds}s {timedelta.microseconds}µs"
 
-        # has the stored token expired ?
-        already_datetime = pickle.loads(already)
-        age = DateTime.now() - already_datetime
-        if age >= expire:
-            logger.info(f"{attempt=} expiration ({my_repr(age)} is > {expire_in_s}s) "
-                        f"going ahead with {container=} and {notebook=}")
-            break
+        container = f'{coursename}-x-{student}'
+        for attempt in itertools.count(1):
+            already = uwsgi.cache_get(container, 'starting_containers')
 
-        # not good, waiting our turn...
-        logger.info(f"{attempt=} waiting for {idling=} because {my_repr(age)} is < {expire_in_s}s "
-                    f"with {container=} and {notebook=}")
-        time.sleep(0.5)
+            # good to go
+            if not already:
+                logger.info(f"{attempt=} going ahead with {container=} and {notebook=}")
+                now_bytes = pickle.dumps(DateTime.now())
+                uwsgi.cache_set(container, now_bytes, 0, "starting_containers")
+                break
+
+            # has the stored token expired ?
+            already_datetime = pickle.loads(already)
+            age = DateTime.now() - already_datetime
+            if age >= expire:
+                logger.info(f"{attempt=} expiration ({my_repr(age)} is > {expire_in_s}s) "
+                            f"going ahead with {container=} and {notebook=}")
+                break
+
+            # not good, waiting our turn...
+            logger.info(f"{attempt=} waiting for {idling=} because {my_repr(age)} is < {expire_in_s}s "
+                        f"with {container=} and {notebook=}")
+            time.sleep(0.5)
+    except ModuleNotFoundError:
+        # make sure this error does not go unnoticed in production
+        if not DEBUG:
+            raise
+        else:
+            pass
 
 
     subcommand = 'container-view-student-course-notebook'
@@ -356,7 +367,8 @@ def _open_notebook(request, coursename, student, notebook,
         return error_page(
             request, coursename, student, notebook, message)
     finally:
-        uwsgi.cache_del(container, "starting_containers")
+        if uwsgi:
+            uwsgi.cache_del(container, "starting_containers")
 
 
 def share_notebook(request, course, student, notebook):

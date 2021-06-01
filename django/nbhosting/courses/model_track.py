@@ -132,6 +132,8 @@ class DummyNotebook:
     section.first_notebook.decorate_a
     """
 
+    notebookname = "dummy notebook"
+
     def decorate_a(self):
         return ""
 
@@ -280,6 +282,7 @@ def notebooks_by_pattern(coursedir, pattern):
     probed = [path.relative_to(root) for path in absolutes]
     notebooks = [Notebook(coursedir, path) for path in probed]
     notebooks.sort(key=lambda n: n.path)
+    logger.debug(f"notebooks_by_pattern -> {len(notebooks)} notebooks")
     return notebooks
 
 
@@ -292,9 +295,9 @@ def notebooks_by_patterns(coursedir, patterns):
     Returns:
        list of all notebooks (relative paths)
     """
-    logger.debug(f"notebooks_by_patterns in {coursedir} with")
-    for pattern in patterns:
-        logger.debug(f"  pattern {pattern}")
+#    logger.debug(f"notebooks_by_patterns in {coursedir} with")
+#    for pattern in patterns:
+#        logger.debug(f"  pattern {pattern}")
     result = []
     for pattern in patterns:
         result.extend(notebooks_by_pattern(coursedir, pattern))
