@@ -10,7 +10,8 @@ from django.contrib.auth import views as auth_views
 from django.views.generic.base import RedirectView
 
 import nbhosting.edxfront.views
-import nbhosting.courses.views
+import nbhosting.courses.views_auditor
+import nbhosting.courses.views_staff
 import nbhosting.stats.views
 import nbh_main.views
 
@@ -50,32 +51,32 @@ urlpatterns = [
 
     # regular users who log in
     re_path(rf'^auditor/courses.*$',
-                        nbhosting.courses.views.auditor_list_courses),
+                        nbhosting.courses.views_auditor.auditor_list_courses),
     # this now is the foremost interface to a course
     re_path(rf'^auditor/notebook/{COURSE_TRACK}(/{NOTEBOOK})?/?$',
-                        nbhosting.courses.views.auditor_show_notebook),
+                        nbhosting.courses.views_auditor.auditor_show_notebook),
     # more harmful than helpful at least during devel
     re_path(rf'^auditor.*',
                         nbh_main.views.welcome),
 
     # super user
     re_path(rf'^staff/courses/update-from-git/{COURSE}/?$',
-                        nbhosting.courses.views.update_from_git),
+                        nbhosting.courses.views_staff.update_from_git),
     re_path(rf'^staff/courses/build-image/{COURSE}/?$',
-                        nbhosting.courses.views.build_image),
+                        nbhosting.courses.views_staff.build_image),
     re_path(rf'^staff/courses/destroy-my-container/{COURSE}/?$',
-                        nbhosting.courses.views.destroy_my_container),
+                        nbhosting.courses.views_staff.destroy_my_container),
     re_path(rf'^staff/courses/clear-staff/{COURSE}/?$',
-                        nbhosting.courses.views.clear_staff),
+                        nbhosting.courses.views_staff.clear_staff),
     re_path(rf'^staff/courses/show-tracks/{COURSE}/?$',
-                        nbhosting.courses.views.show_tracks),
+                        nbhosting.courses.views_staff.show_tracks),
     re_path(rf'^staff/courses.*',
-                        nbhosting.courses.views.staff_list_courses),
+                        nbhosting.courses.views_staff.staff_list_courses),
     re_path(rf'^staff/course/{COURSE}/update/?$',
-                        nbhosting.courses.views.staff_course_update,
+                        nbhosting.courses.views_staff.staff_course_update,
                         name="course-update"),
     re_path(rf'^staff/course/{COURSE}/?$',
-                        nbhosting.courses.views.staff_show_course),
+                        nbhosting.courses.views_staff.staff_show_course),
     re_path(rf'^staff/stats/daily_metrics/{COURSE}/?$',
                         nbhosting.stats.views.send_daily_metrics),
     re_path(rf'^staff/stats/monitor_counts/{COURSE}/?$',
