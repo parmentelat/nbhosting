@@ -13,10 +13,8 @@ updating {{coursedir.coursename}}
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
-  {% if user.is_authenticated and user.is_staff %}
   <li class="breadcrumb-item auditor"><a href="/auditor/notebook/{{coursename}}">{{coursedir.coursename}}</a></li>
   <li class="breadcrumb-item auditor"><a href="/auditor/courses/">courses</a></li>
-  {% endif %}
   <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
   <li class="breadcrumb-item"><a href='/staff/courses/'>courses</a></li>
   <li class="breadcrumb-item"><a href="/staff/course/{{coursename}}">{{coursedir.coursename}}</a></li>
