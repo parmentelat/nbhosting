@@ -73,7 +73,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "-l", "--list", action="count", default=0,
-            help=("Give more output. Option is additive, and can be used up to 2 "
+            help=("Give more output. Option is additive, and can be used up to 3 "
                   "times."),
         )
         parser.add_argument(
