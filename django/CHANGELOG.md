@@ -1,3 +1,14 @@
+# 0.41.4 2021 Jun 3
+
+* CLI listing tools improved
+  * more adapted to being used in shell scripts
+  * harmonized behavior of the additive -l option
+* nbh-manage user-list: new command
+* nbh-manage course-list:
+  * regular version can show groups and # of users
+  * new -g and -u options to dig into groups and users
+  * new -i option to show warnings for unknown images
+
 # 0.41.3 2021 Apr 29
 
 * remove persistent warning issued by Django3.2 about default primary keys
