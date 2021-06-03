@@ -342,6 +342,25 @@ class CourseDir(models.Model):
             print(f"!! {user.username} still behind on {new_hash}")
 
 
+    def i_registered_users(self):
+        """
+        returns an iterator over the set of User instances
+        that are part of any of the registered groups
+        """
+        users = set()
+        for group in self.registered_groups.all():
+            for user in group.user_set.all():
+                if user in users:
+                    continue
+                users.add(user)
+                yield user
+
+    def nb_registered_users(self):
+        """
+        the total number of registered users
+        """
+        return sum(1 for _ in self.i_registered_users())
+
     def nb_student_homes(self):
         """
         the number of students who have that course in their home dir

@@ -44,8 +44,7 @@ def list_courses_users(patterns, verbose):
         if not verbose:
             print(coursedir.coursename)
             continue
-        groups = coursedir.registered_groups.all()
-        users = sorted({user for group in groups for user in group.user_set.all()},
+        users = sorted({user for user in coursedir.i_registered_users()},
                        key=lambda user: user.username)
         if verbose == 1:
             print(f"{coursedir.coursename} has {iter_len(users)} user(s)")
@@ -73,6 +72,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "-l", "--list", action="count", default=0,
+            dest='verbose',
             help=("Give more output. Option is additive, and can be used up to 3 "
                   "times."),
         )
@@ -84,6 +84,12 @@ class Command(BaseCommand):
             "-u", "--users", default=False, action="store_true",
             help="only list users affiliated through at least one group",
         )
+        parser.add_argument(
+            "-i", "--image", default=False, action="store_true",
+            dest='podman',
+            help="if set, any missing !image! is notified as a warning "
+            " - requires a working podman engine"
+        )
         parser.add_argument("patterns", nargs='*', type=str)
 
 
@@ -92,14 +98,15 @@ class Command(BaseCommand):
         patterns = kwargs['patterns']
         users_mode = kwargs['users']
         groups_mode = kwargs['groups']
-        list_flag = kwargs['list']
+        verbose = kwargs['verbose']
+        podman_flag = kwargs['podman']
 
         if users_mode:
-            list_courses_users(patterns, list_flag)
+            list_courses_users(patterns, verbose)
             return
 
         if groups_mode:
-            list_courses_groups(patterns, list_flag)
+            list_courses_groups(patterns, verbose)
             return
 
         def groups(cd):
@@ -118,11 +125,11 @@ class Command(BaseCommand):
             image = cd.image
 
             line = f"{cd.coursename:{col_name}}"
-            if list_flag == 0:
+            if verbose == 0:
                 return line
 
             image_exists = None
-            if list_flag >= 3:
+            if podman_flag:
                 import podman
                 podman_url = "unix://localhost/run/podman/podman.sock"
                 with podman.ApiConnection(podman_url) as podman_api:
@@ -136,10 +143,12 @@ class Command(BaseCommand):
             image_part = f"{image:{col_image}}"
             line += image_part
             line += flags
-            if list_flag == 1:
+            if verbose == 1:
                 return line
             line += hash_part
             line += groups_part
+            if verbose >= 3:
+                line += f"{cd.nb_registered_users():>3}u "
             line += f"{cd.giturl}"
             if image_exists is False:
                 escape = chr(27)
