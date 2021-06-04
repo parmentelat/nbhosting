@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from setuptools import setup, find_packages
 
 # to allow for relative import in an entry point
@@ -32,7 +30,6 @@ setup(
         'jsonpickle',
         'nbformat',
         'jupytext[myst]',
-        # monitor
         'aiohttp',
         'podman',
     ],
