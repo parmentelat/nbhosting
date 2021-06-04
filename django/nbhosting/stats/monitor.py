@@ -42,8 +42,8 @@ HighlevelContainer = Dict
 LowlevelContainer = Dict
 
 # ['AppArmorProfile', 'Args', 'BoundingCaps', 'Config', 'ConmonPidFile', 'Created',
-#  'Dependencies', 'Driver', 'EffectiveCaps', 'ExecIDs', 'ExitCommand', 'GraphDriver',
-#  'HostConfig', 'HostnamePath', 'HostsPath', 'Id', 'Image', 'ImageName', 'IsInfra',
+# 'Dependencies', 'Driver', 'EffectiveCaps', 'ExecIDs', 'ExitCommand', 'GraphDriver',
+# 'HostConfig', 'HostnamePath', 'HostsPath', 'Id', 'Image', 'ImageName', 'IsInfra',
 # 'MountLabel', 'Mounts', 'Name', 'Namespace', 'NetworkSettings', 'OCIConfigPath',
 # 'OCIRuntime', 'Path', 'Pod', 'ProcessLabel', 'ResolvConfPath', 'RestartCount', 'Rootfs',
 # 'State', 'StaticDir']
@@ -253,8 +253,10 @@ class MonitoredJupyter:
         try:
             await self._co_run(idle, lingering)
         except Exception as exc:
-            logger.error(f"unexpected error {type(exc)} "
-                         f"when dealing with {self.name} - ignored\n...exception={exc}")
+            # xx used to be a simple error but until pip podman 3.x is settled
+            # it's probably best like this
+            logger.exception(f"unexpected error {type(exc)} "
+                             f"when dealing with {self.name} - ignored\n...exception={exc}")
 
     async def _co_run(self, idle, lingering):
         """
