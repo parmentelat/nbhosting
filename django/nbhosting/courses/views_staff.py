@@ -2,8 +2,7 @@
 
 from django.shortcuts import render, get_object_or_404
 
-#from django.http import HttpResponse, HttpResponseNotFound
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -154,11 +153,14 @@ def show_tracks(request, course):
 @staff_member_required
 @csrf_protect
 def destroy_my_container(request, course):
-    print("in view destroy_my_container")
-    return render_subprocess_result(
-        request, course,
-        "course-destroy-student-container", "my container destroyed",
-        True, request.user.username)
+    coursedir = get_object_or_404(CourseDir, coursename=course)
+    killed = coursedir.kill_student_container(request.user.username)
+    return HttpResponse(f"killing container for course {course}"
+                        f" and student {request.user.username}"
+                        f" returned {killed}"
+                        f"<br>"
+                        f"use the browser <- tool to go back"
+                        )
 
 
 def staff_course_update(request, course):
