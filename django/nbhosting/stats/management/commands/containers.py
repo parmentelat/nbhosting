@@ -1,11 +1,11 @@
 """
-a rough utility to count 
+a rough utility to count
 . known containers
 . running containers
 . kernels per (running) container
 . last activity
 
-it is overlapping with monitor a little, 
+it is overlapping with monitor a little,
 but with a troubleshooting-oriented display
 """
 
@@ -18,7 +18,7 @@ import re
 import asyncio
 
 import podman
-podman_url = "unix://localhost/run/podman/podman.sock"
+PODMAN_URL = "unix:///run/podman/podman.sock"
 
 from nbhosting.stats.monitor import MonitoredJupyter, CourseFigures
 
@@ -36,7 +36,7 @@ class Command(BaseCommand):
         parser.add_argument("-i", "--idle", default=True, action='store_false')
         parser.add_argument("patterns", nargs='*')
         # args = parser.parse_args()
-    
+
 
     def in_scope(self, container_or_monitored):
         """
@@ -46,7 +46,7 @@ class Command(BaseCommand):
         if not self.patterns:
             return True
         else:
-            name = (container_or_monitored['Names'][0] 
+            name = (container_or_monitored['Names'][0]
                     if (isinstance(container_or_monitored, dict)
                         and 'Names' in container_or_monitored)
                     else container_or_monitored.name)
@@ -64,28 +64,28 @@ class Command(BaseCommand):
             print(self.BANNER, f"OOPS {type(exc)}, {exc}",
                   end="\n" if show_details else "")
             traceback.print_exc()
-    
+
     def _run_once(self, show_details, show_idle):
         """
         The total number of containers is split like this:
         * total = stopped + running
           running = idle (0 kernels) + active (>= 1 kernel)
-        
+
         Parameters:
-          show_details: if True, print one line per container 
+          show_details: if True, print one line per container
             with last activity and # of kernels
           show_idle: if True, compute the number of containers
             that have no kernel
         """
-        
-        with podman.ApiConnection(podman_url) as api:
-            containers = podman.containers.list_containers(api)
 
-        all_running = [ c for c in containers if c['State'] == 'running']
-        all_stopped = [ c for c in containers if c['State'] != 'running']
+        with podman.PodmanClient(base_url=PODMAN_URL) as api:
+            containers = api.containers.list()
+
+        all_running = [ c for c in containers if c.attrs['State'] == 'running']
+        all_stopped = [ c for c in containers if c.attrs['State'] != 'running']
 
         def monitored(container):
-            name = container['Names'][0]
+            name = container.attrs['Names'][0]
             try:
                 course, student = name.split('-x-')
             except ValueError:
@@ -93,7 +93,7 @@ class Command(BaseCommand):
             # create one figures instance per container
             figures = CourseFigures()
             return MonitoredJupyter(container, course, student, figures, None)
-            
+
         running_monitoreds = [monitored(container) for container in all_running]
         running_monitoreds = [mon for mon in running_monitoreds if mon]
 
@@ -126,7 +126,7 @@ class Command(BaseCommand):
             sep = "\n"
         else:
             ban = sep = ""
-            
+
         def print_line(stopped, monitoreds, msg):
             if show_idle:
                 nb_stopped = len(stopped)
@@ -148,17 +148,17 @@ class Command(BaseCommand):
                       f"{msg} {nb_stopped} stopped + "
                       f"{nb_running} running = {total} "
                       f"containers", end=sep)
-                
-                
+
+
         print_line(all_stopped, running_monitoreds, "ALL")
         if self.patterns:
             selected_stopped = [c for c in all_stopped if self.in_scope(c)]
-            selected_running = [mon for mon in running_monitoreds 
+            selected_running = [mon for mon in running_monitoreds
                                 if self.in_scope(mon)]
             if self.continuous:
                 print()
             print_line(selected_stopped, selected_running, "SEL")
-            
+
     def now(self):
         return f"{datetime.now():%H:%M:%S}"
 
@@ -179,7 +179,7 @@ class Command(BaseCommand):
             try:
                 while True:
                     self.run_once(show_details=False, show_idle=self.idle)
-                    print(f" {self.now()} (w {self.period:d}s)", end=""); 
+                    print(f" {self.now()} (w {self.period:d}s)", end="");
                     sys.stdout.flush()
                     time.sleep(self.period)
                     print("")

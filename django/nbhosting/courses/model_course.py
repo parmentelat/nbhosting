@@ -12,7 +12,7 @@ from importlib.util import (
     spec_from_file_location, module_from_spec)
 
 import podman
-podman_url = "unix://localhost/run/podman/podman.sock"
+PODMAN_URL = "unix:///run/podman/podman.sock"
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -235,9 +235,10 @@ class CourseDir(models.Model):
         podman_url = "unix://localhost/run/podman/podman.sock"
         container_name = f"{self.coursename}-x-{student}"
         try:
-            with podman.ApiConnection(podman_url) as podman_api:
-                return podman.containers.kill(podman_api, container_name)
-        except podman.errors.ContainerNotFound:
+            with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
+                podman_api.containers.get(container_name).kill()
+                return True
+        except podman.errors.NotFoundError:
             return False
 
 
@@ -585,9 +586,9 @@ class CourseDir(models.Model):
         in this course
         or None if something goes wrong
         """
-        with podman.ApiConnection(podman_url) as podman_api:
+        with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
             try:
-                return podman.images.inspect(podman_api, self.image)['Id']
+                return podman_api.images.get(self.image).attrs['Id']
             except podman.errors.ImageNotFound:
                 logger.error(f"Course {self.coursename} "
                             f"uses unknown podman image {self.image}")

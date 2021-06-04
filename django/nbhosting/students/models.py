@@ -7,7 +7,7 @@ from django.db import models
 # so no need to change the ORM or to store anything in the DB
 
 import podman
-podman_url = "unix://localhost/run/podman/podman.sock"
+PODMAN_URL = "unix:///run/podman/podman.sock"
 
 class Student:
     
@@ -26,7 +26,7 @@ class Student:
         
         terminator = f"-x-{self.name}"
         
-        with podman.ApiConnection(podman_url) as podman_api:
+        with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
             # not specifying all=True means only the running ones
             containers = podman.containers.list_containers(podman_api)
         # keep only this student's containers
@@ -54,8 +54,8 @@ class Student:
         if containers is None:
             containers = self.spot_running_containers()
             
-        with podman.ApiConnection(podman_url) as podman_api:
+        with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
             for container in containers:
-                podman.containers.kill(podman_api, container['Names'][0])
+                podman_api.containers.get(container.attrs['Names'][0]).kill()
 
         

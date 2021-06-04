@@ -18,7 +18,7 @@ import aiohttp
 from aiohttp import ClientConnectionError
 
 import podman
-podman_url = "unix://localhost/run/podman/podman.sock"
+PODMAN_URL = "unix:///run/podman/podman.sock"
 
 from nbh_main.settings import sitesettings
 from nbh_main.settings import monitor_logger as logger
@@ -28,25 +28,25 @@ from nbhosting.stats.stats import Stats
 
 # podman containers come in 2 flavours
 
-# first call to list_containers() returns a list of dicts with keys
+# first call to containers.list() returns a list of 
+# objects whose attrs attribute is a dict that contains
 
 HighlevelContainer = Dict
 
-# ['Command', 'Created', 'Exited', 'ExitedAt', 'ExitCode', 'Id', 'Image', 'IsInfra',
-#  'Labels', 'Mounts', 'Names', 'Namespaces', 'Pid', 'Pod', 'PodName',
-#  'Ports', 'Size', 'StartedAt', 'State']
+# ['AutoRemove', 'Command', 'Created', 'CreatedAt', 'Exited', 'ExitedAt', 'ExitCode',
+# 'Id', 'Image', 'ImageID', 'IsInfra', 'Labels', 'Mounts', 'Names', 'Namespaces',
+# 'Networks', 'Pid', 'Pod', 'PodName', 'Ports', 'Size', 'StartedAt', 'State', 'Status'],
 
-# further call to containers.inspect() returns these keys
+# further call to containers.get(name) returns these keys
 
 LowlevelContainer = Dict
 
 # ['AppArmorProfile', 'Args', 'BoundingCaps', 'Config', 'ConmonPidFile', 'Created',
 #  'Dependencies', 'Driver', 'EffectiveCaps', 'ExecIDs', 'ExitCommand', 'GraphDriver',
 #  'HostConfig', 'HostnamePath', 'HostsPath', 'Id', 'Image', 'ImageName', 'IsInfra',
-#  'LogPath', 'LogTag', 'MountLabel', 'Mounts', 'Name', 'Namespace', 'NetworkSettings',
-#  'OCIConfigPath', 'OCIRuntime', 'Path', 'Pod', 'ProcessLabel', 'ResolvConfPath',
-#  'RestartCount', 'Rootfs', 'State', 'StaticDir']
-
+# 'MountLabel', 'Mounts', 'Name', 'Namespace', 'NetworkSettings', 'OCIConfigPath',
+# 'OCIRuntime', 'Path', 'Pod', 'ProcessLabel', 'ResolvConfPath', 'RestartCount', 'Rootfs',
+# 'State', 'StaticDir']
 
 """
 This processor is designed to be started as a systemd service
@@ -119,11 +119,11 @@ class MonitoredJupyter:
 
     @property
     def name(self):
-        return self.container['Names'][0]
+        return self.container.attrs['Names'][0]
 
     def port_number(self):
         try:
-            return self.container['Ports'][0]['hostPort']
+            return self.container.attrs['Ports'][0]['hostPort']
         except Exception:
             logger.exception(f"Cannot locate port number for {self}")
             return 0
@@ -137,15 +137,16 @@ class MonitoredJupyter:
     def reload(self):
         # refresh no matter what
         try:
-            with podman.ApiConnection(podman_url) as podman_api:
-                self.inspection = podman.containers.inspect(podman_api, self.name)
+            with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
+                self.inspection = podman_api.containers.get(self.name).attrs
         except podman.errors.InternalServerError:
             logger.error(f"error 500 with {self.name}")
+            self.inspection = None
 
     def creation_time(self):
         # this returns format 2021-03-24T12:50:44.429575432Z
         # which has nanoseconds !
-        created = self.container['Created']
+        created = self.container.attrs['Created']
         epoch = datetime.strptime(created[:-4], '%Y-%m-%dT%H:%M:%S.%f').timestamp()
         return epoch
 
@@ -237,15 +238,15 @@ class MonitoredJupyter:
 
     def kill_container(self):
         # using a new connection each time turns out much more robust
-        with podman.ApiConnection(podman_url) as podman_api:
-            podman.containers.kill(podman_api, self.name)
+        with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
+            podman_api.containers.get(self.name).kill()
 
     # this should not be needed in theory, but...
     # under heavy load we sometimes observe containers
     # that end up as 'stopped'
     def remove_container(self):
-        with podman.ApiConnection(podman_url) as podman_api:
-            podman.containers.remove(podman_api, self.name)
+        with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
+            podman_api.containers.get(self.name).remove()
 
 
     async def co_run(self, idle, lingering):
@@ -384,9 +385,9 @@ class Monitor:
         hash_by_course = {c.coursename : c.image_hash()
                           for c in CourseDir.objects.all()}
 
-        with podman.ApiConnection(podman_url) as podman_api:
+        with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
             # returns None when no container is found !
-            containers = podman.containers.list_containers(podman_api, all=True) or []
+            containers = podman_api.containers.list(all=True)
         logger.info(f"found {len(hash_by_course)} courses "
                     f"and {len(containers)} containers")
 
@@ -394,7 +395,7 @@ class Monitor:
         monitoreds = []
         for container in containers:
             try:
-                name = container['Names'][0]
+                name = container.attrs['Names'][0]
                 coursename, student = name.split('-x-')
                 figures_by_course.setdefault(coursename, CourseFigures())
                 figures = figures_by_course[coursename]
@@ -432,8 +433,8 @@ class Monitor:
     def _gather_system_facts(self, figures_by_course):
         # ds stands for disk_space
         if self._graphroot is None:
-            with podman.ApiConnection(podman_url) as podman_api:
-                self._graphroot = podman.system.info(podman_api)['store']['graphRoot']
+            with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
+                self._graphroot = podman_api.system.info()['store']['graphRoot']
         nbhroot = sitesettings.nbhroot
         system_root = "/"
         disk_spaces = {}

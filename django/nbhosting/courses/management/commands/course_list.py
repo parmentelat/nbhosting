@@ -131,9 +131,9 @@ class Command(BaseCommand):
             image_exists = None
             if podman_flag:
                 import podman
-                podman_url = "unix://localhost/run/podman/podman.sock"
-                with podman.ApiConnection(podman_url) as podman_api:
-                    image_exists = podman.images.image_exists(podman_api, cd.image)
+                PODMAN_URL = "unix:///run/podman/podman.sock"
+                with podman.PodmanClient(base_url=PODMAN_URL) as podman_api:
+                    image_exists = podman_api.images.exists(cd.image)
                 warning = "!" if not image_exists else " "
                 image = f"{warning}{image}{warning}"
                 # we may have 2 more characters in the image part
