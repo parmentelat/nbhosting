@@ -48,21 +48,20 @@ Depending on the scope of your deployment, you will need
 
 starting with 0.30, nbhosting runs on top of podman and no longer supports docker.
 
-**at this particular point in time (June 2020)** :
+starting with 0.42, we depend on the mainstream 'podman' module (available with pip)
 
-* we depend on a homebrewed version of the `podman-py` module that implements the Python
-  API over libpod
-* that is not available at pypi yet
-* so a separate installation is required
-* also note that rpm podman >= 1.9.2 is required
+<div style='font-size:50%'>
+
+(before that, we have for while been using our own home-brewn version, which for the record could be installed as follows
 
 ```bash
-# install podman-py from sources for now
 git clone git@github.com:parmentelat/podman-py.git
 cd podman-py
 git checkout nbhosting
 pip install .
 ```
+
+</div>
 
 ## cgroups
 
