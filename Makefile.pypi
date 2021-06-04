@@ -16,7 +16,7 @@ GIT-TAG-ALREADY-SET = $(shell git tag | grep '^$(VERSIONTAG)$$')
 GIT-CHANGES = $(shell echo $$(git diff HEAD | wc -l))
 
 # run this only once the sources are in on the right tag
-pypi: cleanpypi
+pypi: twine cleanpypi 
 	@if [ $(GIT-CHANGES) != 0 ]; then echo "You have uncommitted changes - cannot publish"; false; fi
 	@if [ -n "$(GIT-TAG-ALREADY-SET)" ] ; then echo "tag $(VERSIONTAG) already set"; false; fi
 	@if ! grep -q ' $(VERSION)' CHANGELOG.md ; then echo no mention of $(VERSION) in CHANGELOG.md; false; fi
@@ -25,6 +25,9 @@ pypi: cleanpypi
 	./setup.py sdist bdist_wheel
 	twine upload dist/*
 
+twine:
+	@type -p twine >& /dev/null || { echo ==== installing twine; pip install twine; }
+
 testpypi: cleanpypi
 	./setup.py sdist bdist_wheel
 	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
@@ -32,4 +35,4 @@ testpypi: cleanpypi
 cleanpypi:
 	rm -rf build dist
 
-.PHONY: pypi testpypi cleanpypi
+.PHONY: pypi testpypi cleanpypi twine
