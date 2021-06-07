@@ -1,3 +1,7 @@
+# 0.42.0 2021 Jun 7
+
+* no longer rely on our patchy podman-py, use upstream release 3.x
+
 # 0.41.4 2021 Jun 3
 
 * CLI listing tools improved
