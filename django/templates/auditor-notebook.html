@@ -484,6 +484,17 @@
   #left-bottom[data-hidden="yes"] #other-views-label {
     padding-bottom: 0px;
   }
+  #left-bottom[data-hidden="null"] {
+    background-color: #f2fef2;
+    border-width: 3px;
+  }
+  #left-bottom a:hover {
+    text-decoration: none;
+    color: black;
+  }
+  #left-bottom a {
+    color: rgb(40, 167, 49);
+  }
 
   #classic,
   #jlab {
@@ -572,7 +583,7 @@
 
         {% for build in coursedir.builds %}
         <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
-          class="build btn btn-outline-info"
+          class="build btn btn-outline-secondary"
           {% if build.description %} data-toggle="tooltip" data-html="true"
           data-placement="right" title="{{build.description}}" {% endif %}
         >
@@ -584,7 +595,7 @@
         <!-- students -->
         <div id="droparea-{{droparea}}"
              onclick='select_classic("{{droparea}}")'
-             class="droparea btn btn-outline-warning"
+             class="droparea btn btn-outline-info"
              data-toggle="tooltip" data-html="true"
              data-placement="right" title="your teacher may drop files for you"
         >
@@ -595,7 +606,7 @@
         {% for droparea in coursedir.dropareas %}
         <!-- teacher -->
         <div id="droparea-{{droparea}}"
-             class="droparea btn btn-outline-danger"
+             class="droparea btn btn-outline-success"
              data-toggle="tooltip" data-html="true"
              data-placement="right" title="drop files and push to students"
         >
@@ -604,11 +615,11 @@
         {% endfor %}
 
         <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
-                      and spawn noteboks in separate tabs" class="classic btn btn-outline-success"> Jupy<wbr>ter clas<wbr>sic
+                      and spawn noteboks in separate tabs" class="classic btn btn-outline-dark"> Jupy<wbr>ter clas<wbr>sic
         </div>
         <div id="jlab" onclick="select_jlab()" target="nbhosting-jupyter" data-toggle="tooltip" data-html="true"
           data-placement="right" title="with Jupyter lab you can edit all your contents from
-                      within a single browser tab" class="lab btn btn-outline-success"> Jupy<wbr>ter lab
+                      within a single browser tab" class="lab btn btn-outline-dark"> Jupy<wbr>ter lab
         </div>
       </div>
 
