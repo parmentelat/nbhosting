@@ -51,6 +51,7 @@ def staff_show_course(request, course):
         def student_struct(user):
             return {
                 'display': user.username,
+                'id': user.id,
                 'tooltip': user.username
                              if not user.first_name and not user.last_name
                              else f"{user.first_name} {user.last_name}",

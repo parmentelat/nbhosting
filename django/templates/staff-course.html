@@ -89,6 +89,7 @@
   }
 
   div.tracks,
+  div.dropareas,
   div.staffs {
     display: flex;
     flex-direction: row;
@@ -96,19 +97,21 @@
     margin: 5px;
   }
 
-  .track {
-    border-radius: 6px;
+  .track,
+  .droparea,
+  .staff {
     border: 1px solid #ccc;
     padding: 4px;
     margin: 4px;
+  }
+
+  .track, .droparea {
+    border-radius: 6px;
     color: green;
   }
 
   .staff {
     border-radius: 3px;
-    border: 1px solid #ccc;
-    padding: 4px;
-    margin: 4px;
     color: blue;
   }
 
@@ -171,7 +174,7 @@
 
       <div class="card">
         <div class="card-block ml-3 mt-3">
-          <h2 class="card-title">{{how_many}} notebooks</h2>
+          <h2 class="card-title">{{notebooks|length}} notebooks</h2>
         </div>
         <div class="card-block course-box  ml-3 mb-3">
           {% for notebook in notebooks %}
@@ -185,7 +188,7 @@
 
       <div class="card">
         <div class="card-block ml-3 mt-3">
-          <h2 class="card-title">{{how_many}} groups</h2>
+          <h2 class="card-title">{{enriched_groups|length}} group(s)</h2>
         </div>
         <div class="card-block ml-3 mb-3">
           {% for enriched_group in enriched_groups %}
@@ -195,13 +198,44 @@
           <div class="course-box">
             {% for student_struct in enriched_group.student_structs %}
             <span class="registered-user" data-toggle="tooltip"
-              title="{{student_struct.tooltip}}">{{student_struct.display}}</span>
+              title="{{student_struct.tooltip}}">
+              <a href="/admin/auth/user/{{student_struct.id}}/change/">
+                {{student_struct.display}}
+              </a>
+            </span>
             {% endfor %}
           </div>
           {% endfor %}
         </div>
       </div>
 
+
+      <div class="card">
+        <div class="card-block m-3">
+          <h3 class="card-title" data-toggle="tooltip" data-html="true" title="<span class='smaller'>
+                          students listed as staff<br/>
+                          are ignored when<br/>
+                          gathering usage statistics">
+              {{shorten_staffs|length}} staff
+            <a href='/staff/courses/clear-staff/{{coursename}}'
+              class='btn btn-info btn-lg  {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                                remove all notebooks found</br>
+                                in all students marked as staff<br/>
+                                this helps in assessing the course</br>
+                                is well-formed, by removing any leftovers</span>">
+              clear staff files
+            </a>
+          </h3>
+          <div class="staffs">
+            {% for hash in shorten_staffs %}
+            <span class="staff">{{hash}}</span>
+            {% endfor %}
+          </div>
+        </div> <!-- card-block-->
+      </div> <!-- card-->
+
+      <div style="margin: 15px"></div>
 
     </div> <!-- col-8-->
 
@@ -211,7 +245,7 @@
       <div class="section">
         <div class="card">
           <div class="card-block m-3">
-            <h3 class="card-title" data-toggle="tooltip" data-html="true" 
+            <h3 class="card-title" data-toggle="tooltip" data-html="true"
               title="<span class='smaller'>a track is an ordered subset
                       of the notebooks present in th repo; defining several tracks
                       can come in handy to propose several levels,
@@ -239,6 +273,57 @@
       </div>
 
 
+      <div class="section">
+        <div class="card">
+          <div class="card-block m-3">
+            <h3 class="card-title" data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                      to create a droparea, simply create a directory in <code>{{coursedir.drop_dir}}</code></span>"
+                      >
+                dropareas
+            </h3>
+            <div class="dropareas">
+              {% for droparea in coursedir.dropareas %}
+                <a class="droparea btn btn-secondary-success"
+                href="/teacher/droparea/{{coursename}}/{{droparea}}">{{droparea}}</a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="section">
+        <div class="card">
+          <div class="card-block m-3">
+            <h3 class="card-title" data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                      if you use the course name<br/>
+                      then please provide <code>nbhosting/Dockerfile</code>
+                      </br>so you can redo your image</span>">
+                  container image : <code>{{image}}</code></h3>
+            {% if image == coursename %}
+            <a href='/staff/courses/build-image/{{coursename}}'
+              class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                      rebuild image for that course<br/>
+                      please be patient</span>">
+              rebuild image
+            </a>
+            {% endif %}
+            <a href='/staff/courses/destroy-my-container/{{coursename}}' class='btn btn-danger btn-lg btn-block'
+              data-toggle="tooltip" data-html="true"
+              title="<span class='smaller'>
+                      for trying out a newly built image</br>
+                      you need to destroy your <br/>
+                      currently running container</span>">
+              destroy my container
+            </a>
+          </div>
+        </div>
+      </div>
+
+
       <div class='section'>
         <div class="card">
           <div class="card-block m-3">
@@ -260,78 +345,6 @@
       </div>
 
 
-      <div class="section">
-        <div class="card">
-          <div class="card-block m-3">
-            <h3 class="card-title" data-toggle="tooltip" data-html="true" 
-              title="<span class='smaller'>
-                      if you use the course name<br/>
-                      then please provide <code>nbhosting/Dockerfile</code>
-                      </br>so you can redo your image</span>">
-                  container image : <code>{{image}}</code></h3>
-            {% if image == coursename %}
-            <a href='/staff/courses/build-image/{{coursename}}'
-              class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
-              title="<span class='smaller'>
-                      rebuild image for that course<br/>
-                      please be patient</span>">
-              rebuild image
-            </a>
-            {% endif %}
-            <a href='/staff/courses/destroy-my-container/{{coursename}}' class='btn btn-danger btn-lg btn-block'
-              data-toggle="tooltip" data-html="true" 
-              title="<span class='smaller'>
-                      for trying out a newly built image</br>
-                      you need to destroy your <br/>
-                      currently running container</span>">
-              destroy my container
-            </a>
-          </div>
-        </div>
-      </div>
-
-
-      <div class="section">
-        <div class="card">
-          <div class="card-block m-3">
-            <h3 class="card-title" data-toggle="tooltip" data-html="true"
-              title="<span class='smaller'>
-                      to create a droparea, simply create a directory in <code>{{coursedir.drop_dir}}</code></span>"
-                      >
-                dropareas
-            </h3>
-            {% for droparea in coursedir.dropareas %}
-              <a href="/teacher/droparea/{{coursename}}/{{droparea}}">{{droparea}}</a><br>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-
-
-      <div class="section">
-        <div class="card">
-          <div class="card-block m-3">
-            <h3 class="card-title" data-toggle="tooltip" data-html="true" title="<span class='smaller'>
-                            students listed as staff<br/>
-                            are ignored when<br/>
-                            gathering usage statistics">staff</h3>
-            <div class="staffs">
-              {% for hash in shorten_staffs %}
-              <span class="staff">{{hash}}</span>
-              {% endfor %}
-            </div>
-            <a href='/staff/courses/clear-staff/{{coursename}}'
-              class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
-              title="<span class='smaller'>
-                                remove all notebooks found</br>
-                                in all students marked as staff<br/>
-                                this helps in assessing the course</br>
-                                is well-formed, by removing any leftovers</span>">
-              clear staff files
-            </a>
-          </div> <!-- card-block-->
-        </div> <!-- card-->
-      </div>
     </div> <!-- col -->
 
   </div> <!-- row-->
