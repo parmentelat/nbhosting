@@ -1,4 +1,4 @@
-# 0.43.0 2021 Jun 9
+# 0.43.1 2021 Jun 9
 
 * preliminary droparea feature
   * define a droparea by creating a subdir named NBHROOT/droparea/<coursename>/<droparea>
@@ -7,6 +7,7 @@
   * i.e. upload/remove files in the droparea
   * and deploy them to the students that have registered for that course
   * students have an entry point in the 'other views' area
+* 0.43.0 is broken
 
 # 0.42.0 2021 Jun 7
 
