@@ -1,3 +1,13 @@
+# 0.43.0 2021 Jun 9
+
+* preliminary droparea feature
+  * define a droparea by creating a subdir named NBHROOT/droparea/<coursename>/<droparea>
+  * staff members can use the /teacher/droparea/<coursename>/<droparea>/ url to manage
+    (corresponding entries are created in the other view area for staff members)
+  * i.e. upload/remove files in the droparea
+  * and deploy them to the students that have registered for that course
+  * students have an entry point in the 'other views' area
+
 # 0.42.0 2021 Jun 7
 
 * no longer rely on our patchy podman-py, use upstream release 3.x
