@@ -130,9 +130,9 @@ http {
 
         # more harmful than helpful at least during devel
         # redirect non-matching urls to /welcome
-#        location / {
-#             return 301 $scheme://$host/welcome;
-#        }
+       location / {
+            return 301 $scheme://$host/welcome;
+        }
 
 
         # edxfront.views.edx_request will redirect to a URL

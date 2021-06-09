@@ -80,7 +80,7 @@ class Dropped:
                 writer.write(reader.read())
         return dropped
 
-    def push_to_student(self, student, *, force=False, dry_run=False):
+    def deploy_to_student(self, student, *, force=False, dry_run=False):
         """
         propagate this dropped file into a student space
 
@@ -95,7 +95,7 @@ class Dropped:
             - available: the file is now available to the student
         """
         if not self.exists():
-            logger.error(f"cannot push unexisting dropped {self}")
+            logger.error(f"cannot deploy unexisting dropped {self}")
             return dict(relevant=False, already=False, new=False, available=False)
 
         # check for student in /etc/passwd
@@ -105,10 +105,10 @@ class Dropped:
             pwdentry = getpwnam(student)
             uid, gid = pwdentry.pw_uid, pwdentry.pw_gid
         except KeyError:
-            logger.error(f"Cannot push to inexisting student {student}")
+            logger.error(f"Cannot deploy to inexisting student {student}")
             return dict(relevant=False, already=False, new=False, available=False)
 
-        student_droparea = self.coursedir.student_dir(student) / self.droparea
+        student_droparea = self.coursedir.student_dir(student) / "DROPPED" / self.droparea
         if not student_droparea.exists() and not dry_run:
             student_droparea.mkdir(parents=True)
         target = student_droparea / self.relpath
@@ -123,19 +123,19 @@ class Dropped:
         chown(str(target), uid, gid)
         return dict(relevant=True, already=already, new=True, available=True)
 
-    def push_to_students(self, *, force=False, dry_run=False):
+    def deploy_to_students(self, *, force=False, dry_run=False):
         """
-        dry_run: if set, reports current stats but does not push
+        dry_run: if set, reports current stats but does not deploy
         force: if set, overwrite the students area even if that the
             file is already present there
 
         returns a dict
         - total: number of students attempted
         - availables: number of students that now have the file
-        - news: number of actual pushes
+        - news: number of actual deploys
         """
-        pushes = [self.push_to_student(s, force=force, dry_run=dry_run)
+        deploys = [self.deploy_to_student(s, force=force, dry_run=dry_run)
                   for s in self.coursedir.i_registered_users()]
-        availables = sum(push['available'] for push in pushes)
-        news = sum(push['new'] for push in pushes)
-        return dict(total=len(pushes), availables=availables, news=news)
+        availables = sum(deploy['available'] for deploy in deploys)
+        news = sum(deploy['new'] for deploy in deploys)
+        return dict(total=len(deploys), availables=availables, news=news)

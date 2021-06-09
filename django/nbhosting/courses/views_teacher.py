@@ -74,18 +74,18 @@ def teacher_dropped(request, course, droparea):
 
 
 @csrf_protect
-def teacher_dropped_push(request, course, droparea):
+def teacher_dropped_deploy(request, course, droparea):
     """
-    push one, several or all dropped files onto the registered students space
+    deploy one, several or all dropped files onto the registered students space
 
-    incoming in request.POST.push:
+    incoming in request.POST.deploy:
       . '*' which means all known dropped
       . a single str
       . a list of str
 
     incoming in request.POST.dry_run:
-      . missing or false: do the push
-      . true: do not push, just return statistics
+      . missing or false: do the deploy
+      . true: do not deploy, just return statistics
         (and then of course news=0)
 
     Result is a JSON-encoded list of dicts like this one
@@ -94,7 +94,7 @@ def teacher_dropped_push(request, course, droparea):
         'relpath': filename,
         'total': nb of students concerned,
         'availables': how many students have it now,
-        'news': how many students actually have the newly pushed version}
+        'news': how many students actually have the newly deployed version}
        }
     ]
     """
@@ -102,20 +102,20 @@ def teacher_dropped_push(request, course, droparea):
     if request.method == 'POST':
         try:
             data = json.loads(request.body.decode())
-            push = data['push']
+            deploy = data['deploy']
             dry_run = data['dry_run']
-            if push == '*':
+            if deploy == '*':
                 droppeds = Dropped.scan_course_droparea(coursedir, droparea)
-            elif isinstance(push, list):
-                droppeds = [Dropped(coursedir, droparea, relpath) for relpath in push]
+            elif isinstance(deploy, list):
+                droppeds = [Dropped(coursedir, droparea, relpath) for relpath in deploy]
             else:
-                droppeds = [Dropped(coursedir, droparea, push)]
+                droppeds = [Dropped(coursedir, droparea, deploy)]
             result = []
             for dropped in droppeds:
-                pushes = dropped.push_to_students(dry_run=dry_run)
-                pushes['relpath'] = str(dropped.relpath)
-                result.append(pushes)
+                deploys = dropped.deploy_to_students(dry_run=dry_run)
+                deploys['relpath'] = str(dropped.relpath)
+                result.append(deploys)
             return HttpResponse(json.dumps(result))
         except Exception as exc:
-            logger.exception("cannot teacher_dropped_push")
-            return HttpResponseBadRequest(f"{type(exc)}, could not push, {exc}")
+            logger.exception("cannot teacher_dropped_deploy")
+            return HttpResponseBadRequest(f"{type(exc)}, could not deploy, {exc}")

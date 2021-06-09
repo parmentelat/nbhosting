@@ -46,7 +46,7 @@
           size: {{ dropped.bytes_size }},
       }}})
     {% endfor %}
-    let server = {
+    const server = {
       url: '/teacher/dropped/{{coursename}}/{{droparea}}/',
       headers: {
         'X-CSRFToken': csrftoken,
@@ -58,11 +58,11 @@
     function file_order(a, b) {
       return (a.filename === b.filename) ? 0 : (a.filename < b.filename) ? -1 : 1
     }
-    let svg = `<svg class="box-icon" xmlns="http://www.w3.org/2000/svg" width="50" height="43" viewBox="0 0 50 43">
+    const svg = `<svg class="box-icon" xmlns="http://www.w3.org/2000/svg" width="50" height="43" viewBox="0 0 50 43">
 <path d="M48.4 26.5c-.9 0-1.7.7-1.7 1.7v11.6h-43.3v-11.6c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v13.2c0 .9.7 1.7 1.7 1.7h46.7c.9 0 1.7-.7 1.7-1.7v-13.2c0-1-.7-1.7-1.7-1.7zm-24.5 6.1c.3.3.8.5 1.2.5.4 0 .9-.2 1.2-.5l10-11.6c.7-.7.7-1.7 0-2.4s-1.7-.7-2.4 0l-7.1 8.3v-25.3c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v25.3l-7.1-8.3c-.7-.7-1.7-.7-2.4 0s-.7 1.7 0 2.4l10 11.6z"></path>
 </svg>`
-    let labelIdle = `${svg} Drag & Drop your files or <span class="filepond--label-action">Browse</span>`
-    let options = {
+    const labelIdle = `${svg} Drag & Drop your files or <span class="filepond--label-action">Browse</span>`
+    const options = {
       files: files,
       server: server,
       maxParallelUploads: 10,
@@ -70,21 +70,38 @@
       labelIdle: labelIdle,
       insertItemLocation: file_order,
     }
-    let html = document.getElementById('the-filepond')
-    FilePond.create(html, options)
+    const html = document.getElementById('the-filepond')
+    // some options like allowReorder do not seem to go through 
+    // if passed in options, so...
+    const filepond = FilePond.create(html, options)
+    filepond.setOptions({
+//        allowReorder: false,
+//        allowMultiple: false,
+      })
+    // how to add a callback
+    filepond.onactivatefile = function(file) {
+      deploy_dropped_files(file.file.name, false)
+    }
+    // how to add event listeners
+    document.querySelector('.filepond--root')
+      .addEventListener('FilePond:addfile', (e) => {
+        console.log('File added', e.detail);
+      })
+
   }
 
-  function push_dropped_files(files_selector, dry_run) {
+  function deploy_dropped_files(files_selector, dry_run) {
+    console.log(`deploy_dropped_files on ${files_selector}`)
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
 
-    fetch('/teacher/dropped-push/{{coursename}}/{{droparea}}/', {
+    fetch('/teacher/dropped-deploy/{{coursename}}/{{droparea}}/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken,
       },
       body: JSON.stringify({
-        push: files_selector,
+        deploy: files_selector,
         dry_run: dry_run,
       }),
     })
@@ -93,7 +110,7 @@
         response.text()
           .then(function (text) {
             console.log('response is not 200', text)
-            alert(`whoops cannot push\nserver returned bad request\n${text}`)
+            alert(`whoops cannot \nserver returned bad request\n${text}`)
           })
         return
       }
@@ -103,35 +120,34 @@
           let filepond = FilePond.find(document.getElementById("the-filepond"))
           for (let file of filepond.getFiles()) {
             let found = false
-            for (let push of data) {
-              if (push.relpath == file.filename) {
-                let news_msg = (push.news == 0) ? "" : ` (+${push.news})`
-                let message = `${push.availables} students/${push.total}${news_msg}`
+            for (let deploy of data) {
+              if (deploy.relpath == file.filename) {
+                let news_msg = (deploy.news == 0) ? "" : ` (+${deploy.news})`
+                let message = `${deploy.availables} students/${deploy.total}${news_msg}`
                 message += ` - ${file.fileSize}B`
                 found = true
                 $(`#filepond--item-${file.id} .filepond--file-info-sub`).html(message)
                 break
               }
             }
-            if (!found) {
-              $(`#filepond--item-${file.id} .filepond--file-info-sub`).html('???')
-            }
           }
         })
     })
     .catch(function (err) {
       console.log('big time error', err)
-      alert(`whoops cannot push\n big time error\n${err}`)
+      alert(`whoops cannot \n big time error\n${err}`)
     })
   }
 
   window.addEventListener('load',
     () => {
       filepond_init()
-      document.getElementById('drop-push').addEventListener(
-        'click', () => { push_dropped_files('*', false) })
+      document.getElementById('drop-deploy').addEventListener(
+        'click', () => { deploy_dropped_files('*', false) })
       document.getElementById('drop-status').addEventListener(
-        'click', () => { push_dropped_files('*', true) })
+        'click', () => { deploy_dropped_files('*', true) })
+      // do initial refresh
+      deploy_dropped_files('*', true)
   })
 </script>
 
@@ -156,7 +172,7 @@
   cursor: pointer;
 }
 
-#drop-push {
+#drop-deploy {
   background-color: rgb(233, 175, 157);
 }
 #drop-status {
@@ -190,6 +206,13 @@
 	background-color: #7f8a9a;
 }
 
+.filepond--file-info-sub {
+  opacity: 0.9;
+}
+.filepond--root .filepond--item {
+  font-size: larger;
+}
+
 @media (min-width: 30em) {
     .filepond--item {
         width: calc(50% - 1em);
@@ -211,10 +234,6 @@
         width: calc(20% - 1em);
     }
 }
-.push-one {
-  margin-left: 10px;
-  font-size: 150% !important;
-}
 </style>
 
 
@@ -235,8 +254,9 @@
     <div class="action-area">
       <span id="drop-status" class="drop-action">
       refresh status for all ({{coursedir.nb_registered_users}}) students</span>
-      <span id="drop-push" class="drop-action">
-      push all for all ({{coursedir.nb_registered_users}}) students</span>
+      <span class="drop-action">Click a file to deploy just that to students</span>
+      <span id="drop-deploy" class="drop-action">
+       all for all ({{coursedir.nb_registered_users}}) students</span>
     </div>
   </div> <!-- row-->
 </div> <!-- container-->

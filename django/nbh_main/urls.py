@@ -65,8 +65,8 @@ urlpatterns = [
                         nbhosting.courses.views_teacher.teacher_droparea),
     re_path(rf'^teacher/dropped/{COURSE}/{DROPAREA}/?$',
                         nbhosting.courses.views_teacher.teacher_dropped),
-    re_path(rf'teacher/dropped-push/{COURSE}/{DROPAREA}/?$',
-                        nbhosting.courses.views_teacher.teacher_dropped_push),
+    re_path(rf'teacher/dropped-deploy/{COURSE}/{DROPAREA}/?$',
+                        nbhosting.courses.views_teacher.teacher_dropped_deploy),
 
     # super user
     re_path(rf'^staff/courses/update-from-git/{COURSE}/?$',
