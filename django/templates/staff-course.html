@@ -99,7 +99,7 @@
 
   .track,
   .droparea,
-  .staff {
+  {
     border: 1px solid #ccc;
     padding: 4px;
     margin: 4px;
@@ -110,12 +110,21 @@
     color: green;
   }
 
+  #staff-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  #staff-title {
+    display: inline;
+  }
   .staff {
     border-radius: 3px;
     color: blue;
   }
 
-  .registered-user {
+  .registered-user,
+  .staff {
     background-color: #eef;
     font-size: 60%;
     border: 0.1px solid #888;
@@ -141,6 +150,7 @@
     border: 1px solid black;
     border-radius: 6px;
   }
+
 </style>
 
 <!------------------------------>
@@ -212,23 +222,25 @@
 
       <div class="card">
         <div class="card-block m-3">
-          <h3 class="card-title" data-toggle="tooltip" data-html="true" title="<span class='smaller'>
-                          students listed as staff<br/>
-                          are ignored when<br/>
-                          gathering usage statistics">
-              {{shorten_staffs|length}} staff
+          <div id="staff-wrapper">
+            <h3 id="staff-title" class="card-title" data-toggle="tooltip" data-html="true" title="<span class='smaller'>
+                    staff can drop files<br>
+                    and are ignored in stats">
+              {{coursedir.staffs|length}} staff
+            </h3>
             <a href='/staff/courses/clear-staff/{{coursename}}'
               class='btn btn-info btn-lg  {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
               title="<span class='smaller'>
-                                remove all notebooks found</br>
-                                in all students marked as staff<br/>
-                                this helps in assessing the course</br>
-                                is well-formed, by removing any leftovers</span>">
+                    remove all notebooks found</br>
+                    in all students marked as staff<br/>
+                    this helps in assessing the course</br>
+                    is well-formed, by removing any leftovers</span>"
+              style="margin-right: 40px; padding-left:30px; padding-right:30px;">
               clear staff files
             </a>
-          </h3>
+          </div>
           <div class="staffs">
-            {% for hash in shorten_staffs %}
+            {% for hash in coursedir.staffs %}
             <span class="staff">{{hash}}</span>
             {% endfor %}
           </div>

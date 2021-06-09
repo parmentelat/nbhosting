@@ -83,6 +83,7 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
 
 
     coursedir = get_object_or_404(CourseDir, coursename=course)
+    is_staff = student in coursedir.staffs
 
     # do this in both jupyter and track mode
     if not trackname:
@@ -128,6 +129,7 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
         nbh_version=nbh_version,
         coursename=course,
         student=student,
+        is_staff=is_staff,
         coursedir=coursedir,
         track=track,
         jupyter_app=jupyter_app,

@@ -251,7 +251,7 @@ class Stats:
         # the events dimension
         accumulator = TotalsAccumulator()
         #
-        staff_names = {username for username in CourseDir.objects.get(coursename=self.coursename).staff_usernames.split()}
+        staff_names = CourseDir.objects.get(coursename=self.coursename).staffs
         try:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):

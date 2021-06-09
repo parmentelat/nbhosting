@@ -34,18 +34,6 @@ def staff_show_course(request, course):
     coursedir.probe()
     notebooks = list(coursedir.notebooks())
     notebooks.sort()
-    # shorten staff hashes
-
-    def shorten(staff):
-        if len(staff) >= 10:
-            return f"{staff[:7]}..."
-        else:
-            return staff
-
-
-    shorten_staffs = [shorten(username)
-                     for username in   coursedir.staff_usernames.split()]
-    shorten_staffs.sort()
 
     def enriched_group(group):
         def student_struct(user):
@@ -80,7 +68,6 @@ def staff_show_course(request, course):
         notebooks=notebooks,
         image=coursedir.image,
         static_mappings=coursedir.static_mappings,
-        shorten_staffs=shorten_staffs,
         giturl=coursedir.giturl,
         tracks=coursedir.tracks(),
         enriched_groups=enriched_groups,
@@ -140,7 +127,7 @@ def clear_staff(request, course):
     return render_subprocess_result(
         request, course,
         "course-clear-staff", 'staff files cleared', False,
-        *coursedir.staff_usernames.split())
+        *coursedir.staffs)
 
 
 @staff_member_required

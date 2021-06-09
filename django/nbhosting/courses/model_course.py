@@ -48,7 +48,8 @@ class CourseDir(models.Model):
     # staff users refer to hashes created remotely
     # so they do not match locally registered users
     # so it is *not* a many-to-many relationship
-    # xxx would it rather make sense to use a property here ?
+    # xxx this should be private, use the staffs property below
+    # but kept this name to avoid a db migration
     staff_usernames = models.TextField(default="", blank=True)
 
     # this OTOH qualifies for a proper n-to-n thing
@@ -64,6 +65,10 @@ class CourseDir(models.Model):
 
     def __lt__(self, other):
         return self.coursename < other.coursename
+
+    @property
+    def staffs(self):
+        return set(self.staff_usernames.split())
 
 
     @staticmethod

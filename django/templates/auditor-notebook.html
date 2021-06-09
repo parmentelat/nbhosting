@@ -518,6 +518,12 @@
   .tooltip {
     pointer-events: none;
   }
+  .sep1 {
+    height: 0.5em;
+  }
+  .sep2 {
+    height: 1em;
+  }
 </style>
 
 <!------------------------------>
@@ -581,38 +587,33 @@
 
       <div id="other-views" class="transitionable">
 
-        {% for build in coursedir.builds %}
-        <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
-          class="build btn btn-outline-secondary"
-          {% if build.description %} data-toggle="tooltip" data-html="true"
-          data-placement="right" title="{{build.description}}" {% endif %}
-        >
-         {{build.name}}
-        </div>
-        {% endfor %}
+        {% if coursedir.builds %}
+          {% for build in coursedir.builds %}
+          <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
+            class="build btn btn-outline-secondary"
+            {% if build.description %} data-toggle="tooltip" data-html="true"
+            data-placement="right" title="{{build.description}}" {% endif %}
+          >
+          {{build.name}}
+          </div>
+          {% endfor %}
+        <div class="sep1"></div>
+        {% endif %}
 
-        {% for droparea in coursedir.dropareas %}
-        <!-- students -->
-        <div id="droparea-{{droparea}}"
-             onclick='select_classic("{{droparea}}")'
-             class="droparea btn btn-outline-info"
-             data-toggle="tooltip" data-html="true"
-             data-placement="right" title="your teacher may drop files for you"
-        >
-          droparea {{droparea}}
-        </div>
-        {% endfor %}
-
-        {% for droparea in coursedir.dropareas %}
-        <!-- teacher -->
-        <div id="droparea-{{droparea}}"
-             class="droparea btn btn-outline-success"
-             data-toggle="tooltip" data-html="true"
-             data-placement="right" title="drop files and deploy to students"
-        >
-          <a href="/teacher/droparea/{{coursename}}/{{droparea}}" target='_'>drop in {{droparea}}</a>
-        </div>
-        {% endfor %}
+        {% if coursedir.dropareas %}
+          {% for droparea in coursedir.dropareas %}
+          <!-- students -->
+          <div id="droparea-{{droparea}}"
+              onclick='select_classic("{{droparea}}")'
+              class="droparea btn btn-outline-info"
+              data-toggle="tooltip" data-html="true"
+              data-placement="right" title="your teacher may drop files for you"
+          >
+            droparea {{droparea}}
+          </div>
+          {% endfor %}
+          <div class="sep1"></div>
+          {% endif %}
 
         <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
                       and spawn noteboks in separate tabs" class="classic btn btn-outline-dark"> Jupy<wbr>ter clas<wbr>sic
@@ -621,6 +622,21 @@
           data-placement="right" title="with Jupyter lab you can edit all your contents from
                       within a single browser tab" class="lab btn btn-outline-dark"> Jupy<wbr>ter lab
         </div>
+
+        {% if is_staff %}
+          <div class="sep2"></div>
+          {% for droparea in coursedir.dropareas %}
+          <!-- teacher -->
+          <div id="droparea-{{droparea}}"
+              class="droparea btn btn-outline-success"
+              data-toggle="tooltip" data-html="true"
+              data-placement="right" title="drop files and deploy to students"
+          >
+            <a href="/teacher/droparea/{{coursename}}/{{droparea}}" target='_'>drop in {{droparea}}</a>
+          </div>
+          {% endfor %}
+        {% endif %}
+
       </div>
 
     </div>
