@@ -23,7 +23,7 @@ updating {{coursedir.coursename}}
 {% endblock %}
 
 
-{% block content %}
+{% block local_css %}
 <style>
   form>table {
     margin: 20px;
@@ -72,7 +72,10 @@ updating {{coursedir.coursename}}
     text-align: center;
   }
 </style>
+{% endblock %}
 
+
+{% block content %}
 <h1>Course: {{ coursedir.coursename }}</h1>
 <h2>git url: {{ coursedir.giturl }}</h2>
 
@@ -83,6 +86,5 @@ updating {{coursedir.coursename}}
   </table>
   <input type="submit" value="Submit">
 </form>
-
 
 {% endblock %}

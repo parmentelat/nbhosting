@@ -27,7 +27,7 @@ all courses
 {% endblock %}
 
 
-{% block content %}
+{% block local_css %}
 <style>
   .courses-box {
     display: flex;
@@ -62,7 +62,10 @@ all courses
   }
 
 </style>
+{% endblock %}
 
+
+{% block content %}
 <div class="courses-box m-3">
   {% for course_dir in course_dirs %}
   {% with course_dir.tracks.0.id as main_trackid %}

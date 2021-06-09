@@ -8,16 +8,18 @@
 
   <link rel="icon" type="image/png" href="{% static " img/nbh-favicon.png" %}">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200,200i,400,400i,500,500i,600,600i,700,700i">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  
+
   <script                 src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.4/js/tether.min.js"></script>
   <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/css/bootstrap.min.css">
   <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js"></script>
-  <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.0/d3.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.27.3/filepond.css">
-  <script defer           src="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.27.3/filepond.js"></script>
+  {% block external_dependencies %}{% endblock %}
+
+  {% block local_javascript %}{% endblock %}
+  {% block local_css %}{% endblock %}
+
+  <!-- global nbh style -->
   <style>
     body {
       font-family: Raleway;

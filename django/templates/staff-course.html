@@ -5,9 +5,12 @@
 {{coursename}} - {{notebooks|length}} notebooks
 {% endblock %}
 
-
 {% block title %}
 {{notebooks|length}} notebooks in course {{coursename}}
+{% endblock %}
+
+{% block external_dependencies %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 {% endblock %}
 
 
@@ -23,7 +26,7 @@
 {% endblock %}
 
 
-{% block content %}
+{% block local_css %}
 <style>
   .autopull {
     padding-left: 40px;
@@ -152,7 +155,10 @@
   }
 
 </style>
+{% endblock %}
 
+
+{% block content %}
 <!------------------------------>
 <div class="container-fluid">
   <div class="row">

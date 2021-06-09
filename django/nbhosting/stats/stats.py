@@ -251,7 +251,7 @@ class Stats:
         # the events dimension
         accumulator = TotalsAccumulator()
         #
-        staff_names = CourseDir.objects.get(coursename=self.coursename).staffs
+        staffs = CourseDir.objects.get(coursename=self.coursename).staffs
         try:
             with events_path.open() as f:
                 for lineno, line in enumerate(f, 1):
@@ -263,7 +263,7 @@ class Stats:
                         if action == 'killing':
                             continue
                         # ignore staff or other artefact users
-                        if student in staff_names or artefact_user(student):
+                        if student in staffs or artefact_user(student):
                             continue
                         day = timestamp.split('T')[0] + ' 23:59:59'
                         if day in figures_by_day:
@@ -388,8 +388,7 @@ class Stats:
         # a dict hashed on a tuple (notebook, student) -> number of visits
         raw_counts = defaultdict(int)
         #
-        staff_names = {username for username in
-                       CourseDir.objects.get(coursename=self.coursename).staff_usernames.split()}
+        staffs = CourseDir.objects.get(coursename=self.coursename).staffs
         try:
             with events_path.open() as f:
                 for _lineno, line in enumerate(f, 1):
@@ -398,7 +397,7 @@ class Stats:
                     if action in ('killing',):
                         continue
                     # ignore staff or other artefact users
-                    if student in staff_names or artefact_user(student):
+                    if student in staffs or artefact_user(student):
                         logger.debug(f"ignoring staff or artefact student {student}")
                         continue
                     # animated data must be taken care of before anything else

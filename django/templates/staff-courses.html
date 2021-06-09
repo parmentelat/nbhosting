@@ -18,7 +18,7 @@ manage courses
 {% endblock %}
 
 
-{% block content %}
+{% block local_css %}
 <style>
   div.grid {
     display: grid;
@@ -33,18 +33,11 @@ manage courses
     background-image:
       url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
   }
-  }
-
-  /*
-div.buttons-flex {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: no-wrap;
-    justify-content: space-around;
-}
-*/
 </style>
+{% endblock %}
 
+
+{% block content %}
 <div class="grid">
   {% for course_dir in course_dirs %}
   <h3 class="card-title m-2 p-2 {{course_dir.archived_class}}">{{course_dir.coursename}}</h3>
@@ -55,5 +48,4 @@ div.buttons-flex {
     title="course activity and resources">statistics</a>
   {% endfor %}
 </div>
-
 {% endblock %}

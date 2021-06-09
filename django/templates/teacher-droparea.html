@@ -4,10 +4,15 @@
 {% block head_title %}
 {{coursename}} - {{droparea}} ({{droppeds|length}})
 {% endblock %}
+
 {% block title %}
 {{coursename}} - {{droparea}} has {{droppeds|length}} dropped
 {% endblock %}
 
+{% block external_dependencies %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.27.3/filepond.css">
+<script defer          src="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.27.3/filepond.js"></script>
+{% endblock %}
 
 {% block breadcrumb %}
 <ol class="breadcrumb staff">
@@ -23,8 +28,7 @@
 {% endblock %}
 
 
-{% block content %}
-
+{% block local_javascript %}
 <script>
   function filepond_init() {
     // this is how django says we can retrieve the csrf token from
@@ -150,7 +154,10 @@
       deploy_dropped_files('*', true)
   })
 </script>
+{% endblock %}
 
+
+{% block local_css %}
 <style>
 .action-area {
   width: 100%;
@@ -235,7 +242,10 @@
     }
 }
 </style>
+{% endblock %}
 
+
+{% block content %}
 
 {% csrf_token %}
 

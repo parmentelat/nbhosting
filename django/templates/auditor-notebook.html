@@ -20,12 +20,7 @@
 </ol>
 {% endblock %}
 
-{% block content %}
-
-{{ first_notebook_per_track|json_script:"first-notebook-per-track" }}
-
-
-<!--  javascript -->
+{% block local_javascript %}
 <script>
 
   {% if jupyter_app %}
@@ -69,8 +64,10 @@
   }
 
   // parse map { track -> first-notebook-path }
-  let first_notebook_per_track = JSON.parse(
-    document.getElementById('first-notebook-per-track').textContent);
+  function first_notebook_per_track() { 
+    return JSON.parse(
+    document.getElementById('first-notebook-per-track').textContent)
+  }
 
   // a track has been chosen
   // hightlight corresponding track button,
@@ -88,7 +85,7 @@
     $(`div.track-sections[id="sections-${track_id}"]`).addClass('active').addClass('show');
 
     if (show_first_notebook) {
-      let notebook = first_notebook_per_track[track_id];
+      let notebook = first_notebook_per_track()[track_id];
       if (notebook) {
         iframe_notebook(notebook);
         outline_current_notebook(notebook);
@@ -249,9 +246,10 @@
     }
   }
 </script>
+{% endblock %}
 
 
-<!--  CSS -->
+{% block local_css %}
 <style>
   html,
   body {
@@ -518,13 +516,21 @@
   .tooltip {
     pointer-events: none;
   }
-  .sep1 {
-    height: 0.5em;
+  div.other-wrapper:not(:nth-child(1)) {
+    margin-top: 12px;
   }
-  .sep2 {
-    height: 1em;
+  div.other-wrapper>div {
+    margin-bottom: 4px;
+    width: 100%;
   }
+
 </style>
+{% endblock %}
+
+
+{% block content %}
+
+{{ first_notebook_per_track|json_script:"first-notebook-per-track" }}
 
 <!------------------------------>
 <div class="container" height="100%">
@@ -588,6 +594,7 @@
       <div id="other-views" class="transitionable">
 
         {% if coursedir.builds %}
+        <div class='other-wrapper'>
           {% for build in coursedir.builds %}
           <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
             class="build btn btn-outline-secondary"
@@ -597,14 +604,15 @@
           {{build.name}}
           </div>
           {% endfor %}
-        <div class="sep1"></div>
+        </div>
         {% endif %}
 
         {% if coursedir.dropareas %}
+        <div class='other-wrapper'>
           {% for droparea in coursedir.dropareas %}
           <!-- students -->
           <div id="droparea-{{droparea}}"
-              onclick='select_classic("{{droparea}}")'
+              onclick='select_classic("DROPPED/{{droparea}}")'
               class="droparea btn btn-outline-info"
               data-toggle="tooltip" data-html="true"
               data-placement="right" title="your teacher may drop files for you"
@@ -612,19 +620,21 @@
             droparea {{droparea}}
           </div>
           {% endfor %}
-          <div class="sep1"></div>
-          {% endif %}
-
-        <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
-                      and spawn noteboks in separate tabs" class="classic btn btn-outline-dark"> Jupy<wbr>ter clas<wbr>sic
         </div>
-        <div id="jlab" onclick="select_jlab()" target="nbhosting-jupyter" data-toggle="tooltip" data-html="true"
-          data-placement="right" title="with Jupyter lab you can edit all your contents from
-                      within a single browser tab" class="lab btn btn-outline-dark"> Jupy<wbr>ter lab
+        {% endif %}
+
+        <div class='other-wrapper'>
+          <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
+                        and spawn noteboks in separate tabs" class="classic btn btn-outline-dark"> Jupy<wbr>ter clas<wbr>sic
+          </div>
+          <div id="jlab" onclick="select_jlab()" target="nbhosting-jupyter" data-toggle="tooltip" data-html="true"
+            data-placement="right" title="with Jupyter lab you can edit all your contents from
+                        within a single browser tab" class="lab btn btn-outline-dark"> Jupy<wbr>ter lab
+          </div>
         </div>
 
-        {% if is_staff %}
-          <div class="sep2"></div>
+        {% if is_staff and coursedir.dropareas %}
+        <div class='other-wrapper'>
           {% for droparea in coursedir.dropareas %}
           <!-- teacher -->
           <div id="droparea-{{droparea}}"
@@ -635,6 +645,7 @@
             <a href="/teacher/droparea/{{coursename}}/{{droparea}}" target='_'>drop in {{droparea}}</a>
           </div>
           {% endfor %}
+        </div>
         {% endif %}
 
       </div>
