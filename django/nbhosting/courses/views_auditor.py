@@ -100,10 +100,12 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
     # compute title as notebookname if found in sections
     if jupyter_app == 'classic':
         title = 'Jupyter classic'
-        iframe = f'/ipythonForward/{course}/{student}/tree'
+        iframe = f'/ipythonForward/{course}/{student}/tree/{notebook}'
     elif jupyter_app == 'jlab':
         title = 'Jupyter lab'
         iframe = f'/ipythonForward/{course}/{student}/lab'
+        if notebook:
+            iframe += "/tree/{notebook}"
 
     else:
         title = notebook_obj.notebookname if notebook_obj else notebook

@@ -60,11 +60,11 @@
   // update the URL bar so that page can be bookmarked or reloaded
   function update_url(trailer) {
     window.history.pushState(
-      {}, "", `/auditor/notebook/{{coursename}}${global_track_or_app}${trailer}`);
+      {}, "", `/auditor/notebook/{{coursename}}${global_track_or_app}/${trailer}`);
   }
 
   // parse map { track -> first-notebook-path }
-  function first_notebook_per_track() { 
+  function first_notebook_per_track() {
     return JSON.parse(
     document.getElementById('first-notebook-per-track').textContent)
   }
@@ -103,22 +103,21 @@
   }
 
   // jupyter classic app
-  function select_classic(top) {
-    top = (top === undefined) ? "" : top
+  function select_classic(top, header) {
     global_track_or_app = "@classic"
-    update_url("")
+    update_url(top)
     iframe_src(`/ipythonForward/{{coursename}}/{{student}}/tree/${top}`)
-    update_header('Jupyter classic');
+    update_header(header);
     outline_current_notebook('--no-match--');
     turn_off_tracks();
     turn_jupyter_button('classic', true);
     turn_jupyter_button('jlab', false);
   }
   // jupyter lab app
-  function select_jlab() {
+  function select_jlab(top) {
     global_track_or_app = "@jlab";
-    update_url("");
-    iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab');
+    update_url(top);
+    iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab/tree/${top}');
     update_header('Jupyter lab');
     outline_current_notebook('--no-match--');
     turn_off_tracks();
@@ -142,7 +141,7 @@
     let url = `/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
     iframe_src(url);
     outline_current_notebook(notebook);
-    update_url(`/${notebook}`);
+    update_url(`${notebook}`);
   }
 
 
@@ -612,7 +611,7 @@
           {% for droparea in coursedir.dropareas %}
           <!-- students -->
           <div id="droparea-{{droparea}}"
-              onclick='select_classic("DROPPED/{{droparea}}")'
+              onclick="select_classic(`DROPPED/{{droparea}}`, `droparea {{droparea}}`)"
               class="droparea btn btn-outline-info"
               data-toggle="tooltip" data-html="true"
               data-placement="right" title="your teacher may drop files for you"
@@ -624,12 +623,19 @@
         {% endif %}
 
         <div class='other-wrapper'>
-          <div id="classic" onclick="select_classic()" data-toggle="tooltip" data-html="true" data-placement="right" title="Jupyter classic will display the contents of your workdir
-                        and spawn noteboks in separate tabs" class="classic btn btn-outline-dark"> Jupy<wbr>ter clas<wbr>sic
+          <div id="classic" onclick="select_classic(``, `Jupyter classic`)"
+              target="nbhosting-jupyter"
+              data-toggle="tooltip" data-html="true" data-placement="right"
+              title="Jupyter classic will display the contents of your workdir
+                      and spawn noteboks in separate tabs" class="classic btn btn-outline-dark">
+              Jupy<wbr>ter clas<wbr>sic
           </div>
-          <div id="jlab" onclick="select_jlab()" target="nbhosting-jupyter" data-toggle="tooltip" data-html="true"
-            data-placement="right" title="with Jupyter lab you can edit all your contents from
-                        within a single browser tab" class="lab btn btn-outline-dark"> Jupy<wbr>ter lab
+          <div id="jlab" onclick="select_jlab(``)"
+              target="nbhosting-jupyter"
+              data-toggle="tooltip" data-html="true" data-placement="right"
+              title="with Jupyter lab you can edit all your contents from
+                      within a single browser tab" class="lab btn btn-outline-dark">
+              Jupy<wbr>ter lab
           </div>
         </div>
 
