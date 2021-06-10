@@ -46,13 +46,18 @@ class UpdateCourseForm(forms.Form):
             image""",
         )
     staff_usernames = forms.CharField(
-        label='staff_usernames',
+        label='staff members',
         required=False,
         strip=True,
         widget=forms.Textarea(attrs={ 'rows': 10, 'cols': 100, }),
         help_text="""
         the names of users that are considered staff for this course;
-        this is mainly used to ignore activity from these people
-        when computing statistics
+        <br>this is mainly used to<ul>
+        <li>a) allow these users to manage dropareas, and</li>
+        <li>b) ignore activity from these people when gathering statistics.py
+        </li></ul>
+        because this is useful in MOOC-mode as well, it is not implemented as
+        a proper django relationship, but as a list of strings; use the
+        <code>@groupname</code> notation to refer to a django group.
         """
     )

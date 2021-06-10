@@ -21,6 +21,7 @@ PODMAN_URL = "unix:///run/podman/podman.sock"
 
 from django.db import models
 from django.contrib.auth.models import User, Group
+from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import get_template
 
 from nbh_main.settings import NBHROOT, logger, sitesettings
@@ -68,7 +69,21 @@ class CourseDir(models.Model):
 
     @property
     def staffs(self):
-        return set(self.staff_usernames.split())
+        # use @group syntax to mention all the members of a group
+        result = set()
+        for token in self.staff_usernames.split():
+            if not token.startswith('@'):
+                result.add(token)
+            else:
+                groupname = token[1:]
+                try:
+                    result.update(
+                        user.username
+                        for user in Group.objects.get(name=groupname).user_set.all())
+                except ObjectDoesNotExist:
+                    logger.error(f"ignoring unknown group {groupname}"
+                                 f" in staffs for {self.coursename}")
+        return result
 
 
     @staticmethod

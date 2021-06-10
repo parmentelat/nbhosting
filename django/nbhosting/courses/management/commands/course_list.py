@@ -55,6 +55,29 @@ def list_courses_users(patterns, verbose):
             print(user.username)
 
 
+def list_courses_staffs(patterns, verbose):
+    """
+    usual verbosity meaning - see e.g. group_list.py
+    """
+    for coursedir in CourseDir.objects.all():
+        if not matching_policy(coursedir.coursename, patterns):
+            continue
+        if not verbose:
+            print(coursedir.coursename)
+            continue
+        # a staff is just a plain str
+        staffs = sorted(coursedir.staffs)
+        if verbose == 1:
+            print(f"{coursedir.coursename} has {iter_len(staffs)} staff(s)")
+            continue
+        if verbose >= 3:
+            print(f"{10*'-'} {coursedir.coursename} has {iter_len(staffs)} staff(s)")
+        for staff in staffs:
+            print(staff)
+        if verbose >=3:
+            print(f"--- actual source (using groups) is\n{coursedir.staff_usernames}")
+
+
 class Command(BaseCommand):
 
     help = """
@@ -85,6 +108,10 @@ class Command(BaseCommand):
             help="only list users affiliated through at least one group",
         )
         parser.add_argument(
+            "-s", "--staffs", default=False, action="store_true",
+            help="list staff users"
+        )
+        parser.add_argument(
             "-i", "--image", default=False, action="store_true",
             dest='podman',
             help="if set, any missing !image! is notified as a warning "
@@ -105,6 +132,7 @@ class Command(BaseCommand):
         patterns = kwargs['patterns']
         users_mode = kwargs['users']
         groups_mode = kwargs['groups']
+        staffs_mode = kwargs['staffs']
         verbose = kwargs['verbose']
         podman_flag = kwargs['podman']
 
@@ -114,6 +142,10 @@ class Command(BaseCommand):
 
         if groups_mode:
             list_courses_groups(patterns, verbose)
+            return
+
+        if staffs_mode:
+            list_courses_staffs(patterns, verbose)
             return
 
         def groups(cd):
