@@ -1,3 +1,7 @@
+# 0.43.2 2021 Jun 10
+
+* the @classic and @jlab URLs accept a path
+
 # 0.43.1 2021 Jun 9
 
 * preliminary droparea feature
