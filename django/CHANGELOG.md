@@ -1,3 +1,7 @@
+# 0.43.3 2021 Jun 10
+
+* staffs definition can refer to groups using the @group notation
+
 # 0.43.2 2021 Jun 10
 
 * the @classic and @jlab URLs accept a path
