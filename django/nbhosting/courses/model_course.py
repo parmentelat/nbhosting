@@ -3,21 +3,20 @@
 # pylint: disable=attribute-defined-outside-init
 # pylint: disable=broad-except
 # pylint: disable=expression-not-assigned
+# pylint: disable=imported-auth-user
+# pylint: disable=no-else-return
 
 import sys
 import os
-from pathlib import Path                                # pylint: disable=w0611
+from pathlib import Path                                          # pylint: disable=w0611
 import subprocess
 import shutil
 import itertools
 import re
+from importlib.util import (spec_from_file_location, module_from_spec)
 import yaml
 
-from importlib.util import (
-    spec_from_file_location, module_from_spec)
-
 import podman
-PODMAN_URL = "unix:///run/podman/podman.sock"
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -37,7 +36,9 @@ from .model_build import Build
 from ..matching import matching_policy
 
 
-class CourseDir(models.Model):
+PODMAN_URL = "unix:///run/podman/podman.sock"
+
+class CourseDir(models.Model):                  # pylint: disable=too-many-public-methods
 
     coursename = models.CharField(max_length=128)
     giturl = models.CharField(max_length=1024, default='none')
@@ -63,6 +64,9 @@ class CourseDir(models.Model):
         self._tracks = None
         super().__init__(*args, **kwds)
 
+    def __str__(self): # pylint: disable=invalid-str-returned
+        return self.coursename
+
 
     def __lt__(self, other):
         return self.coursename < other.coursename
@@ -71,7 +75,7 @@ class CourseDir(models.Model):
     def staffs(self):
         # use @group syntax to mention all the members of a group
         result = set()
-        for token in self.staff_usernames.split():
+        for token in self.staff_usernames.split():            # pylint: disable=no-member
             if not token.startswith('@'):
                 result.add(token)
             else:
@@ -195,17 +199,17 @@ class CourseDir(models.Model):
             if verbose:
                 logger.info(f"Clearing {path}")
                 shutil.rmtree(path)
-        for dir in all_dirs:
-            dir_kind = dir.parent.name
+        for dir_ in all_dirs:
+            dir_kind = dir_.parent.name
             if dir_kind == 'raw':
                 if clean_raw:
-                    clear(dir)
+                    clear(dir_)
             else:
-                clear(dir)
+                clear(dir_)
         if not preserve_students:
             student_spaces = (NBHROOT / "students" / self.coursename).glob("*")
-            for dir in student_spaces:
-                clear(dir)
+            for dir_ in student_spaces:
+                clear(dir_)
 
     def customized(self, filename):
         """
@@ -298,7 +302,7 @@ class CourseDir(models.Model):
         if staff_selector is None:
             staff_selector = {'staff', 'selector'}
 
-        staff_set = {user for user in self.staff_usernames.split()}
+        staff_set = set(self.staff_usernames.split())
         def staff_match(user, staff_selector):
             if user.username in staff_set:
                 return 'staff' in staff_selector
@@ -410,7 +414,8 @@ class CourseDir(models.Model):
 
     # check course-provided tracks and provide reasonable defaults
     # returns a Track object for a given track
-    def _check_tracks(self, tracks: CourseTracks):
+    @staticmethod
+    def _check_tracks(tracks: CourseTracks):
         type_ok = True
         if not isinstance(tracks, list):
             type_ok = False
@@ -629,6 +634,7 @@ class CourseDir(models.Model):
                             f"uses unknown podman image {self.image}")
             except Exception:
                 logger.exception("Can't figure image hash")
+        return None
 
 
     def build_image(self, force=False, dry_run=False):
@@ -678,7 +684,8 @@ class CourseDir(models.Model):
                 continue
             self.run_build(build, dry_run=dry_run, force=force)
 
-    def run_build(self, build: Build, *, dry_run=False, force=False):
+    def run_build(self, build: Build, *,  # pylint: disable=too-many-locals
+                  dry_run=False, force=False):
         """
         execute one of the builds provided in nbhosting.yaml
 
@@ -697,10 +704,10 @@ class CourseDir(models.Model):
         githash = self.current_hash()
 
         buildid = build.id
-        script = build.script
-        directory = build.directory
-        result_folder = build.result_folder
-        entry_point = build.entry_point
+        script = build.script                           # pylint: disable=unused-variable
+        directory = build.directory                     # pylint: disable=unused-variable
+        result_folder = build.result_folder             # pylint: disable=unused-variable
+        entry_point = build.entry_point                 # pylint: disable=unused-variable
 
         build_path = Path(self.build_dir) / buildid / githash
         if build_path.exists():
@@ -716,12 +723,12 @@ class CourseDir(models.Model):
         variables = "NBHROOT+coursename+script+directory+result_folder"
         # oddly enough a dict comprehension won't work here,
         # saying the variable names are undefined...
-        vars = {}
+        vars_ = {}
         for var in variables.split('+'):
-            vars[var] = eval(var)                             # pylint: disable=eval-used
+            vars_[var] = eval(var)                             # pylint: disable=eval-used
 
         template = get_template("scripts/dot-clone-build-rsync.sh")
-        expanded_script = template.render(vars)
+        expanded_script = template.render(vars_)
 
         host_trigger = build_path / ".clone-build-rsync.sh"
         host_log = host_trigger.with_suffix(".log")
@@ -755,6 +762,7 @@ class CourseDir(models.Model):
                 latest.exists() and latest.unlink()
                 latest.symlink_to(Path(githash), target_is_directory=True)
                 logger.info(f"{latest} updated ")
+        return success
 
     def pull_from_git(self, silent=False):
         """
@@ -782,7 +790,7 @@ class CourseDir(models.Model):
         directory = self.git_dir if not student else self.student_dir(student)
         command=['git', '-C', str(directory), 'log', '-1', "--pretty=%h"]
         return subprocess.run(
-            command, capture_output=True).stdout.decode().strip()
+            command, capture_output=True, check=False).stdout.decode().strip()
 
 
     def does_current_hash_have(self, course_hash, student, student_hash):
@@ -857,5 +865,5 @@ class CourseDir(models.Model):
         command += [subcommand, self.coursename] + list(args)
         return subprocess.run(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            encoding="utf-8",
+            encoding="utf-8", check=False,
             **run_args)

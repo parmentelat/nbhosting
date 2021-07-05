@@ -4,6 +4,7 @@ from pathlib import Path
 from collections import defaultdict
 from typing import List
 
+import yaml
 import jsonpickle
 import jupytext
 
@@ -133,13 +134,13 @@ class DummyNotebook:
 
     notebookname = "dummy notebook"
 
-    def decorate_a(self):
+    def decorate_a(self):                                   # pylint: disable=no-self-use
         return ""
 
-    def onclick(self):
+    def onclick(self):                                      # pylint: disable=no-self-use
         return ""
 
-    def clean_path(self):
+    def clean_path(self):                                   # pylint: disable=no-self-use
         return "dummy-notebook"
 
 
@@ -191,7 +192,8 @@ class Track:
         self.sections = sections
         self.name = name
         self.description = description
-        self.id = id_ or self.name.replace(' ', '-').replace('&', 'and')
+        self.id = (                                        # pylint: disable=invalid-name
+            id_ or self.name.replace(' ', '-').replace('&', 'and'))
         # a flag that says if we've been through
         # mark_notebooks already or not
         self._marked = False
@@ -388,6 +390,7 @@ def sanitize_tracks(tracks: CourseTracks):
 
 # see test-data/nbhosting.yaml for an example
 # of a yaml-based tracks definition
+# pylint: disable=invalid-name
 def tracks_from_yaml_config(coursedir, tracks: dict):
     def get(D, key):
         return D.get(key, key)
@@ -419,5 +422,4 @@ def to_yaml(tracks):
             sections = [section_dict(section) for section in track.sections],
         )
     pre_yaml = dict(tracks=[track_dict(track) for track in tracks])
-    import yaml
     return yaml.dump(pre_yaml)

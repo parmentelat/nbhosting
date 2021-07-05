@@ -1,7 +1,12 @@
-from nbh_main.settings import logger
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
 
-class YamlRecord:
 
+# from nbh_main.settings import logger
+
+class YamlRecord:                                # pylint: disable=too-few-public-methods
+
+    DEFAULTS = {}
     # define for each subclass
     # DEFAULTS = dict(
     #    mandatory_field: None,
@@ -19,7 +24,7 @@ class YamlRecord:
         for key in yaml_d:
             if key not in self.DEFAULTS:
                 raise ValueError(f"unexpected key {key} for class {type(self).__name__}")
-        for field in self.DEFAULTS:
+        for field in self.DEFAULTS:           # pylint: disable=consider-using-dict-items
             if field in yaml_d:
                 setattr(self, field, yaml_d[field])
             elif self.DEFAULTS[field] is None:
@@ -31,7 +36,7 @@ class YamlRecord:
                 setattr(self, field, self.DEFAULTS[field])
 
 
-class Build(YamlRecord):
+class Build(YamlRecord):                         # pylint: disable=too-few-public-methods
     DEFAULTS = {
         'name': None,                   # shows up in the UI
         'id': "{self.name}",            # to appear under the builds/ subdir and URLs
@@ -42,8 +47,10 @@ class Build(YamlRecord):
         'entry_point': 'index.html',    # what to expose to the outside
     }
 
+    # pylint: disable=no-member
     def __repr__(self):
         name_part = f" name={self.name}" if self.name != self.id else ""
-        d = self.description
-        description_part = d if len(d) < 20 else f"{d[:17]}..."
-        return f"Build {self.id}{name_part} in directory {self.directory} desc:{description_part}"
+        desc = self.description
+        description_part = desc if len(desc) < 20 else f"{desc[:17]}..."
+        return (f"Build {self.id}{name_part}"
+                f" in directory {self.directory} desc:{description_part}")
