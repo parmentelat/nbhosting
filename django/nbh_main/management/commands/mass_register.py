@@ -9,6 +9,8 @@ input file format:
 import random
 import string
 import logging
+from pathlib import Path
+import json
 
 import re
 
@@ -16,8 +18,8 @@ import re
 import smtplib
 
 from django.core.management.base import BaseCommand
-
 from django.contrib.auth.models import User, Group
+from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import get_template, TemplateDoesNotExist
 
 from nbh_main.sitesettings import server_name, server_mode
@@ -75,7 +77,7 @@ def parse(input_filename):
     # then ask for confirmation and do it all at once at the end
     todos = []
     parse_error = False
-    with open(input_filename) as input_file:
+    with Path(input_filename).open() as input_file:
         for lineno, line in enumerate(input_file, 1):
             line = line.strip()
             if not line or line.startswith('#'):
@@ -182,7 +184,7 @@ def mail_user(todo, template, dry_run):
         mailer.sendmail(sender, receiver, message.as_string())
 
 
-def create_users(todos, template, dry_run):
+def create_users(todos, template, dry_run, skip_mail):
     done = []
     for todo in todos:
         try:
@@ -196,7 +198,8 @@ def create_users(todos, template, dry_run):
                     last_name=todo['last_name'],
                     password=todo['password'],
                     )
-            mail_user(todo, template, dry_run)
+            if not skip_mail:
+                mail_user(todo, template, dry_run)
             done.append(todo)
         except Exception as exc:
             lineno = todo['lineno']
@@ -230,14 +233,18 @@ def create_group_if_needed(groupname):
 def add_todos_in_group(todos, group, dry_run):
     for todo in todos:
         username = todo['username']
-        user = User.objects.get(username=username)
+        try:
+            user = User.objects.get(username=username)
+        except ObjectDoesNotExist:
+            logging.warning(f"not existing yet - skipping addition of {username} in group {group}")
+            continue
         if dry_run:
             print(f"would add user {username} in group {group.name}")
         else:
             group.user_set.add(user)
 
 
-def mass_register(input_filename, template_filename, groupname, long_output, dry_run):
+def mass_register(input_filename, template_filename, groupname, long_output, dry_run, skip_mail):
     template = open_and_check_template(template_filename)
     todos, parse_error = parse(input_filename)
     logging.info(f"parsed {len(todos)} entries, checking for news")
@@ -249,7 +256,7 @@ def mass_register(input_filename, template_filename, groupname, long_output, dry
         print("NEW entries")
         for new in news:
             print("NEW", display_todo(new))
-    
+
     proceed = (len(olds) + len(news)) == len(todos)
     if parse_error or not proceed:
         go_ahead = False
@@ -267,7 +274,7 @@ def mass_register(input_filename, template_filename, groupname, long_output, dry
     if not go_ahead:
         logging.info("no worries, bye")
         return
-    done = create_users(news, template, dry_run)
+    done = create_users(news, template, dry_run, skip_mail)
     if dry_run:
         logging.info(f"{len(done)} accounts NOT CREATED (dry-run)")
     else:
@@ -277,6 +284,30 @@ def mass_register(input_filename, template_filename, groupname, long_output, dry
     print(f"group={group}")
     if group:
         add_todos_in_group(olds + news, group, dry_run)
+
+    return  todos
+
+
+def export_json(in_filename, todos, sponsor):
+    # todo : configurable
+    USERMODEL = 'student_teams.User'
+    is_sponsor = sponsor
+    is_student = not is_sponsor
+    items = []
+    for todo in todos:
+        try:
+            user = User.objects.get(email=todo['email'])
+            fields = dict(first_name=user.first_name, last_name=user.last_name,
+                        username=user.username, email=user.email,
+                        password=user.password,
+                        is_student=is_student, is_sponsor=is_sponsor)
+            items.append(dict(model=USERMODEL, fields=fields))
+        except:
+            logging.warning(f"email {todo['email']} not yet known (dry-run ?)")
+    out_filename = f"{in_filename}.json"
+    with Path(out_filename).open('w') as writer:
+        writer.write(json.dumps(items))
+    print(f"{out_filename} created or overwritten")
 
 
 class Command(BaseCommand):
@@ -317,20 +348,23 @@ class Command(BaseCommand):
 
     ----
     group management
-    
-    if the -g option is present, all the accounts present in 
+
+    if the -g option is present, all the accounts present in
     the input file will be added to that group, which is created
     if needed.
-    
+
     It is safe to run mass-register several times on a given input file,
-    as only unexisting accounts are created; tis is useful too existing 
-    accounts in a group.    
+    as only unexisting accounts are created; this is also useful to add existing
+    accounts in a group.
     """
 
     def add_arguments(self, parser):
         parser.add_argument(
             "-n", "--dry-run", default=False, action='store_true',
             help="just pretends")
+        parser.add_argument(
+            "-s", "--skip-mail", default=False, action='store_true',
+            help="do create users, but do not send mails")
         parser.add_argument(
             "-l", "--long", dest='long_output', default=False, action='store_true',
             help="long (verbose) output"
@@ -345,12 +379,23 @@ class Command(BaseCommand):
                  "group is created if needed; "
                  "users are added in group even if user was already created")
         parser.add_argument(
+            "-e", "--export-json", default=False, action='store_true',
+            help="generate a JSON-encoded file to export"
+                 " these users to another django app")
+        parser.add_argument(
+            "-o", "--sponsor", default=False, action='store_true',
+            help="useful with --export-json, when exported entities"
+                 " need to be marked as sponsors instead of regular students")
+        parser.add_argument(
             "filename", nargs=1, help="input file name")
 
     def handle(self, *args, **kwargs):
-        mass_register(kwargs['filename'][0],
-                      kwargs['template'],
-                      kwargs['group'],
-                      kwargs['long_output'],
-                      kwargs['dry_run'],
-                      )
+        todos = mass_register(kwargs['filename'][0],
+                              kwargs['template'],
+                              kwargs['group'],
+                              kwargs['long_output'],
+                              kwargs['dry_run'],
+                              kwargs['skip_mail'],
+                              )
+        if kwargs['export_json']:
+            export_json(kwargs['filename'][0], todos, kwargs['sponsor'])
