@@ -29,7 +29,7 @@ setup(
         'django_extensions',
         'jsonpickle',
         'nbformat',
-        'jupytext[myst]',
+        'jupytext',
         'aiohttp',
         'podman',
     ],
@@ -39,7 +39,7 @@ setup(
     # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers = [
         'Development Status :: 3 - Alpha',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
 )
