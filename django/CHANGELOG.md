@@ -1,3 +1,8 @@
+# 0.43.4 2021 Aug 2
+
+* mass-register is able to export users in json format for the benefit of other django apps
+* jupytext[myst] dep is now simply jupytext
+
 # 0.43.3 2021 Jun 10
 
 * staffs definition can refer to groups using the @group notation
