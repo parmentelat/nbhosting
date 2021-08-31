@@ -192,6 +192,11 @@ function swap-contents() {
     fi
 }
 
+function nginx-down() {
+    sed -i -e 's/set $down 0;/set $down 1;/' /etc/nginx/nginx.conf
+    systemctl restart nginx
+}
+
 # ignore unrelevant  nbh-autopull
 SERVICES="nbhosting-addr nbhosting-dev-addr nbh-django nbh-monitor nginx"
 CONFIG=$HOME/nbhosting/django/nbh_main/sitesettings.py
@@ -209,7 +214,7 @@ function status() {
 }
 
 USAGE="not a valid subcommand - use either
-  * status 
+  * status
   * fasttrack-from-prod / fasttrack-from-dev
   * pull-from-prod / pull-from-dev
   * swap-ip-down / swap-sitesettings / swap-contents / swap-ip-up
@@ -232,6 +237,14 @@ a few more words
 
 * swap-ip-up become-prod (or become-dev)
   the current box will bind the IP address for prod (resp. dev)
+
+* swap-sitesettings become-prod (or become-dev)
+* swap-contents become-prod (or become-dev)
+
+* nginx-down
+  set the 'down' flag to 1 in the nginx conf, and restart nginx that way
+  nginx will then unconditionnally display a 'under maintenance' page
+  this change will be undone by the next install.sh
 "
 
 
