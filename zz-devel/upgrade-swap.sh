@@ -31,7 +31,7 @@ FULLPATH=$0
 COMMAND=$(basename $0)
 
 function -echo-stderr() {
-    >&2 echo $(date "+%H:%M:%S") "$@"
+    >&2 echo -e $(date "+%H:%M:%S") "$@"
 }
 
 function -die() {
@@ -60,8 +60,9 @@ function -sanity-check() {
 
 function -pull-from() {
 
-    # this is granted
+    # this is mandatory
     local mode="$1"; shift
+    local access="$1"; shift
 
     local OPTIND
     local opt
@@ -77,25 +78,45 @@ function -pull-from() {
     shift $((OPTIND-1))
 
     [[ "$#" -eq 1 ]] || -die "USAGE: pull-from-${mode} [-n] hostname"
-    local mode_host=$1; shift
+    local fqdn_host=$1; shift
+    local simple_host=$(cut -d. -f1 <<< ${fqdn_host})
+
+    case "$mode" in 
+      prod|dev) ;;
+      *) -die "wrong mode $mode" ;;
+    esac
+
+    case "$access" in
+      local) from_url="/nbhosting/${mode}.${simple_host}/" ;;
+      remote) from_url="$fqdn_host:/nbhosting/${mode}/" ;;
+      *) -die "wrong access $access" ;;
+    esac
 
     set -x
     rsync $rsync_opt -a --delete \
-        $mode_host:/nbhosting/${mode}/ /nbhosting/${mode}/
+        $from_url /nbhosting/${mode}/
 }
 
+function fasttrack-from-prod() {
+    -sanity-check pull-from-prod nbhosting-dev-addr
+    -pull-from prod local "$@"
+}
+function fasttrack-from-dev() {
+    -sanity-check pull-from-dev nbhosting-addr
+    -pull-from dev local "$@"
+}
 function pull-from-prod() {
     -sanity-check pull-from-prod nbhosting-dev-addr
-    -pull-from prod "$@"
+    -pull-from prod remote "$@"
 }
 function pull-from-dev() {
     -sanity-check pull-from-dev nbhosting-addr
-    -pull-from dev "$@"
+    -pull-from dev remote "$@"
 }
 
 #####
 
-function swap-ip() {
+function swap-ip-down() {
     mode=$1; shift
 
     [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
@@ -103,14 +124,25 @@ function swap-ip() {
     if [ "$mode" == "become-prod" ]; then
         systemctl stop nbhosting-dev-addr
         systemctl disable nbhosting-dev-addr
-        systemctl enable nbhosting-addr
-        # don't do this yet
-        echo DO LATER: systemctl start nbhosting-addr
     elif [ "$mode" == "become-dev" ]; then
         systemctl stop nbhosting-addr
         systemctl disable nbhosting-addr
+    else
+        echo ignoring unknown mode $mode
+    fi
+}
+
+function swap-ip-up() {
+    mode=$1; shift
+
+    [ -n "$mode" ] || -die "$FUNCNAME bad arg nb"
+
+    if [ "$mode" == "become-prod" ]; then
+        systemctl enable nbhosting-addr
+        systemctl start nbhosting-addr
+    elif [ "$mode" == "become-dev" ]; then
         systemctl enable nbhosting-dev-addr
-        echo DO LATER: systemctl start nbhosting-dev-addr
+        systemctl start nbhosting-dev-addr
     else
         echo ignoring unknown mode $mode
     fi
@@ -176,6 +208,32 @@ function status() {
     ls -l /nbhosting/current
 }
 
+USAGE="not a valid subcommand - use either
+  * status 
+  * fasttrack-from-prod / fasttrack-from-dev
+  * pull-from-prod / pull-from-dev
+  * swap-ip-down / swap-sitesettings / swap-contents / swap-ip-up
+"
+
+HELP="
+a few more words
+
+* fasttrack-from-prod otherbox.inria.fr (or from-dev) 
+  in order to make the first sync
+  it takes advantage of the prod.otherhost folder that is a (nightly crontab) local mirror 
+  i.e. this will sync e.g. /nbhosting/prod.otherbox into /nbhosting/prod
+  which will be much faster than using pull, which does the same but over the network
+* pull-from-prod otherbox.inria.fr (or from-dev)
+  in order to really sync the other box's prod tree locally
+  do this once the service has been turned down 
+
+* swap-ip-down become-prod (or become-dev)
+  the current box will cease to bind the IP address for dev (resp. prod)
+
+* swap-ip-up become-prod (or become-dev)
+  the current box will bind the IP address for prod (resp. dev)
+"
+
 
 # very rough for now; run all stages individually and manually
 
@@ -186,7 +244,7 @@ function call-subcommand() {
     case $(type -t -- $fun) in
 	function)
 	    shift ;;
-	*)  -die "$fun not a valid subcommand - use either status / pull-from-prod / pull-from-dev / swap-ip / swap-sitesettings / swap-contents " ;;
+	*)  -die "$fun $USAGE" "$HELP" ;;
     esac
     # call subcommand
     $fun "$@"
