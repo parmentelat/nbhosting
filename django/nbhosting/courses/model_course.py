@@ -867,3 +867,21 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             encoding="utf-8", check=False,
             **run_args)
+
+    
+    def find_build(self, id):
+        for build in self.builds:
+            if build.id == id:
+                return build
+
+    def latest_builds(self):
+        """
+        iterates over the latest/ found in this course's builds/ area
+        """
+        self.probe()
+        for latest in self.build_dir.glob("*/latest"):
+            # test existence of index.html ? (I think not)
+            # test for successful build ? (I think not)
+            id = latest.parts[-2]
+            if build := self.find_build(id):
+                yield build

@@ -56,9 +56,22 @@ all courses
       url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
   }
 
-
-  span.track>a.btn {
-    background-color: white;
+  
+  span.button>a.btn {
+      background-color: white;
+  }
+  span.button>a.btn:hover {
+      font-weight: 900;
+  }
+  span.track>a.btn:hover {
+    color: blue;
+  }
+  span.build>a.btn:hover {
+    color: green;
+  }
+  
+  span.build {
+    align-self: flex-end;
   }
 
 </style>
@@ -77,10 +90,19 @@ all courses
       </a>
     </span>
     {% for track in course_dir.tracks %}
-    <span class="track">
+    <span class="track button">
       <a class='btn btn-outline-primary btn-sm m-1' data-toggle="tooltip" data-html="true" title="{{track.description}}"
         href="/auditor/notebook/{{course_dir.coursename}}:{{track.id}}">
         {{ track.name }}
+      </a>
+    </span>
+    {% endfor %}
+    {% for build in course_dir.latest_builds %}
+    <span class="build button">
+      <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true" 
+         title="{{build.description}}"
+         href="/builds/{{course_dir}}/{{build.id}}/latest/">
+         {{build.name}}
       </a>
     </span>
     {% endfor %}
