@@ -218,6 +218,7 @@ USAGE="not a valid subcommand - use either
   * fasttrack-from-prod / fasttrack-from-dev
   * pull-from-prod / pull-from-dev
   * swap-ip-down / swap-sitesettings / swap-contents / swap-ip-up
+  * nginx-down
 "
 
 HELP="
