@@ -1,3 +1,7 @@
+# 0.44.1 2021 Sep 2
+
+* show available builds in main courses page
+
 # 0.43.4 2021 Aug 2
 
 * mass-register is able to export users in json format for the benefit of other django apps
