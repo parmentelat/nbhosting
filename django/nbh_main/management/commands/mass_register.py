@@ -128,6 +128,11 @@ def filter_todos(todos):
         username = todo['username']
         u_email = User.objects.filter(email=email)
         u_username = User.objects.filter(username=username)
+        if len(todo['username']) >= 32:
+            before = todo['username']
+            todo['username'] = todo['username'][:31]
+            logging.warning(f"name too long {before}\n"
+                  f"       is truncated to {todo['username']}")
         if u_email or u_username:
             u_both = User.objects.filter(email=email, username=username)
             if u_both:
