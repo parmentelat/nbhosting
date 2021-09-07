@@ -179,6 +179,7 @@ def staff_course_update(request, course):
         form = UpdateCourseForm(
             initial=dict(
                 autopull=coursedir.autopull,
+                autobuild=coursedir.autobuild,
                 archived=coursedir.archived,
                 image=coursedir.image,
                 staff_usernames="\n".join(coursedir.staff_usernames.split()),
