@@ -45,3 +45,8 @@ class Command(BaseCommand):
                 continue
             logger.info(f"{40*'='} pulling from git with course {coursename}")
             coursedir.pull_from_git()
+            # xxx we may need some exclusion mechanism to avoid
+            # having 2 builds running simultaneously
+            if coursedir.autobuild:
+                logger.info(f"autobuild: rebuilding {coursedir.coursename}")
+                coursedir.run_builds('*')

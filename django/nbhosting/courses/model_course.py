@@ -773,12 +773,6 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         else:
             completed = self.nbh_subprocess('course-update-from-git', False)
             result = (completed.returncode == 0)
-        # xxx we may need some exclusion mechanism to avoid
-        # having 2 builds running simultaneously
-        if self.autobuild:
-            logger.info(f"autobuild: rebuilding {self.coursename}")
-            command = f"nbh-manage course-run-build {self.coursename}"
-            result = result and show_and_run(command)
         return result
 
 
