@@ -451,6 +451,8 @@ So for example, you can trigger updates from git, and image builds, from the web
 There are a few settings available for a course; as of this writing:
 
 * a boolean `autopull` flag; when enabled, nbhosting will pull from git every hour or so;
+* a boolean `autobuild`; when enabled, each autopull will trigger all the builds associated to that course
+* a boolean `archived`; when set, the course will be harder to see in the list of courses (the course is otherwise fully functional)
 * image name to use; the default is the coursename, so `flotpython` looks for image `flotpython`; however images are big and tedious to build, so you could want to share another course's image
 * students that are considered *staff*; corresponding hashes will be ignored when building usage statistics
 

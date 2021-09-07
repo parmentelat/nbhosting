@@ -10,7 +10,7 @@ class CourseForm(ModelForm):
 
     class Meta:
         model = CourseDir
-        fields = ['image', 'autopull', 'archived', 'autobuild', 'staff_usernames' ]
+        fields = ['autopull', 'autobuild', 'archived', 'image',  'staff_usernames' ]
 
 class UpdateCourseForm(forms.Form):
     autopull = forms.BooleanField(
@@ -22,7 +22,7 @@ class UpdateCourseForm(forms.Form):
     autobuild = forms.BooleanField(
         label='autobuild',
         required=False,
-        help_text=("when enabled, every pull from the upstream repo "
+        help_text=("when enabled, every autopull from the upstream repo "
                    "will trigger a build on all defined builds in the course"),
         )
     archived = forms.BooleanField(
