@@ -1,3 +1,9 @@
+# 0.45.0 2021 Sep 7
+
+* mass-register enforce a maximum username lenghth of 31 (#119)
+* autobuild now only affect pulls made by autopull (#148)
+* fix UI bug, autobuild always False in course editing view (#147)
+
 # 0.44.1 2021 Sep 2
 
 * show available builds in main courses page
