@@ -1,3 +1,9 @@
+# 0.46.0 2021 Sep 10
+
+* courses can choose to store nbhosting-related configs
+  in either nbhosting/ (like before) or .nbhosting (new)
+  so that this folder does not encumber student space
+
 # 0.45.0 2021 Sep 7
 
 * mass-register enforce a maximum username lenghth of 31 (#119)
