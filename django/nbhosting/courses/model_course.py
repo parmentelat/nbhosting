@@ -219,12 +219,14 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         given a filename, search this:
         * first in nbhroot/local/coursename/<filename>
         * second in nbhroot/courses-git/coursename/nbhosting/<filename>
+        * or third in nbhroot/courses-git/coursename/.nbhosting/<filename>
 
         returns a Path instance, or None
         """
         candidates = [
             NBHROOT / "local" / self.coursename / filename,
             self.git_dir / "nbhosting" / filename,
+            self.git_dir / ".nbhosting" / filename,
         ]
 
         for candidate in candidates:
