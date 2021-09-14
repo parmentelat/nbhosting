@@ -280,6 +280,10 @@ function course-update-from-git() {
         mkdir -p $COURSE_jupyter/nbconfig
         $rsync $COURSE_git/nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
     }
+    [ -f $COURSE_git/.nbhosting/nbconfig/notebook.json ] && {
+        mkdir -p $COURSE_jupyter/nbconfig
+        $rsync $COURSE_git/.nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
+    }
     return 0
 
 }
