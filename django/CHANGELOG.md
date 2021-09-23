@@ -1,3 +1,8 @@
+# 0.46.1 2021 Sep 14
+
+* bugfix, using .nbhosting/ instead of nbhosting/
+  was not properly handled wrt nbconfig/notebook.json
+
 # 0.46.0 2021 Sep 10
 
 * courses can choose to store nbhosting-related configs
