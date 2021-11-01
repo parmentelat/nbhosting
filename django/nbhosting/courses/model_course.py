@@ -770,6 +770,9 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         """
         pulls from the git repository
         """
+        if self.archived:
+            print("WARNING: not pulling an archived course")
+            return False
         if not silent:
             result = self.run_nbh_subprocess('course-update-from-git')
         else:
