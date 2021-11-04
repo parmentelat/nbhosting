@@ -58,6 +58,11 @@ function -sanity-check() {
 }
 
 
+function disk-status() {
+    du -hs /nbhosting/{dev,prod}*
+}
+
+
 function -pull-from() {
 
     # this is mandatory
@@ -215,6 +220,7 @@ function status() {
 
 USAGE="not a valid subcommand - use either
   * status
+  * disk-status
   * fasttrack-from-prod / fasttrack-from-dev
   * pull-from-prod / pull-from-dev
   * swap-ip-down / swap-sitesettings / swap-contents / swap-ip-up
@@ -229,6 +235,7 @@ a few more words
   it takes advantage of the prod.otherhost folder that is a (nightly crontab) local mirror 
   i.e. this will sync e.g. /nbhosting/prod.otherbox into /nbhosting/prod
   which will be much faster than using pull, which does the same but over the network
+
 * pull-from-prod otherbox.inria.fr (or from-dev)
   in order to really sync the other box's prod tree locally
   do this once the service has been turned down 
@@ -240,7 +247,9 @@ a few more words
   the current box will bind the IP address for prod (resp. dev)
 
 * swap-sitesettings become-prod (or become-dev)
+
 * swap-contents become-prod (or become-dev)
+  only change the current/ symlink in /nbhosting
 
 * nginx-down
   set the 'down' flag to 1 in the nginx conf, and restart nginx that way
