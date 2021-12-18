@@ -146,8 +146,8 @@ function enable-services() {
 # clean up leftovers from past releases
     remove-uwsgi-service
     turn-off-docker-service
-# set up what we do need    
-    rsync $rsopts systemd/nbh-django.service /etc/systemd/system/
+# set up what we do need
+    rsync $rsopts gunicorn/nbh-django.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
     sed -e "s,@monitor_period@,$monitor_period," \

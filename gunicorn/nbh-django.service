@@ -1,0 +1,19 @@
+[Unit]
+Description=the nbhosting django app as a gunicorn instance
+
+
+[Service]
+WorkingDirectory=/root/nbhosting/django
+ExecStart=/usr/local/bin/gunicorn nbh_main.wsgi \
+--name nbhosting \
+--workers 256 \
+--timeout 60 \
+--user=root --group=root \
+--bind unix:/run/nbhosting.sock \
+--log-level debug \
+--access-logfile - \
+--log-file -
+
+
+[Install]
+WantedBy=multi-user.target
