@@ -87,7 +87,7 @@ function update-nginx() {
         -e "s,@server_name@,$server_name,g" \
         -e "s,@ssl_certificate@,$ssl_certificate,g" \
         -e "s,@ssl_certificate_key@,$ssl_certificate_key,g" \
-        systemd/nginx-https.conf.in > /etc/nginx/nginx.conf
+        systemd/nginx-https-over-uwsgi.conf.in > /etc/nginx/nginx.conf
 
 }
 
@@ -135,7 +135,7 @@ function enable-services() {
     remove-uwsgi-service
     turn-off-docker-service
 # set up what we do need
-    rsync $rsopts systemd/nbh-django.service /etc/systemd/system/
+    rsync $rsopts systemd/nbh-django-over-uwsgi.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
     sed -e "s,@monitor_period@,$monitor_period," \
