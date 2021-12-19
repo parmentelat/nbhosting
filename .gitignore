@@ -12,3 +12,9 @@ TAGS
 *.key
 extra-docs/
 jupyter/screenshots-older-versions/
+tests/**/*.txt
+tests/**/*.png
+tests/**/LOG
+testing-with-cypress/**
+registration/*.input
+registration/*.mail
