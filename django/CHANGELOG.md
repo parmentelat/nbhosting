@@ -1,3 +1,8 @@
+# 0.46.2 2021 Dec 19
+
+* skip pulling archived courses
+* upgrade-swap disk-status
+
 # 0.46.1 2021 Sep 14
 
 * bugfix, using .nbhosting/ instead of nbhosting/
