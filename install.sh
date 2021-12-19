@@ -43,6 +43,8 @@ function check-sitesettings() {
 function update-python-libraries() {
     # find_packages() requires to run in the right dir
     pip install ./django
+    # not in requirements as it is only required in production
+    pip install gunicorn[setproctitle]
 }
 
 function update-bins() {
@@ -98,7 +100,7 @@ function update-nginx() {
         echo "****"
         exit 1
     }
-        
+
     rsync $rsopts nginx/nginx-https.conf /etc/nginx/nginx.conf
 
 }
@@ -114,7 +116,7 @@ function update-limits() {
 # not effective
     local limits_conf=/etc/security/limits.d/nbhosting-nofile.conf
     cat > $limits_conf << EOF
-* soft nofile 1048576    
+* soft nofile 1048576
 EOF
 # from https://bugzilla.redhat.com/show_bug.cgi?id=1829596
     local sysctl_config=/etc/sysctl.d/98-nbhosting.conf
@@ -156,7 +158,7 @@ function enable-services() {
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
     # this is for the Python API (used in monitor mostly)
-    systemctl enable podman.socket 
+    systemctl enable podman.socket
     systemctl enable nginx
     systemctl enable nbh-django nbh-monitor nbh-autopull.timer
 }
