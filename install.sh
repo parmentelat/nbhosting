@@ -63,8 +63,7 @@ function update-jupyter() {
 
 function update-uwsgi() {
     sed -e "s,@srcroot@,$srcroot," \
-        -e "s,@nbhroot@,$nbhroot," uwsgi/nbhosting.ini.in > uwsgi/nbhosting.ini
-    rsync $rsopts uwsgi/nbhosting.ini /etc/uwsgi.d/
+        -e "s,@nbhroot@,$nbhroot," systemd/uwsgi.ini.in > /etc/uwsgi.d/nbhosting.ini
 }
 
 function update-assets() {
@@ -84,22 +83,11 @@ function update-images() {
 function update-nginx() {
 
     # update config from the .in
-    local config="nginx-https.conf"
     sed -e "s,@nbhroot@,$nbhroot," \
         -e "s,@server_name@,$server_name,g" \
         -e "s,@ssl_certificate@,$ssl_certificate,g" \
         -e "s,@ssl_certificate_key@,$ssl_certificate_key,g" \
-        nginx/$config.in > nginx/$config
-
-    [ "$server_mode" == "https" ] || {
-        echo "****"
-        echo "Since 0.18.0 only https is supported for server_mode"
-        echo "nbhosting NOT INSTALLED PROPERLY"
-        echo "****"
-        exit 1
-    }
-        
-    rsync $rsopts nginx/nginx-https.conf /etc/nginx/nginx.conf
+        systemd/nginx-https.conf.in > /etc/nginx/nginx.conf
 
 }
 
@@ -114,7 +102,7 @@ function update-limits() {
 # not effective
     local limits_conf=/etc/security/limits.d/nbhosting-nofile.conf
     cat > $limits_conf << EOF
-* soft nofile 1048576    
+* soft nofile 1048576
 EOF
 # from https://bugzilla.redhat.com/show_bug.cgi?id=1829596
     local sysctl_config=/etc/sysctl.d/98-nbhosting.conf
@@ -146,7 +134,7 @@ function enable-services() {
 # clean up leftovers from past releases
     remove-uwsgi-service
     turn-off-docker-service
-# set up what we do need    
+# set up what we do need
     rsync $rsopts systemd/nbh-django.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
@@ -156,7 +144,7 @@ function enable-services() {
         systemd/nbh-monitor.service.in > /etc/systemd/system/nbh-monitor.service
     systemctl daemon-reload
     # this is for the Python API (used in monitor mostly)
-    systemctl enable podman.socket 
+    systemctl enable podman.socket
     systemctl enable nginx
     systemctl enable nbh-django nbh-monitor nbh-autopull.timer
 }
