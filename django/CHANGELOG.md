@@ -1,3 +1,8 @@
+# 0.46.3 2021 Dec 19
+
+* no functional change, and still uwsgi-based
+* change repo layout to accomodate for gunicorn-based deployments
+
 # 0.46.2 2021 Dec 19
 
 * skip pulling archived courses
