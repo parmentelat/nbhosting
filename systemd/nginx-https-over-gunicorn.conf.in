@@ -1,0 +1,181 @@
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+
+user nginx;
+worker_processes auto;
+pid /run/nginx.pid;
+
+# turn off dynamic modules. See /usr/share/nginx/README.dynamic.
+#include /usr/share/nginx/modules/*.conf;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+
+    # redirect into journalctl
+    # https://stackoverflow.com/questions/28394084/nginx-log-to-stderr
+
+    # log into journalctl
+    # from lifesaver SO answer
+    # https://stackoverflow.com/questions/28394084/nginx-log-to-stderr/29005073
+    error_log syslog:server=unix:/dev/log  info;  # replace with debug if needed
+    access_log syslog:server=unix:/dev/log;
+
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+          '$status $body_bytes_sent "$http_referer" '
+          '"$http_user_agent" "$http_x_forwarded_for"';
+
+
+    rewrite_log on;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+    # redirect all on https                     # ssl-only
+    server {                                    # ssl-only
+        listen 80 default_server;               # ssl-only
+        listen [::]:80 default_server;          # ssl-only
+        server_name _;                          # ssl-only
+        return 301 https://$host$request_uri;   # ssl-only
+    }                                           # ssl-only
+
+    ####################
+
+    # from http://nginx.org/en/docs/http/websocket.html
+    map $http_upgrade $connection_upgrade {
+        default Upgrade;
+        ''      Close;
+    }
+
+    # the upstream component nginx needs to connect to
+    upstream django {
+        # a file socket to reach the upstream django app
+        server unix:/run/nbhosting.sock;
+    }
+
+    # configuration of the server
+    server {
+
+        # manually set this to 1 for showing 
+        # a 'down for maintenance' message
+        set $down 0;
+
+        # the port your site will be served on
+        listen 443 ssl;                              # ssl-only
+
+        # the domain name it will serve for
+        server_name @server_name@;
+        charset     utf-8;
+
+        ########## SSL config
+        ssl_certificate @ssl_certificate@;           # ssl-only
+        ssl_certificate_key @ssl_certificate_key@;   # ssl-only
+
+        # Protect against the BEAST attack by preferring RC4-SHA when using SSLv3 and TLS protocols.
+        # Note that TLSv1.1 and TLSv1.2 are immune to the beast attack
+        # but only work with OpenSSL v1.0.1 and higher and has limited client support.
+        ssl_protocols              TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers                HIGH:RC4:!EXPORT:!ADH:!MD5;
+        ssl_prefer_server_ciphers  on;
+
+        # Optimize SSL by caching session parameters for 10 minutes.
+        # This cuts down on the number of expensive SSL handshakes.
+        # The handshake is the most CPU-intensive operation,
+        # and by default it is re-negotiated on every new/parallel connection.
+        # By enabling a cache (of type "shared between all Nginx workers"),
+        # we tell the client to re-use the already negotiated state.
+        # Further optimization can be achieved by raising keepalive_timeout,
+        # but that shouldn't be done unless you serve primarily HTTPS.
+        ssl_session_cache    shared:SSL:10m; # a 1mb cache can hold about 4000 sessions,
+                                             # so we can hold about 40000 sessions
+        ssl_session_timeout  10m;
+
+
+        # remove painful msg
+        types_hash_bucket_size 4096;
+
+        # max upload size
+        client_max_body_size 50M;   # adjust to taste
+
+
+        # the URLS that go right to django, as-is
+        # ipythonExercice: this is (1) in the architecture diagram
+        # ipythonShare: to expose read-only snapshots
+        # ipythonForward: to browse through jupyter classic dir browser
+        # notebookLazyCopy: new name for ipythonExercice - should be preferred
+        # notebookGitRepo: a variant that initializes a git repo if needed
+        # containerKill: utility to, well, kill a container
+        # auditor: pages for people who log in directly
+        # staff: admin stuff
+        location ~ ^/(ipythonExercice|ipythonShare|ipythonForward|notebookLazyCopy|notebookGitRepo|containerKill|admin|accounts|staff|auditor|teacher|welcome) {
+            if ($down) { return 503; }
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Host $http_host;
+            # we don't want nginx trying to do something clever with
+            # redirects, we set the Host: header above already.
+            proxy_redirect off;
+            proxy_pass http://django;
+        }
+
+
+        location /builds {
+                 root @nbhroot@;
+                 autoindex on;
+        }
+
+        # more harmful than helpful at least during devel
+        # redirect non-matching urls to /welcome
+       location / {
+            return 301 $scheme://$host/welcome;
+        }
+
+
+        # edxfront.views.edx_request will redirect to a URL
+        # that reads port-number/jupyter_url
+        # this needs to be passed along to that container
+        # for max. range we start at 2000
+        # when the browser follows that redirect, it issues the request
+        # labeled as (4) in the architecture diagram
+        location ~ ^/([1-9][0-9]*)/(.*)$ {
+            if ($down) { return 503; }
+            set $container_port $1;
+            set $notebook_path $2;
+            allow all;
+
+            # use http & localhost here
+            proxy_pass http://127.0.0.1:$container_port/$container_port/$notebook_path$is_args$args;
+            proxy_set_header Host $host;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_read_timeout 300;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
+            proxy_intercept_errors on;
+            error_page 404 /assets/404.html;
+            error_page 502 /assets/502.html;
+            error_page 504 /assets/504.html;
+        }
+
+
+        # the static contents for the nbhosting django app itself
+        location ~ ^/(assets|snapshots)(.*) {
+            root /var/nginx/nbhosting/;
+        }
+
+        error_page 503 /assets/down.html;
+        error_page 502 /assets/502.html;
+        error_page 504 /assets/504.html;
+    }
+}

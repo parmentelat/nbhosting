@@ -43,6 +43,8 @@ function check-sitesettings() {
 function update-python-libraries() {
     # find_packages() requires to run in the right dir
     pip install ./django
+    # not in requirements as it is only required in production
+    pip install gunicorn[setproctitle]
 }
 
 function update-bins() {
@@ -87,7 +89,7 @@ function update-nginx() {
         -e "s,@server_name@,$server_name,g" \
         -e "s,@ssl_certificate@,$ssl_certificate,g" \
         -e "s,@ssl_certificate_key@,$ssl_certificate_key,g" \
-        systemd/nginx-https-over-uwsgi.conf.in > /etc/nginx/nginx.conf
+        systemd/nginx-https-over-gunicorn.conf.in > /etc/nginx/nginx.conf
 
 }
 
@@ -135,7 +137,7 @@ function enable-services() {
     remove-uwsgi-service
     turn-off-docker-service
 # set up what we do need
-    rsync $rsopts systemd/nbh-django-over-uwsgi.service /etc/systemd/system/
+    rsync $rsopts systemd/nbh-django-over-gunicorn.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
     sed -e "s,@monitor_period@,$monitor_period," \

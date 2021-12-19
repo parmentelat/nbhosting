@@ -41,7 +41,7 @@ Depending on the scope of your deployment, you will need
  on the underlying infrastructure. In particular, it assumes that you have a **dedicated**
  fedora box for running the complete service. In this respect it has no provision for
  leveraging several physical servers. In line with this assumption, all the pieces come as
- a single monolithic bundle, that takes care of all the pieces (nginx, django in uwsgi)
+ a single monolithic bundle, that takes care of all the pieces (nginx, django in gunicorn)
  from a single point of installation and control.
 
 ## podman and its Python API
@@ -267,7 +267,6 @@ To install third-party packages that `nbhosting` depends on:
 ```bash
 dnf -y install python3
 dnf -y install nginx
-dnf -y install uwsgi uwsgi-plugin-python3
 ```
 
 ```bash
@@ -546,7 +545,7 @@ as far as `systemd` and `journactl` are concerned:
 * `nginx`
   * fedora's nginx service as-is
 * `nbh-django`
-  * the django app runs inside nginx through uwsgi
+  * the django app runs inside nginx through gunicorn
 * `nbh-monitor`
   * monitor performs housecleaning (kill idle containers), and on the side also gathers raw data for statistics
 
