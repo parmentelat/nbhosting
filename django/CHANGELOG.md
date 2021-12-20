@@ -1,3 +1,10 @@
+# 0.47.0 2021 Dec 20
+
+* remove dependency to uwsgi (close #150)
+* replace runtime with gunicorn
+* replace uwsgi shared memory (see v0.34 below)
+  with a local redis service
+
 # 0.46.3 2021 Dec 19
 
 * no functional change, and still uwsgi-based
