@@ -23,6 +23,10 @@ function ensure-uid-1000() {
     }
 }
 
+function install-redis() {
+    rpm -q redis || dnf -y install redis
+}
+
 # rsync options
 rsopts=-rltpi
 
@@ -148,6 +152,7 @@ function enable-services() {
     # this is for the Python API (used in monitor mostly)
     systemctl enable podman.socket
     systemctl enable nginx
+    systemctl enable --now redis
     systemctl enable nbh-django nbh-monitor nbh-autopull.timer
 }
 
@@ -165,6 +170,7 @@ function restart-services() {
 function default-main() {
     check-subdirs
     ensure-uid-1000
+    install-redis
 
     update-bins
     update-jupyter

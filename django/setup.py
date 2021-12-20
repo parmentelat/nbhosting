@@ -32,6 +32,7 @@ setup(
         'jupytext',
         'aiohttp',
         'podman',
+        'redis',
     ],
     setup_requires = [],
     tests_require = [],

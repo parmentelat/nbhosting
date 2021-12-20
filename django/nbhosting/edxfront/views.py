@@ -8,7 +8,6 @@ import re
 import pickle
 import time
 import itertools
-from datetime import datetime as DateTime, timedelta as TimeDelta
 
 
 from http import HTTPStatus
@@ -248,49 +247,38 @@ def _open_notebook(request, coursename, student, notebook,
 
 
     # deal with concurrent requests on the same container
-    # by using a shared memory (a uwsgi cache)
+    # by using a shared memory (a redis cache)
     # starting_containers is the cache name
     # as configured in nbhosting.ini(.in)
 
-    # in devel mode we don't have uwsgi
+    # in devel mode we don't have redis
+    redis_cache = None
     try:
 
-        # import here and not at toplevel as that would be too early
-        # https://uwsgi-docs.readthedocs.io/en/latest/PythonModule.html?highlight=cache#cache-functions
-
-        uwsgi = None
-        import uwsgi
+        import redis
         idling = 0.5
         # just a safety in case our code would not release stuff properly
         expire_in_s = 15
-        expire = TimeDelta(seconds=expire_in_s)
 
         def my_repr(timedelta):
             return f"{timedelta.seconds}s {timedelta.microseconds}µs"
 
+        redis_cache = redis.Redis()
         container = f'{coursename}-x-{student}'
         for attempt in itertools.count(1):
-            already = uwsgi.cache_get(container, 'starting_containers')
+            already = redis_cache.get(container)
 
             # good to go
             if not already:
                 logger.info(f"{attempt=} going ahead with {container=} and {notebook=}")
-                now_bytes = pickle.dumps(DateTime.now())
-                uwsgi.cache_set(container, now_bytes, 0, "starting_containers")
+                redis_cache.set(container, b'1')
+                redis_cache.expire(container, expire_in_s)
                 break
 
             # has the stored token expired ?
-            already_datetime = pickle.loads(already)
-            age = DateTime.now() - already_datetime
-            if age >= expire:
-                logger.info(f"{attempt=} expiration ({my_repr(age)} is > {expire_in_s}s) "
-                            f"going ahead with {container=} and {notebook=}")
-                break
-
-            # not good, waiting our turn...
-            logger.info(f"{attempt=} waiting for {idling=} because {my_repr(age)} is < {expire_in_s}s "
+            logger.info(f"{attempt=} waiting for {idling=} because {container} is being started"
                         f"with {container=} and {notebook=}")
-            time.sleep(0.5)
+            time.sleep(idling)
     except ModuleNotFoundError:
         # make sure this error does not go unnoticed in production
         if not DEBUG:
@@ -367,8 +355,8 @@ def _open_notebook(request, coursename, student, notebook,
         return error_page(
             request, coursename, student, notebook, message)
     finally:
-        if uwsgi:
-            uwsgi.cache_del(container, "starting_containers")
+        if redis_cache:
+            redis_cache.delete(container)
 
 
 def share_notebook(request, course, student, notebook):
