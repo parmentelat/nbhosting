@@ -867,7 +867,7 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             encoding="utf-8", check=False,
             **run_args)
 
-    
+
     def find_build(self, id):
         for build in self.builds:
             if build.id == id:
