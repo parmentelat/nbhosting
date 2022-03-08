@@ -187,6 +187,7 @@ After a base installation of fedora, please do the following:
 ```bash
 dnf -y install podman
 dnf -y install git
+dnf -y install python-devel
 ```
 
 ## install podman-py
