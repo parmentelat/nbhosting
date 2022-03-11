@@ -114,11 +114,11 @@
     turn_jupyter_button('jlab', false);
   }
   // jupyter lab app
-  function select_jlab(top) {
+  function select_jlab(top, header) {
     global_track_or_app = "@jlab";
     update_url(top);
     iframe_src(`/ipythonForward/{{coursename}}/{{student}}/lab/tree/${top}`);
-    update_header('Jupyter lab');
+    update_header(header);
     outline_current_notebook('--no-match--');
     turn_off_tracks();
     turn_jupyter_button('classic', false);
@@ -630,7 +630,7 @@
                       and spawn noteboks in separate tabs" class="classic btn btn-outline-dark">
               Jupy<wbr>ter clas<wbr>sic
           </div>
-          <div id="jlab" onclick="select_jlab(``)"
+          <div id="jlab" onclick="select_jlab(``, `Jupyter classic`)"
               target="nbhosting-jupyter"
               data-toggle="tooltip" data-html="true" data-placement="right"
               title="with Jupyter lab you can edit all your contents from
