@@ -19,6 +19,8 @@ from nbh_main.settings import logger, DEBUG
 from nbhosting.courses.model_course import CourseDir
 from nbhosting.stats.stats import Stats
 
+from nbhosting.version import __version__ as nbh_version
+from nbh_main.settings import sitesettings
 
 # Create your views here.
 
@@ -28,11 +30,13 @@ def error_page(request, course, student, notebook, message,
                header="! nbhosting internal error !"):
     if header is True:
         header = message
-    return render(
-        request, "error.html",
-        context=dict(course=course, student=student,
-                notebook=notebook, message=message, header=header),
-        status=HTTPStatus.BAD_REQUEST)
+    env = dict(
+        nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
+        course=course, student=student,
+        notebook=notebook, message=message, header=header)
+    return render(request, "error.html", context=env,
+                  status=HTTPStatus.BAD_REQUEST)
 
 
 def log_completed_process(completed, subcommand):
@@ -562,5 +566,8 @@ def container_kill_request(request, course, student):
             request, coursename, student, "n/a", "could not kill container"
         )
 
-    return render(request, "container-killed.html",
-                  dict(coursename=coursename, student=student))
+    env = dict(
+        nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
+        coursename=coursename, student=student)
+    return render(request, "container-killed.html", env)

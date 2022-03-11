@@ -13,6 +13,7 @@ from nbh_main.settings import logger
 from nbhosting.courses.model_course import CourseDir
 
 from nbhosting.version import __version__ as nbh_version
+from nbh_main.settings import sitesettings
 
 
 def match(coursename, pattern):
@@ -46,8 +47,9 @@ def auditor_list_courses(request):
                            if coursedir.relevant(request.user)
                               and not coursedir.archived]
     env = dict(
-        course_dirs=course_dirs,
         nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
+        course_dirs=course_dirs,
         show_all_courses = show_all_courses,
     )
 
@@ -129,6 +131,7 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
 
     env = dict(
         nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
         coursename=course,
         student=student,
         is_staff=is_staff,

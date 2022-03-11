@@ -12,6 +12,7 @@ from nbhosting.courses.model_course import CourseDir
 from nbhosting.courses.forms import UpdateCourseForm
 
 from nbhosting.version import __version__ as nbh_version
+from nbh_main.settings import sitesettings
 
 
 ######### staff
@@ -22,6 +23,7 @@ def staff_list_courses(request):
     course_dirs = CourseDir.objects.order_by('coursename')
     env = dict(
         nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
         course_dirs=course_dirs,
     )
     return render(request, "staff-courses.html", env)
@@ -30,7 +32,7 @@ def staff_list_courses(request):
 @csrf_protect
 def staff_show_course(request, course):
     coursedir = CourseDir.objects.get(coursename=course)
-    print(f"in staff_show_course: {hasattr(coursedir, 'image')}")
+    #print(f"in staff_show_course: {hasattr(coursedir, 'image')}")
     coursedir.probe()
     notebooks = list(coursedir.notebooks())
     notebooks.sort()
@@ -63,6 +65,7 @@ def staff_show_course(request, course):
 
     env = dict(
         nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
         coursedir=coursedir,
         coursename=course,
         notebooks=notebooks,
@@ -92,6 +95,7 @@ def render_subprocess_result(request, course,
     # like stdout and stderr
     env = dict(
         nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
         course=course,
         message=message,
         command=command,
@@ -187,6 +191,7 @@ def staff_course_update(request, course):
 
     env = dict(
         nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
         form=form,
         coursedir=coursedir,
         coursename=course)

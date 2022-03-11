@@ -20,7 +20,7 @@ from nbhosting.courses.model_course import CourseDir
 from nbhosting.courses.model_dropped import Dropped
 
 from nbhosting.version import __version__ as nbh_version
-
+from nbh_main.settings import sitesettings
 
 ######### teacher
 
@@ -36,6 +36,8 @@ def teacher_droparea(request, course, droparea):
         return HttpResponseRedirect(f"/staff/course/{course}")
 
     env = dict(
+        nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
         coursedir=coursedir,
         coursename=course,
         droparea=droparea,

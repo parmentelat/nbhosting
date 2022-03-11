@@ -1,23 +1,28 @@
-{% load static %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% extends "nbhosting.html" %}
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+{% block head_title %}
+container killed
+{% endblock %}
 
-<head>
-  <title>{% block head_title %}nbhosting management{% endblock %}</title>
-  <link rel="icon" type="image/png" href="{% static " img/nbh-favicon.png" %}" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/css/bootstrap.min.css" />
+{% block title %}
+container killed
+{% endblock %}
 
-  </style>
-</head>
+{% block breadcrumb %}
+<ol class="breadcrumb">
+  {% if user.is_authenticated and user.is_staff %}
+  <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
+  {% endif %}
+  <li class="breadcrumb-item active"><a href="/welcome/">home</a></li>
+  <li class="breadcrumb-item"><a href="/auditor/courses/">courses</a></li>
+</ol>
+{% endblock %}
 
-<body>
-  <div class="jumbotron jumbotron-fluid">
-    <div class="container">
-      <h1>Container killed</h1>
-      <p class="lead">Container for course {{ coursename }} and student {{student}} was successfully killed</p>
-    </div>
-  </div>
-</body>
 
-</html>
+{% block content %}
+
+<div class="container">
+  <h1>Container killed</h1>
+  <p class="lead">Container for course {{ coursename }} and student {{student}} was successfully killed</p>
+</div>
+{% endblock %}

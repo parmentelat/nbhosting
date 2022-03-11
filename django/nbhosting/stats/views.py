@@ -6,6 +6,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.admin.views.decorators import staff_member_required
 from nbhosting.stats.stats import Stats
 
+from nbhosting.version import __version__ as nbh_version
+from nbh_main.settings import sitesettings
+
 # Create your views here.
 
 @staff_member_required
@@ -94,7 +97,10 @@ def show_stats(request, course):
     # propagate server_name to html template
     server_name = request.META['SERVER_NAME'].split('.')[0]
 
-    env = dict(coursename=course, sections=sections, server_name=server_name)
+    env = dict(
+      nbh_version=nbh_version,
+      favicon_path=sitesettings.favicon_path,
+      coursename=course, sections=sections, server_name=server_name)
 
     return render(request, "stats.html", env)
 

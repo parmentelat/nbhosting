@@ -26,10 +26,12 @@ if production_box:
     server_name = "nbhosting.inria.fr"
     ssl_certificate = "/root/ssl-certificate/bundle.crt"
     ssl_certificate_key = "/root/ssl-certificate/nbhosting.inria.fr.key"
+    favicon_path = "img/nbh-favicon.svg"
 else:
     server_name = "nbhosting-dev.inria.fr"
     ssl_certificate = "/root/ssl-certificate-dev/bundle.crt"
     ssl_certificate_key = "/root/ssl-certificate-dev/nbhosting-dev.inria.fr.key"
+    favicon_path = "img/nbh-favicon-dev.svg"
 
 
 # the location used by the application
