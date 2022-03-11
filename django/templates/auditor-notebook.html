@@ -117,7 +117,7 @@
   function select_jlab(top) {
     global_track_or_app = "@jlab";
     update_url(top);
-    iframe_src('/ipythonForward/{{coursename}}/{{student}}/lab/tree/${top}');
+    iframe_src(`/ipythonForward/{{coursename}}/{{student}}/lab/tree/${top}`);
     update_header('Jupyter lab');
     outline_current_notebook('--no-match--');
     turn_off_tracks();
