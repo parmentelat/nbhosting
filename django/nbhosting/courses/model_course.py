@@ -556,7 +556,8 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         self._yaml_config = None
         self.static_mappings = []
         self.builds = []
-        self._probe_settings_yaml() or self._probe_settings_old()
+#        self._probe_settings_yaml() or self._probe_settings_old()
+        self._probe_settings_yaml()
         # store in raw format for nbh script
         with (self.notebooks_dir / ".static-mappings").open('w') as raw:
             for static_mapping in self.static_mappings:
@@ -599,26 +600,26 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         return True
 
 
-    def _probe_settings_old(self):
+    # def _probe_settings_old(self):
 
-        custom_static_mappings = self.customized("static-mappings")
-        if not custom_static_mappings:
-            self.static_mappings = StaticMapping.defaults()
-        else:
-            try:
-                with custom_static_mappings.open() as storage:
-                    for line in storage:
-                        mapping = StaticMapping(line)
-                        if mapping:
-                            self.static_mappings.append(mapping)
-            except FileNotFoundError:
-                # unfortunately this goes to stdout and
-                # screws up the expose-static-* business
-                #logger.info(f"mappings file not found {path}")
-                self.static_mappings = StaticMapping.defaults()
-            except Exception:
-                logger.exception(f"could not load static-mappings for {self}")
-                self.static_mappings = StaticMapping.defaults()
+    #     custom_static_mappings = self.customized("static-mappings")
+    #     if not custom_static_mappings:
+    #         self.static_mappings = StaticMapping.defaults()
+    #     else:
+    #         try:
+    #             with custom_static_mappings.open() as storage:
+    #                 for line in storage:
+    #                     mapping = StaticMapping(line)
+    #                     if mapping:
+    #                         self.static_mappings.append(mapping)
+    #         except FileNotFoundError:
+    #             # unfortunately this goes to stdout and
+    #             # screws up the expose-static-* business
+    #             #logger.info(f"mappings file not found {path}")
+    #             self.static_mappings = StaticMapping.defaults()
+    #         except Exception:
+    #             logger.exception(f"could not load static-mappings for {self}")
+    #             self.static_mappings = StaticMapping.defaults()
 
 
 
