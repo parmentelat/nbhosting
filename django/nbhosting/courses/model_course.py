@@ -35,6 +35,11 @@ from .model_build import Build
 
 from ..matching import matching_policy
 
+CLASSIC_NOTEBOOK_URL_FORMAT = "notebooks/{notebook}"
+RETRO_NOTEBOOK_URL_FORMAT = "retro/edit/{notebook}"
+JLAB_NOTEBOOK_URL_FORMAT = "lab/tree/{notebook}"
+# default is to use classic notebook
+DEFAULT_NOTEBOOK_URL_FORMAT = CLASSIC_NOTEBOOK_URL_FORMAT
 
 PODMAN_URL = "unix:///run/podman/podman.sock"
 
@@ -62,6 +67,10 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
     def __init__(self, *args, **kwds):
         self._notebooks = None
         self._tracks = None
+        # reconfigurable
+        self.notebook_url_format = DEFAULT_NOTEBOOK_URL_FORMAT
+        self.builds = []
+        self.static_mappings = []
         super().__init__(*args, **kwds)
 
     def __str__(self): # pylint: disable=invalid-str-returned
@@ -554,8 +563,6 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
 
     def _probe_settings(self):
         self._yaml_config = None
-        self.static_mappings = []
-        self.builds = []
 #        self._probe_settings_yaml() or self._probe_settings_old()
         self._probe_settings_yaml()
         # store in raw format for nbh script
@@ -580,10 +587,12 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             with open(yaml_filename) as feed:
                 yaml_config = yaml.safe_load(feed.read())
             #
+            logger.debug(f"{self}: populating config from yaml")
+            if 'notebook_url_format' in yaml_config:
+                self.notebook_url_format = yaml_config['notebook_url_format']
             if 'static-mappings' not in yaml_config:
                 self.static_mappings = StaticMapping.defaults()
             else:
-                logger.debug(f"populating static-mappings from yaml")
                 self.static_mappings = [
                     StaticMapping(D['source'], D['destination'])
                     for D in yaml_config['static-mappings']
@@ -595,7 +604,7 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
                 self.builds = [ Build(D) for D in yaml_config['builds'] ]
             self._yaml_config = yaml_config
         except Exception:
-            logger.exception(f"could not load yaml file {yaml_filename} - ignoring")
+            logger.exception(f"{self}: could not load yaml file {yaml_filename} - ignoring")
             return False
         return True
 

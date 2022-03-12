@@ -16,7 +16,7 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidde
 
 from nbh_main.settings import sitesettings
 from nbh_main.settings import logger, DEBUG
-from nbhosting.courses.model_course import CourseDir
+from nbhosting.courses.model_course import CourseDir, JLAB_NOTEBOOK_URL_FORMAT
 from nbhosting.stats.stats import Stats
 
 from nbhosting.version import __version__ as nbh_version
@@ -344,11 +344,18 @@ def _open_notebook(request, coursename, student, notebook,
         ########## forge a URL that nginx will intercept
         # passing along course and student is for 'reset_from_origin'
         if is_genuine_notebook:
-            url = (f"{scheme}://{host}/{actual_port}/notebooks/"
-                   f"{notebook_with_ext}?token={jupyter_token}&"
-                   f"course={coursename}&student={student}")
+            # make sure the settings are loaded
+            coursedir.probe()
+            notebook_url_format = coursedir.notebook_url_format
+            path = notebook_url_format.format(notebook=notebook_with_ext)
+            url = (f"{scheme}://{host}/{actual_port}/{path}"
+                   f"?token={jupyter_token}"
+                   f"&course={coursename}"
+                   f"&student={student}")
+        # otherwise enter jlab so that one can browse the contents
         else:
-            url = (f"{scheme}://{host}/{actual_port}/lab/tree/{notebook_with_ext}")
+            path = JLAB_NOTEBOOK_URL_FORMAT.format(notebook=notebook_with_ext)
+            url = (f"{scheme}://{host}/{actual_port}/{path}")
         logger.info(f"edxfront: redirecting to {url}")
         return HttpResponseRedirect(url)
 
