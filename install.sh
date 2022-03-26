@@ -55,6 +55,7 @@ function update-bins() {
     rsync $rsopts django/manage.py /usr/bin/nbh-manage
     rsync $rsopts scripts/nbh /usr/bin
     rsync $rsopts scripts/nbh-pull-student /usr/bin
+    rsync $rsopts scripts/nbh-rebuild-all /usr/bin
 }
 
 function update-jupyter() {

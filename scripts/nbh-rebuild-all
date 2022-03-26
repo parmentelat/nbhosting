@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# refresh the latest ground images from github
+podman pull docker.io/jupyter/minimal-notebook docker.io/jupyter/scipy-notebook
+
+# rebuild the nbhosting versions of these 2
+nbh-manage build-images
+
+# rebuild all course images
+nbh-manage course_build_image
