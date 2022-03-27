@@ -36,8 +36,9 @@ from .model_build import Build
 from ..matching import matching_policy
 
 CLASSIC_NOTEBOOK_URL_FORMAT = "notebooks/{notebook}"
-RETRO_NOTEBOOK_URL_FORMAT = "retro/edit/{notebook}"
+# used as a default for non-notebooks - see edxfront/views.py
 JLAB_NOTEBOOK_URL_FORMAT = "lab/tree/{notebook}"
+
 # default is to use classic notebook
 DEFAULT_NOTEBOOK_URL_FORMAT = CLASSIC_NOTEBOOK_URL_FORMAT
 

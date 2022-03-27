@@ -348,8 +348,11 @@ def _open_notebook(request, coursename, student, notebook,
             coursedir.probe()
             notebook_url_format = coursedir.notebook_url_format
             path = notebook_url_format.format(notebook=notebook_with_ext)
+            # url_format may already come with a '?'
+            # in which case our additions must use '&'
+            sep = '?' if '?' not in path else '&'
             url = (f"{scheme}://{host}/{actual_port}/{path}"
-                   f"?token={jupyter_token}"
+                   f"{sep}token={jupyter_token}"
                    f"&course={coursename}"
                    f"&student={student}")
         # otherwise enter jlab so that one can browse the contents
