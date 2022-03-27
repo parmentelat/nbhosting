@@ -15,10 +15,9 @@ git config user.name  || git config --global user.name "Nbhosting User"
 # the nbgitpuller thingy - turned off
 # pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
 
-# hopefully temporary hack for a regression in notebook=6.1.1 and notebook=6.1.3,
-# https://github.com/jupyter/notebook/issues/5687
-# pip install notebook==6.0.3
-pip install notebook
+# not adopting for all images, but here's what we'd use
+# in locally patched images to play with nb7
+#pip install "notebook>=7.0.0a1" "jupyterlab>=4.0.0a20"
 
 # --------
 # useful additions and extensions
