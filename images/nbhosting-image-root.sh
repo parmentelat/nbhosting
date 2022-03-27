@@ -5,7 +5,7 @@ set -x
 # --------
 # update base updaters
 
-apt-get update
+apt-get update; apt-get clean
 
 pip install -U pip setuptools
 
