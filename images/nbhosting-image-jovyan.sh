@@ -9,7 +9,7 @@ set -x
 ### git from inside the container
 
 # configure git
-git config user.email || git config --global user.email "default.user@nbhosting.io" 
+git config user.email || git config --global user.email "default.user@nbhosting.io"
 git config user.name  || git config --global user.name "Nbhosting User"
 
 # the nbgitpuller thingy - turned off
@@ -46,5 +46,5 @@ pip install -U ipythontutor
 # leave it to each individual course
 
 # jupyterlab git extension
-pip install -U jupyterlab jupyterlab-git 
+pip install -U jupyterlab jupyterlab-git
 jupyter labextension install @jupyterlab/git && jupyter serverextension enable --py jupyterlab_git || :
