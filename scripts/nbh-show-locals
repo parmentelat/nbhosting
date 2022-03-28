@@ -1,0 +1,32 @@
+#!/bin/bash
+
+[ -d /nbhosting/current ] || {
+    echo "WARNING : using hard-wired NBHROOT=/nbhosting/current - not found - exiting"
+    exit 1
+}
+
+[ -d /nbhosting/current/local ] || {
+    echo "no change - dir /nbhosting/current/local not found"
+    exit 0
+}
+
+echo ============================== local config
+
+cd /nbhosting/current/local
+
+if [ -z "$@" ]; then
+    courses="*"
+else
+    courses="$@"
+fi
+
+for course in $courses; do
+    pushd $course
+    echo ==================== course $course
+    for file in *; do
+    	[[ "$file" =~ .*~ ]] && continue
+    	echo ========== $file
+	diff /nbhosting/current/courses-git/$course/.nbhosting/$file $file
+    done
+    popd
+done
