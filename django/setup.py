@@ -33,6 +33,7 @@ setup(
         'aiohttp',
         'podman',
         'redis',
+        'nbstripout', # for course-pull
     ],
     setup_requires = [],
     tests_require = [],
