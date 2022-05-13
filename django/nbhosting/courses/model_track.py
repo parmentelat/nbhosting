@@ -277,13 +277,13 @@ def notebooks_by_pattern(coursedir, pattern):
     return a sorted list of all notebooks (relative paths)
     matching some pattern from coursedir
     """
-    logger.debug(f"notebooks_by_pattern in {coursedir} with {pattern}")
     root = Path(coursedir.notebooks_dir).absolute()
     absolutes = root.glob(pattern)
     probed = [path.relative_to(root) for path in absolutes]
     notebooks = [Notebook(coursedir, path) for path in probed]
     notebooks.sort(key=lambda n: n.path)
-    logger.debug(f"notebooks_by_pattern -> {len(notebooks)} notebooks")
+    logger.debug(f"in {coursedir}, {pattern}"
+                 f" -> {len(notebooks)} notebooks")
     return notebooks
 
 
@@ -296,9 +296,6 @@ def notebooks_by_patterns(coursedir, patterns):
     Returns:
        list of all notebooks (relative paths)
     """
-#    logger.debug(f"notebooks_by_patterns in {coursedir} with")
-#    for pattern in patterns:
-#        logger.debug(f"  pattern {pattern}")
     result = []
     for pattern in patterns:
         result.extend(notebooks_by_pattern(coursedir, pattern))
@@ -388,10 +385,11 @@ def sanitize_tracks(tracks: CourseTracks):
             tracks.remove(track)
     return tracks
 
-# see test-data/nbhosting.yaml for an example
+# see test-data/ue22-web-intro.yaml for an example
 # of a yaml-based tracks definition
 # pylint: disable=invalid-name
-def tracks_from_yaml_config(coursedir, tracks: dict):
+def tracks_from_yaml_config(coursedir, tracks: dict, tracks_filter: list=None):
+    tracks_filter = [] if tracks_filter is None else tracks_filter
     def get(D, key):
         return D.get(key, key)
     def build_track_from_dict(D):
@@ -405,7 +403,13 @@ def tracks_from_yaml_config(coursedir, tracks: dict):
             name=get(D, 'name'),
             coursedir=coursedir,
             notebooks=notebooks_by_patterns(coursedir, D['notebooks']))
-    return [build_track_from_dict(track) for track in tracks]
+    unfiltered = [build_track_from_dict(track) for track in tracks]
+    logger.debug(f"{unfiltered=}")
+    logger.debug(f"{tracks_filter=}")
+    if not tracks_filter:
+        return unfiltered
+    else:
+        return [track for track in unfiltered if track.id in tracks_filter]
 
 # input is a list of Track instances
 def to_yaml(tracks):

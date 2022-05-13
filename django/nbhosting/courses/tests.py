@@ -13,7 +13,8 @@ class Tests(TestCase):
     def test_generic(self):
         track = generic_track(
             CourseDir.objects.get(coursename="python-mooc"))
-        self.assertEqual(track.number_sections(), 9)
+        # remember this will only look for ipynbs
+        self.assertEqual(track.number_sections(), 4)
         self.assertIsInstance(track, Track)
 
 
@@ -36,12 +37,45 @@ class Tests(TestCase):
 
         self.assertEqual(notebook.notebookname, "Versions de python")
 
-    def test_yaml_tracks(self):
+
+    def init_yaml(self, suffix=""):
         coursedir = CourseDir.objects.get(coursename="ue22-web-intro")
         import yaml
-        with open('test-data/config.yaml') as feed:
-            yaml_config = yaml.safe_load(feed.read())
+        with open(f'nbhosting/courses/test-data/ue22-web-intro{suffix}.yaml') as feed:
+            return coursedir, yaml.safe_load(feed.read())
+
+    def test_yaml_tracks(self):
+        coursedir, yaml_config = self.init_yaml()
         yaml_tracks = yaml_config['tracks']
         tracks = tracks_from_yaml_config(coursedir, yaml_tracks)
         # warning, this may change if the course gets pulled
-        self.assertEqual(len(tracks), 5)
+        self.assertEqual(len(tracks), 3)
+
+    def test_yaml_tracks_local(self):
+        """
+        merge 2 files, local one having an addition
+        """
+        coursedir, yaml_config = self.init_yaml()
+        # this one defines a new track
+        coursedir, yaml_config2 = self.init_yaml("-local")
+        # local stuff has precedence so it comes first when returned by customized_s
+        settings = coursedir.merge_settings([yaml_config2, yaml_config])
+        yaml_tracks = settings['tracks']
+        tracks = tracks_from_yaml_config(coursedir, yaml_tracks)
+        # warning, this may change if the course gets pulled
+        self.assertEqual(len(tracks), 4)
+
+    def test_yaml_tracks_filtered(self):
+        """
+        merge 2 files, local one having an addition
+        """
+        coursedir, yaml_config = self.init_yaml()
+        # this one defines a new track
+        coursedir, yaml_config2 = self.init_yaml("-local-filtered")
+        # local stuff has precedence so it comes first when returned by customized_s
+        settings = coursedir.merge_settings([yaml_config2, yaml_config])
+        yaml_tracks = settings['tracks']
+        tracks_filter = settings['tracks-filter']
+        tracks = tracks_from_yaml_config(coursedir, yaml_tracks, tracks_filter)
+        # warning, this may change if the course gets pulled
+        self.assertEqual(len(tracks), 2)

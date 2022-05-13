@@ -6,15 +6,16 @@
 # pylint: disable=imported-auth-user
 # pylint: disable=no-else-return
 
-import sys
 import os
-from pathlib import Path                                          # pylint: disable=w0611
-import subprocess
-import shutil
 import itertools
 import re
-from importlib.util import (spec_from_file_location, module_from_spec)
+from pathlib import Path                                          # pylint: disable=w0611
 import yaml
+import copy
+import subprocess
+import shutil
+
+from importlib.util import (spec_from_file_location, module_from_spec)
 
 import podman
 
@@ -211,28 +212,41 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             for dir_ in student_spaces:
                 clear(dir_)
 
-    def customized(self, filename):
+    def customized_s(self, filename):
         """
         implements the standard way to search for custom files
         either locally, or by the course itself
 
-        given a filename, search this:
+        given a filename, return all the files if they exist in:
         * first in nbhroot/local/coursename/<filename>
         * second in nbhroot/courses-git/coursename/nbhosting/<filename>
         * or third in nbhroot/courses-git/coursename/.nbhosting/<filename>
 
-        returns a Path instance, or None
+        also a warning is issued if both files are found in nbhosting and .nbhosting
+
+        returns a list of Path instances
         """
         candidates = [
             NBHROOT / "local" / self.coursename / filename,
             self.git_dir / "nbhosting" / filename,
             self.git_dir / ".nbhosting" / filename,
         ]
+        result = [x for x in candidates if x.exists()]
 
-        for candidate in candidates:
-            if candidate.exists():
-                return candidate
-        return None
+        if candidates[1] in result and candidates[2] in results:
+            logger.warn(f"in {self}, found {filename} in both nbhosting and .nbhosting")
+
+        return result
+
+
+    def customized(self, filename):
+        """
+        implements the first found customized
+
+        returns a Path instance, or None
+        """
+        candidates = self.customized_s(filename)
+        return candidates[0] if candidates else None
 
 
     def notebooks(self):
@@ -441,64 +455,6 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         return generic_track(self)
 
 
-    # actually call course-specific tracks()
-    # return default strategy if missing or unable to run
-    def _fetch_course_custom_tracks(self):
-        """
-        locate and load <course>/nbhosting/tracks.py
-
-        objective is to make this customizable so that some
-        notebooks in the repo can be ignored
-        and the others organized along different view points
-
-        the tracks() function will receive self as its single parameter
-        it is expected to return a dictionary
-           track_name -> Track instance
-        see flotpython/nbhosting/tracks.py for a realistic example
-
-        the keys in this dictionary are used in the web interface
-        to propose the list of available tracks
-
-        absence of tracks.py, or inability to run it, triggers
-        the default policy (per directory) implemented in model_track.py
-        """
-
-        course_tracks_py = self.customized("tracks.py")
-
-        if course_tracks_py:
-            modulename = (f"{self.coursename}_tracks"
-                          .replace("-", "_"))
-            try:
-                logger.debug(
-                    f"{self} loading module {course_tracks_py}")
-                spec = spec_from_file_location(
-                    modulename,
-                    course_tracks_py,
-                )
-                module = module_from_spec(spec)
-                spec.loader.exec_module(module)
-                tracks_fun = module.tracks
-                logger.debug(
-                    f"triggerring {tracks_fun.__qualname__}()"
-                )
-                tracks = tracks_fun(self)
-                if self._check_tracks(tracks):
-                    return tracks
-            except Exception:
-                logger.exception(
-                    f"{self} could not do load custom tracks")
-            finally:
-                # make sure to reload the python code next time
-                # we will need it, in case the course has published an update
-                if modulename in sys.modules:
-                    del sys.modules[modulename]
-        else:
-            logger.info(
-                f"{self} no tracks.py hook found")
-        logger.warning(f"{self} resorting to generic filesystem-based track")
-        return [generic_track(self)]
-
-
     def tracks(self):
         """
         returns a list of known tracks
@@ -512,23 +468,23 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         if self._tracks is not None:
             return self._tracks
         # in cache ?
-        tracks_path = self.notebooks_dir / ".tracks.json"
-        if tracks_path.exists():
-            logger.debug(f"{tracks_path} found")
-            tracks = read_tracks(self, tracks_path)
+        cache_path = self.notebooks_dir / ".tracks.json"
+        if cache_path.exists():
+            logger.debug(f"{cache_path} found")
+            tracks = read_tracks(self, cache_path)
             self._tracks = tracks
             return tracks
         # compute from yaml config
         if self._yaml_config and 'tracks' in self._yaml_config:
-            logger.debug(f"computing tracks from yaml")
-            tracks = tracks_from_yaml_config(self, self._yaml_config['tracks'])
+            tracks_filter = self._yaml_config.get('tracks-filter', [])
+            logger.debug(f"computing tracks from yaml using {tracks_filter=}")
+            tracks = tracks_from_yaml_config(
+                self, self._yaml_config['tracks'], tracks_filter)
         else:
-            # compute from course
-            logger.debug(f"{tracks_path} not found - recomputing")
-            tracks = self._fetch_course_custom_tracks()
+            tracks = [generic_track(self)]
         tracks = sanitize_tracks(tracks)
         self._tracks = tracks
-        write_tracks(tracks, tracks_path)
+        write_tracks(tracks, cache_path)
         return tracks
 
 
@@ -570,57 +526,61 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             for toplevel in toplevels:
                 print(toplevel, file=raw)
 
+    DEFAULT_SETTINGS = {
+        'tracks': [],
+        'tracks-filter': [],
+        'static-mappings': [],
+        'builds': [],
+    }
 
     def _probe_settings_yaml(self):
-        yaml_filename = self.customized("nbhosting.yaml")
-        logger.debug(f"yaml filename {yaml_filename}")
-        if not yaml_filename:
+        yaml_filenames = self.customized_s("nbhosting.yaml")
+        logger.debug(f"{yaml_filenames=}")
+        if not yaml_filenames:
             return False
-        try:
-            with open(yaml_filename) as feed:
-                yaml_config = yaml.safe_load(feed.read())
-            #
-            if 'static-mappings' not in yaml_config:
-                self.static_mappings = StaticMapping.defaults()
-            else:
-                logger.debug(f"populating static-mappings from yaml")
-                self.static_mappings = [
-                    StaticMapping(D['source'], D['destination'])
-                    for D in yaml_config['static-mappings']
-                ]
-            #
-            if 'builds' not in yaml_config:
-                self.builds = []
-            else:
-                self.builds = [ Build(D) for D in yaml_config['builds'] ]
-            self._yaml_config = yaml_config
-        except Exception:
-            logger.exception(f"could not load yaml file {yaml_filename} - ignoring")
-            return False
+
+        yaml_configs = []
+        for yaml_filename in yaml_filenames:
+            try:
+                with open(yaml_filename) as feed:
+                    yaml_configs.append(yaml.safe_load(feed.read()))
+            except Exception:
+                logger.exception(f"could not load yaml file {yaml_filename} - ignoring")
+                return False
+
+        # initialize and merge all
+        yaml_config = self.merge_settings(yaml_configs)
+
+        self.static_mappings = (
+            StaticMapping.defaults()
+            if not yaml_config['static-mappings']
+            else [StaticMapping(D['source'], D['destination'])
+                for D in yaml_config['static-mappings']
+            ])
+
+        self.builds = [ Build(D) for D in yaml_config['builds'] ]
+
+        self._yaml_config = yaml_config
         return True
 
 
-    # def _probe_settings_old(self):
+    def merge_settings(self, yamls: list):
+        """
+        return a clean merge of all the yaml files found
+        """
+        if not yamls:
+            logger.error(f"cannot merge empty settings")
+            return {}
 
-    #     custom_static_mappings = self.customized("static-mappings")
-    #     if not custom_static_mappings:
-    #         self.static_mappings = StaticMapping.defaults()
-    #     else:
-    #         try:
-    #             with custom_static_mappings.open() as storage:
-    #                 for line in storage:
-    #                     mapping = StaticMapping(line)
-    #                     if mapping:
-    #                         self.static_mappings.append(mapping)
-    #         except FileNotFoundError:
-    #             # unfortunately this goes to stdout and
-    #             # screws up the expose-static-* business
-    #             #logger.info(f"mappings file not found {path}")
-    #             self.static_mappings = StaticMapping.defaults()
-    #         except Exception:
-    #             logger.exception(f"could not load static-mappings for {self}")
-    #             self.static_mappings = StaticMapping.defaults()
+        # since customized_s returns highest-precedence first
+        # we need to reverse that list
+        yamls = yamls[:]
+        result = copy.deepcopy(self.DEFAULT_SETTINGS)
+        for key in self.DEFAULT_SETTINGS:
+            for layer in yamls:
+                result[key].extend(layer.get(key, []))
 
+        return result
 
 
     def image_hash(self):
