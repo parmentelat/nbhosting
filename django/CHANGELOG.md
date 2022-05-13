@@ -1,3 +1,7 @@
+# 0.47.2 2022 Mar 28
+
+* add an entry in the File menu to display the student's id
+
 # 0.47.1 2021 Dec 20
 
 * remove dependency to uwsgi (close #150)

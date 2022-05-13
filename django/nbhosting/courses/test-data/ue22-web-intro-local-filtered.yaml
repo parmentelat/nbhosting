@@ -1,0 +1,10 @@
+tracks:
+- description: my own custom track
+  id: custom1
+  name: 'custom track'
+  sections:
+  - name: all-in-one
+    notebooks:
+      - "notebooks/[0-5]*.md"
+
+tracks-filter: [ custom1, html ]

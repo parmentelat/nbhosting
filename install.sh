@@ -56,6 +56,7 @@ function update-bins() {
     rsync $rsopts scripts/nbh /usr/bin
     rsync $rsopts scripts/nbh-pull-student /usr/bin
     rsync $rsopts scripts/nbh-rebuild-all /usr/bin
+    rsync $rsopts scripts/nbh-show-locals /usr/bin
 }
 
 function update-jupyter() {

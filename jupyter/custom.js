@@ -129,7 +129,7 @@ define([
     // edxfront/views.py passes along course and student as params in the GET URL
     // so all we need to do is forge the initial URL in notebookLazyCopy/
     // but with the forcecopy flag
-    let add_reset_and_share_buttons = function(Jupyter) {
+    let add_extra_buttons = function(Jupyter) {
     	// stolen from jupyter-notebook/notebook/static/base/js/utils.js
     	let get_url_param = function (name) {
             // get a URL parameter. I cannot believe we actually need this.
@@ -174,7 +174,7 @@ define([
     	// this however resulted in the buttons
     	// being primarily inactive the second time and on
     	//
-    	let confirm_redirect = function(message, url) {
+    	const confirm_redirect = function(message, url) {
     	    // replace newlines with <br/>
     	    message = message.replace(new RegExp("\n", 'g'), "<br/>");
     	    // create dialog if not yet present
@@ -202,7 +202,7 @@ define([
 
     	// for share
     	//
-    	let post_share_url = function(url) {
+    	const post_share_url = function(url) {
 
     	    let display_share_url = function(message) {
         		message = message.replace(new RegExp("\n", 'g'), "<br/>");
@@ -256,7 +256,20 @@ define([
             });
     	}
 
-    	let course = get_url_param('course');
+		const show_student_id = (student) => {
+			dialog.modal({
+				title: `Your student id`,
+				body: student,
+				sanitize: false,
+				buttons: {
+					'OK': function() {
+						$(this).dialog(`close`);
+					}
+				}
+			})
+		}
+
+		let course = get_url_param('course');
     	let student = get_url_param('student');
     	// window.location.pathname looks like this
     	// "/35162/notebooks/w1/w1-s3-c4-fibonacci-prompt.ipynb"
@@ -294,6 +307,10 @@ define([
     	$('#share_static_version').click(function() {
     	    post_share_url(share_url);
     	})
+
+		$('#file_menu').append(
+			`<li id="show_student_id"><a href="#">Show Student id</a></li>`)
+		$('#show_student_id').click(() => show_student_id(student))
     }
 
     // the promises thingies are described in
@@ -307,7 +324,8 @@ define([
 			hack_header_for_nbh(Jupyter);
             inactivate_non_code_cells(Jupyter);
             redefine_enter_in_command_mode(Jupyter);
-            add_reset_and_share_buttons(Jupyter);
+			// reset + share + showid
+            add_extra_buttons(Jupyter);
             speed_up_autosave(Jupyter);
         }
     })

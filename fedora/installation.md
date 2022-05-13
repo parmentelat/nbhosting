@@ -271,7 +271,7 @@ dnf -y install nginx
 ```
 
 ```bash
-pip3 install --upgrade pip setuptools wheel
+pip install --upgrade pip setuptools wheel
 ```
 
 Other pip-managed requirements are handled automatically when running `install.sh`
