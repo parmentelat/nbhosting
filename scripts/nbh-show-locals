@@ -21,12 +21,12 @@ else
 fi
 
 for course in $courses; do
-    pushd $course
+    pushd $course >& /dev/null
     echo ==================== course $course
     for file in *; do
     	[[ "$file" =~ .*~ ]] && continue
     	echo ========== $file
 	diff /nbhosting/current/courses-git/$course/.nbhosting/$file $file
     done
-    popd
+    popd &> /dev/null
 done
