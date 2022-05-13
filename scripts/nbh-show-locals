@@ -1,5 +1,7 @@
 #!/bin/bash
 
+shopt -s globstar
+
 [ -d /nbhosting/current ] || {
     echo "WARNING : using hard-wired NBHROOT=/nbhosting/current - not found - exiting"
     exit 1
@@ -20,13 +22,33 @@ else
     courses="$@"
 fi
 
-for course in $courses; do
+function show-locals-for-course() {
+    local course="$1"; shift
     pushd $course >& /dev/null
     echo ==================== course $course
-    for file in *; do
-    	[[ "$file" =~ .*~ ]] && continue
-    	echo ========== $file
-	diff /nbhosting/current/courses-git/$course/.nbhosting/$file $file
+    for file in **/*; do
+        local official="/nbhosting/current/courses-git/$course/.nbhosting/$file"
+        local localfile="$(pwd)/$file"
+        if [[ "$file" == "Dockerfile" ]]; then
+            if [[ ! -f "$official" ]]; then
+                echo ========== cat $localfile
+                cat $file
+            else
+                echo "========== diff (fromgit) <-> $localfile"
+                diff  $file
+            fi
+        elif [[ "$file" =~ .*~ ]]; then
+            continue
+        else
+            echo ========== cat $localfile
+            cat $localfile
+        fi
     done
     popd &> /dev/null
+}
+
+for course in $courses; do
+    show-locals-for-course $course
 done
+
+    
