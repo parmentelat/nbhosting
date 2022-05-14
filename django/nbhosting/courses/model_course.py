@@ -68,9 +68,9 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
 
     def __init__(self, *args, **kwds):
         self._notebooks = None
-        self._tracks = None
         # reconfigurable
-        self.tracks = []
+        # could become a property
+        self._tracks = None
         self.notebook_url_format = DEFAULT_NOTEBOOK_URL_FORMAT
         self.builds = []
         self.static_mappings = []
