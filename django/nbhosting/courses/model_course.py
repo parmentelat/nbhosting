@@ -242,12 +242,12 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             self.git_dir / "nbhosting" / filename,
             self.git_dir / ".nbhosting" / filename,
         ]
-        result = [x for x in candidates if x.exists()]
+        existing = [x for x in candidates if x.exists()]
 
-        if candidates[1] in result and candidates[2] in results:
+        if candidates[1] in existing and candidates[2] in existing:
             logger.warn(f"in {self}, found {filename} in both nbhosting and .nbhosting")
 
-        return result
+        return existing
 
 
     def customized(self, filename):
