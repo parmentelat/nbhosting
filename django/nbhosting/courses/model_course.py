@@ -481,7 +481,7 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         # in cache ?
         cache_path = self.notebooks_dir / ".tracks.json"
         if cache_path.exists():
-            logger.debug(f"{cache_path} found")
+            logger.debug(f"tracks saved from cache {cache_path}")
             tracks = read_tracks(self, cache_path)
             self._tracks = tracks
             return tracks
@@ -492,6 +492,7 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             tracks = tracks_from_yaml_config(
                 self, self._yaml_config['tracks'], tracks_filter)
         else:
+            logger.debug(f"using generic track")
             tracks = [generic_track(self)]
         tracks = sanitize_tracks(tracks)
         self._tracks = tracks
@@ -545,6 +546,15 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         'builds': [],
     }
 
+    # by default, merging means update dictionaries and extend lists
+    # however, there are exceptions
+    DEFAULT_SETTINGS_POLICY = {
+        # if the local course provides a tracks-filter field,
+        # it will overwrite/supersede - not extend - any
+        # setting done in the course itself
+        'tracks-filter': 'overwrite',
+    }
+
     def _probe_settings_yaml(self):
 
         yaml_filenames = self.customized_s("nbhosting.yaml")
@@ -589,14 +599,19 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
 
         # since customized_s returns highest-precedence first
         # we need to reverse that list
-        yamls = yamls[:]
+        yamls = yamls[::-1]
         result = copy.deepcopy(self.DEFAULT_SETTINGS)
         for key, default in self.DEFAULT_SETTINGS.items():
-            for layer in yamls:
-                if isinstance(default, list):
-                    result[key].extend(layer.get(key, []))
-                elif isinstance(default, dict):
-                    result[key].update(layer.get(key, {}))
+            policy = self.DEFAULT_SETTINGS_POLICY.get(key, 'merge')
+            for index, layer in enumerate(yamls, 1):
+                if policy == 'overwrite':
+                    if key in layer:
+                        result[key] = layer[key]
+                elif policy == 'merge':
+                    if isinstance(default, list):
+                        result[key].extend(layer.get(key, []))
+                    elif isinstance(default, dict):
+                        result[key].update(layer.get(key, {}))
 
         return result
 
