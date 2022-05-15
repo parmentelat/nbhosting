@@ -1,9 +1,22 @@
+# 0.49.0 2022 May 15
+
+* minimal support for nb7
+  * course can define in its general section
+    `notebook-url-format: /edit/{notebook}?factory=Jupytext%20Notebook`
+  * at this point this requires the Dockerfile to have pinned at least
+    `RUN pip install "notebook>=7.0.0a1" "jupyterlab>=4.0.0a20"`
+  * in this release the notebook menus are as-is, and in particular our 3 additions
+    (reset-to-origin; share-as-static; show-student-id) are not available in nb7
+* tracks-filter setting is now superseded (instead of extended as it was before)
+* nbstripout added as a requirement; it's needed in pull-student
+
 # 0.48.0 2022 May 13
 
 * local-defined yaml file is now merged on top of course-provided file
 * one can also define a new 'tracks-filter' field as a list of the track ids
   for the course
 * this way one can create local tracks, and if needed ignore some course-provided tracks
+* nbh-show-locals is a command that outlines the local/ area contents
 
 # 0.47.2 2022 Mar 28
 
