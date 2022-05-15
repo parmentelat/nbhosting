@@ -282,8 +282,7 @@ def notebooks_by_pattern(coursedir, pattern):
     probed = [path.relative_to(root) for path in absolutes]
     notebooks = [Notebook(coursedir, path) for path in probed]
     notebooks.sort(key=lambda n: n.path)
-    logger.debug(f"in {coursedir}, {pattern}"
-                 f" -> {len(notebooks)} notebooks")
+    logger.debug(f"{coursedir}: {pattern} -> {len(notebooks)} notebook(s)")
     return notebooks
 
 
