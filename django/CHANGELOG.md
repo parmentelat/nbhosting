@@ -1,3 +1,10 @@
+# 0.48.0 2022 May 13
+
+* local-defined yaml file is now merged on top of course-provided file
+* one can also define a new 'tracks-filter' field as a list of the track ids
+  for the course
+* this way one can create local tracks, and if needed ignore some course-provided tracks
+
 # 0.47.2 2022 Mar 28
 
 * add an entry in the File menu to display the student's id
