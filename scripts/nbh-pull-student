@@ -105,19 +105,22 @@ function main() {
         echoq " (3 nbso $notebook)"
         $SUDO python3 -m nbstripout $notebook
     done
+    # if we run this script a first time, but it fails
+    # then we have created a commit and the repo is clean
+    # so no local changes, but it's still worth trying to merge...
     local local_changes="$(cat __LOCAL_CHANGES)"
     if [ -z "$local_changes" ]; then
-        echoq " (3!) no local changes found ! -- aborting"
-        log-header "(3!) no local changes found ! -- aborting"
-        exitq 1
+        echoq " (3!) warning - no local changes found !"
+        log-header "(3!) warning - no local changes found !"
+    else
+        local nb_local_changes=$(wc -w <<< $local_changes)
+        log-header git add $nb_local_changes local files
+        $SUDO git add $local_changes &>> $LOG
+        local commit_message="WIP - nbh is committing $nb_local_changes local files"
+        log-header git commit -m$commit_message
+        $SUDO git commit -m"$commit_message" &>> $LOG
+        echoq "created local commit $commit_message"
     fi
-
-    local nb_local_changes=$(wc -w <<< $local_changes)
-    log-header git add $nb_local_changes local files
-    $SUDO git add $local_changes &>> $LOG
-    local commit_message="WIP - nbh is committing $nb_local_changes local files"
-    log-header git commit -m$commit_message
-    $SUDO git commit -m"$commit_message" &>> $LOG
     log-header git merge --commit -m$merge_message
     $SUDO git merge origin/$branch --commit -m"$merge_message" &>> $LOG
     local OK=$?
