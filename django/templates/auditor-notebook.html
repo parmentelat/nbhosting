@@ -71,20 +71,20 @@
   // if show_first_button is set,
   // also display first notebook in track
   function select_track(track_id, show_first_notebook) {
-    global_track_or_app = `:${track_id}`;
+    global_track_or_app = `:${track_id}`
     // xxx need internet connection
-    $(`a.track-name:not([id="sections-${track_id}-tab"])`).removeClass('active');
-    $(`a.track-name[id="sections-${track_id}-tab"]`).addClass('active');
-    $(`div.track-sections:not([id="sections-${track_id}"])`).removeClass('active').removeClass('show');
-    $(`div.track-sections[id="sections-${track_id}"]`).addClass('active').addClass('show');
+    $(`a.track-name:not([id="sections-${track_id}-tab"])`).removeClass('active')
+    $(`a.track-name[id="sections-${track_id}-tab"]`).addClass('active')
+    $(`div.track-sections:not([id="sections-${track_id}"])`).removeClass('active').removeClass('show')
+    $(`div.track-sections[id="sections-${track_id}"]`).addClass('active').addClass('show')
 
     if (show_first_notebook) {
-      let notebook = first_notebook_per_track()[track_id];
+      let notebook = first_notebook_per_track()[track_id]
       if (notebook) {
-        iframe_notebook(notebook);
-        outline_current_notebook(notebook);
+        iframe_notebook(notebook)
+        outline_current_notebook(notebook)
       } else {
-        console.log(`Could not spot first notebook for track ${track_id}`);
+        console.log(`Could not spot first notebook for track ${track_id}`)
       }
     }
   }
@@ -127,20 +127,20 @@ function select_classic(top, header) {
   // direct iframe to this url
   // and focus input events there
   function iframe_src(url) {
-    $("#nbhosting-jupyter")[0].src = url;
-    focus_iframe();
+    $("#nbhosting-jupyter")[0].src = url
+    focus_iframe()
   }
   function focus_iframe() {
-    $("iframe")[0].contentWindow.focus();
+    $("iframe")[0].contentWindow.focus()
   }
 
   // show notebook in iframe
   // track is not managed
   function iframe_notebook(notebook) {
-    let url = `/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`;
-    iframe_src(url);
-    outline_current_notebook(notebook);
-    update_url(`${notebook}`);
+    let url = `/notebookGitRepo/{{coursename}}/${notebook}/{{student}}`
+    iframe_src(url)
+    outline_current_notebook(notebook)
+    update_url(`${notebook}`)
   }
 
 
@@ -148,47 +148,47 @@ function select_classic(top, header) {
 
   // hide left and top areas
   function hideleft_status() {
-    return ($("#hideleft-toggle").hasClass("hideleft"));
+    return ($("#hideleft-toggle").hasClass("hideleft"))
   }
   function hideleft_toggle() {
     if ($("#hideleft-toggle").hasClass("hideleft")) {
-      hideleft_off();
+      hideleft_off()
     } else {
-      hideleft_on();
+      hideleft_on()
     }
-    focus_iframe();
+    focus_iframe()
   }
   function hideleft_on() {
-    $("#left-pane").addClass("hideleft");
-    $("#iframe-container").addClass("hideleft");
-    $("#hideleft-toggle").addClass("hideleft");
+    $("#left-pane").addClass("hideleft")
+    $("#iframe-container").addClass("hideleft")
+    $("#hideleft-toggle").addClass("hideleft")
   }
   function hideleft_off() {
-    $("#left-pane").removeClass("hideleft");
-    $("#iframe-container").removeClass("hideleft");
-    $("#hideleft-toggle").removeClass("hideleft");
+    $("#left-pane").removeClass("hideleft")
+    $("#iframe-container").removeClass("hideleft")
+    $("#hideleft-toggle").removeClass("hideleft")
   }
 
   function hidetop_status() {
-    return ($("#hidetop-toggle").hasClass("hidetop"));
+    return ($("#hidetop-toggle").hasClass("hidetop"))
   }
   function hidetop_toggle() {
     if ($("#hidetop-toggle").hasClass("hidetop")) {
-      hidetop_off();
+      hidetop_off()
     } else {
-      hidetop_on();
+      hidetop_on()
     }
-    focus_iframe();
+    focus_iframe()
   }
   function hidetop_on() {
-    $(".nbh-banner").addClass("hidetop");
-    $(".nbh-body").addClass("hidetop");
-    $("#hidetop-toggle").addClass("hidetop");
+    $(".nbh-banner").addClass("hidetop")
+    $(".nbh-body").addClass("hidetop")
+    $("#hidetop-toggle").addClass("hidetop")
   }
   function hidetop_off() {
-    $(".nbh-banner").removeClass("hidetop");
-    $(".nbh-body").removeClass("hidetop");
-    $("#hidetop-toggle").removeClass("hidetop");
+    $(".nbh-banner").removeClass("hidetop")
+    $(".nbh-body").removeClass("hidetop")
+    $("#hidetop-toggle").removeClass("hidetop")
   }
 
 
@@ -229,7 +229,7 @@ function select_classic(top, header) {
     // toggle just that direction
     if (event.shiftKey || event.metaKey
       || event.ctrlKey || event.altKey) {
-      (direction == 'top') ? hidetop_toggle() : hideleft_toggle();
+      (direction == 'top') ? hidetop_toggle() : hideleft_toggle()
     } else {
       // usual click means toggle in both directions
       let top = hidetop_status()
