@@ -51,12 +51,6 @@
   function turn_off_tracks() {
     $("a.track-name").removeClass('active');
   }
-  // turn off one of the 2 jupyter app buttons
-  function turn_jupyter_button(name, true_if_on) {
-    let button = $(`div#${name}`);
-    true_if_on ? button.addClass('active') : button.removeClass('active');
-  }
-
   // update the URL bar so that page can be bookmarked or reloaded
   function update_url(trailer) {
     window.history.pushState(
@@ -76,8 +70,6 @@
   // also display first notebook in track
   function select_track(track_id, show_first_notebook) {
     global_track_or_app = `:${track_id}`;
-    turn_jupyter_button('classic', false);
-    turn_jupyter_button('jlab', false);
     // xxx need internet connection
     $(`a.track-name:not([id="sections-${track_id}-tab"])`).removeClass('active');
     $(`a.track-name[id="sections-${track_id}-tab"]`).addClass('active');
@@ -110,8 +102,6 @@
     update_header(header);
     outline_current_notebook('--no-match--');
     turn_off_tracks();
-    turn_jupyter_button('classic', true);
-    turn_jupyter_button('jlab', false);
   }
   // jupyter lab app
   function select_jlab(top, header) {
@@ -121,8 +111,6 @@
     update_header(header);
     outline_current_notebook('--no-match--');
     turn_off_tracks();
-    turn_jupyter_button('classic', false);
-    turn_jupyter_button('jlab', true);
   }
 
   // direct iframe to this url
@@ -473,10 +461,15 @@
   #other-views {
     display: flex;
     flex-direction: column;
-    transition: max-height 0.4s ease-in;
+  }
+  #other-views {
+    max-height: 100vh;
   }
   #other-views.hidden {
     max-height: 0;
+  }
+  #other-views.hidden>.other-wrapper {
+    visibility: hidden;
   }
   #left-bottom[data-hidden="yes"] #other-views-label {
     padding-bottom: 0px;
@@ -485,12 +478,9 @@
     background-color: #f2fef2;
     border-width: 3px;
   }
-  #left-bottom a:hover {
+  #left-bottom a {
     text-decoration: none;
     color: black;
-  }
-  #left-bottom a {
-    color: rgb(40, 167, 49);
   }
 
   #classic,
@@ -505,11 +495,14 @@
     -ms-transition: all 0.25s ease-in-out;
     -o-transition: all 0.25s ease-in-out;
     transition: all 0.25s ease-in-out;
-
   }
 
-  .hidden {
-    display: none !important;
+  /* when hidden, move the first child below so it won't show */
+  #other-views.hidden>:first-child {
+    padding-top: 20px;
+  }
+  #other-views>:first-child {
+    transition: padding-top 1s;
   }
 
   .tooltip {
@@ -585,20 +578,23 @@
 
     <div id="left-bottom">
 
-      <div id="other-views-label" data-toggle="tooltip" data-html="true" data-placement="right"
-        title="you'll find here<br>some other ways<br>to browse this repo">
+      <div id="other-views-label">
         other views
       </div>
 
-      <div id="other-views" class="transitionable">
+      <div id="other-views" class="transitionable hidden" data-hidden="yes">
 
         {% if coursedir.builds %}
         <div class='other-wrapper'>
           {% for build in coursedir.builds %}
-          <div id="build-{{build.id}}" onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
+          <div
+            id="build-{{build.id}}"
+            onclick="select_build('{{build.id}}', '{{build.entry_point}}')"
             class="build btn btn-outline-secondary"
-            {% if build.description %} data-toggle="tooltip" data-html="true"
-            data-placement="right" title="{{build.description}}" {% endif %}
+            {% if build.description %}
+            data-toggle="tooltip" data-html="true" data-placement="right"
+            title="{{build.description}}"
+            {% endif %}
           >
           {{build.name}}
           </div>
@@ -610,11 +606,12 @@
         <div class='other-wrapper'>
           {% for droparea in coursedir.dropareas %}
           <!-- students -->
-          <div id="droparea-{{droparea}}"
-              onclick="select_classic(`DROPPED/{{droparea}}`, `droparea {{droparea}}`)"
-              class="droparea btn btn-outline-info"
-              data-toggle="tooltip" data-html="true"
-              data-placement="right" title="your teacher may drop files for you"
+          <div
+            id="droparea-{{droparea}}"
+            onclick="select_classic(`DROPPED/{{droparea}}`, `droparea {{droparea}}`)"
+            class="droparea btn btn-outline-info"
+            data-toggle="tooltip" data-html="true" data-placement="right"
+            title="download the files that your teacher may have dropped for you"
           >
             droparea {{droparea}}
           </div>
@@ -623,19 +620,27 @@
         {% endif %}
 
         <div class='other-wrapper'>
-          <div id="classic" onclick="select_classic(``, `Jupyter classic`)"
-              target="nbhosting-jupyter"
-              data-toggle="tooltip" data-html="true" data-placement="right"
-              title="Jupyter classic will display the contents of your workdir
-                      and spawn noteboks in separate tabs" class="classic btn btn-outline-dark">
-              Jupy<wbr>ter clas<wbr>sic
+          <div
+            id="classic"
+            onclick="select_classic(``, `Jupyter classic`)"
+            class="classic btn btn-outline-dark"
+            target="nbhosting-jupyter"
+            data-toggle="tooltip" data-html="true" data-placement="right"
+            title="Jupyter classic will display the contents of your workdir
+                   and spawn noteboks in separate tabs"
+          >
+            Jupy<wbr>ter clas<wbr>sic
           </div>
-          <div id="jlab" onclick="select_jlab(``, `Jupyter classic`)"
-              target="nbhosting-jupyter"
-              data-toggle="tooltip" data-html="true" data-placement="right"
-              title="with Jupyter lab you can edit all your contents from
-                      within a single browser tab" class="lab btn btn-outline-dark">
-              Jupy<wbr>ter lab
+          <div
+            id="jlab"
+            onclick="select_jlab(``, `Jupyter Lab`)"
+            class="lab btn btn-outline-dark"
+            target="nbhosting-jupyter"
+            data-toggle="tooltip" data-html="true" data-placement="right"
+            title="with Jupyter lab you can edit all your contents from
+                   within a single browser tab"
+          >
+            Jupy<wbr>ter lab
           </div>
         </div>
 
@@ -643,10 +648,11 @@
         <div class='other-wrapper'>
           {% for droparea in coursedir.dropareas %}
           <!-- teacher -->
-          <div id="droparea-{{droparea}}"
-              class="droparea btn btn-outline-success"
-              data-toggle="tooltip" data-html="true"
-              data-placement="right" title="drop files and deploy to students"
+          <div
+            id="droparea-{{droparea}}"
+            class="droparea btn btn-outline-success"
+            data-toggle="tooltip" data-html="true" data-placement="right"
+            title="as a teacher, you may drop files and deploy to students"
           >
             <a href="/teacher/droparea/{{coursename}}/{{droparea}}" target='_'>drop in {{droparea}}</a>
           </div>
