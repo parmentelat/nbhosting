@@ -276,13 +276,13 @@ function course-update-from-git() {
     for file in jupyter_notebook_config.py custom.js custom.css; do
         [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
     done
-    [ -f $COURSE_git/nbhosting/nbconfig/notebook.json ] && {
-        mkdir -p $COURSE_jupyter/nbconfig
-        $rsync $COURSE_git/nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
-    }
     [ -f $COURSE_git/.nbhosting/nbconfig/notebook.json ] && {
         mkdir -p $COURSE_jupyter/nbconfig
         $rsync $COURSE_git/.nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
+    }
+    [ -f $COURSE_git/.nbhosting/labconfig/default_setting_overrides.json ] && {
+        mkdir -p $COURSE_jupyter/labconfig
+        $rsync $COURSE_git/.nbhosting/labconfig/default_setting_overrides.json $COURSE_jupyter/labconfig/default_setting_overrides.json
     }
     return 0
 
@@ -662,9 +662,13 @@ function run-container-for-student-in-course() {
                 -v $COURSE_git:$COURSE_git:ro
                 -e PYTHONPATH=/home/jovyan/modules
 "
-# allow to customize nbconfig/notebook.json if present in the course under nbhosting/
+# allow to customize nbconfig/notebook.json if present in the course under .nbhosting/
 [ -f $COURSE_jupyter/nbconfig/notebook.json ] && \
     command="$command -v $COURSE_jupyter/nbconfig/notebook.json:/home/jovyan/.jupyter/nbconfig/notebook.json:ro"
+
+# allow to customize labconfig/default_setting_overrides.json if present in the course under .nbhosting/
+[ -f $COURSE_jupyter/labconfig/default_setting_overrides.json ] && \
+    command="$command -v $COURSE_jupyter/labconfig/default_setting_overrides.json:/home/jovyan/.jupyter/labconfig/default_setting_overrides.json:ro"
 
 # for using jlab/git from inside a student container
 # because NBHROOT and hence COURSE_git might be a symlink
