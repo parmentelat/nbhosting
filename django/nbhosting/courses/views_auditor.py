@@ -92,34 +92,31 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
         trackname = coursedir.default_trackname()
     track = coursedir.track(trackname)
 
-    if notebook is None:
+    # spot notebook_obj
+    if notebook is not None:
+        notebook_obj = track.spot_notebook(notebook)
+    else:
         notebook_obj = track.first_notebook()
         notebook = notebook_obj.clean_path()
-        print(f"default notebook -> {notebook}")
-    else:
-        notebook_obj = track.spot_notebook(notebook)
+
+    logger.debug(f"{notebook=} and {notebook_obj=}")
 
     # compute title as notebookname if found in sections
     if jupyter_app == 'classic':
         title = 'Jupyter classic'
-        iframe = f'/ipythonForward/{course}/{student}/tree/{notebook}'
+        iframe_url = f'/ipythonForward/{course}/{student}/tree'
+        if notebook:
+            iframe_url += f'/{notebook_obj.path}'
     elif jupyter_app == 'jlab':
         title = 'Jupyter lab'
-        iframe = f'/ipythonForward/{course}/{student}/lab'
+        iframe_url = f'/ipythonForward/{course}/{student}/lab'
         if notebook:
-            iframe += "/tree/{notebook}"
-
+            iframe_url += f"/tree/{notebook_obj.path}"
+    # regular mode
     else:
         title = notebook_obj.notebookname if notebook_obj else notebook
-        iframe = f"/notebookGitRepo/{course}/{notebook}/{student}"
+        iframe_url = f"/notebookGitRepo/{course}/{notebook}/{student}"
 
-#    giturl = coursedir.giturl
-#    gitpull_url = (f"/ipythonForward/{course}/{student}/git-pull"
-#                   f"?repo={giturl}"
-#                   f"&autoRedirect=false"
-#                   f"&toplevel=."
-#                   f"&redirectUrl={iframe}"
-#                   )
     tracks = coursedir.tracks()
     for track_obj in tracks:
         track_obj.mark_notebooks(student)
@@ -139,8 +136,7 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
         track=track,
         jupyter_app=jupyter_app,
         notebook=notebook,
-        iframe=iframe,
-#        gitpull_url=gitpull_url,
+        iframe=iframe_url,
         head_title=f"nbh:{course}",
         title=title,
         tracks=tracks,

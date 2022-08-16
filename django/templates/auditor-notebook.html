@@ -53,8 +53,10 @@
   }
   // update the URL bar so that page can be bookmarked or reloaded
   function update_url(trailer) {
-    window.history.pushState(
-      {}, "", `/auditor/notebook/{{coursename}}${global_track_or_app}/${trailer}`);
+    let url = `/auditor/notebook/{{coursename}}${global_track_or_app}`
+    if (trailer)
+      url += `/${trailer}`
+    window.history.pushState({}, "", url)
   }
 
   // parse map { track -> first-notebook-path }
@@ -92,26 +94,35 @@
     // like with @classic and @jlab
     let url = `/builds/{{coursename}}/${build_id}/latest/${entry_point}`
     iframe_src(url)
+    update_header(`build ${build_id}`)
+    outline_current_notebook('--no-match--')
+    turn_off_tracks()
   }
 
-  // jupyter classic app
-  function select_classic(top, header) {
-    global_track_or_app = "@classic"
-    update_url(top)
-    iframe_src(`/ipythonForward/{{coursename}}/{{student}}/tree/${top}`)
-    update_header(header);
-    outline_current_notebook('--no-match--');
-    turn_off_tracks();
-  }
   // jupyter lab app
   function select_jlab(top, header) {
-    global_track_or_app = "@jlab";
-    update_url(top);
-    iframe_src(`/ipythonForward/{{coursename}}/{{student}}/lab/tree/${top}`);
-    update_header(header);
-    outline_current_notebook('--no-match--');
-    turn_off_tracks();
+    global_track_or_app = "@jlab"
+    update_url(top)
+    let jupyter_url = `lab`
+    if (top && top.length != 0)
+      jupyter_url += `/tree/${top}`
+    iframe_src(`/ipythonForward/{{coursename}}/{{student}}/${jupyter_url}`)
+    update_header(header)
+    outline_current_notebook('--no-match--')
+    turn_off_tracks()
   }
+// jupyter classic app
+function select_classic(top, header) {
+  global_track_or_app = "@classic"
+  update_url(top)
+  let jupyter_url = `tree`
+  if (top && top.length != 0)
+    jupyter_url += `/${top}`
+  iframe_src(`/ipythonForward/{{coursename}}/{{student}}/${jupyter_url}`)
+  update_header(header)
+  outline_current_notebook('--no-match--')
+  turn_off_tracks()
+}
 
   // direct iframe to this url
   // and focus input events there
@@ -483,8 +494,8 @@
     color: black;
   }
 
-  #classic,
-  #jlab {
+  #jlab,
+  #classic {
     width: 100%;
     font-size: 80%;
   }
@@ -611,26 +622,15 @@
             onclick="select_classic(`DROPPED/{{droparea}}`, `droparea {{droparea}}`)"
             class="droparea btn btn-outline-info"
             data-toggle="tooltip" data-html="true" data-placement="right"
-            title="download the files that your teacher may have dropped for you"
+            title="go download the files that your teacher may have dropped for you in this droparea"
           >
-            droparea {{droparea}}
+            droparea "{{droparea}}"
           </div>
           {% endfor %}
         </div>
         {% endif %}
 
         <div class='other-wrapper'>
-          <div
-            id="classic"
-            onclick="select_classic(``, `Jupyter classic`)"
-            class="classic btn btn-outline-dark"
-            target="nbhosting-jupyter"
-            data-toggle="tooltip" data-html="true" data-placement="right"
-            title="Jupyter classic will display the contents of your workdir
-                   and spawn noteboks in separate tabs"
-          >
-            Jupy<wbr>ter clas<wbr>sic
-          </div>
           <div
             id="jlab"
             onclick="select_jlab(``, `Jupyter Lab`)"
@@ -641,6 +641,17 @@
                    within a single browser tab"
           >
             Jupy<wbr>ter lab
+          </div>
+          <div
+            id="classic"
+            onclick="select_classic(``, `Jupyter classic`)"
+            class="classic btn btn-outline-dark"
+            target="nbhosting-jupyter"
+            data-toggle="tooltip" data-html="true" data-placement="right"
+            title="Jupyter classic will display the contents of your workdir
+                   and spawn noteboks in separate tabs"
+          >
+            Jupy<wbr>ter clas<wbr>sic
           </div>
         </div>
 
