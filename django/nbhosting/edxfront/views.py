@@ -465,8 +465,8 @@ def jupyterdir_forward(request, course, student, jupyter_url):
 # pylint: disable=r0914
 def _jupyterdir_forward(request, coursename, student, jupyter_url):
 
-    logger.info(f"jupyterdir_forward: jupyter_url={jupyter_url}")
-    logger.info(f"jupyterdir_forward: GET={request.GET}")
+    logger.debug(f"jupyterdir_forward: {jupyter_url=}")
+    logger.debug(f"jupyterdir_forward: {request.GET=}")
     all_right, explanation = authorized(request)
 
     if not all_right:
