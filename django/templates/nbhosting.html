@@ -173,9 +173,9 @@
   </div> <!-- class="container"-->
 
   <script>
-    $(function () {
-      let tooltips = $('[data-toggle="tooltip"]');
-      tooltips.tooltip();
+    window.addEventListener('load',
+    () => {
+      $('[data-toggle="tooltip"]').tooltip()
     })
   </script>
 
