@@ -24,32 +24,32 @@
 <script>
 
   {% if jupyter_app %}
-  let global_track_or_app = "@{{jupyter_app}}";
+  let global_track_or_app = "@{{jupyter_app}}"
   {% else %}
-  let global_track_or_app = ":{{track.id}}";
+  let global_track_or_app = ":{{track.id}}"
   {% endif %}
 
   function update_header(string) {
-    $('div.nbh-title>h2').html(string);
+    $('div.nbh-title>h2').html(string)
   }
 
   // make sure the current notebook
   // is properly highlighted in the track area
   function outline_current_notebook(notebook) {
     $("div.notebook").each(function (index, div) {
-      let $div = $(div);
-      let current = $div.attr("data-notebook") == notebook;
+      let $div = $(div)
+      let current = $div.attr("data-notebook") == notebook
       if (current) {
-        $div.addClass("current");
-        update_header($div.attr("data-notebook-title"));
+        $div.addClass("current")
+        update_header($div.attr("data-notebook-title"))
       } else {
-        $div.removeClass("current");
+        $div.removeClass("current")
       }
     })
   }
   // make sure no track is highlighted
   function turn_off_tracks() {
-    $("a.track-name").removeClass('active');
+    $("a.track-name").removeClass('active')
   }
   // update the URL bar so that page can be bookmarked or reloaded
   function update_url(trailer) {
@@ -684,18 +684,18 @@ function select_classic(top, header) {
 </div>
 
 <script>
-  function clickleft(e) { toggle_decorations('left', e); }
-  function clicktop(e) { toggle_decorations('top', e); }
+  function clickleft(e) { toggle_decorations('left', e) }
+  function clicktop(e) { toggle_decorations('top', e) }
 
   $(() => {
-    $("#hideleft-toggle").click(clickleft);
-    $("#hidetop-toggle").click(clicktop);
+    $("#hideleft-toggle").click(clickleft)
+    $("#hidetop-toggle").click(clicktop)
     {% if jupyter_app %}
-    select_{ { jupyter_app } } ();
+      select_{{ jupyter_app }} ()
     {% else %}
-    select_track("{{track.id}}", false);
+      select_track("{{track.id}}", false)
     {% endif %}
-  });
+  })
 
 </script>
 {% endblock %}
