@@ -1,3 +1,13 @@
+# 0.50.0 2022 Aug 16
+
+* robustified nbh-pull-student
+* reviewed the 'other views' area for smoother interactions,
+  * with the tooltips placed properly
+  * can reload a @classic or @jlab page
+  * browsing a droparea now relies on jlab
+  * jlab can open jupytext notebooks with a usual click
+    this requires the course to customize labconfig/default_setting_overrides.json
+
 # 0.49.0 2022 May 15
 
 * minimal support for nb7
