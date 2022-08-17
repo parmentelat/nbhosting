@@ -20,10 +20,10 @@ for type in hard soft; do echo '*' $type nofile 131072 ; done > /etc/security/li
 
 # add lsof in the mix to help troubleshoot shortages of open files
 # from the container context
-apt-get install lsof
+apt-get install -y lsof
 
 # needed to export build results
-apt-get install rsync
+apt-get install -y rsync
 
 
 # --------
