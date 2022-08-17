@@ -44,6 +44,7 @@ pip install -U ipythontutor
 # because it implicitly adds extra buttons
 # leave it to each individual course
 
-# jupyterlab git extension
-pip install -U jupyterlab jupyterlab-git
-jupyter labextension install @jupyterlab/git && jupyter serverextension enable --py jupyterlab_git || :
+# jupyterlab 
+pip install -U jupyterlab
+# and its git extension (no post-install required since jupyterlab-v3)
+pip install -U jupyterlab-git
