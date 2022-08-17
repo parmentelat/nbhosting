@@ -39,7 +39,7 @@ function log-symlink() {
 function check-sitesettings() {
     local sitesettings="django/nbh_main/sitesettings.py"
     if [ ! -f $sitesettings ]; then
-        echo "You need to write you site settings file $sitesettings"
+        echo "You need to write your own site settings file $sitesettings"
         exit 1
     fi
 }
@@ -167,6 +167,11 @@ function restart-services() {
     systemctl restart podman.socket
     systemctl restart nginx
     systemctl restart nbh-monitor nbh-django nbh-autopull.timer
+}
+
+# as of summer 2022, this becomes necessary for nbh-pull-student to work smoothly
+function bypass-git-safe-directory() {
+    git config --global --add safe.directory '*'
 }
 
 function default-main() {

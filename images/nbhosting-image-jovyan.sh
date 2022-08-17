@@ -11,6 +11,9 @@ set -x
 # configure git
 git config user.email || git config --global user.email "default.user@nbhosting.io"
 git config user.name  || git config --global user.name "Nbhosting User"
+# as of summer 2022, this seems to become needed
+# for smoother operation of jupyterlab-git
+git config --global --add safe.directory '*'
 
 # the nbgitpuller thingy - turned off
 # pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
@@ -44,7 +47,7 @@ pip install -U ipythontutor
 # because it implicitly adds extra buttons
 # leave it to each individual course
 
-# jupyterlab 
+# jupyterlab
 pip install -U jupyterlab
 # and its git extension (no post-install required since jupyterlab-v3)
 pip install -U jupyterlab-git
