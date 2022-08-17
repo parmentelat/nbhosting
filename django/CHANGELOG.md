@@ -1,3 +1,10 @@
+# 0.50.1 2022 Aug 16
+
+* run apt-get install with the -y flag when building core images
+  needed with the latest jupyter images as exposed on dockerhub
+  as otherwise rsync does not make it on the images, and builds
+  fail for that reason
+
 # 0.50.0 2022 Aug 16
 
 * robustified nbh-pull-student
