@@ -1,3 +1,10 @@
+# 0.50.2 2022 Aug 16
+
+* tweaks to improve git operations, both from the host (when running nbh-pull-student)
+  and from the student's container (when using jupyterlab-git, or the terminal)
+* at this point we still experience an issue when displaying differences
+  https://github.com/jupyterlab/jupyterlab-git/issues/1158
+
 # 0.50.1 2022 Aug 16
 
 * run apt-get install with the -y flag when building core images
