@@ -14,6 +14,10 @@ git config user.name  || git config --global user.name "Nbhosting User"
 # as of summer 2022, this seems to become needed
 # for smoother operation of jupyterlab-git
 git config --global --add safe.directory '*'
+# for use from a jlab terminal
+git config --global alias.l 'log --oneline --graph'
+git config --global alias.la 'log --oneline --graph --all'
+git config --global alias.s 'status'
 
 # the nbgitpuller thingy - turned off
 # pip install git+https://github.com/parmentelat/nbgitpuller@nbhmaster && jupyter serverextension enable --py nbgitpuller
