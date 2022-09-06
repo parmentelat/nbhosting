@@ -72,7 +72,7 @@ LINE = rf"(?P<email>{EMAIL})\W+(?P<attributes>({PAIR}{SP}*)*)"
 RE_LINE = re.compile(LINE)
 RE_PAIR = re.compile(QPAIR)
 
-def parse(input_filename):
+def parse(input_filename, long_output):
     # we first parse the whole file and do various checks
     # then ask for confirmation and do it all at once at the end
     todos = []
@@ -82,6 +82,8 @@ def parse(input_filename):
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
+            if long_output:
+                print(f"{lineno}:{line}")
             try:
                 match = RE_LINE.match(line)
                 email, attributes = match.group('email'), match.group('attributes')
@@ -251,7 +253,7 @@ def add_todos_in_group(todos, group, dry_run):
 
 def mass_register(input_filename, template_filename, groupname, long_output, dry_run, skip_mail):
     template = open_and_check_template(template_filename)
-    todos, parse_error = parse(input_filename)
+    todos, parse_error = parse(input_filename, long_output)
     logging.info(f"parsed {len(todos)} entries, checking for news")
     olds, news = filter_todos(todos)
     logging.info(f"found  {len(olds)} old + {len(news)} new entries")
