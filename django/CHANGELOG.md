@@ -1,3 +1,11 @@
+# 0.51.0 2022 Sep 6
+
+* new url /public/<group-name> allows to navigate the
+  available builds for all courses attached to that group
+  (and that have at least one build)
+* mass-register with -l shows the input lines as they are read
+  to help pinpoint input issues
+
 # 0.50.2 2022 Aug 16
 
 * tweaks to improve git operations, both from the host (when running nbh-pull-student)
