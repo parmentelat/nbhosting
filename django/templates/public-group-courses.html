@@ -76,7 +76,9 @@ readonly - {{groupname}}
     {% if course_dir.l_latest_builds|length > 0 %}
       <div class="course p-3 m-3 {{course_dir.archived_class}}">
         <span class="course">
+          <!--- point at the first one -->
           <a class='btn btn-info btn-lg'
+            href="/builds/{{course_dir}}/{{course_dir.l_latest_builds.0.id}}/latest/"
             data-toggle="tooltip" data-html="true" title="builds for {{course_dir.coursename}}">
             {{course_dir.coursename}}
           </a>
