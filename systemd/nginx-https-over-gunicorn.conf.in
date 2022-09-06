@@ -116,7 +116,7 @@ http {
         # containerKill: utility to, well, kill a container
         # auditor: pages for people who log in directly
         # staff: admin stuff
-        location ~ ^/(ipythonExercice|ipythonShare|ipythonForward|notebookLazyCopy|notebookGitRepo|containerKill|admin|accounts|staff|auditor|teacher|welcome) {
+        location ~ ^/(ipythonExercice|ipythonShare|ipythonForward|notebookLazyCopy|notebookGitRepo|containerKill|admin|accounts|staff|auditor|teacher|public|welcome) {
             if ($down) { return 503; }
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
