@@ -3,6 +3,7 @@
 import re
 
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.models import Group
 
 #from django.http import HttpResponse, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_protect
@@ -144,3 +145,20 @@ def auditor_show_notebook(request, course, notebook=None, track=None,
     )
 
     return render(request, "auditor-notebook.html", env)
+
+
+@csrf_protect
+def public_group_index(request, group):
+    print(f"{group=}")
+    g = get_object_or_404(Group, name=group)
+
+    # compute the courses that this group belongs in
+    course_dirs = list(g.courses_registered.iterator())
+    course_dirs.sort(key=lambda c: c.coursename)
+
+    print(f"{course_dirs=}")
+    print(f"{list(course_dirs[0].latest_builds())=}")
+    print(f"{list(course_dirs[1].latest_builds())=}")
+
+    env = dict(groupname=group, group=g, course_dirs=course_dirs)
+    return render(request, "public-group-courses.html", env)

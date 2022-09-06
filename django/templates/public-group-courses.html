@@ -1,0 +1,97 @@
+{% extends "nbhosting.html" %}
+
+
+{% block head_title %}
+{{groupname}} courses
+{% endblock %}
+
+
+{% block title %}
+readonly - {{groupname}}
+{% endblock %}
+
+<!-- breadcrumb only for logged users -->
+{% block breadcrumb %}
+<ol class="breadcrumb">
+  {% if user.is_authenticated %}
+    {% if user.is_staff %}
+      <li class="breadcrumb-item staff"><a href="/staff/courses/">courses</a></li>
+    {% endif %}
+    <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+    <li class="breadcrumb-item active"><a href="/public/{{groupname}}/">read-only courses</a></li>
+    <li class="breadcrumb-item">
+      <a href="/auditor/courses">courses</a>
+  </li>
+  {% endif %}
+</ol>
+{% endblock %}
+
+
+{% block local_css %}
+<style>
+  .courses-box {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+  }
+
+  div.course {
+    border: 1px solid blue;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* the first build */
+  .course>span:nth-child(2) {
+    padding-top: 10px;
+  }
+
+  /* archived courses */
+  div.course.archived>span>a.btn {
+    /* use a pattern instead */
+    background-image:
+      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
+  }
+
+
+  span.button>a.btn {
+      background-color: white;
+  }
+  span.button>a.btn:hover {
+      font-weight: 900;
+  }
+  span.build>a.btn:hover {
+    color: green;
+  }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="courses-box m-3">
+  {% for course_dir in course_dirs %}
+    {% if course_dir.l_latest_builds|length > 0 %}
+      <div class="course p-3 m-3 {{course_dir.archived_class}}">
+        <span class="course">
+          <a class='btn btn-info btn-lg'
+            data-toggle="tooltip" data-html="true" title="builds for {{course_dir.coursename}}">
+            {{course_dir.coursename}}
+          </a>
+        </span>
+        {% for build in course_dir.latest_builds %}
+          <span class="build button">
+            <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
+              title="{{build.description}}"
+              href="/builds/{{course_dir}}/{{build.id}}/latest/">
+              {{build.name}}
+            </a>
+          </span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

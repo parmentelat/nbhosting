@@ -878,3 +878,9 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             id = latest.parts[-2]
             if build := self.find_build(id):
                 yield build
+
+    def l_latest_builds(self):
+        """
+        same as latest_builds but as a list - for use in jinja
+        """
+        return list(self.latest_builds())

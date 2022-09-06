@@ -18,6 +18,7 @@ import nbh_main.views                                # pylint: disable=wrong-imp
 TRACK =       r'(?P<track>[^/]*)'
 COURSE =      r'(?P<course>[\w_.-]+)'
 STUDENT =     r'(?P<student>[\w_.-]+)'
+GROUP =       r'(?P<group>[\w_.-]+)'
 DROPAREA =    r'(?P<droparea>[\w_.-]+)'
 # being very loose / flexible for the spelling of <notebook>
 # (for supporting e.g. spaces in filenames)
@@ -49,6 +50,9 @@ urlpatterns = [
 
     re_path(rf'^containerKill/{COURSE}/{STUDENT}/?$',
                         nbhosting.edxfront.views.container_kill_request),
+
+    re_path(rf'^public/{GROUP}/?$',
+                        nbhosting.courses.views_auditor.public_group_index),
 
     # regular users who log in
     re_path(rf'^auditor/courses.*$',
