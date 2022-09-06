@@ -18,7 +18,7 @@ import nbh_main.views                                # pylint: disable=wrong-imp
 TRACK =       r'(?P<track>[^/]*)'
 COURSE =      r'(?P<course>[\w_.-]+)'
 STUDENT =     r'(?P<student>[\w_.-]+)'
-GROUP =       r'(?P<group>[\w_.-]+)'
+GROUP =       r'(?P<group>[\w\d_.-]+)'
 DROPAREA =    r'(?P<droparea>[\w_.-]+)'
 # being very loose / flexible for the spelling of <notebook>
 # (for supporting e.g. spaces in filenames)
