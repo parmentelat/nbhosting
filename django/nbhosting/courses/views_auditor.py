@@ -156,5 +156,10 @@ def public_group_index(request, group):
     course_dirs = list(g.courses_registered.iterator())
     course_dirs.sort(key=lambda c: c.coursename)
 
-    env = dict(groupname=group, group=g, course_dirs=course_dirs)
+    env = dict(
+        nbh_version=nbh_version,
+        groupname=group,
+        group=g,
+        course_dirs=course_dirs,
+    )
     return render(request, "public-group-courses.html", env)
