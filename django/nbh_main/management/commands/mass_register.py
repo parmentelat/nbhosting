@@ -17,6 +17,8 @@ import re
 # keep it simple, we expect a localhost sendmail service
 import smtplib
 
+import pandas as pd
+
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,8 +29,8 @@ from nbh_main.sitesettings import server_name, server_mode
 
 logging.basicConfig(level=logging.INFO)
 
-
-OPTIONS = {'username', 'password', 'first_name', 'last_name'}
+MANDATORY = ['email']
+OPTIONS = ['username', 'first_name', 'last_name', 'password', ]
 PASSWORD_CHARS = string.ascii_letters + string.digits
 
 
@@ -72,11 +74,21 @@ LINE = rf"(?P<email>{EMAIL})\W+(?P<attributes>({PAIR}{SP}*)*)"
 RE_LINE = re.compile(LINE)
 RE_PAIR = re.compile(QPAIR)
 
-def parse(input_filename, long_output):
+def save_todos_csv(todos, csv_filename: str):
+    df = pd.DataFrame(todos)
+    # keep only the relevant ones
+    # and put email first
+    to_save = sorted((set(MANDATORY) | set(OPTIONS)) & set(df.columns))
+    print(f"{to_save=}")
+    df.to_csv(csv_filename, columns=to_save, index=False)
+    print(f"(over)wrote {csv_filename}")
+
+def parse(input_filename: str, long_output: bool, csv_filename: str):
     # we first parse the whole file and do various checks
     # then ask for confirmation and do it all at once at the end
     todos = []
     parse_error = False
+    # parse contents as-is
     with Path(input_filename).open() as input_file:
         for lineno, line in enumerate(input_file, 1):
             line = line.strip()
@@ -101,15 +113,22 @@ def parse(input_filename, long_output):
                     if attribute not in OPTIONS:
                         raise ValueError(f"no such attribute {attribute}")
                     todo[attribute] = value
-                for attribute in OPTIONS:
-                    if attribute in todo:
-                        continue
-                    default_function = globals()[f"default_{attribute}"]
-                    todo[attribute] = default_function(email)
                 todos.append(todo)
             except Exception as exc:                    # pylint: disable=w0703
                 logging.error(f"{lineno}:{line}:{exc}")
                 parse_error = True
+    # save in csv format
+    if not parse_error:
+        save_todos_csv(todos, csv_filename)
+    # autofill data
+    for todo in todos:
+        for attribute in OPTIONS:
+            if attribute in todo:
+                continue
+            # locate function for completion of missing attribute
+            default_function = globals()[f"default_{attribute}"]
+            # call it and store result
+            todo[attribute] = default_function(email)
     return todos, parse_error
 
 
@@ -253,7 +272,10 @@ def add_todos_in_group(todos, group, dry_run):
 
 def mass_register(input_filename, template_filename, groupname, long_output, dry_run, skip_mail):
     template = open_and_check_template(template_filename)
-    todos, parse_error = parse(input_filename, long_output)
+    csv_filename = input_filename.replace(".input", ".csv")
+    if csv_filename == input_filename:
+        csv_filename += ".csv"
+    todos, parse_error = parse(input_filename, long_output, csv_filename)
     logging.info(f"parsed {len(todos)} entries, checking for news")
     olds, news = filter_todos(todos)
     logging.info(f"found  {len(olds)} old + {len(news)} new entries")
@@ -274,7 +296,7 @@ def mass_register(input_filename, template_filename, groupname, long_output, dry
 
     answer = input(prompt).lower()
     if not answer:
-        # use go_ahead as computer earlier
+        # use go_ahead as computed earlier
         pass
     else:
         go_ahead = answer[0] == 'y'
@@ -292,10 +314,11 @@ def mass_register(input_filename, template_filename, groupname, long_output, dry
     if group:
         add_todos_in_group(olds + news, group, dry_run)
 
-    return  todos
+    return todos
 
 
 def export_json(in_filename, todos, sponsor):
+    print(f"in export_json: {len(todos)=}")
     # todo : configurable
     USERMODEL = 'student_teams.User'
     is_sponsor = sponsor
@@ -309,6 +332,7 @@ def export_json(in_filename, todos, sponsor):
                         password=user.password,
                         is_student=is_student, is_sponsor=is_sponsor)
             items.append(dict(model=USERMODEL, fields=fields))
+            print("added one item to json")
         except:
             logging.warning(f"email {todo['email']} not yet known (dry-run ?)")
     out_filename = f"{in_filename}.json"
