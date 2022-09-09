@@ -1,3 +1,8 @@
+# 0.51.1 2022 Sep 9
+
+* fix missing version in public/ page
+* mass-register to use csv format for inputs instead of our own .input one
+
 # 0.51.0 2022 Sep 6
 
 * new url /public/<group-name> allows to navigate the
