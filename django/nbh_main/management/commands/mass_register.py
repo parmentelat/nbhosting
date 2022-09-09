@@ -46,10 +46,12 @@ def default_password(_email):
 def _default_name(email, zero_or_one, default):
     "0 is for first name and 1 for last name"
     left, *_ = email.split('@')
-    try:
-        return left.split('.')[zero_or_one]
-    except (ValueError, IndexError):
-        return default
+    for sep in ('.', '-', '_'):
+        split = left.split(sep)
+        if len(split) != 2:
+            continue
+        return split[zero_or_one]
+    return default
 
 def default_first_name(email):
     return _default_name(email, 0, "unknown-first-name")
@@ -74,62 +76,52 @@ LINE = rf"(?P<email>{EMAIL})\W+(?P<attributes>({PAIR}{SP}*)*)"
 RE_LINE = re.compile(LINE)
 RE_PAIR = re.compile(QPAIR)
 
-def save_todos_csv(todos, csv_filename: str):
-    df = pd.DataFrame(todos)
-    # keep only the relevant ones
-    # and put email first
-    to_save = sorted((set(MANDATORY) | set(OPTIONS)) & set(df.columns))
-    print(f"{to_save=}")
-    df.to_csv(csv_filename, columns=to_save, index=False)
-    print(f"(over)wrote {csv_filename}")
+# def save_todos_csv(todos, csv_filename: str):
+#     df = pd.DataFrame(todos)
+#     # keep only the relevant ones
+#     # and put email first
+#     to_save = sorted((set(MANDATORY) | set(OPTIONS)) & set(df.columns))
+#     print(f"{to_save=}")
+#     df.to_csv(csv_filename, columns=to_save, index=False)
+#     print(f"(over)wrote {csv_filename}")
 
-def parse(input_filename: str, long_output: bool, csv_filename: str):
+def parse(input_filename: str, long_output: bool):
     # we first parse the whole file and do various checks
     # then ask for confirmation and do it all at once at the end
     todos = []
-    parse_error = False
-    # parse contents as-is
-    with Path(input_filename).open() as input_file:
-        for lineno, line in enumerate(input_file, 1):
-            line = line.strip()
-            if not line or line.startswith('#'):
+    df = pd.read_csv(input_filename)
+    # turns out my own install of Numbers stores csv that are ;-separated
+    if 'email' not in df.columns:
+        df = pd.read_csv(input_filename, sep=';')
+        if 'email' not in df.columns:
+            print("email field is mandatory ! (make sure to use ',' or ';' as a separator")
+            exit(1)
+    ALL = MANDATORY + OPTIONS
+    for field in ALL:
+        if field not in df.columns:
+            if field == "password":
+                # do not bothering this common case
                 continue
-            if long_output:
-                print(f"{lineno}:{line}")
-            try:
-                match = RE_LINE.match(line)
-                email, attributes = match.group('email'), match.group('attributes')
-                todo = dict(email=email, lineno=lineno)
-                while attributes:
-                    m_pair = RE_PAIR.search(attributes)
-                    if not m_pair:
-                        # end of line - exit while loop
-                        continue
-                    attribute = m_pair.group('attribute')
-                    value = m_pair.group('value')
-                    if value[0] == '"' and value[-1] == '"':
-                        value = value[1:-1]
-                    attributes = attributes[m_pair.end():]
-                    if attribute not in OPTIONS:
-                        raise ValueError(f"no such attribute {attribute}")
-                    todo[attribute] = value
-                todos.append(todo)
-            except Exception as exc:                    # pylint: disable=w0703
-                logging.error(f"{lineno}:{line}:{exc}")
-                parse_error = True
-    # save in csv format
-    if not parse_error:
-        save_todos_csv(todos, csv_filename)
+            print(f"WARNING: supported field not provided {field}")
+    for col in df.columns:
+        if col not in ALL:
+            print(f"WARNING, input has unknown/unsupported column {col} - will be ignored")
+    keep = [x for x in df.columns if x in ALL]
+    df = df[keep]
+    # convert data from df into the original format that was a list of dicts
+    todos = [s.to_dict() for i, s in df.iterrows()]
     # autofill data
     for todo in todos:
+        email = todo['email']
         for attribute in OPTIONS:
-            if attribute in todo:
+            if attribute in todo and not pd.isnull(todo[attribute]):
                 continue
-            # locate function for completion of missing attribute
+            # missing slot:
+            # locate function for auto-completion
             default_function = globals()[f"default_{attribute}"]
             # call it and store result
             todo[attribute] = default_function(email)
-    return todos, parse_error
+    return todos
 
 
 def filter_todos(todos):
@@ -144,7 +136,6 @@ def filter_todos(todos):
     olds = []
     news = []
     for todo in todos:
-        lineno = todo['lineno']
         email = todo['email']
         username = todo['username']
         u_email = User.objects.filter(email=email)
@@ -160,14 +151,14 @@ def filter_todos(todos):
                 olds.append(todo)
             else:
                 logging.warning(
-                    f"line {lineno}, ignoring ambiguous pre-existing entry\n"
+                    f"email {email}, ignoring ambiguous pre-existing entry\n"
                     f"email and username mismatch")
         else:
             news.append(todo)
     return olds, news
 
 def display_todo(todo):
-    return f"{todo['email']} on line {todo['lineno']} ({todo['first_name']} {todo['last_name']})"
+    return f"{todo['email']} ({todo['first_name']} {todo['last_name']})"
 
 
 MAIL_SHOWED = False
@@ -228,8 +219,8 @@ def create_users(todos, template, dry_run, skip_mail):
                 mail_user(todo, template, dry_run)
             done.append(todo)
         except Exception as exc:
-            lineno = todo['lineno']
-            logging.exception(f"{lineno}, "
+            email = todo['email']
+            logging.exception(f"{email}, "
                               f"failed to create user: {exc}")
     return done
 
@@ -272,10 +263,15 @@ def add_todos_in_group(todos, group, dry_run):
 
 def mass_register(input_filename, template_filename, groupname, long_output, dry_run, skip_mail):
     template = open_and_check_template(template_filename)
-    csv_filename = input_filename.replace(".input", ".csv")
-    if csv_filename == input_filename:
-        csv_filename += ".csv"
-    todos, parse_error = parse(input_filename, long_output, csv_filename)
+    if input_filename.endswith(".input"):
+        print("the .input format is no longer supported, use a .csv instead")
+        exit(1)
+    try:
+        todos = parse(input_filename, long_output)
+    except Exception as exc:
+        logging.exception("bad input")
+        exit(1)
+
     logging.info(f"parsed {len(todos)} entries, checking for news")
     olds, news = filter_todos(todos)
     logging.info(f"found  {len(olds)} old + {len(news)} new entries")
@@ -287,7 +283,7 @@ def mass_register(input_filename, template_filename, groupname, long_output, dry
             print("NEW", display_todo(new))
 
     proceed = (len(olds) + len(news)) == len(todos)
-    if parse_error or not proceed:
+    if not proceed:
         go_ahead = False
         prompt = "OK y/[n] ? "
     else:
