@@ -16,3 +16,5 @@ tests/**/LOG
 testing-with-cypress/**
 registration/*.input
 registration/*.mail
+.macnb
+.vscode
