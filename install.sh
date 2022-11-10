@@ -171,7 +171,8 @@ function restart-services() {
 
 # as of summer 2022, this becomes necessary for nbh-pull-student to work smoothly
 function bypass-git-safe-directory() {
-    git config --global --add safe.directory '*'
+    git config --get safe.directory \
+    || git config --global --add safe.directory '*'
 }
 
 function default-main() {
@@ -200,6 +201,7 @@ function default-main() {
 # otherwise one can invoke one or several steps
 # with e.g. install.sh update-uwsgi log-symlink
 function main() {
+    bypass-git-safe-directory
     # the very first time we need sitesettings.py to exist
     check-sitesettings
     # sitesettings.py needs to be installed first,
