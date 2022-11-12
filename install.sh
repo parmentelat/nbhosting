@@ -171,7 +171,7 @@ function restart-services() {
 
 # as of summer 2022, this becomes necessary for nbh-pull-student to work smoothly
 function bypass-git-safe-directory() {
-    git config --get safe.directory \
+    git config --get safe.directory >& /dev/null \
     || git config --global --add safe.directory '*'
 }
 
