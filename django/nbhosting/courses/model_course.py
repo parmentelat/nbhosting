@@ -573,17 +573,17 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         # initialize and merge all
         yaml_config = self.merge_settings(yaml_configs)
 
-        if 'notebook-url-format' in yaml_config['general']:
+        if 'general' in yaml_config and 'notebook-url-format' in yaml_config['general']:
             self.notebook_url_format = yaml_config['general']['notebook-url-format']
 
         self.static_mappings = (
             StaticMapping.defaults()
-            if not yaml_config['static-mappings']
+            if not yaml_config.get('static-mappings', None)
             else [StaticMapping(D['source'], D['destination'])
                 for D in yaml_config['static-mappings']
             ])
 
-        self.builds = [ Build(D) for D in yaml_config['builds'] ]
+        self.builds = [ Build(D) for D in yaml_config.get('builds', []) ]
 
         self._yaml_config = yaml_config
         return True
