@@ -236,25 +236,30 @@ a few more words
   i.e. this will sync e.g. /nbhosting/prod.otherbox into /nbhosting/prod
   which will be much faster than using pull, which does the same but over the network
 
-* pull-from-prod otherbox.inria.fr (or from-dev)
-  in order to really sync the other box's prod tree locally
-  do this once the service has been turned down 
+* nginx-down
+  set the 'down' flag to 1 in the nginx conf, and restart nginx that way
+  nginx will then unconditionnally display a 'under maintenance' page
+  this change will be undone by the next install.sh
+
+  NOTE: makes sense to also stop the nbh-django service, 
+  and to make sure all containers are stopped 
+  (use the monitor with a small idle time)
 
 * swap-ip-down become-prod (or become-dev)
   the current box will cease to bind the IP address for dev (resp. prod)
 
-* swap-ip-up become-prod (or become-dev)
-  the current box will bind the IP address for prod (resp. dev)
+* pull-from-prod otherbox.inria.fr (or from-dev)
+  in order to really sync the other box's prod tree locally
+  do this once the service has been turned down 
 
 * swap-sitesettings become-prod (or become-dev)
 
 * swap-contents become-prod (or become-dev)
   only change the current/ symlink in /nbhosting
 
-* nginx-down
-  set the 'down' flag to 1 in the nginx conf, and restart nginx that way
-  nginx will then unconditionnally display a 'under maintenance' page
-  this change will be undone by the next install.sh
+* swap-ip-up become-prod (or become-dev)
+  the current box will bind the IP address for prod (resp. dev)
+
 "
 
 
