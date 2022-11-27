@@ -28,7 +28,7 @@ from nbhosting.stats.stats import Stats
 
 # podman containers come in 2 flavours
 
-# first call to containers.list() returns a list of 
+# first call to containers.list() returns a list of
 # objects whose attrs attribute is a dict that contains
 
 HighlevelContainer = Dict
@@ -123,7 +123,7 @@ class MonitoredJupyter:
 
     def port_number(self):
         try:
-            return self.container.attrs['Ports'][0]['hostPort']
+            return self.container.attrs['Ports'][0]['host_port']
         except Exception:
             logger.exception(f"Cannot locate port number for {self}")
             return 0
