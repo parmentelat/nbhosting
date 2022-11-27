@@ -1,3 +1,10 @@
+# 0.51.2 2022 Nov 27
+
+* align code with using podman-py release 4.3.0 from pypi
+* make sure to configure git safe-directory for git>=2.35
+* new script nbh-to-jb-toc.py as an attempt to automate
+  consistency between in nbhosting toc and jupyter-book toc
+
 # 0.51.1 2022 Sep 9
 
 * fix missing version in public/ page
