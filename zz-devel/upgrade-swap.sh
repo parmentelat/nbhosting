@@ -51,7 +51,7 @@ function -sanity-check() {
         echo -n "type 'yes' to proceed : "
         read answer
         [ "$answer" == "yes" ] || { echo "bye ..." ; exit 1; }
-    else 
+    else
         echo OK
     fi
 
@@ -86,7 +86,7 @@ function -pull-from() {
     local fqdn_host=$1; shift
     local simple_host=$(cut -d. -f1 <<< ${fqdn_host})
 
-    case "$mode" in 
+    case "$mode" in
       prod|dev) ;;
       *) -die "wrong mode $mode" ;;
     esac
@@ -230,9 +230,9 @@ USAGE="not a valid subcommand - use either
 HELP="
 a few more words
 
-* fasttrack-from-prod otherbox.inria.fr (or from-dev) 
+* fasttrack-from-prod otherbox.inria.fr (or from-dev)
   in order to make the first sync
-  it takes advantage of the prod.otherhost folder that is a (nightly crontab) local mirror 
+  it takes advantage of the prod.otherhost folder that is a (nightly crontab) local mirror
   i.e. this will sync e.g. /nbhosting/prod.otherbox into /nbhosting/prod
   which will be much faster than using pull, which does the same but over the network
 
@@ -241,8 +241,8 @@ a few more words
   nginx will then unconditionnally display a 'under maintenance' page
   this change will be undone by the next install.sh
 
-  NOTE: makes sense to also stop the nbh-django service, 
-  and to make sure all containers are stopped 
+  NOTE: makes sense to also stop the nbh-django service,
+  and to make sure all containers are stopped
   (use the monitor with a small idle time)
 
 * swap-ip-down become-prod (or become-dev)
@@ -250,7 +250,7 @@ a few more words
 
 * pull-from-prod otherbox.inria.fr (or from-dev)
   in order to really sync the other box's prod tree locally
-  do this once the service has been turned down 
+  do this once the service has been turned down
 
 * swap-sitesettings become-prod (or become-dev)
 
