@@ -1,0 +1,100 @@
+cd /nbhosting/current/students
+
+ME=cb6eb98639b2cc3305a497c4ef20ff7c
+
+function reload() { source /root/nbh-migrate-to-md ; }
+
+function set-notebook() {
+    local ipynb=$(basename $1); shift
+    dir=$(cut -d- -f1 <<< $ipynb)
+    # NOT local
+    notebook=$dir/$ipynb
+    noext=$(sed -e 's,\.ipynb,,' -e 's,\.md,,' -e 's,\.py,,' <<< $notebook)
+    stem=$(basename $noext)
+    show-notebook
+}
+
+function show-notebook() {
+    echo notebook=$notebook --- dir=$dir - noext=$noext - stem=$stem
+}
+
+
+function extract-ipynbs() {
+    ls -1 */{python3-s2,python-mooc}/${dir}/${stem}.ipynb 2> /dev/null | grep '^[0-9a-f]*/'
+}
+
+function extract-mds() {
+    ls -1 */{python3-s2,python-mooc}/${dir}/${stem}.md 2> /dev/null | grep '^[0-9a-f]*/'
+}
+
+function extract-pys() {
+    ls -1 */{python3-s2,python-mooc}/${dir}/${stem}.py 2> /dev/null | grep '^[0-9a-f]*/'
+}
+
+function extract-both() {
+    ls -1 */{python3-s2,python-mooc}/${dir}/${stem}.{ipynb,md} 2> /dev/null | grep '^[0-9a-f]*/'
+}
+
+function mooc-students() {
+    students=$(ls -1d */python3-s2 | grep '^[0-9a-f]*/' | sed -e s,/python3-s2,,)
+    echo "students variable holds $(wc -w <<< $students) words"
+}
+
+function convert() {
+    echo starting conversion of $notebook as markdown on $(date)
+    /root/nbh-jupytext.py -p $notebook python3-s2 python-mooc $students >& /root/CONVERT
+    echo ended conversion of $notebook as markdown on $(date)
+}
+
+function convert-batch() {
+    for todo in "$@"; do
+        local stem=$(basename $todo)
+        nohup /root/nbh-jupytext.py -l $todo python3-s2 python-mooc $students >& /root/CONVERT-${stem} &
+        echo kicked off background conversion as markdown from file $todo
+    done
+}
+
+function show-last-ipynbs() {
+    extract-ipynbs | xargs ls -lrt | tail -10
+}
+
+function how-many-ipynbs {
+    local nbipynbs=$(extract-ipynbs | wc -l)
+    echo $nbipynbs ipynbs found for $notebook
+}
+function how-many-mds {
+    local nbmds=$(extract-mds | wc -l)
+    echo $nbmds mds found for $notebook
+}
+function how-many-pys {
+    local nbpys=$(extract-pys | wc -l)
+    echo $nbpys pys found for $notebook
+}
+function how-many() { how-many-ipynbs; how-many-mds; }
+
+function progress() {
+    local done=$(grep Updating /root/CONVERT | wc -l)
+    echo "$done students have been converted in /root/CONVERT"
+}
+
+function progress-batch() {
+    for todo in "$@"; do 
+        local stem=$(basename $todo)
+        local done=$(grep Updating /root/CONVERT-${stem} | wc -l)
+        echo "$done students have been converted in /root/CONVERT-${stem}"
+    done
+}
+
+function how-many-batch() {
+    local todo=$1; shift
+    local notebooks=$(cat $todo)
+    local nb
+    for nb in $notebooks; do
+        set-notebook $nb
+        how-many
+    done
+}
+
+
+[ -z "$students" ] && { echo WARNING: run mooc-students to populate your students variable; }
+
