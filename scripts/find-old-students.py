@@ -48,7 +48,7 @@ def main():
     parser.add_argument("folders", nargs="+")
     args = parser.parse_args()
 
-    cut = args.cut
+    cut = args.cut.date()
 
     total = 0
     counter = 0
