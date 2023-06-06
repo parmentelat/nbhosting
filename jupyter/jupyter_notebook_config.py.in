@@ -9,6 +9,10 @@ c.NotebookApp.ip = '*'
 c.NotebookApp.port = 8888
 c.NotebookApp.open_browser = False
 
+# remove nb6 warning about forthcoming nb7
+# https://discourse.jupyter.org/t/how-to-disable-message-banner-in-notebook-6-5-4/19422
+c.NotebookApp.show_banner=False
+
 # allow other websites to embed as a frame
 # https://github.com/jupyter/notebook/issues/1256
 
