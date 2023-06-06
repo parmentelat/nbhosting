@@ -352,7 +352,8 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
 
     def update_user_workspace(self, user:User, *,
                               course_hash=None, user_workspace=None,
-                              quiet_mode=False, do_pull=False):
+                              quiet_mode=False, do_pull=False,
+                              reset_if_needed=False, always_reset=False):
         """
         allows to inspect or update a user's workspace
 
@@ -386,20 +387,31 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         if course_hash == user_hash:
             myqprint(f"OK student {user.username}")
             return
-        if self.does_current_hash_have(course_hash, user.username, user_hash):
-            myqprint(f"OK> student {user.username}")
-            return
-        if not do_pull:
-            print(f"!! {self.coursename}/{user.username} is behind on {user_hash}")
-            return
-        # here we are in a position to try an reconcile the student's repo
-        # with upstream
-        # for now we go for an external shell script that is easier
-        # to develop in incremental deployment mode
-        command = (f"nbh-pull-student {'-q' if quiet_mode else ''}"
-                   f" {self.coursename} {user.username} {user_workspace} "
-                   f" {course_hash} {user_hash}")
-        os.system(command)
+        if always_reset:
+            command = ( f"nbh-pull-student"
+                        f" -R"
+                        f" {'-q' if quiet_mode else ''}"
+                        f" {self.coursename} {user.username} {user_workspace} "
+                        f" {course_hash} {user_hash}")
+            os.system(command)
+        else:
+            if self.does_current_hash_have(course_hash, user.username, user_hash):
+                myqprint(f"OK> student {user.username}")
+                return
+            # if we set only reset, this means to pull
+            if not (do_pull or reset_if_needed):
+                print(f"!! {self.coursename}/{user.username} is behind on {user_hash}")
+                return
+            # here we are in a position to try an reconcile the student's repo
+            # with upstream
+            # for now we go for an external shell script that is easier
+            # to develop in incremental deployment mode
+            command = (f"nbh-pull-student"
+                    f" {'-r' if reset_if_needed else ''}"
+                    f" {'-q' if quiet_mode else ''}"
+                    f" {self.coursename} {user.username} {user_workspace} "
+                    f" {course_hash} {user_hash}")
+            os.system(command)
         # check again
         new_hash = self.current_hash(user.username)
         if new_hash == course_hash:

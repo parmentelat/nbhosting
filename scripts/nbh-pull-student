@@ -1,9 +1,10 @@
 #!/bin/bash
 
 COMMAND="$(basename $0)"
-USAGE="$COMMAND [-q] [-s] coursename username user_workspace course_hash user_hash"
+USAGE="$COMMAND [-q] [-r] coursename username user_workspace course_hash user_hash"
 QUIET=""
-
+RESET_IF_NEEDED=""
+ALWAYS_RESET=""
 
 function echoq() {
     [ -n "$QUIET" ] && return
@@ -18,9 +19,11 @@ function exitq() {
 
 function main() {
 
-    while getopts "qs" option; do
+    while getopts "qrR" option; do
         case $option in
             q) QUIET="true" ;;
+            r) RESET_IF_NEEDED="true" ;;
+            R) ALWAYS_RESET="true" ;;
         esac
     done
     shift $((OPTIND-1))
@@ -60,9 +63,18 @@ function main() {
         $SUDO git config pull.rebase &>> /dev/null || $SUDO git config --global pull.rebase false
     }
 
+    echoq "=== $username/$coursename"
+
     init-git-in-student-space
 
-    echoq "=== $username/$coursename"
+    log-header git fetch --all
+    $SUDO git fetch --all &>> $LOG
+
+    [[ -n "$ALWAYS_RESET" ]] && {
+        $SUDO git reset --hard origin/$branch &>> $LOG
+        echoq " (0: always reset)"
+        exitq 0
+    }
 
     echoq " (1: ff)"
     log-header git pull fast-forward
@@ -82,11 +94,15 @@ function main() {
         exitq 0
     }
 
+    [[ -n "$RESET_IF_NEEDED" ]] && {
+        $SUDO git reset --hard origin/$branch &>> $LOG
+        echoq "(3: reset because needed)"
+        exitq 0
+    }
+
     # when we reach this point it means that git pull did not work it out
     # by itself so we have some student changes on the way
     # so we compute the set of files that can be a problem
-    log-header git fetch --all
-    $SUDO git fetch --all &>> $LOG
     ancestor=$(git merge-base origin/$branch $user_hash)
     function assess_damages() {
         # local changes
@@ -119,7 +135,7 @@ function main() {
         local commit_message="WIP - nbh is committing $nb_local_changes local files"
         log-header git commit -m$commit_message
         $SUDO git commit -m"$commit_message" &>> $LOG
-        echoq "created local commit $commit_message"
+        echoq " created local commit $commit_message"
     fi
     log-header git merge --commit -m$merge_message
     $SUDO git merge origin/$branch --commit -m"$merge_message" &>> $LOG

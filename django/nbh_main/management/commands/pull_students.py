@@ -60,7 +60,12 @@ class Command(BaseCommand):
 
         parser.add_argument("-p", "--pull", action='store_true', default=False,
                             help="perform git pull in the students' workspaces")
-
+        parser.add_argument("-r", "--reset-if-needed", action='store_true', default=False,
+                            help="if a proper merge cannot be done, will do a reset --hard in the students' workspaces -"
+                                 " DANGER: ALL their local changes will get lost forever")
+        parser.add_argument("-R", "--always-reset", action='store_true', default=False,
+                            help="does a reset --hard in the students' workspaces no matter what -"
+                                 " DANGER: ALL their local changes will get lost forever")
         parser.add_argument("-s", "--student",
                             dest='students', action='append', default=[],
                             help="student patterns")
@@ -85,6 +90,8 @@ class Command(BaseCommand):
         else:
             staff_selector = {'staff', 'student'}
         do_pull = kwargs['pull']
+        reset_if_needed = kwargs['reset_if_needed']
+        always_reset = kwargs['always_reset']
         quiet_mode = kwargs['quiet']
         pull_course = kwargs['pull_course']
 
@@ -118,5 +125,7 @@ class Command(BaseCommand):
                 coursedir.update_user_workspace(
                     user, user_workspace=workspace, course_hash=course_hash,
                     do_pull=do_pull,
+                    reset_if_needed=reset_if_needed,
+                    always_reset=always_reset,
                     quiet_mode=quiet_mode)
         return 0
