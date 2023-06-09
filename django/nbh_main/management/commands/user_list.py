@@ -47,8 +47,8 @@ class Command(BaseCommand):
         parser.add_argument(
             "-l", "--list", action="count", default=0,
             dest="verbose",
-            help=("Give more output. Option is additive, and can be used up to 3 "
-                  "times."),
+            help=("Give more output. "
+                  "Option is additive, and can be used up to 3 times."),
         )
         parser.add_argument(
             "pattern", nargs='*',
@@ -56,6 +56,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         patterns = kwargs['pattern']
+        verbose = kwargs['verbose']
         if not patterns:
             patterns = ['*']
-        list_users(patterns, kwargs['verbose'])
+        list_users(patterns, verbose)

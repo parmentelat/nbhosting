@@ -21,7 +21,7 @@ def list_courses_groups(patterns, verbose):
     for coursedir in CourseDir.objects.all():
         if not matching_policy(coursedir.coursename, patterns):
             continue
-        if not verbose:
+        if verbose == 0:
             print(coursedir.coursename)
             continue
         groups = coursedir.registered_groups.all()
@@ -41,7 +41,7 @@ def list_courses_users(patterns, verbose):
     for coursedir in CourseDir.objects.all():
         if not matching_policy(coursedir.coursename, patterns):
             continue
-        if not verbose:
+        if verbose == 0:
             print(coursedir.coursename)
             continue
         users = sorted({user for user in coursedir.i_registered_users()},
@@ -62,7 +62,7 @@ def list_courses_staffs(patterns, verbose):
     for coursedir in CourseDir.objects.all():
         if not matching_policy(coursedir.coursename, patterns):
             continue
-        if not verbose:
+        if verbose == 0:
             print(coursedir.coursename)
             continue
         # a staff is just a plain str
@@ -96,8 +96,8 @@ class Command(BaseCommand):
         parser.add_argument(
             "-l", "--list", action="count", default=0,
             dest='verbose',
-            help=("Give more output. Option is additive, and can be used up to 3 "
-                  "times."),
+            help=("Give more output. "
+                  "Option is additive, and can be used up to 3 times."),
         )
         parser.add_argument(
             "-g", "--groups", default=False, action="store_true",
