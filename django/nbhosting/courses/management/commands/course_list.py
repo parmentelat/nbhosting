@@ -192,6 +192,7 @@ class Command(BaseCommand):
             if verbose >= 3:
                 line += f"{cd.nb_registered_users():>3}u "
                 line += f"{cd.giturl}"
+                line += f"@{cd.current_branch()}"
             if image_exists is False:
                 escape = chr(27)
                 line = f"{escape}[1m{escape}[31m{line}{escape}[0m"

@@ -775,6 +775,16 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         return result
 
 
+    def current_branch(self):
+        """
+        returns branch name of the source repo in courses-dir
+        """
+        directory = self.git_dir
+        command=['git', '-C', str(directory), 'rev-parse', '--abbrev-ref', 'HEAD']
+        return subprocess.run(
+            command, capture_output=True, check=False).stdout.decode().strip()
+
+
     def current_hash(self, student=None):
         """
         returns full hash of current commit, either in the student's
