@@ -699,7 +699,7 @@ local course_GIT_norm=$(cd $COURSE_git; pwd -P)
     command="$command
                 $image
                 start-in-dir-as-uid.sh /home/jovyan $STUDENT_uid
-                jupyter notebook
+                jupyter lab
                 --ip=0.0.0.0
                 --no-browser
                 --NotebookApp.notebook_dir=/home/jovyan/work
