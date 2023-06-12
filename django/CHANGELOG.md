@@ -1,3 +1,11 @@
+# 0.52.1 2023 Jun 12
+
+* spawns the notebook server as `jupyter lab` and no longer `jupyter notebook`
+* this does not change anything from a user perspective, as the URL used to open
+  a notebook is defined in the notebook-url-format
+* but it does help to open jlab pages, that otherwise end up on a password page
+  (go figure...)
+
 # 0.52.0 2023 Jun 9
 
 * new command `find-old-students.py` spots students that had no recent activity
