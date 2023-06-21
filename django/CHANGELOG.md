@@ -1,3 +1,9 @@
+# 0.52.2 2023 Jun 21
+
+* in preparation for jlab4 and nb7, the server is started as
+  `jupyter lab` and no longer `jupyter notebook`
+* the classic notebook takes all the horizontal space
+
 # 0.52.1 2023 Jun 12
 
 * spawns the notebook server as `jupyter lab` and no longer `jupyter notebook`
