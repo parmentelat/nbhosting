@@ -133,11 +133,15 @@ http {
                  autoindex on;
         }
 
-        # more harmful than helpful at least during devel
-        # redirect non-matching urls to /welcome
-       location / {
+        # redirect empty path
+        location = / {
             return 301 $scheme://$host/welcome;
         }
+# more harmful than helpful at least during devel
+# redirect non-matching urls to /welcome
+#        location / {
+#            return 301 $scheme://$host/welcome;
+#        }
 
 
         # edxfront.views.edx_request will redirect to a URL

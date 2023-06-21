@@ -61,8 +61,8 @@ urlpatterns = [
     re_path(rf'^auditor/notebook/{COURSE_TRACK}(/{NOTEBOOK})?/?$',
                         nbhosting.courses.views_auditor.auditor_show_notebook),
     # more harmful than helpful at least during devel
-    re_path(rf'^auditor.*',
-                        nbh_main.views.welcome),
+    # re_path(rf'^auditor.*',
+    #                     nbh_main.views.welcome),
 
     # teacher views for managing contents
     re_path(rf'^teacher/droparea/{COURSE}/{DROPAREA}/?$',
