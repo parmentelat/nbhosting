@@ -1,0 +1,30 @@
+{
+  "rise": {
+    "enable_chalkboard": true,
+    "reveal_shortcuts": {
+      "main": {
+        "firstSlide": "shift-left",
+        "lastSlide": "shift-right"
+      }
+    }
+  },
+  "toc2": {
+    "threshold": "3"
+  },
+  "courselevels": {
+    "define_keyboard_shortcuts": false,
+    "create_menubar_buttons": false,
+    "basic_color": "#b2f7ef",
+    "intermediate_color": "#7bdff2",
+    "advanced_color": "#f92a82"
+  },
+  "load_extensions": {
+    "nbdime/index": false,
+    "splitcell/splitcell": true,
+    "rise/main": true,
+    "toc2/main": true,
+    "hide_input/main": true,
+    "courselevels/index": true,
+    "k3d/extension": true
+  }
+}
