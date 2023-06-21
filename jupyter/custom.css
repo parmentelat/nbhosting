@@ -218,3 +218,8 @@ div.licence {
     justify-content: space-between;
     align-items: center;
 }
+
+/* notebook classic: take all the horizontal space */
+#notebook-container.container {
+    width: 100%;
+}
