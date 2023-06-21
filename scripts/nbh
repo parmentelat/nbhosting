@@ -270,20 +270,10 @@ function course-update-from-git() {
             echo "========== skipped non-existent static $toplevel"
         fi
     done
-    ##### jupyter
+
     echo "========== syncing the jupyter area"
-    [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
-    for file in jupyter_notebook_config.py custom.js custom.css; do
-        [ -f $COURSE_jupyter/$file ] || touch $COURSE_jupyter/$file
-    done
-    [ -f $COURSE_git/.nbhosting/nbconfig/notebook.json ] && {
-        mkdir -p $COURSE_jupyter/nbconfig
-        $rsync $COURSE_git/.nbhosting/nbconfig/notebook.json $COURSE_jupyter/nbconfig/notebook.json
-    }
-    [ -f $COURSE_git/.nbhosting/labconfig/default_setting_overrides.json ] && {
-        mkdir -p $COURSE_jupyter/labconfig
-        $rsync $COURSE_git/.nbhosting/labconfig/default_setting_overrides.json $COURSE_jupyter/labconfig/default_setting_overrides.json
-    }
+    --course-update-jupyter $course
+
     return 0
 
 }
@@ -296,28 +286,59 @@ function -check-course() {
 }
 
 
-# a lot to say here:
-# * it's unclear if we need to do the rsync here or not
-#   some course might wish to provide their own custom*
-# * the copy into a course-dependant location
-#   looks extraneous but it might come in handy some day
-# * finally this layout is painfully confusing..
+##### jupyter
+# 2023 06 new approach entirely
+#   we take
+# (1) the contents of jupyter/ (as shipped with the nbhosting repo)
+#   and we overwrite that with
+# (2) the contents of .nbhosting/jupyter/ if that exists in the repo
+#   and finally we overwrite that with
+# (3) the contents of jupyter_notebook_config.py
+#    (as per local settings applied on jupyter_notebook_settings.py.in)
 #
-function -check-course-jupyter() {
+# note that
+# * jupyter_notebook_config.py.in is actually expansed by the install script
+# * for jupyter_notebook_config.py at least, we must ensure it is genuine
+#   for security reasons as it contains filtering rules
+# * other useful config files (like e.g nbconfig/notebook.json) can be shipped
+#   in nbhosting's jupyter area, and in that case they serve as a default
+#   which can this time be overridden by the course
+#
+# also on a temporary basis, we allow the old naming scheme, i.e.
+# .nbhosting/nbconfig/notebook.json
+#   is used if present as if it were in
+# .nbhosting/jupyter/nbconfig/notebook.json
+# and same for labconfig/default_setting_overrides.json
+
+function --course-update-jupyter() {
     local USAGE="Usage: $COMMAND $FUNCNAME course"
     [ "$#" -eq 1 ] || -die $USAGE
     course=$1; shift
     -compute-course-globals $course
     [ -d $COURSE_jupyter ] || mkdir -p $COURSE_jupyter
-    # temporary : if we find a file named 'DETACHED' in $NBHROOT/jupyter/course/
-    # then we leave that alone; otherwise, keep that in sync with our sources
-    if [ -f $COURSE_jupyter/DETACHED ]; then
-        -echo-stderr "Leaving jupyter material for $course intact (DETACHED found)"
-    else
-        for file in jupyter_notebook_config.py custom.js custom.css; do
-            rsync -tp $NBHROOT/jupyter/$file $COURSE_jupyter/
-        done
+
+    # temporary: start with the old names
+    # the new names will take precedence
+    function old-naming-scheme() {
+        local path="$1"
+        local oldfile=$COURSE_git/.nbhosting/$path
+        local newfile=$COURSE_jupyter/$path
+        if [[ -f $oldfile ]]; then
+            local newdir=$(dirname $newfile)
+            [[ -d $newdir ]] || mkdir -p $newdir
+            cp $oldfile $newfile
+        fi
+    }
+    old-naming-scheme nbconfig/notebook.json
+    old-naming-scheme labconfig/default_setting_overrides.json
+
+    # apply the 3 layers
+    rsync -rltp $NBHROOT/jupyter/.template/ $COURSE_jupyter/
+    # rsync the whole contents of the git repo
+    if [[ -d $COURSE_git/.nbhosting/jupyter ]]; then
+        rsync -rltp $COURSE_git/.nbhosting/jupyter/ $COURSE_jupyter/
     fi
+    rsync -tp $NBHROOT/jupyter/.template/jupyter_notebook_config.py $COURSE_jupyter/
 }
 
 
@@ -560,7 +581,7 @@ function run-container-for-student-in-course() {
     }
 
     # update jupyter_notebook_config.py and the 2 custom files
-    -check-course-jupyter $course
+    -course-update-jupyter $course
 
     local jupyter_token=$container
 
@@ -648,27 +669,27 @@ function run-container-for-student-in-course() {
     # this one is to prevent the conmon process from being added in the systemd cgroup
     # https://github.com/containers/libpod/issues/6549
     unset INVOCATION_ID
+    # mount the files under $COURSE_jupyter individually as ro
+    # this way the container can create other files in this area
+    MOUNTS=""
+    for config in $(find $COURSE_jupyter -type f); do
+        local basename=$(basename $file)
+        local relpath=$(echo ${config} | sed -e "s|${COURSE_jupyter}||")
+        MOUNTS="${MOUNTS} -v ${config}:/home/jovyan/.jupyter/${relpath}:ro"
+    done
     command="podman run --name $container
                 -p $port:8888
                 --user root
                 --rm --detach
                 --memory=$container_max_memory
                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
+                $MOUNTS
                 -v $STUDENT_course:/home/jovyan/work
-                -v $COURSE_jupyter/jupyter_notebook_config.py:/home/jovyan/.jupyter/jupyter_notebook_config.py:ro
-                -v $COURSE_jupyter:/home/jovyan/.jupyter/custom:ro
                 -v $COURSE_modules:/home/jovyan/modules:ro
                 -v $COURSE_static:/home/jovyan/static:ro
                 -v $COURSE_git:$COURSE_git:ro
                 -e PYTHONPATH=/home/jovyan/modules
 "
-# allow to customize nbconfig/notebook.json if present in the course under .nbhosting/
-[ -f $COURSE_jupyter/nbconfig/notebook.json ] && \
-    command="$command -v $COURSE_jupyter/nbconfig/notebook.json:/home/jovyan/.jupyter/nbconfig/notebook.json:ro"
-
-# allow to customize labconfig/default_setting_overrides.json if present in the course under .nbhosting/
-[ -f $COURSE_jupyter/labconfig/default_setting_overrides.json ] && \
-    command="$command -v $COURSE_jupyter/labconfig/default_setting_overrides.json:/home/jovyan/.jupyter/labconfig/default_setting_overrides.json:ro"
 
 # for using jlab/git from inside a student container
 # because NBHROOT and hence COURSE_git might be a symlink
@@ -795,7 +816,7 @@ function container-view-student-course-notebook() {
     ## just in case is was never done before
     -check-course $course
     # update jupyter_notebook_config.py and the 2 custom files
-    -check-course-jupyter $course
+    --course-update-jupyter $course
 
     ## in case the student is not known yet
     add-student-in-course $student $course || {
@@ -834,7 +855,7 @@ function container-view-student-course-jupyterdir() {
     ## just in case is was never done before
     -check-course $course
     # update jupyter_notebook_config.py and the 2 custom files
-    -check-course-jupyter $course
+    --course-update-jupyter $course
 
     getent passwd $student >& /dev/null || {
         -echo-stderr "refusing to open jupyterdir session for unknown student $student"
