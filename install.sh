@@ -60,13 +60,19 @@ function update-bins() {
 }
 
 function update-jupyter() {
+    # update this
+    local installed=$nbhroot/jupyter/.template
+    mkdir -p $installed
+    # from the git sources
+    rsync $rsopts --delete jupyter/ $installed/
     # expand frame_ancestors
     # need to go through a file script; sigh
-    echo "s|@frame_ancestors@|${frame_ancestors[@]}|" > jupyter/ancestors.sed
-    sed -f jupyter/ancestors.sed \
-        jupyter/jupyter_notebook_config.py.in > jupyter/jupyter_notebook_config.py
-    mkdir -p $nbhroot/jupyter
-    rsync $rsopts jupyter/ $nbhroot/jupyter/
+    local sed_script=$(mktemp)
+    echo "s|@frame_ancestors@|${frame_ancestors[@]}|" > $sed_script
+    sed -f $sed_script \
+        jupyter/jupyter_notebook_config.py.in > $installed/jupyter_notebook_config.py
+    # tmp - clean up sequels of previous mechanism
+    rm -f $nbhroot/jupyter/{custom.*,ancestors.sed,jupyter_notebook_config.py*}
 }
 
 function update-uwsgi() {
