@@ -65,7 +65,7 @@ http {
     # configuration of the server
     server {
 
-        # manually set this to 1 for showing 
+        # manually set this to 1 for showing
         # a 'down for maintenance' message
         set $down 0;
 
