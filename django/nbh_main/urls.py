@@ -16,10 +16,10 @@ import nbhosting.stats.views
 import nbh_main.views                                # pylint: disable=wrong-import-order
 
 TRACK =       r'(?P<track>[^/]*)'
-COURSE =      r'(?P<course>[\w\d_.-]+)'
-STUDENT =     r'(?P<student>[\w\d_.-]+)'
-GROUP =       r'(?P<group>[\w\d_.-]+)'
-DROPAREA =    r'(?P<droparea>[\w\d_.-]+)'
+COURSE =      r'(?P<course>\w[\w\d_.-]*)'
+STUDENT =     r'(?P<student>\w[\w\d_.-]*)'
+GROUP =       r'(?P<group>\w[\w\d_.-]*)'
+DROPAREA =    r'(?P<droparea>\w[\w\d_.-]*)'
 # being very loose / flexible for the spelling of <notebook>
 # (for supporting e.g. spaces in filenames)
 # requires the non-greedy version of .+
