@@ -79,7 +79,7 @@ div#maintoolbar-container {
     display: inline-block;
     vertical-align: top;
     /* top right bottom left */
-    margin: 5px 20px 0px -12px;
+    margin: 5px 20px 0px 4px;
     padding: 5px 0px 0px 12px;
     border: 0px;
     min-height: 25px;
