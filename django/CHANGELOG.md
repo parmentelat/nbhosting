@@ -1,3 +1,10 @@
+# 0.52.3 2023 Jun 28
+
+* tweak presentation of nbhosting:title as version is no longer used
+* course names can contain digits - not as the first char though
+* wildcard rule that redirects all the unknown traffic to /welcome
+  is removed; only / goes to /welcome, and let others trigger 404
+
 # 0.52.2 2023 Jun 21
 
 * in preparation for jlab4 and nb7, the server is started as
