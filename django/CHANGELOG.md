@@ -28,7 +28,6 @@
 * remove the `nb6` banner that warns about forthcoming `nb7` breakage of extensions
 * `nbh-manage pull-student` has 2 new options to do a hard reset in the student's space
 
-
 # 0.51.2 2022 Nov 27
 
 * align code with using podman-py release 4.3.0 from pypi
