@@ -556,6 +556,7 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         'tracks-filter': [],
         'static-mappings': [],
         'builds': [],
+        'builds-filter': [],
     }
 
     # by default, merging means update dictionaries and extend lists
@@ -565,6 +566,8 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         # it will overwrite/supersede - not extend - any
         # setting done in the course itself
         'tracks-filter': 'overwrite',
+        # same for builds-filter
+        'builds-filter': 'overwrite',
     }
 
     def _probe_settings_yaml(self):
@@ -595,7 +598,15 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
                 for D in yaml_config['static-mappings']
             ])
 
-        self.builds = [ Build(D) for D in yaml_config.get('builds', []) ]
+        self.builds = [Build(D) for D in yaml_config.get('builds', [])]
+        # if one needs to remove all builds, it won't work to set builds-filter to []
+        # because this is considered as the default value for builds-filter
+        # just define builds-filter with a list that contains a non-existing build id
+        if 'builds-filter' in yaml_config:
+            filter = yaml_config['builds-filter']
+            if filter:
+                self.builds = [build for build in self.builds 
+                            if build.id in filter]
 
         self._yaml_config = yaml_config
         return True
