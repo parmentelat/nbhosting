@@ -1,3 +1,20 @@
+# 0.52.4 2023 Aug 26
+
+* add support for builds-filter in courses yaml config
+* revisit course jupyter customization
+  * the nbhosting repo comes with decent defaults in the jupyter/ folder
+    * custom.css and custom.js have moved under jupyter/custom/
+    * predefined labconfig/ and nbconfig/
+  * these are automatically inherited by courses as they provide 
+    reasonable defaults
+  * but can be overridden in the .nbhosting/jupyter folder if needed
+    (using the same layout)
+  * except for jupyter_notebook_config.py :
+    the nbhosting version takes precedence as it contains security-oriented settings
+
+  * in the mix, we change the layout of
+    nbhroot/jupyter/ to accomodate for the above
+
 # 0.52.3 2023 Jun 28
 
 * tweak presentation of nbhosting:title as version is no longer used
