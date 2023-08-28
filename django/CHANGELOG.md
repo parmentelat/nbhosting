@@ -1,3 +1,13 @@
+# 0.52.5 2023 Aug 28
+
+* nbh-manage build-images accepts a -t option to specify a tag
+* since this is intended for frozen images,
+  running build-images with no tag just rebuilds the `latest` tag
+* this is intended for "frozen" jupyter images, like the ones
+  that we tag 'nb6' that we will keep on using for MOOCs at least
+  for the time being, until a more elaborate jupyterlab-nbhosting
+  extension is available
+
 # 0.52.4 2023 Aug 26
 
 * add support for builds-filter in courses yaml config
