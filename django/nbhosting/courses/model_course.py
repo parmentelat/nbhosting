@@ -605,7 +605,7 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         if 'builds-filter' in yaml_config:
             filter = yaml_config['builds-filter']
             if filter:
-                self.builds = [build for build in self.builds 
+                self.builds = [build for build in self.builds
                             if build.id in filter]
 
         self._yaml_config = yaml_config
@@ -687,6 +687,21 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
         show_and_run(f"cd {image_dir}; "
                      f"podman build {force_tag} -f Dockerfile -t {image} .",
                      dry_run=dry_run)
+
+    def run_image_details(self):
+        """
+        spawns a container and execute a command to get details
+        on the various versions inside the container
+        rough - outputs in the terminal
+        """
+        commands = []
+        commands.append("python --version")
+        commands.append("jupyter --version")
+        commands.append("pip freeze | grep ==")
+        bundle = ';'.join(commands)
+        overall = f"podman run --rm {self.image} bash -cx '{bundle}'"
+        print(overall)
+        os.system(overall)
 
 
     def list_builds(self, build_patterns):
