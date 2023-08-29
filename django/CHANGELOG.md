@@ -1,3 +1,8 @@
+# 0.52.6 2023 Aug 29
+
+* new command `nbh-manage course-image-details` to display the versions
+  inside a course image
+
 # 0.52.5 2023 Aug 28
 
 * nbh-manage build-images accepts a -t option to specify a tag
