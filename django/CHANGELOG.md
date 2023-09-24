@@ -1,4 +1,4 @@
-# 0.53.0 2023 Sep 24
+# 0.53.1 2023 Sep 24
 
 * build instances can define a `readthedocs_url` field in their yaml config to
   specify an alternate URL where to find that build
