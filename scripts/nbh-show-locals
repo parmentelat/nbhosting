@@ -1,20 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 shopt -s globstar
 
-[ -d /nbhosting/current ] || {
-    echo "WARNING : using hard-wired NBHROOT=/nbhosting/current - not found - exiting"
+NBHROOT=${NBHROOT:=/nbhosting/current}
+
+[ -d "${NBHROOT}" ] || {
+    echo "WARNING : NBHROOT=${NBHROOT} - not found - exiting"
     exit 1
 }
 
-[ -d /nbhosting/current/local ] || {
-    echo "no change - dir /nbhosting/current/local not found"
+[ -d ${NBHROOT}/local ] || {
+    echo "no change - dir ${NBHROOT}/local not found"
     exit 0
 }
 
 echo ============================== local config
 
-cd /nbhosting/current/local
+cd ${NBHROOT}/local
 
 if [ -z "$@" ]; then
     courses="*"
@@ -27,7 +29,7 @@ function show-locals-for-course() {
     pushd $course >& /dev/null
     echo ==================== course $course
     for file in **/*; do
-        local official="/nbhosting/current/courses-git/$course/.nbhosting/$file"
+        local official="${NBHROOT}/courses-git/$course/.nbhosting/$file"
         local localfile="$(pwd)/$file"
         if [[ "$file" == "Dockerfile" ]]; then
             if [[ ! -f "$official" ]]; then
@@ -50,5 +52,3 @@ function show-locals-for-course() {
 for course in $courses; do
     show-locals-for-course $course
 done
-
-    
