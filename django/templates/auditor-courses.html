@@ -10,6 +10,10 @@ all courses
 all courses
 {% endblock %}
 
+{% block external_dependencies %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
 
 {% block breadcrumb %}
 <ol class="breadcrumb">
@@ -56,7 +60,7 @@ all courses
       url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"><path fill-opacity="0.5" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"></path></svg>');
   }
 
-  
+
   span.button>a.btn {
       background-color: white;
   }
@@ -69,7 +73,7 @@ all courses
   span.build>a.btn:hover {
     color: green;
   }
-  
+
   span.build {
     align-self: flex-end;
   }
@@ -99,11 +103,18 @@ all courses
     {% endfor %}
     {% for build in course_dir.latest_builds %}
     <span class="build button">
-      <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true" 
-         title="{{build.description}}"
+      <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
+         title="prebuilt: {{build.description}}"
          href="/builds/{{course_dir}}/{{build.id}}/latest/">
          {{build.name}}
       </a>
+      {% if build.readthedocs_url %}
+        <a class='btn btn-outline-info btn-sm m-1' data-toggle="tooltip" data-html="true"
+          title="alternative location for {{build.name}} on {{build.readthedocs_url}}"
+          href="{{build.readthedocs_url}}">
+          <i class="fas fa-book"></i>
+        </a>
+      {% endif %}
     </span>
     {% endfor %}
   </div>
