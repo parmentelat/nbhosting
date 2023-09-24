@@ -36,15 +36,16 @@ class YamlRecord:                                # pylint: disable=too-few-publi
                 setattr(self, field, self.DEFAULTS[field])
 
 
-class Build(YamlRecord):                         # pylint: disable=too-few-public-methods
+class Build(YamlRecord):                    # pylint: disable=too-few-public-methods
     DEFAULTS = {
-        'name': None,                   # shows up in the UI
-        'id': "{self.name}",            # to appear under the builds/ subdir and URLs
-        'description': "",              # ditto as a tooltip
+        'name': None,                       # shows up in the UI
+        'id': "{self.name}",                # to appear under the builds/ subdir and URLs
+        'description': "",                  # ditto as a tooltip
         'script': None,
-        'directory': '.',               # where to run relative to repo
-        'result_folder': '_build/html', # default is for sphinx
-        'entry_point': 'index.html',    # what to expose to the outside
+        'directory': '.',                   # where to run relative to repo
+        'result_folder': '_build/html',     # default is for sphinx
+        'entry_point': 'index.html',        # what to expose to the outside
+        'readthedocs_url':  "",             # if set, will be used as a URL
     }
 
     # pylint: disable=no-member

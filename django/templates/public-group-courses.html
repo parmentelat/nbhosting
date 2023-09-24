@@ -10,6 +10,10 @@
 readonly - {{groupname}}
 {% endblock %}
 
+{% block external_dependencies %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
 <!-- breadcrumb only for logged users -->
 {% block breadcrumb %}
 <ol class="breadcrumb">
@@ -66,6 +70,14 @@ readonly - {{groupname}}
   span.build>a.btn:hover {
     color: green;
   }
+
+  <!-- div.course>span.course>span.btn {
+    cursor: initial;
+  } -->
+  div.course>span.course>span.btn-outline-info:hover {
+    <!-- background-color: initial; -->
+  }
+
 </style>
 {% endblock %}
 
@@ -76,12 +88,9 @@ readonly - {{groupname}}
     {% if course_dir.l_latest_builds|length > 0 %}
       <div class="course p-3 m-3 {{course_dir.archived_class}}">
         <span class="course">
-          <!--- point at the first one -->
-          <a class='btn btn-info btn-lg'
-            href="/builds/{{course_dir}}/{{course_dir.l_latest_builds.0.id}}/latest/"
-            data-toggle="tooltip" data-html="true" title="builds for {{course_dir.coursename}}">
+          <span class="btn btn-lg" disabled="true">
             {{course_dir.coursename}}
-          </a>
+          </span>
         </span>
         {% for build in course_dir.latest_builds %}
           <span class="build button">
@@ -90,6 +99,13 @@ readonly - {{groupname}}
               href="/builds/{{course_dir}}/{{build.id}}/latest/">
               {{build.name}}
             </a>
+            {% if build.readthedocs_url %}
+              <a class='btn btn-outline-info btn-sm m-1' data-toggle="tooltip" data-html="true"
+                title="alternative location for {{build.name}} on {{build.readthedocs_url}}"
+                href="{{build.readthedocs_url}}">
+                <i class="fas fa-book"></i>
+              </a>
+            {% endif %}
           </span>
         {% endfor %}
       </div>
