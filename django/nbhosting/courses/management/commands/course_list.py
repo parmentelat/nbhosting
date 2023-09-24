@@ -54,6 +54,14 @@ def list_courses_users(patterns, verbose):
         for user in users:
             print(user.username)
 
+def list_courses_builds(patterns, verbose):
+    for coursedir in CourseDir.objects.all():
+        if not matching_policy(coursedir.coursename, patterns):
+            continue
+        coursedir.probe()
+        for build in coursedir.builds:
+            print(f"{coursedir.coursename} {build}")
+
 
 def list_courses_staffs(patterns, verbose):
     """
@@ -86,7 +94,7 @@ class Command(BaseCommand):
     without argument it lists all courses; with arguments
     it lists all course whose name contains any of the tokens;
 
-    example: nbh-manage courses-list python bio
+    example: nbh-manage course-list python bio
 
     could output: bioinfo mines-python-primer
     python-slides python-mooc
@@ -106,6 +114,10 @@ class Command(BaseCommand):
         parser.add_argument(
             "-u", "--users", default=False, action="store_true",
             help="only list users affiliated through at least one group",
+        )
+        parser.add_argument(
+            "-b", "--builds", default=False, action="store_true",
+            help="list builds",
         )
         parser.add_argument(
             "-s", "--staffs", default=False, action="store_true",
@@ -132,6 +144,7 @@ class Command(BaseCommand):
         patterns = kwargs['patterns']
         users_mode = kwargs['users']
         groups_mode = kwargs['groups']
+        builds_mode = kwargs['builds']
         staffs_mode = kwargs['staffs']
         verbose = kwargs['verbose']
         podman_flag = kwargs['podman']
@@ -142,6 +155,10 @@ class Command(BaseCommand):
 
         if groups_mode:
             list_courses_groups(patterns, verbose)
+            return
+
+        if builds_mode:
+            list_courses_builds(patterns, verbose)
             return
 
         if staffs_mode:
