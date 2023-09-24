@@ -1,3 +1,8 @@
+# 0.53.0 2023 Sep 24
+
+* build instances can define a `readthedocs_url` field in their yaml config to
+  specify an alternate URL where to find that build
+
 # 0.52.6 2023 Aug 29
 
 * new command `nbh-manage course-image-details` to display the versions
