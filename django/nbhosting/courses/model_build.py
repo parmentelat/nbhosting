@@ -45,7 +45,7 @@ class Build(YamlRecord):
         'directory': '.',                   # where to run relative to repo
         'result_folder': '_build/html',     # default is for sphinx
         'entry_point': 'index.html',        # what to expose to the outside
-        'readthedocs_url':  "",                # if set, will be used as a URL
+        'external_url':  "",                # if set, will be used as a URL
     }
 
     def __init__(self, yaml_d, coursedir):
@@ -73,4 +73,4 @@ class Build(YamlRecord):
         return None
 
     def has_buttons_to_expose(self):
-        return self.has_latest() or self.readthedocs_url
+        return self.has_latest() or self.external_url

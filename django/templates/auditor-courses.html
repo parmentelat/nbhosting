@@ -115,10 +115,10 @@ all courses
                   {{build.name}}
                 </a>
               {% endif %}
-              {% if build.readthedocs_url %}
+              {% if build.external_url %}
                 <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
-                  title="{{build.description}} <div class='tiny'>at {{build.readthedocs_url}}</div>"
-                  href="{{build.readthedocs_url}}">
+                  title="{{build.description}} <div class='tiny'>at {{build.external_url}}</div>"
+                  href="{{build.external_url}}">
                     {% if not build.has_latest %}
                       {{build.name}}
                     {% else %}
