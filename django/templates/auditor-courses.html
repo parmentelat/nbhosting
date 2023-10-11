@@ -78,6 +78,10 @@ all courses
     align-self: flex-end;
   }
 
+  .tiny {
+    font-size: 7px;
+  }
+
 </style>
 {% endblock %}
 
@@ -85,40 +89,48 @@ all courses
 {% block content %}
 <div class="courses-box m-3">
   {% for course_dir in course_dirs %}
-  {% with course_dir.tracks.0.id as main_trackid %}
-  <div class="course p-3 m-3 {{course_dir.archived_class}}">
-    <span class="course">
-      <a class='btn btn-info btn-lg' href='/auditor/notebook/{{course_dir.coursename}}:{{main_trackid}}/'
-        data-toggle="tooltip" data-html="true" title="pick one of the <br>{{course_dir.tracks | length}} tracks below">
-        {{course_dir.coursename}}
-      </a>
-    </span>
-    {% for track in course_dir.tracks %}
-    <span class="track button">
-      <a class='btn btn-outline-primary btn-sm m-1' data-toggle="tooltip" data-html="true" title="{{track.description}}"
-        href="/auditor/notebook/{{course_dir.coursename}}:{{track.id}}">
-        {{ track.name }}
-      </a>
-    </span>
-    {% endfor %}
-    {% for build in course_dir.latest_builds %}
-    <span class="build button">
-      <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
-         title="prebuilt: {{build.description}}"
-         href="/builds/{{course_dir}}/{{build.id}}/latest/">
-         {{build.name}}
-      </a>
-      {% if build.readthedocs_url %}
-        <a class='btn btn-outline-info btn-sm m-1' data-toggle="tooltip" data-html="true"
-          title="alternative location for {{build.name}} on {{build.readthedocs_url}}"
-          href="{{build.readthedocs_url}}">
-          <i class="fas fa-book"></i>
-        </a>
-      {% endif %}
-    </span>
-    {% endfor %}
-  </div>
-  {% endwith %}
+    {% with course_dir.tracks.0.id as main_trackid %}
+      <div class="course p-3 m-3 {{course_dir.archived_class}}">
+        <span class="course">
+          <a class='btn btn-info btn-lg' href='/auditor/notebook/{{course_dir.coursename}}:{{main_trackid}}/'
+            data-toggle="tooltip" data-html="true" title="pick one of the <br>{{course_dir.tracks | length}} tracks below">
+            {{course_dir.coursename}}
+          </a>
+        </span>
+        {% for track in course_dir.tracks %}
+          <span class="track button">
+            <a class='btn btn-outline-primary btn-sm m-1' data-toggle="tooltip" data-html="true" title="{{track.description}}"
+              href="/auditor/notebook/{{course_dir.coursename}}:{{track.id}}">
+              {{ track.name }}
+            </a>
+          </span>
+        {% endfor %}
+        {% for build in course_dir.builds %}
+          {% if build.has_buttons_to_expose %}
+            <span class="build button">
+              {% if build.has_latest %}
+                <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
+                  title="prebuilt: {{build.description}}"
+                  href="/builds/{{course_dir}}/{{build.id}}/latest/">
+                  {{build.name}}
+                </a>
+              {% endif %}
+              {% if build.readthedocs_url %}
+                <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
+                  title="{{build.description}} <div class='tiny'>at {{build.readthedocs_url}}</div>"
+                  href="{{build.readthedocs_url}}">
+                    {% if not build.has_latest %}
+                      {{build.name}}
+                    {% else %}
+                      <i class="fas fa-book"></i>
+                    {% endif %}
+                </a>
+              {% endif %}
+            </span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endwith %}
   {% endfor %}
 </div>
 {% endblock %}

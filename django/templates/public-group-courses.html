@@ -45,7 +45,7 @@ readonly - {{groupname}}
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   /* the first build */
@@ -78,6 +78,10 @@ readonly - {{groupname}}
     <!-- background-color: initial; -->
   }
 
+  .tiny {
+    font-size: 7px;
+  }
+
 </style>
 {% endblock %}
 
@@ -85,28 +89,36 @@ readonly - {{groupname}}
 {% block content %}
 <div class="courses-box m-3">
   {% for course_dir in course_dirs %}
-    {% if course_dir.l_latest_builds|length > 0 %}
+    {% if course_dir.has_build_buttons %}
       <div class="course p-3 m-3 {{course_dir.archived_class}}">
         <span class="course">
           <span class="btn btn-lg" disabled="true">
             {{course_dir.coursename}}
           </span>
         </span>
-        {% for build in course_dir.latest_builds %}
-          <span class="build button">
-            <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
-              title="{{build.description}}"
-              href="/builds/{{course_dir}}/{{build.id}}/latest/">
-              {{build.name}}
-            </a>
-            {% if build.readthedocs_url %}
-              <a class='btn btn-outline-info btn-sm m-1' data-toggle="tooltip" data-html="true"
-                title="alternative location for {{build.name}} on {{build.readthedocs_url}}"
-                href="{{build.readthedocs_url}}">
-                <i class="fas fa-book"></i>
+        {% for build in course_dir.builds %}
+          {% if build.has_buttons_to_expose %}
+            <span class="build button">
+            {% if build.has_latest %}
+              <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
+                title="{{build.description}}"
+                href="/builds/{{course_dir}}/{{build.id}}/latest/">
+                {{build.name}}
               </a>
             {% endif %}
-          </span>
+            {% if build.readthedocs_url %}
+              <a class='btn btn-outline-success btn-sm m-1' data-toggle="tooltip" data-html="true"
+                title="{{build.description}} <div class='tiny'>at {{build.readthedocs_url}}</div>"
+                href="{{build.readthedocs_url}}">
+                  {% if not build.has_latest %}
+                    {{build.name}}
+                  {% else %}
+                    <i class="fas fa-book"></i>
+                  {% endif %}
+              </a>
+            {% endif %}
+            </span>
+          {% endif %}
         {% endfor %}
       </div>
     {% endif %}

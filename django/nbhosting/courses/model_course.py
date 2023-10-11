@@ -598,7 +598,7 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
                 for D in yaml_config['static-mappings']
             ])
 
-        self.builds = [Build(D) for D in yaml_config.get('builds', [])]
+        self.builds = [Build(D, self) for D in yaml_config.get('builds', [])]
         # if one needs to remove all builds, it won't work to set builds-filter to []
         # because this is considered as the default value for builds-filter
         # just define builds-filter with a list that contains a non-existing build id
@@ -733,6 +733,10 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
 
         return True if build is done or redone successfully
         """
+
+        if not build.script:
+            logger.warning(f"build {build.name} has no script - skipping")
+            return False
 
         coursename = self.coursename
         githash = self.current_hash()
@@ -910,25 +914,10 @@ class CourseDir(models.Model):                  # pylint: disable=too-many-publi
             **run_args)
 
 
-    def find_build(self, id):
-        for build in self.builds:
-            if build.id == id:
-                return build
-
-    def latest_builds(self):
+    def has_build_buttons(self):
         """
-        iterates over the latest/ found in this course's builds/ area
+        returns True if the course has at least one build
+        with at least one build button
         """
         self.probe()
-        for latest in self.build_dir.glob("*/latest"):
-            # test existence of index.html ? (I think not)
-            # test for successful build ? (I think not)
-            id = latest.parts[-2]
-            if build := self.find_build(id):
-                yield build
-
-    def l_latest_builds(self):
-        """
-        same as latest_builds but as a list - for use in jinja
-        """
-        return list(self.latest_builds())
+        return any(build.has_buttons_to_expose() for build in self.builds)

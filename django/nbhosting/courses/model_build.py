@@ -36,17 +36,21 @@ class YamlRecord:                                # pylint: disable=too-few-publi
                 setattr(self, field, self.DEFAULTS[field])
 
 
-class Build(YamlRecord):                    # pylint: disable=too-few-public-methods
+class Build(YamlRecord):
     DEFAULTS = {
         'name': None,                       # shows up in the UI
         'id': "{self.name}",                # to appear under the builds/ subdir and URLs
         'description': "",                  # ditto as a tooltip
-        'script': None,
+        'script': "",
         'directory': '.',                   # where to run relative to repo
         'result_folder': '_build/html',     # default is for sphinx
         'entry_point': 'index.html',        # what to expose to the outside
-        'readthedocs_url':  "",             # if set, will be used as a URL
+        'readthedocs_url':  "",                # if set, will be used as a URL
     }
+
+    def __init__(self, yaml_d, coursedir):
+        self.coursedir = coursedir
+        super().__init__(yaml_d)
 
     # pylint: disable=no-member
     def __repr__(self):
@@ -55,3 +59,18 @@ class Build(YamlRecord):                    # pylint: disable=too-few-public-met
         description_part = desc if len(desc) < 20 else f"{desc[:17]}..."
         return (f"Build {self.id}{name_part}"
                 f" in directory {self.directory} desc:{description_part}")
+
+    def _topdir(self):
+        return self.coursedir.build_dir / self.id
+
+    def has_latest(self):
+        """
+        returns a directory Path object, or None
+        """
+        latest = (self._topdir() / 'latest')
+        if latest.exists() and latest.is_dir():
+            return latest
+        return None
+
+    def has_buttons_to_expose(self):
+        return self.has_latest() or self.readthedocs_url
