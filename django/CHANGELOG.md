@@ -1,3 +1,16 @@
+# 0.54.0 2023 Oct 11
+
+builds no longer require a script
+- make room for dummy redirection sites like
+  e.g. ue22-p22-networking that comes with only
+  the URLs to Basile's website
+- build with no script won't trigger
+- the auditor-courses and public-group-courses pages
+  now display properly builds when they have either
+  a successful script, or an external url
+- at this point the external urls are still called
+  readthedocs_url, but this will change soon
+
 # 0.53.1 2023 Sep 24
 
 * build instances can define a `readthedocs_url` field in their yaml config to
