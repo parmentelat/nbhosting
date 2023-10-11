@@ -1,3 +1,7 @@
+# 0.54.1 2023 Oct 11
+
+* redthedocs_url -> external_url
+
 # 0.54.0 2023 Oct 11
 
 builds no longer require a script
