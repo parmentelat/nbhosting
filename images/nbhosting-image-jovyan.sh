@@ -54,4 +54,11 @@ pip install -U ipythontutor
 # jupyterlab
 pip install -U jupyterlab
 # and its git extension (no post-install required since jupyterlab-v3)
+# looks like it's broken within jlab4 ?
 pip install -U jupyterlab-git
+
+
+# probably useful to all courses just as jupytext
+# pip install -U jupyterlab-myst
+# once this is in better shape
+# pip install -U jupyterlab-nbhosting
