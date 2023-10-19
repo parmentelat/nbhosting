@@ -581,7 +581,7 @@ function run-container-for-student-in-course() {
     }
 
     # update jupyter_notebook_config.py and the 2 custom files
-    -course-update-jupyter $course
+    --course-update-jupyter $course
 
     local jupyter_token=$container
 
