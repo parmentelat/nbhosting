@@ -1,3 +1,9 @@
+# 0.54.2 2023 Oct 19
+
+* bugfix in /usr/bin/nbh, was missing a dash in a call to --course-update-jupyter
+* I wonder how this can have gone unnoticed for so long
+* worth being noted, happened after an upgrade to f38
+
 # 0.54.1 2023 Oct 11
 
 * redthedocs_url -> external_url
