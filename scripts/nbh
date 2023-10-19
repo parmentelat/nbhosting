@@ -673,7 +673,7 @@ function run-container-for-student-in-course() {
     # this way the container can create other files in this area
     MOUNTS=""
     for config in $(find $COURSE_jupyter -type f); do
-        local basename=$(basename $file)
+        # local basename=$(basename $file)
         local relpath=$(echo ${config} | sed -e "s|${COURSE_jupyter}||")
         MOUNTS="${MOUNTS} -v ${config}:/home/jovyan/.jupyter/${relpath}:ro"
     done
