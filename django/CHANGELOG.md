@@ -1,3 +1,7 @@
+# 0.54.3 2023 Nov 1
+
+* publish on pypi
+
 # 0.54.2 2023 Oct 19
 
 * bugfix in /usr/bin/nbh, was missing a dash in a call to --course-update-jupyter
