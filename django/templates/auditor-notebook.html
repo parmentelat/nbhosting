@@ -678,7 +678,13 @@ function select_classic(top, header) {
   </div>
 
   <div id="iframe-container" class="transitionable">
-    <iframe id="nbhosting-jupyter" height="100%" width="100%" src="{{iframe}}" onload="focus_iframe()">
+    <iframe
+      id="nbhosting-jupyter"
+      height="100%" width="100%"
+      src="{{iframe}}"
+      onload="focus_iframe()"
+      allow="clipboard-write"
+    >
     </iframe>
   </div>
 </div>
