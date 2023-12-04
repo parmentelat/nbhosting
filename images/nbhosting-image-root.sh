@@ -27,6 +27,7 @@ apt-get install -y rsync
 
 
 # --------
+# xxx this will soon be obsolete...
 # hacks for jupyter itself
 # (*) disable check done when saving files - see https://github.com/jupyter/notebook/issues/484
 # (*) disable the 'Trusted' notification widget
