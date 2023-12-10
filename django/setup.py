@@ -34,6 +34,8 @@ setup(
         'jupytext',
         'aiohttp',
         'podman',
+        'rich',        # this is for podman, should not be needed, see also
+                       # https://github.com/containers/podman/issues/20964
         'redis',
         'nbstripout', # for course-pull
     ],
