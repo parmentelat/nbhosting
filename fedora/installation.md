@@ -640,3 +640,11 @@ This one-shot move might be a little more awkward than usual; double-check
 * that you rebuild all images after having tweaked `podmanroot`
 * optionnally that you clean up the previous containers image location
   (`/nbhosting/dockers` by default)
+
+## notes on upgrading to fedora39
+
+* after upgrading to f39, somehow `/etc/containers/storage.conf` had lost its `graphroot` !
+* missing requirement for 'rich' (added in our setup.py)
+* interface names:
+  * review `nbhosting-addr.service` and `nbhosting-dev-addr.service`  
+    and make sure to use the right native interface names (as arping does not seem to cope with aliases)
