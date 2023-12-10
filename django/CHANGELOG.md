@@ -1,3 +1,12 @@
+# 0.55.0 2023 Dec 10
+
+* the content of the stock images is reviewed for being to use nb7
+  * fewer implicit dependencies
+* see .nbhosting/Dockerfile in flotpython/course
+  for instructions on how to adapt your Dockerfile
+  if moving over from nbclassic
+* other courses may need to add a few pip installs in their Dockerfile
+
 # 0.54.3 2023 Nov 1
 
 * publish on pypi
@@ -52,7 +61,7 @@ builds no longer require a script
   * the nbhosting repo comes with decent defaults in the jupyter/ folder
     * custom.css and custom.js have moved under jupyter/custom/
     * predefined labconfig/ and nbconfig/
-  * these are automatically inherited by courses as they provide 
+  * these are automatically inherited by courses as they provide
     reasonable defaults
   * but can be overridden in the .nbhosting/jupyter folder if needed
     (using the same layout)
