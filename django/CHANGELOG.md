@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.55.1 2023 Dec 10
+
+* suitable for fedora 39
+  was just missing an explicit dep. to 'rich' in setup.py
+  which should have come with podman-py
+
 ## 0.55.0 2023 Dec 10
 
 * the content of the stock images is reviewed for being to use nb7
