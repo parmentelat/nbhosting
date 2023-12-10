@@ -1,8 +1,10 @@
 # For more information on configuration, see:
 #   * Official English Documentation: http://nginx.org/en/docs/
+#   * Official Russian Documentation: http://nginx.org/ru/docs/
 
 user nginx;
 worker_processes auto;
+# error_log /var/log/nginx/error.log notice;
 pid /run/nginx.pid;
 
 # turn off dynamic modules. See /usr/share/nginx/README.dynamic.
@@ -35,7 +37,7 @@ http {
     tcp_nopush          on;
     tcp_nodelay         on;
     keepalive_timeout   65;
-    types_hash_max_size 2048;
+    # types_hash_max_size 2048;
 
     include             /etc/nginx/mime.types;
     default_type        application/octet-stream;
@@ -101,6 +103,7 @@ http {
 
 
         # remove painful msg
+        types_hash_max_size 4096;
         types_hash_bucket_size 4096;
 
         # max upload size
