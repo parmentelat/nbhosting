@@ -762,7 +762,7 @@ function -wait-for-http-on-port-token() {
     local start=$(date +%s)
     local max=$(($start+$timeout))
     -echo-stderr "checking port against ss"
-    ss --numeric --tcp --listening | egrep -q ":$port[ \t]"
+    ss --numeric --tcp --listening | grep -q -E ":$port[ \t]"
     [ "$?" == 0 ] || -echo-stderr "OOPS - ss says port $port is busy !"
     while [ $(($(date +%s) <= $max)) == 1 ]; do
         # check that http is ready
@@ -1081,7 +1081,7 @@ function count-containers() {
 function count-users() {
     echo ========== USERS and GROUPS
     local users=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/passwd | grep -v '^nfsnobody' | wc -l)
-    local groups=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/group | egrep -v '^(nfsnobody|docker)' | wc -l)
+    local groups=$(grep '^[^:]*:[^:]*:[0-9][0-9][0-9][0-9]' /etc/group | grep -v -E '^(nfsnobody|docker)' | wc -l)
     echo "$users users in /etc/passwd - $groups groups in /etc/group"
     set -x
     tail -1 /etc/subuid
@@ -1147,7 +1147,7 @@ function admin-container-rm-all() {
 
 # we assume students hashes are 32 chars long
 function clear-etc-passwd() {
-    users=$(egrep '[0-9a-f]{32}' /etc/passwd | awk -F: '{print $1;}')
+    users=$(grep -E '[0-9a-f]{32}' /etc/passwd | awk -F: '{print $1;}')
     for user in $users; do
         echo "Removing user $user from /etc/passwd"
         del-student $user
