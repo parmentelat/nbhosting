@@ -41,6 +41,7 @@ setup(
                        # https://github.com/containers/podman/issues/20964
         'redis',
         'nbstripout',  # for course-pull
+        'pandas',      # for mass-register
     ],
     setup_requires=[],
     tests_require=[],
