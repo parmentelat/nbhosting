@@ -25,7 +25,9 @@
 #
 # we don't use DNS to swap because it is so slow to propagate
 # instead, each box has systemd services defined to take or release
-# the 2 addresses
+# the 2 addresses:
+# nbhosting-addr.service
+# nbhosting-dev-addr.service
 
 FULLPATH=$0
 COMMAND=$(basename $0)
@@ -260,7 +262,7 @@ a few more words
 * swap-ip-up become-prod (or become-dev)
   the current box will bind the IP address for prod (resp. dev)
 
-do not forget to re-run install.sh once everythong is done
+do not forget to re-run install.sh once everything is done
 so that nginx is enabled again
 
 "
