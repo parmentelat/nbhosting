@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.55.2 2024 Jan 16
+
+* miscell tweaks about using grep -E
+
 ## 0.55.1 2023 Dec 10
 
 * suitable for fedora 39
