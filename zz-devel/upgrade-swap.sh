@@ -215,7 +215,7 @@ function status() {
         systemctl is-enabled $service
     done
     echo '===== sitesettings configuration ====='
-    egrep '^(production_box)' $CONFIG
+    grep -E '^(production_box)' $CONFIG
     echo '===== data space ====='
     ls -l /nbhosting/current
 }
