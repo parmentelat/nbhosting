@@ -1,7 +1,7 @@
 # --------
-# using scipy, it's kinda big but that should not be a problem
-# base-notebook lacks at least numpy, widgets, so...
-FROM jupyter/scipy-notebook:@TAG@
+# circa beg. 2024 the official images are available
+# on quay.io and the ones on docker.io are no longer maintained
+FROM quay.io/jupyter/scipy-notebook:@TAG@
 
 
 # --------

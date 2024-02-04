@@ -3,7 +3,7 @@
 # use with -f to force rebuilding all images
 
 # refresh the latest ground images from github
-podman pull docker.io/jupyter/minimal-notebook docker.io/jupyter/scipy-notebook
+podman pull quay.io/jupyter/minimal-notebook quay.io/jupyter/scipy-notebook
 
 # rebuild the nbhosting versions of these 2
 nbh-manage build-images "$@"
