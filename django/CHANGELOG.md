@@ -1,12 +1,14 @@
 # ChangeLog
 
-## 0.56.0 2024 Feb 4
+## 0.56.1 2024 Feb 4
 
 * pull reference images from quay.io instead of docker.io
   as the latter are no longer maintained as per this statement
   > Images hosted on Docker Hub are no longer updated. Please, use quay.io
 
   https://quay.io/repository/jupyter/scipy-notebook
+* 0.56.0 was broken, do not use, because of the entrypoint
+  set in the upstream images that was not compatible with our
 
 ## 0.55.2 2024 Jan 16
 
