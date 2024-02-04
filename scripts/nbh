@@ -683,12 +683,12 @@ function run-container-for-student-in-course() {
                 --rm --detach
                 --memory=$container_max_memory
                 --env NBAUTOEVAL_LOG=/home/jovyan/work/.nbautoeval
+                --env PYTHONPATH=/home/jovyan/modules
                 $MOUNTS
                 -v $STUDENT_course:/home/jovyan/work
                 -v $COURSE_modules:/home/jovyan/modules:ro
                 -v $COURSE_static:/home/jovyan/static:ro
                 -v $COURSE_git:$COURSE_git:ro
-                -e PYTHONPATH=/home/jovyan/modules
 "
 
 # for using jlab/git from inside a student container
