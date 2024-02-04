@@ -51,7 +51,7 @@ function -echo-stdout() {
 
 -echo-stdout "checking for uid $uid"
 # create uid if missing
-# do not create homedir; this is because 
+# do not create homedir; this is because
 if getent passwd $uid > /dev/null; then
     # this uid already exists, let's figure what the login is
     login=$(getent passwd $uid | cut -d: -f1)
@@ -60,7 +60,7 @@ else
     useradd --uid $uid --no-create-home --shell /bin/bash $login
 fi
 
-# go to the place 
+# go to the place
 [ -d $dir ] || { printf "$0: no such directory $dir"; exit 1; }
 cd $dir
 # doing chown -R is overkill, and in fact a substantial fraction
