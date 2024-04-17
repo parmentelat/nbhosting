@@ -129,10 +129,17 @@ def build_image(request, course):
 
 @staff_member_required
 @csrf_protect
+def build_image_force(request, course):
+    return render_subprocess_stream(
+        request, course, "course-build-image", 'rebuilding image', True, "--force")
+
+
+@staff_member_required
+@csrf_protect
 def clear_staff(request, course):
     coursedir = CourseDir.objects.get(coursename=course)
     return render_subprocess_stream(
-        request, course, "course-clear-staff", 'clearing staff files', 
+        request, course, "course-clear-staff", 'clearing staff files',
         False, *coursedir.staffs)
 
 

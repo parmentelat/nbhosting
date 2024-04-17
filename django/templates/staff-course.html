@@ -154,6 +154,16 @@
     border-radius: 6px;
   }
 
+  .build-image {
+    display: flex;
+    justify-content: space-between;
+    &>a {
+      color: unset;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
 </style>
 {% endblock %}
 
@@ -321,13 +331,23 @@
                       </br>so you can redo your image</span>">
                   container image : <code>{{image}}</code></h3>
             {% if image == coursename %}
-            <a href='/staff/courses/build-image/{{coursename}}'
-              class='btn btn-info btn-lg btn-block {{coursedir.archived_class}}' data-toggle="tooltip" data-html="true"
+            <span 
+            class='btn btn-info btn-lg btn-block build-image {{coursedir.archived_class}}'
+            >
+              <a href='/staff/courses/build-image/{{coursename}}'
+                 data-toggle="tooltip" data-html="true"
+                title="<span class='smaller'>
+                        rebuild image for that course<br/>
+                        please be patient</span>">
+                rebuild image
+              </a>
+              <a href='/staff/courses/build-image-force/{{coursename}}'
+              data-toggle="tooltip" data-html="true"
               title="<span class='smaller'>
-                      rebuild image for that course<br/>
-                      please be patient</span>">
-              rebuild image
-            </a>
+                        same but rebuild unconditionally<br>i.e. even if already uptodate">
+                force
+              </a>
+            </span>
             {% endif %}
             <a href='/staff/courses/destroy-my-container/{{coursename}}' class='btn btn-danger btn-lg btn-block'
               data-toggle="tooltip" data-html="true"

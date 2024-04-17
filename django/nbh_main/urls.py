@@ -78,6 +78,8 @@ urlpatterns = [
                         nbhosting.courses.views_staff.update_from_git),
     re_path(rf'^staff/courses/build-image/{COURSE}/?$',
                         nbhosting.courses.views_staff.build_image),
+    re_path(rf'^staff/courses/build-image-force/{COURSE}/?$',
+                        nbhosting.courses.views_staff.build_image_force),
     re_path(rf'^staff/courses/destroy-my-container/{COURSE}/?$',
                         nbhosting.courses.views_staff.destroy_my_container),
     re_path(rf'^staff/courses/clear-staff/{COURSE}/?$',
