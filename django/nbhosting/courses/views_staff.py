@@ -2,12 +2,14 @@
 
 import json
 
+
 from django.shortcuts import render, get_object_or_404
 
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.admin.views.decorators import staff_member_required
 
+from nbh_main.settings import NBHROOT
 # from nbh_main.settings import logger
 
 from nbhosting.courses.model_course import CourseDir
@@ -80,37 +82,6 @@ def staff_show_course(request, course):
     return render(request, "staff-course.html", env)
 
 
-def render_subprocess_result(
-        request, course, subcommand, message, python, *args):
-    """
-    triggers a subprocess and displays results
-    in a web page with returncode, stdout, stderr
-
-    this can be either a call to
-    * plain nbh (for code written in bash) with managed=False
-    * or to nbh-manage for code written in python
-
-    """
-    coursedir = CourseDir.objects.get(coursename=course)
-    completed = coursedir.nbh_subprocess(subcommand, python, *args)
-    command = " ".join(completed.args)
-    # expose most locals, + the attributes of completed
-    # like stdout and stderr
-    env = dict(
-        nbh_version=nbh_version,
-        favicon_path=sitesettings.favicon_path,
-        course=course,
-        message=message,
-        command=command,
-        returncode=completed.returncode,
-        stdout=completed.stdout,
-        stderr=completed.stderr,
-    )
-    # the html title
-    template = "course-managed.html"
-    return render(request, template, env)
-
-
 def render_subprocess_stream(
         request, course, subcommand, message, python, *args):
     """
@@ -136,7 +107,7 @@ def render_subprocess_stream(
     command_json = json.dumps(command)
     command_string = " ".join(command)
 
-    print(f"in render_subprocess_stream {command_json=}")
+    # print(f"in render_subprocess_stream {command_json=}")
 
     # expose most locals, + the attributes of completed
     # like stdout and stderr
@@ -159,9 +130,9 @@ def render_subprocess_stream(
 @staff_member_required
 @csrf_protect
 def update_from_git(request, course):
-    return render_subprocess_result(
+    return render_subprocess_stream(
         request, course,
-        "course-update-from-git", 'updated', False)
+        "course-update-from-git", 'updating git repo', False)
 
 
 @staff_member_required
@@ -175,18 +146,18 @@ def build_image(request, course):
 @csrf_protect
 def clear_staff(request, course):
     coursedir = CourseDir.objects.get(coursename=course)
-    return render_subprocess_result(
+    return render_subprocess_stream(
         request, course,
-        "course-clear-staff", 'staff files cleared', False,
+        "course-clear-staff", 'clearing staff files', False,
         *coursedir.staffs)
 
 
 @staff_member_required
 @csrf_protect
 def show_tracks(request, course):
-    return render_subprocess_result(
+    return render_subprocess_stream(
         request, course,
-        "course-tracks", 'tracks recomputed', True)
+        "course-tracks", 'recomputing tracks', True)
 
 
 @staff_member_required
