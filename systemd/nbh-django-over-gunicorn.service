@@ -1,13 +1,15 @@
 [Unit]
 Description=the nbhosting django app as a gunicorn instance
 
-
+# the timeout is set to 500 seconds, which is the maximum allowed by nginx
+# see https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_read_timeout
+# this is for long-running requests, like when a course image is being built
 [Service]
 WorkingDirectory=/root/nbhosting/django
 ExecStart=/usr/local/bin/gunicorn nbh_main.wsgi \
 --name nbhosting \
 --workers 256 \
---timeout 60 \
+--timeout 500 \
 --user=root --group=root \
 --bind unix:/run/nbhosting.sock \
 --log-level debug \

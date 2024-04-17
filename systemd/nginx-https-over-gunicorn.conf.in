@@ -109,6 +109,10 @@ http {
         # max upload size
         client_max_body_size 50M;   # adjust to taste
 
+        # particularly for build-image and long builds
+        proxy_read_timeout 500s;
+
+
 
         # the URLS that go right to django, as-is
         # ipythonExercice: this is (1) in the architecture diagram
