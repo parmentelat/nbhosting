@@ -8,8 +8,7 @@ from django.http import StreamingHttpResponse, HttpResponseNotFound
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 
-# xxx for testing
-# @staff_member_required
+@staff_member_required
 @csrf_protect
 def run_process_and_stream_output(request):
     """
