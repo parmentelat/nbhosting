@@ -648,3 +648,11 @@ This one-shot move might be a little more awkward than usual; double-check
 * interface names:
   * review `nbhosting-addr.service` and `nbhosting-dev-addr.service`  
     and make sure to use the right native interface names (as arping does not seem to cope with aliases)
+
+## notes on installing git-lfs
+
+```bash
+# define the dnf repo
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | bash
+dnf install git-lfs
+```
