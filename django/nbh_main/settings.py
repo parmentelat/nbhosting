@@ -45,6 +45,7 @@ else:
 
     # have the static files served in devel mode
     STATICFILES_DIRS = (str(BASE_DIR / "assets"), )
+    print("DEVEL MODE IS ON")
     DEVEL = True
 
 NBHROOT = Path(sitesettings.nbhroot).resolve()

@@ -13,6 +13,7 @@ import nbhosting.courses.views_auditor
 import nbhosting.courses.views_staff
 import nbhosting.courses.views_teacher
 import nbhosting.stats.views
+import nbhosting.process.views
 import nbh_main.views                                # pylint: disable=wrong-import-order
 
 TRACK =       r'(?P<track>[^/]*)'
@@ -103,6 +104,8 @@ urlpatterns = [
     # this one is not reachable through nginx, mostly for devel
     re_path(rf'^welcome.*',
                         nbh_main.views.welcome),
+    re_path(rf'^process/run.*',
+                        nbhosting.process.views.run_process_and_stream_output),
     # empty url
     re_path(rf'^$',
                         nbh_main.views.welcome),

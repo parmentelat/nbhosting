@@ -1,0 +1,48 @@
+{% extends "nbhosting.html" %}
+
+{% block head_title %}
+{{course}} - {{message}}
+{% endblock %}
+
+
+{% block title %}
+Course {{course}}: {{message}}
+{% endblock %}
+
+
+{% block breadcrumb %}
+<ol class="breadcrumb staff">
+  <li class="breadcrumb-item"><a href="/staff/courses/">courses</a></li>
+  <li class="breadcrumb-item"><a href='/welcome/'>home</a></li>
+  <li class="breadcrumb-item auditor"><a href='/auditor/courses/'>courses</a></li>
+  <li class="breadcrumb-item auditor"><a href='/auditor/notebook/{{course}}'>{{course}}</a></li>
+</ol>
+{% endblock %}
+
+
+{% block content %}
+
+{% csrf_token %}
+
+<script src="/assets/js/process.js"></script>
+<script>
+  window.addEventListener('load', function() {
+    const command = JSON.parse('{{command_json|safe}}')
+    read_process_stream(command, 'process-output')
+  })
+</script>
+
+<div class='section'>
+  <a class="btn btn-lg btn-block btn-info"
+    href='/staff/course/{{course}}'>Back to {{course}}
+  </a>
+</div>
+
+
+<h1 class='page-header'>Status</h1>
+
+<div id="process-output">
+  <div id="command">running <code>{{command_string}}</code></div>
+</div>
+
+{% endblock %}

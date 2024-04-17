@@ -1,5 +1,7 @@
 # pylint: disable=c0111, w1203, r1705
 
+import json
+
 from django.shortcuts import render, get_object_or_404
 
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
@@ -78,9 +80,10 @@ def staff_show_course(request, course):
     return render(request, "staff-course.html", env)
 
 
-def render_subprocess_result(request, course,
-                             subcommand, message, python, *args):
-    """    triggers a subprocess and displays results
+def render_subprocess_result(
+        request, course, subcommand, message, python, *args):
+    """
+    triggers a subprocess and displays results
     in a web page with returncode, stdout, stderr
 
     this can be either a call to
@@ -108,6 +111,51 @@ def render_subprocess_result(request, course,
     return render(request, template, env)
 
 
+def render_subprocess_stream(
+        request, course, subcommand, message, python, *args):
+    """
+    same as result but with streaming output
+
+
+    this can be either a call to
+    * plain nbh (for code written in bash) with managed=False
+    * or to nbh-manage for code written in python
+
+    """
+    # not triggering the process here, but in the embedded JS
+    # coursedir = CourseDir.objects.get(coursename=course)
+    # completed = coursedir.nbh_subprocess(subcommand, python, *args)
+    # command = " ".join(completed.args)
+    # borrowed from nbh_subprocess instead
+    if not python:
+        command = ["nbh", "-d", str(NBHROOT)]
+    else:
+        command = [ "nbh-manage" ]
+    command += [subcommand, course] + list(args)
+
+    command_json = json.dumps(command)
+    command_string = " ".join(command)
+
+    print(f"in render_subprocess_stream {command_json=}")
+
+    # expose most locals, + the attributes of completed
+    # like stdout and stderr
+    env = dict(
+        nbh_version=nbh_version,
+        favicon_path=sitesettings.favicon_path,
+        course=course,
+        message=message,
+        command_json=command_json,
+        command_string=command_string,
+        # returncode=completed.returncode,
+        # stdout=completed.stdout,
+        # stderr=completed.stderr,
+    )
+    # the html title
+    template = "course-process.html"
+    return render(request, template, env)
+
+
 @staff_member_required
 @csrf_protect
 def update_from_git(request, course):
@@ -119,9 +167,8 @@ def update_from_git(request, course):
 @staff_member_required
 @csrf_protect
 def build_image(request, course):
-    return render_subprocess_result(
-        request, course,
-        "course-build-image", 'rebuilt', True)
+    return render_subprocess_stream(
+        request, course, "course-build-image", 'rebuilding image', True)
 
 
 @staff_member_required
