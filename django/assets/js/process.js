@@ -37,11 +37,13 @@ async function read_process_stream(command, elementId) {
                     element.appendChild(newdiv)
                 } else {
                     const retcod = data.retcod
-                    const classname = (retcod === 0) ? 'success' : 'error'
-                    element.classList.add(classname)
                     const newdiv = document.createElement('div')
-                    newdiv.innerText = `done with retcode=${retcod}`
+                    newdiv.classList.add("retcod")
+                    const message = (retcod === 0) ? "Success (retcod=0)" : `Failed with retcode=${retcod}`
+                    newdiv.innerText = message
                     element.appendChild(newdiv)
+                    const classname = (retcod === 0) ? 'success' : 'failure'
+                    element.classList.add(classname)
                 }
             }
         } catch (e) {

@@ -26,23 +26,52 @@ Course {{course}}: {{message}}
 
 <script src="/assets/js/process.js"></script>
 <script>
-  window.addEventListener('load', function() {
+  window.addEventListener('load', function () {
     const command = JSON.parse('{{command_json|safe}}')
     read_process_stream(command, 'process-output')
   })
 </script>
 
-<div class='section'>
-  <a class="btn btn-lg btn-block btn-info"
-    href='/staff/course/{{course}}'>Back to {{course}}
-  </a>
-</div>
+<div class="container-fluid nbh-body">
+  <div class='section'>
+    <a class="btn btn-lg btn-block btn-info" href='/staff/course/{{course}}'>Back to {{course}}
+    </a>
+  </div>
 
-
-<h1 class='page-header'>Status</h1>
-
-<div id="process-output">
-  <div id="command">running <code>{{command_string}}</code></div>
+  <style>
+    #running {
+      margin-top: 10px;
+      margin-left: 20px;
+    }
+    #process-output {
+      font-family: monospace;
+      margin: 0px 10px;
+      border-radius: 5px;
+      padding: 10px;
+      &.success {
+        background-color: rgb(192, 247, 192);
+      }
+      &.failure {
+        background-color: rgb(245, 186, 186);
+      }
+      & .stdout {
+        color: green;
+      }
+      & .stderr {
+        color: red;
+      }
+      & .retcod {
+        color: blue;
+      }
+    }
+  </style>
+  <h2 class="page-header">Course {{course}}: {{message}}</h2>
+  <div class="card">
+    <div class="card-block">
+      <h4 id="running" class="card-title">running <code>{{command_string}}</code></h4>
+      <div id="process-output"></div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

@@ -30,20 +30,9 @@ def run_process_and_stream_output(request):
     print(f" in run_process_and_stream_output: command={command}")
     def stream_output():
         with Popen(command, stdout=PIPE, stderr=PIPE) as process:
-            active = False
             sel = selectors.DefaultSelector()
-            if process.stdout and not process.stdout.closed:
-                sel.register(process.stdout, selectors.EVENT_READ)
-                active = True
-            if process.stderr and not process.stderr.closed:
-                sel.register(process.stderr, selectors.EVENT_READ)
-                active = True
-
-            if not active:
-                process.wait()
-                print(f"no active streams, {process.returncode=}")
-                yield json.dumps({'type': 'returncode', 'retcod': process.returncode}) + "\n"
-                return
+            sel.register(process.stdout, selectors.EVENT_READ)
+            sel.register(process.stderr, selectors.EVENT_READ)
 
             while True:
                 for key, _ in sel.select():
