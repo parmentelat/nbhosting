@@ -85,19 +85,13 @@ def staff_show_course(request, course):
 def render_subprocess_stream(
         request, course, subcommand, message, python, *args):
     """
-    same as result but with streaming output
-
+    returns a HTML page that contains a call to /process/run
+    so that the output gets streamed on the fly
 
     this can be either a call to
-    * plain nbh (for code written in bash) with managed=False
+    * plain nbh (for code written in bash) with python=False
     * or to nbh-manage for code written in python
-
     """
-    # not triggering the process here, but in the embedded JS
-    # coursedir = CourseDir.objects.get(coursename=course)
-    # completed = coursedir.nbh_subprocess(subcommand, python, *args)
-    # command = " ".join(completed.args)
-    # borrowed from nbh_subprocess instead
     if not python:
         command = ["nbh", "-d", str(NBHROOT)]
     else:
@@ -107,10 +101,6 @@ def render_subprocess_stream(
     command_json = json.dumps(command)
     command_string = " ".join(command)
 
-    # print(f"in render_subprocess_stream {command_json=}")
-
-    # expose most locals, + the attributes of completed
-    # like stdout and stderr
     env = dict(
         nbh_version=nbh_version,
         favicon_path=sitesettings.favicon_path,
@@ -118,11 +108,7 @@ def render_subprocess_stream(
         message=message,
         command_json=command_json,
         command_string=command_string,
-        # returncode=completed.returncode,
-        # stdout=completed.stdout,
-        # stderr=completed.stderr,
     )
-    # the html title
     template = "course-process.html"
     return render(request, template, env)
 
@@ -131,8 +117,7 @@ def render_subprocess_stream(
 @csrf_protect
 def update_from_git(request, course):
     return render_subprocess_stream(
-        request, course,
-        "course-update-from-git", 'updating git repo', False)
+        request, course, "course-update-from-git", 'updating git repo', False)
 
 
 @staff_member_required
@@ -147,17 +132,15 @@ def build_image(request, course):
 def clear_staff(request, course):
     coursedir = CourseDir.objects.get(coursename=course)
     return render_subprocess_stream(
-        request, course,
-        "course-clear-staff", 'clearing staff files', False,
-        *coursedir.staffs)
+        request, course, "course-clear-staff", 'clearing staff files', 
+        False, *coursedir.staffs)
 
 
 @staff_member_required
 @csrf_protect
 def show_tracks(request, course):
     return render_subprocess_stream(
-        request, course,
-        "course-tracks", 'recomputing tracks', True)
+        request, course, "course-tracks", 'recomputing tracks', True)
 
 
 @staff_member_required

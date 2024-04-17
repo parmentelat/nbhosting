@@ -1,6 +1,6 @@
 
 async function read_process_stream(command, elementId) {
-    console.log('read_process_stream', command, elementId)
+    // console.log('read_process_stream', command, elementId)
     const element = document.getElementById(elementId)
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
     const request = {
