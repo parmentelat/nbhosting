@@ -1,5 +1,13 @@
 # ChangeLog
 
+## 0.57.0 2024 Apr 18
+
+* increase timeouts for nginx and gunicorn to 500 s
+  to allow long-running processes like build-image to go through
+* a first stab at displaying processes outputs on the fly
+  used for course-management functions
+  not yet perfect, likely requires going aync on the django side
+
 ## 0.56.1 2024 Feb 4
 
 * pull reference images from quay.io instead of docker.io
