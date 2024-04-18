@@ -54,6 +54,9 @@ Course {{course}}: {{message}}
       &.failure {
         background-color: rgb(245, 186, 186);
       }
+      &.unknown {
+        background-color: lightgray;
+      }
       & .stdout {
         color: green;
       }
@@ -62,6 +65,9 @@ Course {{course}}: {{message}}
       }
       & .retcod {
         color: blue;
+      }
+      & .non-json {
+        color: orange;
       }
     }
   </style>
