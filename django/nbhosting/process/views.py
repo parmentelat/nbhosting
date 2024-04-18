@@ -5,6 +5,7 @@ import json
 from django.http import StreamingHttpResponse, HttpResponseNotFound
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
 
 # to split the output of a command into lines
 class LineBuffer:
@@ -21,6 +22,7 @@ class LineBuffer:
 
 @staff_member_required
 @csrf_protect
+@require_POST
 def run_process_and_stream_outputs(request):
     """
     this view allows to trigger a command and stream its output
@@ -33,8 +35,6 @@ def run_process_and_stream_outputs(request):
           - line: the line of output
     this view is reachable from POST only and should be used with CSRF protection
     """
-    if request.method != 'POST':
-        return HttpResponseNotFound()
     post_body = json.loads(request.body.decode())
     command = post_body['command']
     print(f" in run_process_and_stream_outputs: command={command}")
