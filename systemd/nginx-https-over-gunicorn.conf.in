@@ -131,6 +131,7 @@ http {
             # we don't want nginx trying to do something clever with
             # redirects, we set the Host: header above already.
             proxy_redirect off;
+            proxy_buffering off;
             proxy_pass http://django;
         }
 
