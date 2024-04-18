@@ -6,6 +6,19 @@ from django.http import StreamingHttpResponse, HttpResponseNotFound
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 
+# to split the output of a command into lines
+class LineBuffer:
+    def __init__(self, name):
+        self.name = name
+        self.content = ''
+    def append(self, char):
+        if char == '\n':
+            line, self.content = self.content, ''
+            return line
+        self.content += char
+        return None
+
+
 @staff_member_required
 @csrf_protect
 def run_process_and_stream_output(request):
@@ -26,23 +39,38 @@ def run_process_and_stream_output(request):
     command = data['command']
     print(f" in run_process_and_stream_output: command={command}")
     def stream_output():
-        with Popen(command, stdout=PIPE, stderr=PIPE) as process:
+        with Popen(command, stdout=PIPE, stderr=PIPE,
+                   text=True, bufsize=8) as process:
             sel = selectors.DefaultSelector()
             sel.register(process.stdout, selectors.EVENT_READ)
             sel.register(process.stderr, selectors.EVENT_READ)
+            buffers = {
+                process.stdout: LineBuffer('stdout'),
+                process.stderr: LineBuffer('stderr'),
+            }
 
+            # to know when to stop
+            channels = 2
             while True:
                 for key, _ in sel.select():
-                    data = key.fileobj.read1().decode()
+                    # read one character at a time
+                    data = key.fileobj.read(1)
+                    buffer = buffers[key.fileobj]
                     if not data:
-                        sel.unregister(process.stdout)
-                        sel.unregister(process.stderr)
+                        # close the channel
+                        sel.unregister(key.fileobj)
+                        channels -= 1
+                        # in case the process does not end with a newline
+                        if buffer.content:
+                            yield json.dumps({'type': buffer.name, 'line': buffer.content}) + "\n"
+                    # end when both channels are closed
+                    if not channels:
+                        sel.close()
                         process.wait()
                         yield json.dumps({'type': 'returncode', 'retcod': process.returncode}) + "\n"
                         return
-                    if key.fileobj is process.stdout:
-                        yield json.dumps({'type': 'stdout', 'text': data}) + "\n"
-                    else:
-                        yield json.dumps({'type': 'stderr', 'text': data}) + "\n"
+                    line = buffer.append(data)
+                    if line:
+                        yield json.dumps({'type': buffer.name, 'text': line}) + "\n"
 
     return StreamingHttpResponse(stream_output())
