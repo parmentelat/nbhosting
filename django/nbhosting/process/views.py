@@ -21,7 +21,7 @@ class LineBuffer:
 
 @staff_member_required
 @csrf_protect
-def run_process_and_stream_output(request):
+def run_process_and_stream_outputs(request):
     """
     this view allows to trigger a command and stream its output
     Parameters:
@@ -35,10 +35,10 @@ def run_process_and_stream_output(request):
     """
     if request.method != 'POST':
         return HttpResponseNotFound()
-    data = json.loads(request.body.decode())
-    command = data['command']
-    print(f" in run_process_and_stream_output: command={command}")
-    def stream_output():
+    post_body = json.loads(request.body.decode())
+    command = post_body['command']
+    print(f" in run_process_and_stream_outputs: command={command}")
+    def stream_outputs():
         with Popen(command, stdout=PIPE, stderr=PIPE,
                    text=True, bufsize=8) as process:
             sel = selectors.DefaultSelector()
@@ -73,4 +73,4 @@ def run_process_and_stream_output(request):
                     if line:
                         yield json.dumps({'type': buffer.name, 'text': line}) + "\n"
 
-    return StreamingHttpResponse(stream_output())
+    return StreamingHttpResponse(stream_outputs())

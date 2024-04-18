@@ -107,7 +107,7 @@ urlpatterns = [
     re_path(rf'^welcome.*',
                         nbh_main.views.welcome),
     re_path(rf'^process/run.*',
-                        nbhosting.process.views.run_process_and_stream_output),
+                        nbhosting.process.views.run_process_and_stream_outputs),
     # empty url
     re_path(rf'^$',
                         nbh_main.views.welcome),
