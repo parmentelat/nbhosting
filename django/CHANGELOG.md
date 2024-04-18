@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.57.1 2024 Apr 18
+
+* bypass nginx buffering on the streaming http response
+  so we do get the process outputs on the fly this time
+
 ## 0.57.0 2024 Apr 18
 
 * increase timeouts for nginx and gunicorn to 500 s
