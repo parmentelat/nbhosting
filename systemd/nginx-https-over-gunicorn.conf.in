@@ -131,7 +131,10 @@ http {
             # we don't want nginx trying to do something clever with
             # redirects, we set the Host: header above already.
             proxy_redirect off;
-            proxy_buffering off;
+            # this is useful on /process/run URL
+            # but probably not quite right on others
+            # so we use X-Accel-Buffering header instead
+            # proxy_buffering off;
             proxy_pass http://django;
         }
 

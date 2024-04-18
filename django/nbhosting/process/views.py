@@ -73,4 +73,11 @@ def run_process_and_stream_outputs(request):
                     if line:
                         yield json.dumps({'type': buffer.name, 'text': line}) + "\n"
 
-    return StreamingHttpResponse(stream_outputs())
+    return StreamingHttpResponse(
+        stream_outputs(),
+        # this is to keep nginx from buffering
+        # which altogether ruins the 'on the fly' side of things
+        headers={
+            'X-Accel-Buffering': 'no',
+        }
+    )
