@@ -43,7 +43,7 @@ def update_jb_from_nbh(jupyter_book_yaml, nbhosting_yaml, trackname, path_to_rep
                 if not jb_data:
                     raise ValueError("empty jb toc")
         except (FileNotFoundError, ValueError):
-            print("it is unsafe to start from an empty {jupyter_book_yaml}")
+            print(f"it is unsafe to start from an empty {jupyter_book_yaml}")
             return False
 
         tracks = nbh_data['tracks']
