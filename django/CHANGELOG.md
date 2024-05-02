@@ -1,5 +1,13 @@
 # ChangeLog
 
+## 0.58.0 2024 May 2
+
+* the format for specifying tracks has slightly changed
+  it is now possible to specify a file stem (without extension)
+* this is to accomodate the new script `jb-to-nbh-toc.py`
+  that helps maintain the tracks part of `nbhosting.yaml` 
+  from a jupyter-book `_toc.yml`
+
 ## 0.57.1 2024 Apr 18
 
 * bypass nginx buffering on the streaming http response
