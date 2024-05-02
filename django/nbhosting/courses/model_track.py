@@ -280,6 +280,10 @@ def notebooks_by_pattern(coursedir, pattern):
     root = Path(coursedir.notebooks_dir).absolute()
     absolutes = root.glob(pattern)
     probed = [path.relative_to(root) for path in absolutes]
+    if not probed:
+        logger.debug(f"{coursedir}: no notebook found for {pattern} - trying with {pattern}.*")
+        absolutes = root.glob(f"{pattern}.*")
+        probed = [path.relative_to(root) for path in absolutes]
     notebooks = [Notebook(coursedir, path) for path in probed]
     notebooks.sort(key=lambda n: n.path)
     logger.debug(f"{coursedir}: {pattern} -> {len(notebooks)} notebook(s)")
