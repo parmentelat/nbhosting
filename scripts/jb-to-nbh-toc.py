@@ -97,7 +97,7 @@ def update_nbh_from_jb(
         else:
             track = next(track for track in tracks if track["id"] == trackname)
 
-        print(f"track: {track}")
+        # print(f"track: {track}")
 
         inject_toc_into_track(jb_data, track, path)
 
