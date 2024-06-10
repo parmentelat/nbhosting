@@ -42,7 +42,8 @@ def inject_toc_into_track(
     # chapters: list of records that have
     # {file: str,
     #  glob: str,   (possibly replacing file:)
-    #  sections: list of records that have again a 'file' or 'glob' key
+    #  url: str,    (possibly replacing file, and not supported by nbhosting)
+    #  sections: list of records that have again a 'file' or 'glob' or 'url' key
 
     def notebooks(chapter):
         match chapter:
@@ -60,9 +61,15 @@ def inject_toc_into_track(
     def section(part):
         match part:
             case {'caption': caption, 'chapters': chapters}:
-                return dict(name=caption,
-                            # append all notebooks from all chapters
-                            notebooks=[notebook for chapter in chapters for notebook in notebooks(chapter)])
+                result = dict(name=caption, notebooks=[])
+                for chapter in chapters:
+                    match chapter:
+                        case {'url': url}:
+                            # nbhosting TOC does not allow for external urls for now
+                            print(f"ignoring url {url}")
+                        case _:
+                            result['notebooks'].extend(notebooks(chapter))
+                return result
             case _:
                 raise ValueError(f"unexpected part {part}")
 
