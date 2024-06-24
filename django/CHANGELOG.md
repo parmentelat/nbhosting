@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.59.0 2024 Jun 24
+
+* for fedora40 - and possibly due to git-2.45
+  change the way we clone to create the student repos
+
 ## 0.58.0 2024 May 2
 
 * the format for specifying tracks has slightly changed
