@@ -171,6 +171,32 @@ function -compute-course-globals() {
     COURSE_static_toplevels=$(cat $COURSE_notebooks/.static-toplevels 2> /dev/null)
 }
 
+# inspired by https://stackoverflow.com/questions/2411031/how-do-i-clone-into-a-non-empty-directory
+# coming with fedora 40 - I suspect more with git-2.45 - we can no longer run something like
+# git clone into '.'
+# because '.' of course exists - even though it might be empty
+function -our-git-clone() {
+    # instead of doing n times sudo, do all as root and chown the result once completed
+    local student=$1; shift
+    local url="$1"; shift
+    local dest="$1"; shift
+    local here=$(pwd)
+    [[ -d $dest ]] || mkdir -p $dest
+    cd $dest
+    [[ -d .git ]] && { echo "Directory $dest already contains a .git - aborting"; return 1; }
+    git init
+    git remote add origin $url
+    git fetch
+    # at this point we don't know the name of the default branch
+    # this command will create origin/HEAD
+    git remote set-head origin -a
+    # to retrieve it
+    local branch=$(git symbolic-ref refs/remotes/origin/HEAD --short | cut -d/ -f2)
+    # this is to preserve the local files that were possibly already present before the git init
+    git switch $branch
+    chown -R $student:$student .
+    cd $here
+}
 
 # clone from upstream git repo
 # and updates the various parts accordingly
@@ -500,11 +526,11 @@ function -git-repo-student-for-course() {
     local toplevel=$STUDENT_course
     # not existing at all, the easy case
     if [ ! -d $toplevel ]; then
-        sudo -u $student git clone $giturl $toplevel 1>&2
+        -our-git-clone $student $giturl $toplevel 1>&2
     elif [ ! -d $toplevel/.git ]; then
         -echo-stderr found student dir $toplevel without a .git needs rescue
         cd $toplevel
-        sudo -u $student git clone $giturl . 1>&2
+        -our-git-clone $student $giturl . 1>&2
     # else we should be good;
     # however because of the change introduced in 0.21
     # when needed, we overwrite the 'origin' remote url
