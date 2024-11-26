@@ -546,7 +546,7 @@ function select_classic(top, header) {
 
   <div id="left-pane" class="transitionable">
 
-    <div id='left-top' class='transitionable {% if tracks|length_is:"1" %}hidden{% endif%}' data-toggle="tooltip"
+    <div id='left-top' class='transitionable {% if tracks|length == 1 %}hidden{% endif%}' data-toggle="tooltip"
       data-html="true" title="this course<br>has several tracks">
 
       <div class="nav flex-column nav-pills" id="track-picker-tab" role="tablist" aria-orientation="vertical">
