@@ -23,8 +23,11 @@ function ensure-uid-1000() {
     }
 }
 
-function install-redis() {
-    rpm -q redis || dnf -y install redis
+# assuming f41 (used to be redis)
+function install-valkey() {
+    rpm -q valkey || dnf -y install valkey
+    # https://www.reddit.com/r/Fedora/comments/1ghf9tn/redis_replaced_with_valkey_but_valkey_service/
+    [[ -d /var/log/redis ]] && chown -R valkey:valkey /var/log/redis
 }
 
 # rsync options
@@ -160,7 +163,7 @@ function enable-services() {
     # this is for the Python API (used in monitor mostly)
     systemctl enable podman.socket
     systemctl enable nginx
-    systemctl enable --now redis
+    systemctl enable --now valkey
     systemctl enable nbh-django nbh-monitor nbh-autopull.timer
 }
 
@@ -184,7 +187,7 @@ function bypass-git-safe-directory() {
 function default-main() {
     check-subdirs
     ensure-uid-1000
-    install-redis
+    install-valkey
 
     update-bins
     update-jupyter
