@@ -7,7 +7,7 @@ cat /etc/fedora-release
 uname -a
 
 ##### core pieces
-rpm -q podman nginx redis
+rpm -q podman nginx valkey
 
 ##### python3 core pieces
 python3 --version
