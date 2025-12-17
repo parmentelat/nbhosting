@@ -44,7 +44,7 @@ setup(
         'pandas',      # for mass-register
     ],
     setup_requires=[],
-    tests_require=[],
+#    tests_require=[],
 
     # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
