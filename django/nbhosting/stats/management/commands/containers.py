@@ -23,8 +23,6 @@ PODMAN_URL = "unix:///run/podman/podman.sock"
 from nbhosting.stats.monitor import MonitoredJupyter, CourseFigures
 
 
-loop = asyncio.get_event_loop()
-
 DEFAULT_PERIOD = 1
 
 class Command(BaseCommand):
@@ -98,11 +96,10 @@ class Command(BaseCommand):
         running_monitoreds = [mon for mon in running_monitoreds if mon]
 
         if show_details or show_idle:
-            # probe them to fill las_activity and number_kernels
+            # probe them to fill last_activity and number_kernels
             futures = [mon.count_running_kernels() for mon in running_monitoreds]
-            #loop.run_until_complete(asyncio.gather(*futures))
-            for future in futures:
-                loop.run_until_complete(future)
+            with asyncio.Runner() as loop:
+                loop.run(asyncio.gather(*futures))
 
         if show_details:
 

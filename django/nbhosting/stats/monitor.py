@@ -424,9 +424,8 @@ class Monitor:
         futures = [mon.co_run(self.idle, self.lingering)
                    for mon in monitoreds]
 
-        #asyncio.run(asyncio.gather(*futures))
-        asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(*futures))
+        with asyncio.Runner() as loop:
+            loop.run(asyncio.gather(*futures))
 
         self.system_containers = len(monitoreds)
         self.system_kernels = sum((mon.nb_kernels or 0) for mon in monitoreds)
