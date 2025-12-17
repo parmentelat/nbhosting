@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.60.0 2025 Dec 17
+
+* for Python-3.14, replace deprecated `asyncio.get_event_loop()`
+  with `asyncio.Runner()`
+
 ## 0.59.0 2024 Jun 24
 
 * for fedora40 - and possibly due to git-2.45
