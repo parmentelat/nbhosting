@@ -1,0 +1,8 @@
+# this is meant to be installed under /etc/systemd/system
+# %i is the peer host to back up from, e.g. thermals.inria.fr or thurst.inria.fr
+[Unit]
+Description=Backup /nbhosting/prod and /nbhosting/dev from %i
+
+[Service]
+Type=oneshot
+ExecStart=/root/nbhosting/zz-devel/backup-prod-and-dev-from.sh %i

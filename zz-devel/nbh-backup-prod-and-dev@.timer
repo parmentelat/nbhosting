@@ -1,0 +1,11 @@
+# this is meant to be installed under /etc/systemd/system
+# %i is the peer host to back up from, e.g. thermals.inria.fr or thurst.inria.fr
+[Unit]
+Description=Daily backup of /nbhosting/prod and /nbhosting/dev from %i
+
+[Timer]
+OnCalendar=*-*-* 05:00:00
+Persistent=true
+
+[Install]
+WantedBy=multi-user.target

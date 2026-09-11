@@ -155,6 +155,8 @@ function enable-services() {
     rsync $rsopts systemd/nbh-django-over-gunicorn.service /etc/systemd/system/nbh-django.service
     rsync $rsopts systemd/nbh-autopull.service /etc/systemd/system/
     rsync $rsopts systemd/nbh-autopull.timer /etc/systemd/system/
+    rsync $rsopts zz-devel/nbh-backup-prod-and-dev@.timer /etc/systemd/system/
+    rsync $rsopts zz-devel/nbh-backup-prod-and-dev@.service /etc/systemd/system/
     sed -e "s,@monitor_period@,$monitor_period," \
         -e "s,@monitor_idle@,$monitor_idle," \
         -e "s,@monitor_lingering@,$monitor_lingering," \
